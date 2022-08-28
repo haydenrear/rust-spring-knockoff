@@ -1,0 +1,25 @@
+[package]
+name = "mongo_repo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+bson = { version = "2", features = ["chrono-0_4"] } # Needed for using chrono datetime in doc
+chrono = "0.4" # Used for setting DateTimes
+lazy_static = "1.4.0"
+async-std = "1.11.0"
+async-trait = "0.1.53"
+async-recursion = "1.0.0"
+
+[dependencies.mongodb]
+version = "2.2.0"
+default-features = false
+features = ["async-std-runtime"]
+[dependencies.data_framework]
+path = "../../cookingwebsite/data_framework"
+
+[dev-dependencies]
+tokio-test = "*"

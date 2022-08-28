@@ -1,0 +1,20 @@
+[package]
+name = "web_framework"
+version = "0.1.0"
+edition = "2021"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+lazy_static = "1.4.0"
+serde = "1.0.137"
+base64 = "0.13.0"
+tokio-test = "*"
+async-trait = "0.1.53"
+[dependencies.data_framework]
+path = "../data_framework"
+[dependencies.mongo_repo]
+path = '../mongo_repo'
+[dependencies.security_model]
+path = '../security_model'
+
