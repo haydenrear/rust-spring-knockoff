@@ -1,8 +1,11 @@
-[package]
-name = "rust-spring-knockoff"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+[workspace]
+members = [
+    "web_framework",
+    "http_macro",
+    "mongo_repo",
+    "security_model",
+    "data_framework",
+    "delegator_macro",
+    "delegator_test",
+    "delegator_macro_rules"
+]

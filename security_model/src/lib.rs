@@ -1,4 +1,5 @@
-use std::collections::{HashMap, LinkedList};
+use std::collections::{HashMap};
+use std::collections::linked_list::{LinkedList};
 use serde::{Serialize,Deserialize};
 
 pub trait User: Send + Sync + Copy {}
@@ -22,7 +23,6 @@ impl Default for SessionData {
     }
 }
 
-
 pub trait UserAccount {
     fn get_user_session(&self) -> Box<UserSession>;
     fn login(&self);
@@ -33,14 +33,11 @@ pub trait AccountData {
     fn get_id(&self) -> u16;
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
     }
 }

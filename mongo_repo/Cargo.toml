@@ -19,7 +19,7 @@ version = "2.2.0"
 default-features = false
 features = ["async-std-runtime"]
 [dependencies.data_framework]
-path = "../../cookingwebsite/data_framework"
+path = "../data_framework"
 
 [dev-dependencies]
 tokio-test = "*"

@@ -8,13 +8,15 @@ edition = "2021"
 [dependencies]
 lazy_static = "1.4.0"
 serde = "1.0.137"
+async-std = "1.11.0"
+async-trait = "0.1.53"
+serde_json = "1.0.87"
 base64 = "0.13.0"
 tokio-test = "*"
-async-trait = "0.1.53"
+futures = "0.3.25"
 [dependencies.data_framework]
 path = "../data_framework"
 [dependencies.mongo_repo]
 path = '../mongo_repo'
 [dependencies.security_model]
 path = '../security_model'
-
