@@ -63,7 +63,7 @@ pub mod session {
     pub struct SessionFilter {}
 
     impl Filter for SessionFilter {
-        fn filter(&self, request: HttpRequest, response: HttpResponse, filter: FilterChain) {
+        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain) {
             todo!()
         }
     }
