@@ -39,7 +39,7 @@ mod test_filter {
     struct TestAction;
     impl Action<Example, Example> for TestAction  {
         fn do_action(&self, metadata: EndpointMetadata, request: Option<Example>, context: &Context) -> Option<Example> {
-            None
+            Some(Example::default())
         }
     }
 
@@ -57,29 +57,30 @@ mod test_filter {
 
     #[test]
     fn test_filter() {
-        let filter = FilterImpl {
+        let one = FilterImpl {
             actions: Box::new(TestAction::default()),
             dispatcher: Dispatcher::default()
         };
-        // let one: &dyn Filter = &filter;
-        // let mut fc = FilterChain::new(vec![one]);
-        // fc.do_filter(&HttpRequest::default(), &mut HttpResponse::default());
-        // assert_eq!(fc.num, 0);
+        let mut fc = FilterChain::new(vec![&one]);
+        fc.do_filter(&HttpRequest::default(), &mut HttpResponse::default());
+        assert_eq!(fc.num, 0);
     }
 
 
     #[test]
     fn test_get_in_filter() {
-        // let filter = TestFilter2::default();
-        // let one: &dyn Filter = &filter;
-        // let mut fc = FilterChain::new(vec![one]);
-        // let mut request = HttpRequest::default();
-        // request.body = serde_json::to_string(&Example::default())
-        //     .unwrap();
-        // let mut response = HttpResponse::default();
-        // fc.do_filter(&request, &mut response);
-        // assert_eq!(fc.num, 0);
-        // assert_eq!(response.response, request.body)
+        let one = &FilterImpl {
+            actions: Box::new(TestAction::default()),
+            dispatcher: Dispatcher::default()
+        };
+        let mut fc = FilterChain::new(vec![one]);
+        let mut request = HttpRequest::default();
+        request.body = serde_json::to_string(&Example::default())
+            .unwrap();
+        let mut response = HttpResponse::default();
+        fc.do_filter(&request, &mut response);
+        assert_eq!(fc.num, 0);
+        assert_eq!(response.response, request.body)
     }
 
 }

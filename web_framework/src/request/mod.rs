@@ -8,6 +8,7 @@ pub mod request {
     use crate::context::Context;
     use crate::http::HttpMethod;
 
+    #[derive(Clone)]
     pub struct EndpointMetadata {
         pub path_variables: String,
         pub query_params: String
@@ -35,10 +36,10 @@ pub mod request {
     impl Clone for HttpRequest {
         fn clone(&self) -> Self {
             Self {
-                session: HttpSession::default(),
-                headers: HashMap::new(),
-                body: String::default(),
-                metadata: EndpointMetadata::default(),
+                session: self.session.clone(),
+                headers: self.headers.clone(),
+                body: self.body.clone(),
+                metadata: self.metadata.clone(),
                 method: HttpMethod::Get
             }
         }
