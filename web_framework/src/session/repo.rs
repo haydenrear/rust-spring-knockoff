@@ -10,6 +10,7 @@ use std::sync::{Arc, Mutex};
 use tokio_test::block_on;
 
 use async_trait::async_trait;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub struct HttpSessionDelegate(HttpSession);
 pub struct HttpSessionRepo;
@@ -39,7 +40,7 @@ async fn test_insert_save() {
     let saved_id = http_session_repo.save(&to_save).await;
     println!("{} is to save", to_save.get_id().unwrap().clone());
     println!("{} is id", saved_id.clone());
-    let found: HttpSession = http_session_repo.find_by_id(String::from("10")).await;
+    let found: HttpSession = http_session_repo.find_by_id(String::from("10")).await.unwrap();
     assert_eq!(found.get_id().unwrap(), String::from("10"));
 }
 

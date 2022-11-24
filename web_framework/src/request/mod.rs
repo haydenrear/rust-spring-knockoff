@@ -26,17 +26,15 @@ pub mod request {
     trait HttpEntity {}
 
     pub struct HttpRequest {
-        pub session: HttpSession,
         pub headers: HashMap<String, String>,
         pub body: String,
         pub metadata: EndpointMetadata,
-        pub method: HttpMethod
+        pub method: HttpMethod,
     }
 
     impl Clone for HttpRequest {
         fn clone(&self) -> Self {
             Self {
-                session: self.session.clone(),
                 headers: self.headers.clone(),
                 body: self.body.clone(),
                 metadata: self.metadata.clone(),
@@ -89,7 +87,6 @@ pub mod request {
     impl Default for HttpRequest {
         fn default() -> Self {
             Self {
-                session: HttpSession::default(),
                 headers: HashMap::new(),
                 body: String::default(),
                 metadata: EndpointMetadata::default(),

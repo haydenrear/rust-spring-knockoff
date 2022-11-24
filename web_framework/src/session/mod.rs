@@ -9,12 +9,17 @@ pub mod session {
     use crate::security::security::{AuthenticationToken, AuthenticationTokenImpl};
     use alloc::string::String;
     use core::borrow::Borrow;
-    use data_framework::Entity;
+    use std::any::Any;
+    use data_framework::{Entity, HDatabase, Repo, RepoDelegate};
     use security_model::SessionData;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
     use std::cell::RefCell;
     use std::collections::{HashMap, LinkedList};
+    use std::marker::PhantomData;
+    use std::ops::Deref;
     use std::pin::Pin;
+    use async_std::task as async_task;
+    use futures::executor;
 
     impl Default for WebApplication {
         fn default() -> Self {
@@ -60,11 +65,25 @@ pub mod session {
         }
     }
 
-    pub struct SessionFilter {}
+    pub struct SessionFilter<'a, R>
+        where R: Repo<'a, HttpSession, String>
+    {
+        p: &'a PhantomData<dyn Any>,
+        repo: Box<R>
+    }
 
-    impl Filter for SessionFilter {
+    impl <'a, R> Filter for SessionFilter<'a, R>
+        where R: Repo<'a, HttpSession, String>
+    {
         fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain) {
-            todo!()
+            if request.headers.contains_key("R_SESSION_ID") {
+                let session_id = request.headers["R_SESSION_ID"].clone();
+                if let Some(session) = executor::block_on(self.repo.find_by_id(session_id)) {
+                    response.session = session;
+                }
+            } else {
+
+            }
         }
     }
 }

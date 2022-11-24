@@ -90,7 +90,7 @@ Repo<'a, T, String> for MongoRepo {
         self.find_next(to_return, f).await
     }
 
-    async fn find_by_id(&self, id: String) -> T {
+    async fn find_by_id(&self, id: String) -> Option<T> {
         let found = self
             .0
             .get_connection_from()
@@ -102,9 +102,14 @@ Repo<'a, T, String> for MongoRepo {
                 },
                 None,
             )
-            .await
-            .unwrap();
-        bson::from_bson::<T>(Bson::Document(found.unwrap())).unwrap()
+            .await.unwrap_or(None);
+        let f: Option<T> = found.or(None)
+            .map(|d| {
+                bson::from_bson::<T>(Bson::Document(d))
+                    .ok()
+            })
+            .flatten();
+        f
     }
 
     async fn save(&self, to_save: &'a T) -> String {
