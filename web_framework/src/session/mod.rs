@@ -75,15 +75,14 @@ pub mod session {
     impl <'a, R> Filter for SessionFilter<'a, R>
         where R: Repo<'a, HttpSession, String>
     {
-        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain) {
-            if request.headers.contains_key("R_SESSION_ID") {
-                let session_id = request.headers["R_SESSION_ID"].clone();
-                if let Some(session) = executor::block_on(self.repo.find_by_id(session_id)) {
-                    response.session = session;
-                }
-            } else {
-
+        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, mut filter: FilterChain) {
+            if let Some(session) = request.headers.get("R_SESSION_ID")
+                .and_then(|session_id| {
+                    executor::block_on(self.repo.find_by_id(session_id.clone()))
+                }) {
+                response.session = session;
             }
+            filter.do_filter(request, response);
         }
     }
 }
