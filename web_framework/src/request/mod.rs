@@ -57,12 +57,12 @@ pub mod request {
     }
 
     pub trait RequestExtractor<T> {
-        fn convert_extract(&self, request: &HttpRequest) -> T;
+        fn convert_extract(&self, request: &HttpRequest) -> Option<T>;
     }
 
     impl RequestExtractor<EndpointMetadata> for Context {
-        fn convert_extract(&self, request: &HttpRequest) -> EndpointMetadata {
-            EndpointMetadata::default()
+        fn convert_extract(&self, request: &HttpRequest) -> Option<EndpointMetadata> {
+            Some(EndpointMetadata::default())
         }
     }
 

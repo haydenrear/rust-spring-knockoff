@@ -65,6 +65,15 @@ pub mod session {
         }
     }
 
+    impl Entity<String> for HttpSession {
+        fn get_id(&self) -> Option<String> {
+            self.id.clone()
+        }
+        fn set_id(&mut self, id: String) {
+            self.id = Some(id);
+        }
+    }
+
     pub struct SessionFilter<'a, R>
         where R: Repo<'a, HttpSession, String>
     {
@@ -85,4 +94,5 @@ pub mod session {
             filter.do_filter(request, response);
         }
     }
+
 }

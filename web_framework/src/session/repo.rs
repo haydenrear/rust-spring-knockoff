@@ -44,15 +44,6 @@ async fn test_insert_save() {
     assert_eq!(found.get_id().unwrap(), String::from("10"));
 }
 
-impl Entity<String> for HttpSession {
-    fn get_id(&self) -> Option<String> {
-        self.id.clone()
-    }
-    fn set_id(&mut self, id: String) {
-        self.id = Some(id);
-    }
-}
-
 #[test]
 fn test_repo_delegate() {
     println!("hello")

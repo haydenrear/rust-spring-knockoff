@@ -67,7 +67,7 @@ pub mod filter {
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
     {
-        fn do_action(&self, metadata: EndpointMetadata, request: Option<Request>, context: &Context) -> Option<Response>;
+        fn do_action(&self, metadata: EndpointMetadata, request: &Option<Request>, context: &Context) -> Option<Response>;
     }
 
     pub struct FilterImpl<Request,Response>

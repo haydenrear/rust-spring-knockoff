@@ -1,3 +1,4 @@
+use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
 use crate::context::Context;
 use crate::convert::ConverterContext;
@@ -17,33 +18,26 @@ impl Dispatcher {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
     {
-        let converted = self.context.convert_to(&request);
-
-        let found = match converted {
-            Some(s) => {
-                s
-            }
-            None => {
-                MessageType {
-                    message: None
-                }
-
-            }
-        };
-
-        self.context.convert_from(&found.message, MediaType::Json)
+        self.context.convert_to(&request)
+            .and_then(|found| {
+                self.context.convert_extract(&request)
+                    .and_then(|metadata|
+                        action.do_action(
+                            metadata,
+                            &found.message,
+                            &self.context,
+                        )
+                    )
+                    .and_then(|action_response|
+                        self.context.convert_from(
+                            &found.message,
+                            MediaType::Json
+                        ))
+            })
             .map(|response_to_write| {
                 response.write(response_to_write.clone().as_bytes());
                 response_to_write
             });
-
-        let metadata = self.context.convert_extract(&request);
-
-        let example: Option<Response> = action.do_action(
-            metadata,
-            found.message,
-            &self.context
-        );
     }
 }
 

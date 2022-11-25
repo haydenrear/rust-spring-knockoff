@@ -28,7 +28,6 @@ mod test_filter {
         }
     }
 
-
     struct TestMessageConverter;
 
     #[derive(Serialize, Deserialize)]
@@ -38,7 +37,11 @@ mod test_filter {
 
     struct TestAction;
     impl Action<Example, Example> for TestAction  {
-        fn do_action(&self, metadata: EndpointMetadata, request: Option<Example>, context: &Context) -> Option<Example> {
+        fn do_action(&self,
+                     metadata: EndpointMetadata,
+                     request: &Option<Example>,
+                     context: &Context
+        ) -> Option<Example> {
             Some(Example::default())
         }
     }
