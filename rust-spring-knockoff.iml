@@ -13,6 +13,9 @@
       <sourceFolder url="file://$MODULE_DIR$/delegator_macro/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/delegator_macro_rules/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/delegator_test/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/hyper/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/rust_spring_macro/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test_app/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

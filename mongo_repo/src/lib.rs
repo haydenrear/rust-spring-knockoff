@@ -43,18 +43,22 @@ macro foo($i: item) {
     $i
 }
 
-foo!(pub struct A;);
+foo!(
+    pub struct A;
+);
 
 #[test]
 fn test() {
-    let a = A{};
+    let a = A {};
 }
 
 pub struct MongoRepo(&'static Db, &'static str, &'static str);
 
 impl MongoRepo {
     #[async_recursion]
-    pub async fn find_next<T: Entity<String> + Serialize + for<'de> Deserialize<'de> + Send + Sync>(
+    pub async fn find_next<
+        T: Entity<String> + Serialize + for<'de> Deserialize<'de> + Send + Sync,
+    >(
         &self,
         mut lst: LinkedList<T>,
         mut crsr: Cursor<T>,
@@ -69,12 +73,12 @@ impl MongoRepo {
     pub fn new(collection: &'static str, database: &'static str) -> Box<MongoRepo> {
         Box::new(MongoRepo(&DB, collection, database))
     }
-
 }
 
 #[async_trait]
 impl<'a, T: Entity<String> + Serialize + for<'de> Deserialize<'de> + Send + Sync>
-Repo<'a, T, String> for MongoRepo {
+    Repo<'a, T, String> for MongoRepo
+{
     type Data = &'static String;
 
     async fn find_all(&self) -> LinkedList<T> {
@@ -102,12 +106,11 @@ Repo<'a, T, String> for MongoRepo {
                 },
                 None,
             )
-            .await.unwrap_or(None);
-        let f: Option<T> = found.or(None)
-            .map(|d| {
-                bson::from_bson::<T>(Bson::Document(d))
-                    .ok()
-            })
+            .await
+            .unwrap_or(None);
+        let f: Option<T> = found
+            .or(None)
+            .map(|d| bson::from_bson::<T>(Bson::Document(d)).ok())
             .flatten();
         f
     }
@@ -126,8 +129,8 @@ Repo<'a, T, String> for MongoRepo {
     }
 
     fn get(data: Option<Self::Data>) -> Self
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         MongoRepo(&DB, data.unwrap().as_str(), data.unwrap().as_str())
     }
@@ -148,8 +151,8 @@ impl HDatabase<String> for Db {
         &self,
         name: Option<&'static String>,
     ) -> Box<dyn Repo<T, String, Data = &'static String>>
-        where
-            T: Entity<String> + Serialize + for<'de> Deserialize<'de> + Send + Sync,
+    where
+        T: Entity<String> + Serialize + for<'de> Deserialize<'de> + Send + Sync,
     {
         MongoRepo::new(name.unwrap().as_str(), name.unwrap().as_str())
     }
@@ -157,9 +160,7 @@ impl HDatabase<String> for Db {
     async fn get_connection(&self, opts: Option<ClientOptions>) -> Client {
         match opts {
             Some(opt) => Client::with_options(opt).unwrap(),
-            None => {
-                Client::with_options(Db::default_options(self.client_uri).await).unwrap()
-            }
+            None => Client::with_options(Db::default_options(self.client_uri).await).unwrap(),
         }
     }
 }

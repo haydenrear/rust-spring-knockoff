@@ -1,14 +1,11 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+#![feature(proc_macro_quote)]
+use proc_macro::{quote, Span, TokenStream};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, LinkedList};
+use std::sync::{Arc, Mutex};
+use syn::{parse_macro_input, DeriveInput};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+#[proc_macro_derive(Controller)]
+pub fn library(input: TokenStream) -> TokenStream {
+    quote! {}
 }

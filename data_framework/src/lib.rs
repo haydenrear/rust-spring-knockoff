@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::LinkedList;
 
 #[async_trait]
-pub trait Repo<'a, T: Entity<ID>, ID> {
+pub trait Repo<'a, T: Entity<ID>, ID> : Send + Sync{
     type Data;
     async fn find_all(&self) -> LinkedList<T>
     where
@@ -42,6 +42,10 @@ pub trait HDatabase<ID>: Send + Sync {
     type RepoOption;
     async fn list_database(&self) -> Vec<String>;
     async fn get_connection(&self, opts: Option<Self::DbOptions>) -> Self::DbConnection;
-    async fn get_repo<T>(&self, name: Option<Self::DbId>) -> Box<dyn Repo<T, ID, Data = Self::RepoOption>>
-    where T: Entity<ID>;
+    async fn get_repo<T>(
+        &self,
+        name: Option<Self::DbId>,
+    ) -> Box<dyn Repo<T, ID, Data = Self::RepoOption>>
+    where
+        T: Entity<ID>;
 }

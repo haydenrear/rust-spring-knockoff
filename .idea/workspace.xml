@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="test app">
+      <change afterPath="$PROJECT_DIR$/delegator_test/build.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rust_spring_macro/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rust_spring_macro/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web_framework/src/security/security_filter.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/architecture.md" beforeDir="false" afterPath="$PROJECT_DIR$/architecture.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_macro/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_macro/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_macro/abstract_iterator.md" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_macro/module_macro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_macro/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/context/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/filter/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/http/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/http/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/request/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/security/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/security/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/session/mod.rs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="true" />
+  </component>
+  <component name="KubernetesApiPersistence">
+    <option name="context" value="minikube" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="3w5p7qju" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="2" />
+  </component>
+  <component name="ProjectId" id="2DzlmC4mU0eDEClNIhS74zjTHUO" />
+  <component name="ProjectViewState">
+    <option name="abbreviatePackageNames" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "aspect.path.notification.shown": "true",
+    "go.import.settings.migrated": "true",
+    "jdk.selected.JAVA_MODULE": "openjdk-19",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "language.rust.build.tool.cargo",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/delegator_test" />
+      <recent name="$PROJECT_DIR$/web_framework/src/static_registrar" />
+      <recent name="$PROJECT_DIR$/delegator_macro" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Cargo.Run test_app">
+    <configuration name="Run test_app" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package test_app --bin test_app" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test do_run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package hyper --lib do_run -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test filter::test::test_filter::test_filter" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib filter::test::test_filter::test_filter -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs>
+        <env name="DYN_PATH" value="./test_library" />
+      </envs>
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_macro --lib test -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="test --package rust-spring-knockoff --lib tests" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test filter::test::test_filter::test_filter" />
+      <item itemvalue="Cargo.Run test_app" />
+      <item itemvalue="Cargo.Test do_run" />
+      <item itemvalue="Cargo.Test test" />
+      <item itemvalue="Cargo.Test test (1)" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Run test_app" />
+        <item itemvalue="Cargo.Test filter::test::test_filter::test_filter" />
+        <item itemvalue="Cargo.Test test (1)" />
+        <item itemvalue="Cargo.Test test" />
+        <item itemvalue="Cargo.Test do_run" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="" />
+      <created>1661709950791</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1661709950791</updated>
+      <workItem from="1661709952165" duration="3242000" />
+      <workItem from="1661899577540" duration="1713000" />
+      <workItem from="1667149459202" duration="8853000" />
+      <workItem from="1667767574358" duration="8547000" />
+      <workItem from="1668085835035" duration="582000" />
+      <workItem from="1668347252900" duration="19661000" />
+      <workItem from="1668776305387" duration="6393000" />
+      <workItem from="1668795217732" duration="31000" />
+      <workItem from="1668873972922" duration="11012000" />
+      <workItem from="1668890054430" duration="147000" />
+      <workItem from="1668903774902" duration="507000" />
+      <workItem from="1668904394534" duration="308000" />
+      <workItem from="1669304701232" duration="11789000" />
+      <workItem from="1669565619167" duration="19272000" />
+      <workItem from="1669721710588" duration="17000" />
+      <workItem from="1669721731995" duration="46000" />
+      <workItem from="1669721782343" duration="22000" />
+      <workItem from="1669721811188" duration="1018000" />
+      <workItem from="1669759600666" duration="343000" />
+      <workItem from="1669759950929" duration="5141000" />
+      <workItem from="1670079653703" duration="598000" />
+      <workItem from="1670080486333" duration="27116000" />
+      <workItem from="1670180643212" duration="2945000" />
+      <workItem from="1670285298900" duration="5437000" />
+      <workItem from="1670552207539" duration="57551000" />
+    </task>
+    <task id="LOCAL-00001" summary="add">
+      <created>1668363611774</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1668363611774</updated>
+    </task>
+    <task id="LOCAL-00002" summary="&quot;working&quot;">
+      <created>1668883381873</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1668883381873</updated>
+    </task>
+    <task id="LOCAL-00003" summary="tests passing">
+      <created>1668886232755</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1668886232755</updated>
+    </task>
+    <task id="LOCAL-00004" summary="session">
+      <created>1669308229667</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1669308229667</updated>
+    </task>
+    <task id="LOCAL-00005" summary="session">
+      <created>1669313026722</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1669313026722</updated>
+    </task>
+    <task id="LOCAL-00006" summary="session">
+      <created>1669357880251</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1669357880251</updated>
+    </task>
+    <task id="LOCAL-00007" summary="ctx">
+      <created>1669712094355</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1669712094355</updated>
+    </task>
+    <task id="LOCAL-00008" summary="ctx">
+      <created>1669712363467</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1669712363467</updated>
+    </task>
+    <task id="LOCAL-00009" summary="ctx">
+      <created>1669854227477</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1669854227477</updated>
+    </task>
+    <task id="LOCAL-00010" summary="ctx">
+      <created>1670100985611</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1670100985611</updated>
+    </task>
+    <task id="LOCAL-00011" summary="compiled with ctx">
+      <created>1670104614422</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1670104614422</updated>
+    </task>
+    <task id="LOCAL-00012" summary="compiled with ctx">
+      <created>1670107195183</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1670107195183</updated>
+    </task>
+    <task id="LOCAL-00013" summary="compiled with ctx">
+      <created>1670182994294</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1670182994294</updated>
+    </task>
+    <task id="LOCAL-00014" summary="security">
+      <created>1670292170077</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1670292170077</updated>
+    </task>
+    <task id="LOCAL-00015" summary="security">
+      <created>1670593553118</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1670593553118</updated>
+    </task>
+    <task id="LOCAL-00016" summary="compiling">
+      <created>1670647174702</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1670647174702</updated>
+    </task>
+    <task id="LOCAL-00017" summary="test app">
+      <created>1670687124429</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1670687124429</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add" />
+    <MESSAGE value="response" />
+    <MESSAGE value="&quot;working&quot;" />
+    <MESSAGE value="tests passing" />
+    <MESSAGE value="session" />
+    <MESSAGE value="ctx" />
+    <MESSAGE value="compiled with ctx" />
+    <MESSAGE value="security" />
+    <MESSAGE value="compiling" />
+    <MESSAGE value="test app" />
+    <option name="LAST_COMMIT_MESSAGE" value="test app" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>false</integration-enabled>
+    <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

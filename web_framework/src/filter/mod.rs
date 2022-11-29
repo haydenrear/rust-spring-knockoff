@@ -4,18 +4,20 @@ pub mod filter {
     extern crate alloc;
     extern crate core;
 
-    use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
+    use crate::context::{ApplicationContext, RequestContext};
+    use crate::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
+    use crate::convert::Registration;
+    use crate::http::{Connection, HttpMethod};
+    use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
+    use crate::security::security::AuthenticationToken;
     use crate::session::session::HttpSession;
-    use crate::context::Context;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
+    use std::cmp::Ordering;
     use serde::{Deserialize, Serialize};
     use std::collections::{HashMap, LinkedList};
-    use std::ops::Deref;
+    use std::ops::{Deref, Index};
     use std::path::Iter;
-    use crate::controller::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
-    use crate::convert::Registration;
-    use crate::http::{HttpMethod, HttpMethodAction};
 
     #[derive(Clone)]
     pub struct FilterChain<'a> {
@@ -23,12 +25,14 @@ pub mod filter {
         pub(crate) num: usize,
     }
 
+    // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
+    // resulting in new filter
     impl<'a> FilterChain<'a> {
-        pub fn do_filter(&mut self, request: &HttpRequest, response: &mut HttpResponse) {
+        pub fn do_filter(&mut self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
             let next = self.next();
             if next != -1 {
                 let f = &self.filters[(next - 1) as usize];
-                f.filter(request, response, self.clone());
+                f.filter(request, response, self.clone(), ctx);
                 if self.num >= self.filters.len() {
                     self.num = 0;
                 }
@@ -50,49 +54,88 @@ pub mod filter {
                 num: 0,
             }
         }
+
     }
 
     #[derive(PartialEq)]
     pub enum MediaType {
-        Json, Xml
+        Json,
+        Xml,
     }
 
-    pub trait DispatcherContainer
-    {
-        fn dispatcher<Response, Request>(&self, method: HttpMethod) -> &'static dyn Action<Request, Response>;
+    pub trait DispatcherContainer {
+        fn dispatcher<Response, Request>(
+            &self,
+            method: HttpMethod,
+        ) -> &'static dyn Action<Request, Response>;
     }
 
-    pub trait Action<Request,Response>
-        where
-            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
-    {
-        fn do_action(&self, metadata: EndpointMetadata, request: &Option<Request>, context: &Context) -> Option<Response>;
-    }
-
-    pub struct FilterImpl<Request,Response>
+    pub trait Action<Request, Response>: Send + Sync
     where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        pub(crate) actions:  Box<dyn Action<Request, Response>>,
-        pub(crate) dispatcher: Dispatcher
+        fn do_action(
+            &self,
+            metadata: EndpointMetadata,
+            request: &Option<Request>,
+            context: &RequestContext,
+        ) -> Option<Response>;
+
+        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool;
+
+        /**
+        determines if it matches endpoint, http method, etc.
+        */
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool;
+
     }
 
-    pub trait Filter {
-        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain);
+
+    /***
+    Every "controller endpoint" will create one of these.
+     */
+    pub struct RequestResponseActionFilter<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    {
+        pub(crate) actions: Box<dyn Action<Request, Response>>,
+        pub(crate) dispatcher: Dispatcher,
     }
 
-    impl <Request, Response> Filter for FilterImpl<Request, Response>
-        where
-            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
+    impl <Request, Response> RequestResponseActionFilter<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, mut filter: FilterChain) {
-            self.dispatcher.do_request(request.clone(), response, &self.actions);
-            filter.do_filter(request, response)
+        pub fn new(action: Box<dyn Action<Request, Response>>) -> Self {
+            Self {
+                actions: action,
+                dispatcher: Dispatcher::default()
+            }
         }
     }
 
+    pub trait Filter : Send + Sync{
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext);
+    }
 
+    impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    {
+        fn filter(
+            &self,
+            request: &WebRequest,
+            response: &mut WebResponse,
+            mut filter: FilterChain,
+            ctx: &ApplicationContext
+        ) {
+            self.dispatcher
+                .do_request(request.clone(), response, &self.actions);
+            filter.do_filter(request, response, ctx)
+        }
+    }
 }

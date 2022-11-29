@@ -1,25 +1,58 @@
-use delegator_macro::{HelperAttr};
-use delegator_macro_rules::{types, last_thing};
+#![feature(proc_macro_hygiene)]
+use delegator_macro_rules::{last_thing, types};
+use delegator_macro::module_attr;
 use std::fmt::Display;
+use crate::test_library::*;
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use syn::{
+    parse_macro_input,
+    LitStr,
+    Token,
+    Ident,
+    token::Paren,
+    DeriveInput
+};
 
-#[derive(HelperAttr)]
-#[derive(Debug)]
-struct TestStruct {
-    field: ()
-}
+use quote::{quote, format_ident, IdentFragment, ToTokens};
+use crate::test_library::test_library_two::test_library_two::Three;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[module_attr]
+pub mod test_library {
 
-    #[test]
-    fn test_struct() {
-        last_thing!();
-        let test_struct = TestStruct {field:  ()};
-        print!("");
+
+    use delegator_macro::module_attr;
+    use syn::{parse_macro_input, LitStr, Token, Ident, token::Paren, DeriveInput, ItemStruct, Fields, Field};
+
+    use quote::{quote, format_ident, IdentFragment, ToTokens};
+    use derive_syn_parse::Parse;
+    use syn::parse::{Parse, Parser, ParseStream};
+    use rust_spring_macro::module_post_processor::ModuleStructPostProcessor;
+
+    #[path = "test_library_two.rs"]
+    pub mod test_library_two;
+
+    pub trait Found {
     }
+
+    impl Found for One {
+    }
+
+    impl One {
+        fn new() -> Self {
+            Self {a: String::from("")}
+        }
+    }
+
+    pub struct One {
+    }
+
+
 }
+
+#[test]
+fn test() {
+    use test_library::One;
+    let one: One = One{a: String::from("hello")};
+    // let three: Three = Three{a: String::from("hello")};
+}
+

@@ -1,29 +1,33 @@
 #[cfg(test)]
 mod test_filter {
-
-    use crate::request::request::{EndpointMetadata, RequestExtractor, ResponseWriter};
-    use crate::request::request::{HttpRequest, HttpResponse};
-    use crate::convert::ConverterContext;
+    use crate::context::{ApplicationContext, RequestContext};
+    use crate::dispatch::Dispatcher;
+    use crate::convert::{ConverterRegistry, Registry};
+    use crate::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
+    use crate::message::MessageType;
+    use crate::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
+    use crate::request::request::{WebRequest, WebResponse};
+    use crate::security::security::AuthenticationToken;
+    use lazy_static::lazy_static;
+    use serde::{Deserialize, Serialize};
+    use std::any::Any;
     use std::cell::RefCell;
     use std::collections::LinkedList;
-    use std::io::Write;
+    use std::io::{Read, Write};
     use std::net::TcpStream;
-    use lazy_static::lazy_static;
-    use serde::{Serialize,Deserialize};
-    use crate::context::Context;
-    use crate::controller::{Dispatcher};
-    use crate::filter::filter::{Action, Filter, FilterChain, FilterImpl, MediaType};
-    use crate::message::MessageType;
+    use std::ops::Deref;
+    use futures::SinkExt;
+    use circular::Buffer;
 
-    #[derive(Serialize,Deserialize,Debug,Clone)]
+    #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct Example {
-        value: String
+        value: String,
     }
 
     impl Default for Example {
         fn default() -> Self {
             Example {
-                value: String::from("hello!")
+                value: String::from("hello!"),
             }
         }
     }
@@ -32,17 +36,26 @@ mod test_filter {
 
     #[derive(Serialize, Deserialize)]
     struct TestJson {
-        value: String
+        value: String,
     }
 
     struct TestAction;
-    impl Action<Example, Example> for TestAction  {
-        fn do_action(&self,
-                     metadata: EndpointMetadata,
-                     request: &Option<Example>,
-                     context: &Context
+    impl Action<Example, Example> for TestAction {
+        fn do_action(
+            &self,
+            metadata: EndpointMetadata,
+            request: &Option<Example>,
+            context: &RequestContext,
         ) -> Option<Example> {
             Some(Example::default())
+        }
+
+        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+            true
+        }
+
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
+            true
         }
     }
 
@@ -60,30 +73,68 @@ mod test_filter {
 
     #[test]
     fn test_filter() {
-        let one = FilterImpl {
+        let one = RequestResponseActionFilter {
             actions: Box::new(TestAction::default()),
-            dispatcher: Dispatcher::default()
+            dispatcher: Dispatcher::default(),
         };
         let mut fc = FilterChain::new(vec![&one]);
-        fc.do_filter(&HttpRequest::default(), &mut HttpResponse::default());
+        fc.do_filter(&WebRequest::default(), &mut WebResponse::default(), &ApplicationContext::new());
         assert_eq!(fc.num, 0);
     }
-
 
     #[test]
     fn test_get_in_filter() {
-        let one = &FilterImpl {
+        let one = &RequestResponseActionFilter {
             actions: Box::new(TestAction::default()),
-            dispatcher: Dispatcher::default()
+            dispatcher: Dispatcher::default(),
         };
         let mut fc = FilterChain::new(vec![one]);
-        let mut request = HttpRequest::default();
-        request.body = serde_json::to_string(&Example::default())
-            .unwrap();
-        let mut response = HttpResponse::default();
-        fc.do_filter(&request, &mut response);
+        let mut request = WebRequest::default();
+        request
+            .headers
+            .insert("MediaType".to_string(), "json".to_string());
+        request.body = serde_json::to_string(&Example::default()).unwrap();
+        let mut response = WebResponse::default();
+        fc.do_filter(&request, &mut response, &ApplicationContext::new());
         assert_eq!(fc.num, 0);
-        assert_eq!(response.response, request.body)
+        let response_val = String::from_utf8(response.response_bytes().unwrap())
+            .unwrap();
+        assert_eq!(response_val, request.body);
+        assert_eq!(0, response.response_bytes().unwrap().len());
     }
 
+    #[test]
+    fn filter_application_builder() {
+        let mut vec: Vec<&dyn Filter> = vec![];
+        vec.push(&RequestResponseActionFilter {
+            actions: Box::new(TestAction {}),
+            dispatcher: Dispatcher::default(),
+        });
+    }
+
+    // #[test]
+    // fn test_registry() {
+    //     let ctx = RequestContext::default();
+    //     let registrations = ctx.message_converters.read_only_registrations();
+    //     assert_eq!(registrations.len(), 2);
+    // }
+
+    #[test]
+    fn test_buffer() {
+        let mut buffer = Buffer::with_capacity(100);
+        let mut to_write: [u8; 155] = [0;155];
+        for i in 0..100 {
+            to_write[i] = i as u8;
+        }
+        buffer.write(to_write.as_slice());
+        let mut to_read: [u8; 155] = [0;155];
+        buffer.read(to_read.as_mut_slice());
+        println!("{}", &to_read[10]);
+        assert_eq!(to_read[10], 10);
+
+        let mut to_read: [u8; 155] = [0;155];
+        buffer.read(to_read.as_mut_slice());
+        println!("{}", &to_read[10]);
+        assert_ne!(to_read[10], 10);
+    }
 }

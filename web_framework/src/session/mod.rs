@@ -5,21 +5,22 @@ pub mod session {
     extern crate core;
 
     use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{HttpRequest, HttpResponse};
-    use crate::security::security::{AuthenticationToken, AuthenticationTokenImpl};
+    use crate::request::request::{WebRequest, WebResponse};
+    use crate::security::security::{Authentication, AuthenticationToken};
     use alloc::string::String;
+    use async_std::task as async_task;
     use core::borrow::Borrow;
-    use std::any::Any;
     use data_framework::{Entity, HDatabase, Repo, RepoDelegate};
+    use futures::executor;
     use security_model::SessionData;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::any::Any;
     use std::cell::RefCell;
     use std::collections::{HashMap, LinkedList};
     use std::marker::PhantomData;
     use std::ops::Deref;
     use std::pin::Pin;
-    use async_std::task as async_task;
-    use futures::executor;
+    use crate::context::ApplicationContext;
 
     impl Default for WebApplication {
         fn default() -> Self {
@@ -32,16 +33,16 @@ pub mod session {
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct HttpSession {
-        ctx: WebApplication,
-        session_data: SessionData,
-        authentication_token: Option<AuthenticationTokenImpl>,
-        pub(crate) id: Option<String>,
+        pub ctx: WebApplication,
+        pub session_data: SessionData,
+        pub authentication_token: Option<AuthenticationToken>,
+        pub id: Option<String>,
     }
 
     impl HttpSession {
         pub fn new(
             id: String,
-            authentication_token: Option<AuthenticationTokenImpl>,
+            authentication_token: Option<AuthenticationToken>,
             ctx: WebApplication,
             session_data: SessionData,
         ) -> HttpSession {
@@ -59,7 +60,7 @@ pub mod session {
             Self {
                 ctx: WebApplication::default(),
                 session_data: SessionData::default(),
-                authentication_token: Some(AuthenticationTokenImpl::default()),
+                authentication_token: Some(AuthenticationToken::default()),
                 id: Some(String::from("1")),
             }
         }
@@ -75,24 +76,31 @@ pub mod session {
     }
 
     pub struct SessionFilter<'a, R>
-        where R: Repo<'a, HttpSession, String>
+    where
+        R: Repo<'a, HttpSession, String>,
     {
-        p: &'a PhantomData<dyn Any>,
-        repo: Box<R>
+        p: &'a PhantomData<dyn Any + Send + Sync>,
+        repo: Box<R>,
     }
 
-    impl <'a, R> Filter for SessionFilter<'a, R>
-        where R: Repo<'a, HttpSession, String>
+    impl<'a, R> Filter for SessionFilter<'a, R>
+    where
+        R: Repo<'a, HttpSession, String>,
     {
-        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, mut filter: FilterChain) {
-            if let Some(session) = request.headers.get("R_SESSION_ID")
-                .and_then(|session_id| {
-                    executor::block_on(self.repo.find_by_id(session_id.clone()))
-                }) {
+        fn filter(
+            &self,
+            request: &WebRequest,
+            response: &mut WebResponse,
+            mut filter: FilterChain,
+            ctx: &ApplicationContext
+        ) {
+            if let Some(session) = request
+                .headers
+                .get("R_SESSION_ID")
+                .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id.clone()))) {
                 response.session = session;
             }
-            filter.do_filter(request, response);
+            filter.do_filter(request, response, ctx);
         }
     }
-
 }

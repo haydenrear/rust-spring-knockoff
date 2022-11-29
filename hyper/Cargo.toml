@@ -1,0 +1,23 @@
+[package]
+name = "hyper"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+bson = { version = "2", features = ["chrono-0_4"] } # Needed for using chrono datetime in doc
+serde_json = "1.0.87"
+futures = "0.3.25"
+chrono = "0.4" # Used for setting DateTimes
+lazy_static = "1.4.0"
+async-std = "1.11.0"
+async-trait = "0.1.53"
+circular = "0.3.0"
+async-recursion = "1.0.0"
+tokio = "1.18.2"
+hyper = {version = "0.14.20", features = ["server", "http2", "http1", "tcp", "runtime", "stream"]}
+
+[dependencies.web_framework]
+path = "../web_framework"
