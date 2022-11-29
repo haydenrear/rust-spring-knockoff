@@ -27,7 +27,9 @@ impl ApplicationContext {
     }
 
     /**
-    New filter chain for each request - because it's mutable self reference
+    New filter chain for each request - because it's mutable self reference. **maybe** because the filter chain
+    has lifetime of 'a and it's being added to that, even though filterRegistrar Filter have lifetime of 'static
+    it will go to lifetime of 'a, and therefore fix issue of unending static memory.
     */
     fn create_get_filter_chain<'a>(&self) -> FilterChain<'a> {
         let filters = self.filter_registry.filters.clone();

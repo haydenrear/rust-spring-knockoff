@@ -171,4 +171,3 @@ pub trait ConverterRegistryContainer {
     fn converters(&self, request: &HttpRequest) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>>;
     fn convert_from_converters(&self, media_type: MediaType) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>>;
 }
-
