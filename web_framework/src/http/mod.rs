@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::context::Context;
+use crate::context::RequestContext;
 use crate::controller::{RequestMethodDispatcher};
 use crate::request::request::{EndpointMetadata, HttpRequest};
 

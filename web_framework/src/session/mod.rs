@@ -6,7 +6,7 @@ pub mod session {
 
     use crate::filter::filter::{Filter, FilterChain};
     use crate::request::request::{HttpRequest, HttpResponse};
-    use crate::security::security::{AuthenticationToken, AuthenticationTokenImpl};
+    use crate::security::security::{Authentication, AuthenticationToken};
     use alloc::string::String;
     use core::borrow::Borrow;
     use std::any::Any;
@@ -32,16 +32,16 @@ pub mod session {
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct HttpSession {
-        ctx: WebApplication,
-        session_data: SessionData,
-        authentication_token: Option<AuthenticationTokenImpl>,
-        pub(crate) id: Option<String>,
+        pub ctx: WebApplication,
+        pub session_data: SessionData,
+        pub authentication_token: Option<AuthenticationToken>,
+        pub id: Option<String>,
     }
 
     impl HttpSession {
         pub fn new(
             id: String,
-            authentication_token: Option<AuthenticationTokenImpl>,
+            authentication_token: Option<AuthenticationToken>,
             ctx: WebApplication,
             session_data: SessionData,
         ) -> HttpSession {
@@ -59,7 +59,7 @@ pub mod session {
             Self {
                 ctx: WebApplication::default(),
                 session_data: SessionData::default(),
-                authentication_token: Some(AuthenticationTokenImpl::default()),
+                authentication_token: Some(AuthenticationToken::default()),
                 id: Some(String::from("1")),
             }
         }

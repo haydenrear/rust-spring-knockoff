@@ -5,7 +5,7 @@ pub mod request {
     use std::fs::Metadata;
     use std::net::TcpStream;
     use std::ops::Deref;
-    use crate::context::Context;
+    use crate::context::RequestContext;
     use crate::http::HttpMethod;
 
     #[derive(Clone)]
@@ -29,7 +29,7 @@ pub mod request {
         pub headers: HashMap<String, String>,
         pub body: String,
         pub metadata: EndpointMetadata,
-        pub method: HttpMethod,
+        pub method: HttpMethod
     }
 
     impl Clone for HttpRequest {
@@ -60,7 +60,7 @@ pub mod request {
         fn convert_extract(&self, request: &HttpRequest) -> Option<T>;
     }
 
-    impl RequestExtractor<EndpointMetadata> for Context {
+    impl RequestExtractor<EndpointMetadata> for RequestContext {
         fn convert_extract(&self, request: &HttpRequest) -> Option<EndpointMetadata> {
             Some(EndpointMetadata::default())
         }

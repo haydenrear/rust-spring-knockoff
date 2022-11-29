@@ -711,6 +711,11 @@ dependencies = [
 [[package]]
 name = "http_macro"
 version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "serde",
+ "syn",
+]
 
 [[package]]
 name = "iana-time-zone"

@@ -1,14 +1,11 @@
+use std::any::{Any, TypeId};
 use std::collections::LinkedList;
+use std::ops::Deref;
 use serde::{Deserialize, Serialize};
-use crate::context::Context;
+use crate::context::RequestContext;
 use crate::filter::filter::MediaType;
 use crate::message::MessageType;
 use crate::request::request::HttpRequest;
-
-pub trait Converters {
-    fn converters(&self, request: &HttpRequest) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>>;
-    fn convert_from_converters(&self, media_type: MediaType) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>>;
-}
 
 impl <'a> MessageConverter for &'a dyn MessageConverter {
     fn do_convert(&self, request: HttpRequest) -> bool {
@@ -25,8 +22,7 @@ pub trait MessageConverter {
         &self,
         request: HttpRequest
     ) -> Option<MessageType<U>>
-        where Self: Sized
-    {
+        where Self: Sized {
         let option = JsonMessageConverter {}.convert_to(request);
         option
     }
@@ -35,11 +31,11 @@ pub trait MessageConverter {
         &self,
         request: &U
     ) -> Option<String>
-        where Self: Sized
-    {
+        where Self: Sized {
         let option = JsonMessageConverter {}.convert_from(request);
         option
     }
+
     fn do_convert(&self, request: HttpRequest) -> bool;
     fn message_type(&self) -> MediaType;
 }
@@ -59,8 +55,8 @@ impl MessageConverter for JsonMessageConverter {
     }
 
     fn do_convert(&self, request: HttpRequest) -> bool {
-        // request.headers["MediaType"].contains("json")
-        true
+        request.headers.contains_key("MediaType")
+            && request.headers["MediaType"].contains("json")
     }
 
     fn convert_from<U: Serialize + for<'a> Deserialize<'a>>(&self, request: &U) -> Option<String> where Self: Sized {
@@ -97,10 +93,24 @@ pub trait Registration<'a, C> {
     fn register(&mut self, converter: &'a C);
 }
 
+pub trait Registry<C: ?Sized> {
+    fn read_only_registrations(&self) -> Box<LinkedList<&'static C>>;
+}
+
+#[derive(Clone)]
 pub struct ConverterRegistry {
     pub converters: Box<LinkedList<&'static dyn MessageConverter>>
 }
 
+impl Registry<dyn MessageConverter> for ConverterRegistry {
+    fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn MessageConverter>> {
+        self.converters.clone()
+    }
+}
+
+//TODO: macro in app context builder for having user provided message converter, or
+// other authentication converter to implement Registration<UserProvidedJwt> for ConverterRegistry
+// and also it will add it - the registry![userProvided] will go inside of the app context register
 impl <'a> Registration<'a, JsonMessageConverter> for ConverterRegistry where 'a: 'static {
     fn register(&mut self, converter: &'a JsonMessageConverter) {
         self.converters.push_front(converter)
@@ -113,9 +123,9 @@ impl <'a> Registration<'a, OtherMessageConverter> for ConverterRegistry where 'a
     }
 }
 
-impl Converters for ConverterRegistry {
+impl ConverterRegistryContainer for ConverterRegistry {
     fn converters(&self, request: &HttpRequest) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>> {
-        Box::new(self.converters.iter()
+        Box::new(self.read_only_registrations().iter()
             .filter(|&c| {
                 c.do_convert(request.clone())
             })
@@ -125,7 +135,7 @@ impl Converters for ConverterRegistry {
     }
 
     fn convert_from_converters(&self, media_type: MediaType) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>> {
-        Box::new(self.converters.iter()
+        Box::new(self.read_only_registrations().iter()
             .filter(|&&c| c.message_type() == media_type)
             .map(|&c| c)
             .collect::<Vec<&'static dyn MessageConverter>>()
@@ -133,9 +143,9 @@ impl Converters for ConverterRegistry {
     }
 }
 
-impl ConverterContext for Context {
+impl Converters for RequestContext {
     fn convert_to<T: Serialize + for<'a> Deserialize<'a>>(&self, request: &HttpRequest) -> Option<MessageType<T>> {
-        self.converters.converters(request)
+        self.message_converters.converters(request)
             .find_map(|c| {
                 let found = (&c).convert_to(request.clone());
                 found
@@ -143,7 +153,7 @@ impl ConverterContext for Context {
     }
 
     fn convert_from<T: Serialize + for<'a> Deserialize<'a> + Clone>(&self, request: &T, media_type: MediaType) -> Option<String> {
-        self.converters.convert_from_converters(media_type)
+        self.message_converters.convert_from_converters(media_type)
             .find_map(|c| {
                 let found = (&c).convert_from(request);
                 found
@@ -152,7 +162,13 @@ impl ConverterContext for Context {
 }
 
 
-pub trait ConverterContext {
+pub trait Converters {
     fn convert_to<T: Serialize + for<'a> Deserialize<'a>>(&self, request: &HttpRequest) -> Option<MessageType<T>>;
     fn convert_from<T: Serialize + for<'a> Deserialize<'a> + Clone>(&self, request: &T, media_type: MediaType) -> Option<String>;
 }
+
+pub trait ConverterRegistryContainer {
+    fn converters(&self, request: &HttpRequest) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>>;
+    fn convert_from_converters(&self, media_type: MediaType) -> Box<dyn Iterator<Item=&'static dyn MessageConverter>>;
+}
+

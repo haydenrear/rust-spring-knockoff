@@ -6,16 +6,17 @@ pub mod filter {
 
     use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
     use crate::session::session::HttpSession;
-    use crate::context::Context;
+    use crate::context::RequestContext;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
     use serde::{Deserialize, Serialize};
     use std::collections::{HashMap, LinkedList};
-    use std::ops::Deref;
+    use std::ops::{Deref, Index};
     use std::path::Iter;
     use crate::controller::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
     use crate::convert::Registration;
     use crate::http::{HttpMethod, HttpMethodAction};
+    use crate::security::security::AuthenticationToken;
 
     #[derive(Clone)]
     pub struct FilterChain<'a> {
@@ -23,6 +24,8 @@ pub mod filter {
         pub(crate) num: usize,
     }
 
+    // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
+    // resulting in new filter
     impl<'a> FilterChain<'a> {
         pub fn do_filter(&mut self, request: &HttpRequest, response: &mut HttpResponse) {
             let next = self.next();
@@ -65,9 +68,9 @@ pub mod filter {
     pub trait Action<Request,Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
-    {
-        fn do_action(&self, metadata: EndpointMetadata, request: &Option<Request>, context: &Context) -> Option<Response>;
+            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default {
+        fn do_action(&self, metadata: EndpointMetadata, request: &Option<Request>, context: &RequestContext) -> Option<Response>;
+        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool;
     }
 
     pub struct FilterImpl<Request,Response>
@@ -93,6 +96,5 @@ pub mod filter {
             filter.do_filter(request, response)
         }
     }
-
 
 }

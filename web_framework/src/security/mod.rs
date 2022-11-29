@@ -1,4 +1,7 @@
 #![feature(pattern)]
+
+use std::collections::LinkedList;
+
 pub mod test;
 pub mod security {
 
@@ -11,12 +14,13 @@ pub mod security {
     use alloc::string::String;
     use core::borrow::Borrow;
     use core::fmt::{Error, Formatter};
-    use serde::{Deserialize, Serialize};
+    use serde::{Deserialize, Serialize, Serializer};
     use std::any::{Any, TypeId};
     use std::cell::RefCell;
     use std::collections::{HashMap, LinkedList};
     use std::ptr::null;
     use std::vec;
+    use crate::convert::{Registration, Registry};
 
     pub struct DelegatingAuthenticationManager {
         providers: LinkedList<Box<dyn AuthenticationProvider>>,
@@ -26,7 +30,7 @@ pub mod security {
         fn try_convert_to_authentication(
             &self,
             request: HttpRequest,
-        ) -> Result<Box<AuthenticationImpl>, AuthenticationConversionError>;
+        ) -> Result<Box<Authentication>, AuthenticationConversionError>;
     }
 
     pub struct UsernamePasswordAuthenticationFilter {}
@@ -57,7 +61,7 @@ pub mod security {
         fn try_convert_to_authentication(
             &self,
             request: HttpRequest,
-        ) -> Result<Box<AuthenticationImpl>, AuthenticationConversionError> {
+        ) -> Result<Box<Authentication>, AuthenticationConversionError> {
             todo!()
             // if request.headers.contains_key("Authorization") {
             //
@@ -99,39 +103,27 @@ pub mod security {
     }
 
     pub trait AuthenticationProvider {
-        fn supports(&self, authentication_token: HTypeId) -> bool;
-        fn authenticate(&self, auth_token: Box<AuthenticationTokenImpl>) -> bool;
+        fn supports(&self, authentication_token: TypeId) -> bool;
+        fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool;
     }
 
     pub struct UsernamePasswordAuthenticationProvider {}
 
-    impl<T: AuthenticationToken> GetType for T
-    where
-        T: ?Sized,
-    {
-        fn get_type(name: String) -> HTypeId {
-            HTypeId::new(name)
-        }
-        fn get_type_self(&self) -> HTypeId {
-            HTypeId::new(String::from(self.name()))
-        }
-    }
-
     impl AuthenticationProvider for UsernamePasswordAuthenticationProvider {
-        fn supports(&self, authentication_token: HTypeId) -> bool {
+        fn supports(&self, authentication_token: TypeId) -> bool {
             // authentication_token == UsernamePasswordAuthenticationToken::get_type(String::from("UsernamePasswordAuthenticationToken"))
             todo!()
         }
 
-        fn authenticate(&self, auth_token: Box<AuthenticationTokenImpl>) -> bool {
+        fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool {
             todo!()
         }
     }
 
     impl DelegatingAuthenticationManager {
-        fn authenticate(&self, auth_token: Box<AuthenticationTokenImpl>) -> bool {
+        fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool {
             self.providers.iter().any(|provider| {
-                if provider.supports(auth_token.get_type_self()) {
+                if provider.supports(auth_token.type_id()) {
                     return provider.authenticate(auth_token.clone());
                 }
                 false
@@ -139,42 +131,74 @@ pub mod security {
         }
     }
 
-    pub trait AuthenticationToken {
-        fn name(&self) -> &'static str;
-        fn auth(&self) -> Box<AuthenticationImpl>;
-        fn default() -> Self
-        where
-            Self: Sized;
-    }
-
-    impl AuthenticationToken for AuthenticationTokenImpl {
-        fn auth(&self) -> Box<AuthenticationImpl> {
+    impl AuthenticationToken {
+        fn auth(&self) -> Box<Authentication> {
             todo!()
-        }
-        fn default() -> Self
-        where
-            Self: Sized,
-        {
-            Self {
-                name: String::from("default"),
-                auth: AuthenticationImpl::default(),
-            }
         }
         fn name(&self) -> &'static str {
             todo!()
         }
     }
 
-    impl Default for AuthenticationImpl {
+    impl Default for Authentication {
         fn default() -> Self {
             Self {
-                authentication_type: String::from("default"),
+                authentication_type: AuthenticationType::default(),
             }
         }
     }
 
-    impl Authentication for AuthenticationImpl {
-        fn get_authorities(&self) -> LinkedList<String> {
+    #[derive(Serialize, Deserialize, Debug, Clone)]
+    pub struct AuthenticationToken {
+        name: String,
+        auth: Authentication,
+    }
+
+    impl Default for AuthenticationToken {
+        fn default() -> Self {
+            todo!()
+        }
+    }
+
+    #[derive(Serialize, Deserialize, Debug, Clone)]
+    pub struct Authentication {
+        authentication_type: AuthenticationType,
+    }
+
+    pub trait AuthenticationConverter: Converter<AuthenticationType, LinkedList<Authority>> {}
+    pub trait JwtAuthenticationConverter: AuthenticationConverter  {}
+    pub trait UsernamePasswordAuthenticationConverter: AuthenticationConverter  {}
+    pub trait OpenSamlAuthenticationConverter: AuthenticationConverter  {}
+
+    #[derive(Clone)]
+    pub struct AuthenticationConverterRegistry {
+        converters: LinkedList<&'static dyn AuthenticationConverter>
+    }
+
+    //TODO: macro in app context builder for having user provided jwt authentication converter, or
+    // other authentication converter to implement Registration<UserProvidedJwt> for JwtAuthenticationConverterRegistry
+    // and also it will add it - the registry![userProvided] will go inside of the app context register
+    impl Registry<dyn AuthenticationConverter> for AuthenticationConverterRegistry {
+        fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn AuthenticationConverter>> {
+            Box::new(self.converters.clone())
+        }
+    }
+
+    pub trait Converter<From, To>
+    {
+        fn convert(&self, from: &From) -> To;
+        fn supports(&self, auth_type: AuthenticationType) -> bool;
+    }
+
+    impl Authentication {
+
+        fn new(authentication_type: AuthenticationType) -> Self {
+            return Self {
+                authentication_type: authentication_type,
+            };
+        }
+
+        fn get_authorities(&self) -> LinkedList<Authority> {
             todo!()
         }
         fn get_credentials(&self) -> Option<String> {
@@ -186,35 +210,44 @@ pub mod security {
         fn set_credentials(credential: String) {
             todo!()
         }
-        fn set_principal(principal: String) {
-            todo!()
+        fn set_principal(principal: String) {}
+    }
+
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct Authority {
+        authority: String
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub enum AuthenticationType {
+        Jwt(JwtToken), SAML(OpenSamlAssertion), Password(UsernamePassword)
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct JwtToken {
+        token: String
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct OpenSamlAssertion {
+        assertion: String
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct UsernamePassword {
+        username: String,
+        password: String
+    }
+
+    impl Default for AuthenticationType {
+        fn default() -> Self {
+            AuthenticationType::Password(
+                UsernamePassword{
+                    username: String::default(),
+                    password: String::default()
+                }
+            )
         }
-    }
-
-    #[derive(Serialize, Deserialize, Debug, Clone)]
-    pub struct AuthenticationTokenImpl {
-        name: String,
-        auth: AuthenticationImpl,
-    }
-
-    #[derive(Serialize, Deserialize, Debug, Clone)]
-    pub struct AuthenticationImpl {
-        authentication_type: String,
-    }
-
-    impl AuthenticationImpl {
-        fn new(authentication_type: String) -> Self {
-            return Self {
-                authentication_type: authentication_type,
-            };
-        }
-    }
-
-    pub trait Authentication {
-        fn get_principal(&self) -> Option<String>;
-        fn get_credentials(&self) -> Option<String>;
-        fn set_credentials(credential: String);
-        fn set_principal(principal: String);
-        fn get_authorities(&self) -> LinkedList<String>;
     }
 }
