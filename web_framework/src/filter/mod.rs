@@ -4,19 +4,19 @@ pub mod filter {
     extern crate alloc;
     extern crate core;
 
-    use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
-    use crate::session::session::HttpSession;
     use crate::context::RequestContext;
+    use crate::controller::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
+    use crate::convert::Registration;
+    use crate::http::{HttpMethod};
+    use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
+    use crate::security::security::AuthenticationToken;
+    use crate::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
     use serde::{Deserialize, Serialize};
     use std::collections::{HashMap, LinkedList};
     use std::ops::{Deref, Index};
     use std::path::Iter;
-    use crate::controller::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
-    use crate::convert::Registration;
-    use crate::http::{HttpMethod, HttpMethodAction};
-    use crate::security::security::AuthenticationToken;
 
     #[derive(Clone)]
     pub struct FilterChain<'a> {
@@ -57,44 +57,58 @@ pub mod filter {
 
     #[derive(PartialEq)]
     pub enum MediaType {
-        Json, Xml
+        Json,
+        Xml,
     }
 
-    pub trait DispatcherContainer
+    pub trait DispatcherContainer {
+        fn dispatcher<Response, Request>(
+            &self,
+            method: HttpMethod,
+        ) -> &'static dyn Action<Request, Response>;
+    }
+
+    pub trait Action<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
     {
-        fn dispatcher<Response, Request>(&self, method: HttpMethod) -> &'static dyn Action<Request, Response>;
-    }
-
-    pub trait Action<Request,Response>
-        where
-            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default {
-        fn do_action(&self, metadata: EndpointMetadata, request: &Option<Request>, context: &RequestContext) -> Option<Response>;
+        fn do_action(
+            &self,
+            metadata: EndpointMetadata,
+            request: &Option<Request>,
+            context: &RequestContext,
+        ) -> Option<Response>;
         fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool;
     }
 
-    pub struct FilterImpl<Request,Response>
+    pub struct FilterImpl<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
     {
-        pub(crate) actions:  Box<dyn Action<Request, Response>>,
-        pub(crate) dispatcher: Dispatcher
+        pub(crate) actions: Box<dyn Action<Request, Response>>,
+        pub(crate) dispatcher: Dispatcher,
     }
 
     pub trait Filter {
         fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain);
     }
 
-    impl <Request, Response> Filter for FilterImpl<Request, Response>
-        where
-            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default
+    impl<Request, Response> Filter for FilterImpl<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
     {
-        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, mut filter: FilterChain) {
-            self.dispatcher.do_request(request.clone(), response, &self.actions);
+        fn filter(
+            &self,
+            request: &HttpRequest,
+            response: &mut HttpResponse,
+            mut filter: FilterChain,
+        ) {
+            self.dispatcher
+                .do_request(request.clone(), response, &self.actions);
             filter.do_filter(request, response)
         }
     }
-
 }

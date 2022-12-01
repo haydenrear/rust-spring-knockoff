@@ -1,14 +1,11 @@
 #![feature(proc_macro_quote)]
 use proc_macro::{quote, Span, TokenStream};
-use std::collections::{HashMap, LinkedList};
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use syn::{DeriveInput, parse_macro_input};
+use std::collections::{HashMap, LinkedList};
 use std::sync::{Arc, Mutex};
-use delegator_macro_rules::types;
+use syn::{parse_macro_input, DeriveInput};
 
-// macro_rules! controller {
-//     ($ident:ident) => {
-//         $ident
-//     }
-// }
+#[proc_macro_derive(Controller)]
+pub fn library(input: TokenStream) -> TokenStream {
+    quote! {}
+}

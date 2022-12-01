@@ -7,5 +7,6 @@ members = [
     "data_framework",
     "delegator_macro",
     "delegator_test",
-    "delegator_macro_rules"
+    "delegator_macro_rules",
+    "hyper"
 ]

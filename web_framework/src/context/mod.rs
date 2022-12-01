@@ -1,8 +1,11 @@
-use std::any::Any;
-use std::collections::LinkedList;
-use crate::convert::{ConverterRegistry, Registration, JsonMessageConverter, OtherMessageConverter, MessageConverter, Registry};
+use crate::convert::{
+    ConverterRegistry, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration,
+    Registry,
+};
 use crate::filter::filter::{Filter, FilterChain};
 use crate::security::security::AuthenticationConverterRegistry;
+use std::any::Any;
+use std::collections::LinkedList;
 
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,
@@ -17,13 +20,39 @@ impl ContextType<ConverterRegistry, dyn MessageConverter> for RequestContext {
 #[derive(Clone)]
 pub struct ApplicationContext {
     pub filter_registry: FilterRegistrar,
-    pub converter_registry: ConverterRegistry,
-    pub authentication_converters: AuthenticationConverterRegistry,
+    pub converter_registry: RequestContext,
+    pub authentication_converters: AuthenticationConverterRegistry
 }
 
+impl <'a> Registration<'a, dyn MessageConverter> for RequestContext {
+    fn register(&mut self, converter: &'a dyn MessageConverter) {
+        self.message_converters.register(converter);
+    }
+}
+
+impl <'a> Registration<'a, dyn MessageConverter> for ApplicationContext {
+    fn register(&mut self, converter: &'a dyn MessageConverter) {
+        self.converter_registry.register(converter)
+    }
+}
+
+impl <'a> Registration<'a, dyn Filter> for FilterRegistrar {
+    fn register(&mut self, converter: &'a dyn Filter) {
+        self.filter_registry.filters.push_back(converter.clone())
+    }
+}
+
+impl <'a> Registration<'a, dyn Filter> for ApplicationContext {
+    fn register(&mut self, converter: &'a dyn Filter) {
+        self.add_filter(converter);
+    }
+}
+
+
 impl ApplicationContext {
+
     fn add_filter(&mut self, filter: &'static dyn Filter) {
-        self.filter_registry.filters.push_back(filter.clone())
+        self.filter_registry.register(filter)
     }
 
     /**
@@ -35,12 +64,11 @@ impl ApplicationContext {
         let filters = self.filter_registry.filters.clone();
         FilterChain::new(filters.iter().map(|v| v.clone()).collect())
     }
-
 }
 
 #[derive(Clone)]
 pub struct FilterContext {
-    pub registry: FilterRegistrar
+    pub registry: FilterRegistrar,
 }
 
 impl Registry<dyn Filter> for FilterRegistrar {
@@ -51,7 +79,7 @@ impl Registry<dyn Filter> for FilterRegistrar {
 
 #[derive(Clone)]
 pub struct FilterRegistrar {
-    pub filters: LinkedList<&'static dyn Filter>
+    pub filters: LinkedList<&'static dyn Filter>,
 }
 
 impl ContextType<FilterRegistrar, dyn Filter> for FilterContext {
@@ -67,12 +95,12 @@ pub trait ContextType<R: Registry<C>, C: ?Sized> {
 impl Default for RequestContext {
     fn default() -> Self {
         let mut registry = ConverterRegistry {
-            converters: Box::new(LinkedList::new())
+            converters: Box::new(LinkedList::new()),
         };
         registry.register(&JsonMessageConverter {});
         registry.register(&OtherMessageConverter {});
         Self {
-            message_converters: registry
+            message_converters: registry,
         }
     }
 }

@@ -7,6 +7,7 @@ pub mod security {
 
     extern crate core;
 
+    use crate::convert::{Registration, Registry};
     use crate::filter::filter::{Filter, FilterChain};
     use crate::request::request::{HttpRequest, HttpResponse};
     use crate::session::session::HttpSession;
@@ -20,7 +21,6 @@ pub mod security {
     use std::collections::{HashMap, LinkedList};
     use std::ptr::null;
     use std::vec;
-    use crate::convert::{Registration, Registry};
 
     pub struct DelegatingAuthenticationManager {
         providers: LinkedList<Box<dyn AuthenticationProvider>>,
@@ -165,14 +165,17 @@ pub mod security {
         authentication_type: AuthenticationType,
     }
 
-    pub trait AuthenticationConverter: Converter<AuthenticationType, LinkedList<Authority>> {}
-    pub trait JwtAuthenticationConverter: AuthenticationConverter  {}
-    pub trait UsernamePasswordAuthenticationConverter: AuthenticationConverter  {}
-    pub trait OpenSamlAuthenticationConverter: AuthenticationConverter  {}
+    pub trait AuthenticationConverter:
+        Converter<AuthenticationType, LinkedList<Authority>>
+    {
+    }
+    pub trait JwtAuthenticationConverter: AuthenticationConverter {}
+    pub trait UsernamePasswordAuthenticationConverter: AuthenticationConverter {}
+    pub trait OpenSamlAuthenticationConverter: AuthenticationConverter {}
 
     #[derive(Clone)]
     pub struct AuthenticationConverterRegistry {
-        converters: LinkedList<&'static dyn AuthenticationConverter>
+        converters: LinkedList<&'static dyn AuthenticationConverter>,
     }
 
     //TODO: macro in app context builder for having user provided jwt authentication converter, or
@@ -184,14 +187,12 @@ pub mod security {
         }
     }
 
-    pub trait Converter<From, To>
-    {
+    pub trait Converter<From, To> {
         fn convert(&self, from: &From) -> To;
         fn supports(&self, auth_type: AuthenticationType) -> bool;
     }
 
     impl Authentication {
-
         fn new(authentication_type: AuthenticationType) -> Self {
             return Self {
                 authentication_type: authentication_type,
@@ -213,41 +214,40 @@ pub mod security {
         fn set_principal(principal: String) {}
     }
 
-
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct Authority {
-        authority: String
+        authority: String,
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum AuthenticationType {
-        Jwt(JwtToken), SAML(OpenSamlAssertion), Password(UsernamePassword)
+        Jwt(JwtToken),
+        SAML(OpenSamlAssertion),
+        Password(UsernamePassword),
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct JwtToken {
-        token: String
+        token: String,
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct OpenSamlAssertion {
-        assertion: String
+        assertion: String,
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct UsernamePassword {
         username: String,
-        password: String
+        password: String,
     }
 
     impl Default for AuthenticationType {
         fn default() -> Self {
-            AuthenticationType::Password(
-                UsernamePassword{
-                    username: String::default(),
-                    password: String::default()
-                }
-            )
+            AuthenticationType::Password(UsernamePassword {
+                username: String::default(),
+                password: String::default(),
+            })
         }
     }
 }

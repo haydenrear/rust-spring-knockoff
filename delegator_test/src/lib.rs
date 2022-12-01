@@ -1,15 +1,14 @@
-use delegator_macro::{HelperAttr};
-use delegator_macro_rules::{types, last_thing};
+use delegator_macro::HelperAttr;
+use delegator_macro_rules::{last_thing, types};
 use std::fmt::Display;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
 
-#[derive(HelperAttr)]
-#[derive(Debug)]
+#[derive(HelperAttr, Debug)]
 struct TestStruct {
-    field: ()
+    field: (),
 }
 
 #[cfg(test)]
@@ -19,7 +18,7 @@ mod tests {
     #[test]
     fn test_struct() {
         last_thing!();
-        let test_struct = TestStruct {field:  ()};
+        let test_struct = TestStruct { field: () };
         print!("");
     }
 }

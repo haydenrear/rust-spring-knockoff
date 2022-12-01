@@ -1,13 +1,13 @@
-use std::collections::HashMap;
 use lazy_static::lazy_static;
-use std::sync::{Mutex, Arc};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
 
 pub struct Types {
-    pub values: Mutex<HashMap<String, String>>
+    pub values: Mutex<HashMap<String, String>>,
 }
 
 lazy_static! {
@@ -21,7 +21,7 @@ macro_rules! last_thing {
     ($ident:ident) => {
         let x = types.values.lock().unwrap().get(&String::from("hello"));
         println!("x");
-    }
+    };
 }
 
 #[cfg(test)]

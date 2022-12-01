@@ -1,24 +1,24 @@
 pub mod request {
 
+    use crate::context::RequestContext;
+    use crate::http::HttpMethod;
     use crate::session::session::HttpSession;
     use std::collections::HashMap;
     use std::fs::Metadata;
     use std::net::TcpStream;
     use std::ops::Deref;
-    use crate::context::RequestContext;
-    use crate::http::HttpMethod;
 
     #[derive(Clone)]
     pub struct EndpointMetadata {
         pub path_variables: String,
-        pub query_params: String
+        pub query_params: String,
     }
 
     impl Default for EndpointMetadata {
         fn default() -> Self {
             Self {
                 path_variables: String::default(),
-                query_params: String::default()
+                query_params: String::default(),
             }
         }
     }
@@ -29,7 +29,7 @@ pub mod request {
         pub headers: HashMap<String, String>,
         pub body: String,
         pub metadata: EndpointMetadata,
-        pub method: HttpMethod
+        pub method: HttpMethod,
     }
 
     impl Clone for HttpRequest {
@@ -38,7 +38,7 @@ pub mod request {
                 headers: self.headers.clone(),
                 body: self.body.clone(),
                 metadata: self.metadata.clone(),
-                method: HttpMethod::Get
+                method: HttpMethod::Get,
             }
         }
     }
@@ -46,12 +46,8 @@ pub mod request {
     impl Clone for HttpMethod {
         fn clone(&self) -> Self {
             match self {
-                HttpMethod::Post => {
-                    HttpMethod::Post
-                },
-                HttpMethod::Get => {
-                    HttpMethod::Get
-                }
+                HttpMethod::Post => HttpMethod::Post,
+                HttpMethod::Get => HttpMethod::Get,
             }
         }
     }
@@ -69,7 +65,7 @@ pub mod request {
     #[derive(Clone)]
     pub struct HttpResponse {
         pub session: HttpSession,
-        pub response: String
+        pub response: String,
     }
 
     pub trait ResponseWriter {
@@ -78,9 +74,9 @@ pub mod request {
 
     impl ResponseWriter for HttpResponse {
         fn write(&mut self, response: &[u8]) {
-            self.response = String::from_utf8(Vec::from(response)).map(| response_str| {
-                self.response.clone() + response_str.as_str()
-            }).unwrap_or(self.response.clone());
+            self.response = String::from_utf8(Vec::from(response))
+                .map(|response_str| self.response.clone() + response_str.as_str())
+                .unwrap_or(self.response.clone());
         }
     }
 
@@ -90,7 +86,7 @@ pub mod request {
                 headers: HashMap::new(),
                 body: String::default(),
                 metadata: EndpointMetadata::default(),
-                method: HttpMethod::Get
+                method: HttpMethod::Get,
             }
         }
     }
@@ -99,9 +95,8 @@ pub mod request {
         fn default() -> Self {
             Self {
                 session: HttpSession::default(),
-                response: String::default()
+                response: String::default(),
             }
         }
     }
-
 }

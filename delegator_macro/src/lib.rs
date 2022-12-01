@@ -1,13 +1,13 @@
 extern crate proc_macro;
 
-use proc_macro::{Span, TokenStream};
-use std::collections::{HashMap, LinkedList};
+use delegator_macro_rules::types;
 use lazy_static::lazy_static;
+use proc_macro::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use serde::{Deserialize, Serialize};
-use syn::{DeriveInput, parse_macro_input};
+use std::collections::{HashMap, LinkedList};
 use std::sync::{Arc, Mutex};
-use delegator_macro_rules::types;
+use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(HelperAttr)]
 pub fn library(input: TokenStream) -> TokenStream {

@@ -1,24 +1,24 @@
-use std::collections::{HashMap};
-use std::collections::linked_list::{LinkedList};
-use serde::{Serialize,Deserialize};
+use serde::{Deserialize, Serialize};
+use std::collections::linked_list::LinkedList;
+use std::collections::HashMap;
 
 pub trait User: Send + Sync + Copy {}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserSession {
     data: SessionData,
-    id: u64
+    id: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SessionData {
-    session_data: HashMap<String, String>
+    session_data: HashMap<String, String>,
 }
 
 impl Default for SessionData {
     fn default() -> Self {
         Self {
-            session_data: HashMap::new()
+            session_data: HashMap::new(),
         }
     }
 }
@@ -38,6 +38,5 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-    }
+    fn it_works() {}
 }
