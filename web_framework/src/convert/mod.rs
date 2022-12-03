@@ -17,7 +17,7 @@ impl<'a> MessageConverter for &'a dyn MessageConverter {
     }
 }
 
-pub trait MessageConverter {
+pub trait MessageConverter: Send + Sync {
     fn convert_to<U: Serialize + for<'a> Deserialize<'a>>(
         &self,
         request: HttpRequest,

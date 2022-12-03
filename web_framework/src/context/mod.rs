@@ -8,7 +8,7 @@ use std::any::Any;
 use std::collections::LinkedList;
 use serde::{Deserialize, Serialize};
 use crate::http::{ProtocolToAdaptFrom, RequestStream};
-use crate::request::request::ResponseWriter;
+use crate::request::request::{HttpRequest, HttpResponse, ResponseWriter};
 
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,
@@ -25,6 +25,7 @@ pub struct ApplicationContext {
     pub converter_registry: RequestContext,
     pub authentication_converters: AuthenticationConverterRegistry
 }
+
 
 impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
     where 'a: 'static
@@ -65,10 +66,11 @@ impl ApplicationContext {
     has lifetime of 'a and it's being added to that, even though filterRegistrar Filter have lifetime of 'static
     it will go to lifetime of 'a, and therefore fix issue of unending static memory. coercion
     */
-    fn create_get_filter_chain<'a>(&self) -> FilterChain<'a> {
+    pub fn create_get_filter_chain<'a>(&self) -> FilterChain<'a> {
         let filters = self.filter_registry.filters.clone();
         FilterChain::new(filters.iter().map(|v| v.clone()).collect())
     }
+
 }
 
 // impl <RequestStream, Response, IAdaptFrom, ResponseWriterType> Registry<dyn HandlerAdapter<IAdaptFrom, RequestStream, Response, ResponseWriterType>> for ApplicationContext

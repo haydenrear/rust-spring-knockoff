@@ -69,10 +69,10 @@ pub mod filter {
         ) -> &'static dyn Action<Request, Response>;
     }
 
-    pub trait Action<Request, Response>
+    pub trait Action<Request, Response>: Send + Sync
     where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
         fn do_action(
             &self,
@@ -87,21 +87,21 @@ pub mod filter {
 
     pub struct RequestResponseActionFilter<Request, Response>
     where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
         pub(crate) actions: Box<dyn Action<Request, Response>>,
         pub(crate) dispatcher: Dispatcher,
     }
 
-    pub trait Filter {
+    pub trait Filter : Send + Sync{
         fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain);
     }
 
     impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
     where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
         fn filter(
             &self,

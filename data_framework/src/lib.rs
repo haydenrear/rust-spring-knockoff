@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::LinkedList;
 
 #[async_trait]
-pub trait Repo<'a, T: Entity<ID>, ID> {
+pub trait Repo<'a, T: Entity<ID>, ID> : Send + Sync{
     type Data;
     async fn find_all(&self) -> LinkedList<T>
     where

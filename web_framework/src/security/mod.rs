@@ -164,8 +164,7 @@ pub mod security {
         authentication_type: AuthenticationType,
     }
 
-    pub trait AuthenticationConverter:
-        Converter<AuthenticationType, LinkedList<Authority>>
+    pub trait AuthenticationConverter: Converter<AuthenticationType, LinkedList<Authority>> + Send + Sync
     {
     }
     pub trait JwtAuthenticationConverter: AuthenticationConverter {}

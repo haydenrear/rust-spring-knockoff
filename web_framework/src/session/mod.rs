@@ -78,7 +78,7 @@ pub mod session {
     where
         R: Repo<'a, HttpSession, String>,
     {
-        p: &'a PhantomData<dyn Any>,
+        p: &'a PhantomData<dyn Any + Send + Sync>,
         repo: Box<R>,
     }
 

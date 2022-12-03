@@ -1,4 +1,5 @@
 use core::slice::Chunks;
+use std::async_iter::AsyncIterator;
 use std::collections::LinkedList;
 use std::future::Future;
 use std::intrinsics::write_bytes;
@@ -9,7 +10,7 @@ use std::task::{Context, Poll};
 use async_std::stream::{Stream};
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
-use crate::context::RequestContext;
+use crate::context::{ApplicationContext, RequestContext};
 use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
 use crate::dispatch::{Dispatcher, RequestMethodDispatcher};
@@ -28,28 +29,20 @@ pub trait Adapter<T,U> {
 pub trait ProtocolToAdaptFrom<'a, RequestResponseStream, RequestResponseItem, ResponseWriterType>: Send + Sync
 where
     RequestResponseStream: RequestStream<'a, RequestResponseItem, ResponseWriterType>,
-    RequestResponseItem: Serialize + for<'b> Deserialize<'b> + Clone + Default + ResponseWriter<ResponseWriterType>,
+    RequestResponseItem: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
     ResponseWriterType: Copy + Clone
 {
     fn subscribe(&self) -> &RequestResponseStream;
 }
 
 #[async_trait]
-pub trait NextFuture<RequestResponseType, ResponseWriterType>
+pub trait RequestStream<'a, RequestResponseType, ResponseWriterType>
 where
-    RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + ResponseWriter<ResponseWriterType>,
+    RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
     ResponseWriterType: Copy + Clone
 {
+    fn flush_response(&self, response_writer_type: &'a mut RequestResponseType);
     async fn next(&self) -> RequestResponseType;
-}
-
-#[async_trait]
-pub trait RequestStream<'a, RequestResponseType, ResponseWriterType>: NextFuture<RequestResponseType, ResponseWriterType>
-where
-    RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + ResponseWriter<ResponseWriterType>,
-    ResponseWriterType: Copy + Clone
-{
-    fn flush_response(& self, response_writer_type: &'a mut RequestResponseType);
 }
 
 pub trait RequestConverter<T, U>: Send + Sync
@@ -92,69 +85,76 @@ pub struct ChunkedBytes {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct TestResponseType<'a> {
+pub struct ResponseType<'a> {
     #[serde(skip_serializing, skip_deserializing)]
     pub connection: Option<&'a dyn Connection<'a, &'a [u8]>>,
     pub response: HttpResponse
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct TestRequestType<'a> {
+pub struct RequestType<'a> {
     #[serde(skip_serializing, skip_deserializing)]
     pub connection: Option<&'a dyn Connection<'a, &'a [u8]>>,
     request: HttpRequest,
     response: HttpResponse
 }
 
-impl <'a> Default for TestRequestType<'a> {
+impl <'a> Default for RequestType<'a> {
     fn default() -> Self {
         todo!()
     }
 }
 
-impl <'a> Default for TestResponseType<'a> {
+impl <'a> Default for ResponseType<'a> {
     fn default() -> Self {
         todo!()
-    }
-}
-
-impl <'a> ResponseWriter<&[u8]> for TestResponseType<'a> {
-    fn write(&mut self, response: &[u8]) {
-        self.response.write_to_cxn(self.connection.unwrap())
-    }
-}
-
-impl <'a> ResponseWriter<&[u8]> for TestRequestType<'a> {
-    fn write(&mut self, response: &[u8]) {
-        self.response.write_to_cxn(self.connection.unwrap())
     }
 }
 
 pub struct RequestStreamImpl<'a, RequestResponseItem, ResponseWriterType, Response>
     where
-        RequestResponseItem: Serialize + for<'b> Deserialize<'b> + Clone + Default + ResponseWriter<ResponseWriterType>,
+        RequestResponseItem: Serialize + for<'b> Deserialize<'b> + Clone + Default,
         ResponseWriterType: Copy + Clone,
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + ResponseWriter<ResponseWriterType>,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
         Self: 'a
 {
-    protocol: &'a dyn ProtocolToAdaptFrom<'a, Self, RequestResponseItem, RequestResponseItem>,
-    converter: &'a dyn RequestConverter<RequestResponseItem, Response>
+    protocol: &'a dyn ProtocolToAdaptFrom<'a, RequestStreamImpl<'a, RequestResponseItem, ResponseWriterType, Response>, RequestResponseItem, ResponseWriterType>,
+    converter: &'a dyn RequestConverter<RequestResponseItem, RequestResponseItem>,
+    ctx: ApplicationContext
 }
 
-#[async_trait]
-impl <'a> NextFuture<TestRequestType<'a>, &'a [u8]> for RequestStreamImpl<'a, TestRequestType<'a>, &'a [u8], TestResponseType<'a>> {
-    async fn next(&self) -> TestRequestType<'a> {
-        todo!()
+pub trait WriteToConnection<'a, ResponseWriterType>
+where
+    ResponseWriterType: Copy + Clone {
+    fn write_to_cxn(&mut self, cxn: & dyn Connection<'a, ResponseWriterType>);
+}
+
+impl <'a> WriteToConnection<'a, &[u8]> for ResponseType<'a> {
+    fn write_to_cxn(&mut self, cxn: &dyn Connection<'a, &[u8]>) {
+        self.response.write_to_cxn(cxn)
     }
 }
 
-impl <'a> RequestStream<'a, TestRequestType<'a>, &'a [u8]> for RequestStreamImpl<'a, TestRequestType<'a>, &'a [u8], TestResponseType<'a>>
+impl <'a> WriteToConnection<'a, &[u8]> for RequestType<'a> {
+    fn write_to_cxn(&mut self, cxn: &dyn Connection<'a, &[u8]>) {
+        self.response.write_to_cxn(cxn);
+    }
+}
+
+#[async_trait]
+impl <'a> RequestStream<'a, RequestType<'a>, &'a [u8]> for RequestStreamImpl<'a, RequestType<'a>, &'a [u8], ResponseType<'a>>
 {
-    fn flush_response(&self, response_writer_type: & mut TestRequestType<'a>) {
-        let mut response = self.converter.from(response_writer_type.clone());
+    fn flush_response(&self, response_writer_type: & mut RequestType<'a>) {
+        let mut request = self.converter.from(response_writer_type.clone());
+        self.ctx.create_get_filter_chain()
+            .do_filter(&request.request, &mut request.response);
         response_writer_type.connection
             .map(|cxn| {
-                response.response.write_to_cxn(cxn);
+                request.response.write_to_cxn(cxn);
             });
+    }
+
+    async fn next(&self) -> RequestType<'a> {
+        self.protocol.subscribe().next().await
     }
 }

@@ -19,8 +19,8 @@ impl Dispatcher {
         response: &mut HttpResponse,
         action: &Box<dyn Action<Request, Response>>,
     ) where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
         if action.authentication_granted(&response.session.authentication_token) {
             self.context

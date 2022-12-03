@@ -1,7 +1,7 @@
 pub mod request {
 
     use crate::context::RequestContext;
-    use crate::http::{Connection, HttpMethod};
+    use crate::http::{Connection, HttpMethod, WriteToConnection};
     use crate::session::session::HttpSession;
     use std::collections::{HashMap, LinkedList};
     use std::fs::Metadata;
@@ -99,8 +99,8 @@ pub mod request {
         }
     }
 
-    impl HttpResponse {
-        pub fn write_to_cxn(& mut self, cxn: & dyn Connection<&[u8]>) {
+    impl <'a> WriteToConnection<'a, &[u8]> for HttpResponse {
+        fn write_to_cxn(& mut self, cxn: & dyn Connection<&[u8]>) {
             while !self.response_bytes.response_bytes.empty() {
                 let mut more_bytes: [u8; 4096] = [0; 4096];
                 self.response_bytes.response_bytes.read(more_bytes.as_mut());

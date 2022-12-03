@@ -1,6 +1,7 @@
 #![feature(unboxed_closures)]
 #![feature(slice_as_chunks)]
 #![feature(iter_next_chunk)]
+#![feature(async_iterator)]
 #[macro_use]
 extern crate alloc;
 
@@ -9,7 +10,6 @@ pub mod dispatch;
 pub mod convert;
 pub mod filter;
 pub mod http;
-mod static_registrar;
 pub mod message;
 pub mod request;
 pub mod security;
