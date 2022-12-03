@@ -6,6 +6,9 @@ use crate::filter::filter::{Filter, FilterChain};
 use crate::security::security::AuthenticationConverterRegistry;
 use std::any::Any;
 use std::collections::LinkedList;
+use serde::{Deserialize, Serialize};
+use crate::http::{ProtocolToAdaptFrom, RequestStream};
+use crate::request::request::ResponseWriter;
 
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,
@@ -17,54 +20,68 @@ impl ContextType<ConverterRegistry, dyn MessageConverter> for RequestContext {
     }
 }
 
-#[derive(Clone)]
 pub struct ApplicationContext {
     pub filter_registry: FilterRegistrar,
     pub converter_registry: RequestContext,
     pub authentication_converters: AuthenticationConverterRegistry
 }
 
-impl <'a> Registration<'a, dyn MessageConverter> for RequestContext {
+impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
+    where 'a: 'static
+{
     fn register(&mut self, converter: &'a dyn MessageConverter) {
         self.message_converters.register(converter);
     }
 }
 
-impl <'a> Registration<'a, dyn MessageConverter> for ApplicationContext {
+impl <'a> Registration<'a, dyn MessageConverter> for ApplicationContext
+    where 'a: 'static
+{
     fn register(&mut self, converter: &'a dyn MessageConverter) {
         self.converter_registry.register(converter)
     }
 }
 
-impl <'a> Registration<'a, dyn Filter> for FilterRegistrar {
+impl <'a> Registration<'a, dyn Filter> for FilterRegistrar
+    where 'a: 'static
+{
     fn register(&mut self, converter: &'a dyn Filter) {
-        self.filter_registry.filters.push_back(converter.clone())
+        self.filters.push_back(converter.clone())
     }
 }
 
-impl <'a> Registration<'a, dyn Filter> for ApplicationContext {
+impl <'a> Registration<'a, dyn Filter> for ApplicationContext
+    where 'a: 'static
+{
     fn register(&mut self, converter: &'a dyn Filter) {
-        self.add_filter(converter);
+        self.register(converter);
     }
 }
-
 
 impl ApplicationContext {
 
-    fn add_filter(&mut self, filter: &'static dyn Filter) {
-        self.filter_registry.register(filter)
-    }
-
     /**
-    New filter chain for each request - because it's mutable self reference. **maybe** because the filter chain
+    New filter chain for each request - because it's mutable self reference. Because the filter chain
     has lifetime of 'a and it's being added to that, even though filterRegistrar Filter have lifetime of 'static
-    it will go to lifetime of 'a, and therefore fix issue of unending static memory.
+    it will go to lifetime of 'a, and therefore fix issue of unending static memory. coercion
     */
     fn create_get_filter_chain<'a>(&self) -> FilterChain<'a> {
         let filters = self.filter_registry.filters.clone();
         FilterChain::new(filters.iter().map(|v| v.clone()).collect())
     }
 }
+
+// impl <RequestStream, Response, IAdaptFrom, ResponseWriterType> Registry<dyn HandlerAdapter<IAdaptFrom, RequestStream, Response, ResponseWriterType>> for ApplicationContext
+//     where
+//         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + ResponseWriter<ResponseWriterType>,
+//         RequestStream: Serialize + for<'b> Deserialize<'b> + Clone + Default + RequestStream<Response, ResponseWriterType>,
+//         ResponseWriterType: Copy + Clone,
+//         IAdaptFrom: ProtocolToAdaptFrom<RequestStream, Response, ResponseWriterType>
+// {
+//     fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn HandlerAdapter<IAdaptFrom, RequestStream, Response, ResponseWriterType>>> {
+//         todo!()
+//     }
+// }
 
 #[derive(Clone)]
 pub struct FilterContext {

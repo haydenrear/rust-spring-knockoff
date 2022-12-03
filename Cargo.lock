@@ -325,6 +325,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "circular"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0fc239e0f6cb375d2402d48afb92f76f5404fd1df208a41930ec81eda078bea"
+
+[[package]]
 name = "concurrent-queue"
 version = "1.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -716,6 +722,10 @@ dependencies = [
  "serde",
  "syn",
 ]
+
+[[package]]
+name = "hyper"
+version = "0.1.0"
 
 [[package]]
 name = "iana-time-zone"
@@ -1813,6 +1823,7 @@ dependencies = [
  "async-std",
  "async-trait",
  "base64",
+ "circular",
  "data_framework",
  "futures",
  "lazy_static",

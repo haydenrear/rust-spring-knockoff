@@ -11,7 +11,6 @@ pub mod security {
     use crate::filter::filter::{Filter, FilterChain};
     use crate::request::request::{HttpRequest, HttpResponse};
     use crate::session::session::HttpSession;
-    use crate::type_mod::type_mod::{GetType, HTypeId};
     use alloc::string::String;
     use core::borrow::Borrow;
     use core::fmt::{Error, Formatter};

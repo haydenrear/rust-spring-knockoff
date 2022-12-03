@@ -1,13 +1,15 @@
 #![feature(unboxed_closures)]
+#![feature(slice_as_chunks)]
+#![feature(iter_next_chunk)]
 #[macro_use]
 extern crate alloc;
-extern crate core;
 
 pub mod context;
 pub mod dispatch;
 pub mod convert;
 pub mod filter;
 pub mod http;
+mod static_registrar;
 pub mod message;
 pub mod request;
 pub mod security;

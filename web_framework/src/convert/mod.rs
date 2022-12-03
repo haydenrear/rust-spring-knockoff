@@ -41,6 +41,7 @@ pub trait MessageConverter {
     fn message_type(&self) -> MediaType;
 }
 
+#[derive(Copy, Clone)]
 pub struct JsonMessageConverter;
 
 impl MessageConverter for JsonMessageConverter {
@@ -70,6 +71,7 @@ impl MessageConverter for JsonMessageConverter {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct OtherMessageConverter;
 
 impl MessageConverter for OtherMessageConverter {
@@ -99,7 +101,7 @@ impl MessageConverter for OtherMessageConverter {
     }
 }
 
-pub trait Registration<'a, C> {
+pub trait Registration<'a, C: ?Sized> {
     fn register(&mut self, converter: &'a C);
 }
 
@@ -121,20 +123,11 @@ impl Registry<dyn MessageConverter> for ConverterRegistry {
 //TODO: macro in app context builder for having user provided message converter, or
 // other authentication converter to implement Registration<UserProvidedJwt> for ConverterRegistry
 // and also it will add it - the registry![userProvided] will go inside of the app context register
-impl<'a> Registration<'a, JsonMessageConverter> for ConverterRegistry
+impl<'a> Registration<'a, dyn MessageConverter> for ConverterRegistry
 where
     'a: 'static,
 {
-    fn register(&mut self, converter: &'a JsonMessageConverter) {
-        self.converters.push_front(converter)
-    }
-}
-
-impl<'a> Registration<'a, OtherMessageConverter> for ConverterRegistry
-where
-    'a: 'static,
-{
-    fn register(&mut self, converter: &'a OtherMessageConverter) {
+    fn register(&mut self, converter: &'a dyn MessageConverter) {
         self.converters.push_front(converter)
     }
 }

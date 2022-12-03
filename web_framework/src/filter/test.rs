@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test_filter {
     use crate::context::RequestContext;
-    use crate::controller::Dispatcher;
+    use crate::dispatch::Dispatcher;
     use crate::convert::{ConverterRegistry, Registry};
-    use crate::filter::filter::{Action, Filter, FilterChain, FilterImpl, MediaType};
+    use crate::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
     use crate::message::MessageType;
     use crate::request::request::{EndpointMetadata, RequestExtractor, ResponseWriter};
     use crate::request::request::{HttpRequest, HttpResponse};
@@ -67,7 +67,7 @@ mod test_filter {
 
     #[test]
     fn test_filter() {
-        let one = FilterImpl {
+        let one = RequestResponseActionFilter {
             actions: Box::new(TestAction::default()),
             dispatcher: Dispatcher::default(),
         };
@@ -78,7 +78,7 @@ mod test_filter {
 
     #[test]
     fn test_get_in_filter() {
-        let one = &FilterImpl {
+        let one = &RequestResponseActionFilter {
             actions: Box::new(TestAction::default()),
             dispatcher: Dispatcher::default(),
         };
@@ -97,7 +97,7 @@ mod test_filter {
     #[test]
     fn filter_application_builder() {
         let mut vec: Vec<&dyn Filter> = vec![];
-        vec.push(&FilterImpl {
+        vec.push(&RequestResponseActionFilter {
             actions: Box::new(TestAction {}),
             dispatcher: Dispatcher::default(),
         });

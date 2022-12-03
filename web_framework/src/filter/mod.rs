@@ -5,14 +5,15 @@ pub mod filter {
     extern crate core;
 
     use crate::context::RequestContext;
-    use crate::controller::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
+    use crate::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
     use crate::convert::Registration;
-    use crate::http::{HttpMethod};
+    use crate::http::{Connection, HttpMethod};
     use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
     use crate::security::security::AuthenticationToken;
     use crate::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
+    use std::cmp::Ordering;
     use serde::{Deserialize, Serialize};
     use std::collections::{HashMap, LinkedList};
     use std::ops::{Deref, Index};
@@ -79,10 +80,12 @@ pub mod filter {
             request: &Option<Request>,
             context: &RequestContext,
         ) -> Option<Response>;
+
         fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool;
     }
 
-    pub struct FilterImpl<Request, Response>
+
+    pub struct RequestResponseActionFilter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
@@ -95,7 +98,7 @@ pub mod filter {
         fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain);
     }
 
-    impl<Request, Response> Filter for FilterImpl<Request, Response>
+    impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default,
