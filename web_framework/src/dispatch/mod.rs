@@ -1,9 +1,9 @@
 use crate::context::RequestContext;
-use crate::convert::Converters;
+use crate::convert::{Converters, RequestExtractor};
 use crate::filter::filter::{Action, MediaType};
 use crate::message::MessageType;
 use crate::request::request::{
-    EndpointMetadata, HttpRequest, HttpResponse, RequestExtractor, ResponseWriter,
+    EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter,
 };
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};

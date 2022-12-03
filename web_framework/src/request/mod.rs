@@ -37,14 +37,6 @@ pub mod request {
         pub body: String,
         pub metadata: EndpointMetadata,
         pub method: HttpMethod,
-        // #[serde(skip_serializing, skip_deserializing)]
-        // pub connection: Option<&'a dyn Connection<'a, &'a [u8]>>
-    }
-
-    impl <'a> HttpRequest {
-        // pub fn write(&self, cxn: &dyn Connection<&[u8]>) {
-        //     // cxn.write(self.response)
-        // }
     }
 
     impl Clone for HttpRequest {
@@ -54,7 +46,6 @@ pub mod request {
                 body: self.body.clone(),
                 metadata: self.metadata.clone(),
                 method: HttpMethod::Get,
-                // connection: None,
             }
         }
     }
@@ -65,16 +56,6 @@ pub mod request {
                 HttpMethod::Post => HttpMethod::Post,
                 HttpMethod::Get => HttpMethod::Get,
             }
-        }
-    }
-
-    pub trait RequestExtractor<T> {
-        fn convert_extract(&self, request: &HttpRequest) -> Option<T>;
-    }
-
-    impl RequestExtractor<EndpointMetadata> for RequestContext {
-        fn convert_extract(&self, request: &HttpRequest) -> Option<EndpointMetadata> {
-            Some(EndpointMetadata::default())
         }
     }
 
@@ -91,20 +72,43 @@ pub mod request {
         response_bytes: Buffer
     }
 
+    impl ResponseBytesBuffer {
+        const SIZE: usize = 4096;
+        fn add_bytes(&mut self, mut bytes: &[u8]) {
+            self.response_bytes.write(bytes);
+        }
+
+        fn next(&mut self) -> [u8; Self::SIZE] {
+            let mut more_bytes: [u8; Self::SIZE] = [0; Self::SIZE];
+            self.response_bytes.read(more_bytes.as_mut());
+            more_bytes
+        }
+
+        fn empty(&self) -> bool {
+            self.response_bytes.empty()
+        }
+
+        pub fn write(&mut self, to_write: &[u8]) -> std::io::Result<usize> {
+            if self.response_bytes.available_space() < to_write.len()  {
+                self.response_bytes.grow(self.response_bytes.capacity() + to_write.len() * 2);
+            }
+            self.response_bytes.write(to_write)
+        }
+
+    }
+
     impl Default for ResponseBytesBuffer {
         fn default() -> Self {
             Self {
-                response_bytes: Buffer::with_capacity(0)
+                response_bytes: Buffer::with_capacity(12000)
             }
         }
     }
 
     impl <'a> WriteToConnection<'a, &[u8]> for HttpResponse {
         fn write_to_cxn(& mut self, cxn: & dyn Connection<&[u8]>) {
-            while !self.response_bytes.response_bytes.empty() {
-                let mut more_bytes: [u8; 4096] = [0; 4096];
-                self.response_bytes.response_bytes.read(more_bytes.as_mut());
-                cxn.write_bytes(more_bytes);
+            while !self.response_bytes.empty() {
+                cxn.write_bytes(self.response_bytes.next());
             }
         }
     }
@@ -118,7 +122,7 @@ pub mod request {
             self.response = String::from_utf8(Vec::from(response))
                 .map(|response_str| self.response.clone() + response_str.as_str())
                 .unwrap_or(self.response.clone());
-            self.response_bytes = ResponseBytesBuffer {response_bytes: Buffer::from_slice(response)}
+            self.response_bytes.write(response);
         }
     }
 

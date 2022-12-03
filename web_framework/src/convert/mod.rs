@@ -1,7 +1,7 @@
 use crate::context::RequestContext;
 use crate::filter::filter::MediaType;
 use crate::message::MessageType;
-use crate::request::request::HttpRequest;
+use crate::request::request::{EndpointMetadata, HttpRequest};
 use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::collections::LinkedList;
@@ -112,6 +112,23 @@ pub trait Registry<C: ?Sized> {
 #[derive(Clone)]
 pub struct ConverterRegistry {
     pub converters: Box<LinkedList<&'static dyn MessageConverter>>,
+    pub request_convert: &'static dyn RequestExtractor<EndpointMetadata>
+}
+
+impl ConverterRegistry {
+    pub fn endpoint_extractor(&self) -> &'static dyn RequestExtractor<EndpointMetadata> {
+        self.request_convert
+    }
+}
+
+pub struct EndpointRequestExtractor {
+
+}
+
+impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
+    fn convert_extract(&self, request: &HttpRequest) -> Option<EndpointMetadata> {
+        Some(EndpointMetadata::default())
+    }
 }
 
 impl Registry<dyn MessageConverter> for ConverterRegistry {
@@ -159,6 +176,16 @@ impl ConverterRegistryContainer for ConverterRegistry {
                 .collect::<Vec<&'static dyn MessageConverter>>()
                 .into_iter(),
         )
+    }
+}
+
+pub trait RequestExtractor<T>: Send + Sync {
+    fn convert_extract(&self, request: &HttpRequest) -> Option<T>;
+}
+
+impl RequestExtractor<EndpointMetadata> for RequestContext {
+    fn convert_extract(&self, request: &HttpRequest) -> Option<EndpointMetadata> {
+        self.message_converters.endpoint_extractor().convert_extract(request)
     }
 }
 

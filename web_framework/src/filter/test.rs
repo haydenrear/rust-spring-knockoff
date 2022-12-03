@@ -5,7 +5,7 @@ mod test_filter {
     use crate::convert::{ConverterRegistry, Registry};
     use crate::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
     use crate::message::MessageType;
-    use crate::request::request::{EndpointMetadata, RequestExtractor, ResponseWriter};
+    use crate::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
     use crate::request::request::{HttpRequest, HttpResponse};
     use crate::security::security::AuthenticationToken;
     use lazy_static::lazy_static;
@@ -13,9 +13,11 @@ mod test_filter {
     use std::any::Any;
     use std::cell::RefCell;
     use std::collections::LinkedList;
-    use std::io::Write;
+    use std::io::{Read, Write};
     use std::net::TcpStream;
     use std::ops::Deref;
+    use futures::SinkExt;
+    use circular::Buffer;
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct Example {
@@ -108,5 +110,24 @@ mod test_filter {
         let ctx = RequestContext::default();
         let registrations = ctx.message_converters.read_only_registrations();
         assert_eq!(registrations.len(), 2);
+    }
+
+    #[test]
+    fn test_buffer() {
+        let mut buffer = Buffer::with_capacity(100);
+        let mut to_write: [u8; 155] = [0;155];
+        for i in 0..100 {
+            to_write[i] = i as u8;
+        }
+        buffer.write(to_write.as_slice());
+        let mut to_read: [u8; 155] = [0;155];
+        buffer.read(to_read.as_mut_slice());
+        println!("{}", &to_read[10]);
+        assert_eq!(to_read[10], 10);
+
+        let mut to_read: [u8; 155] = [0;155];
+        buffer.read(to_read.as_mut_slice());
+        println!("{}", &to_read[10]);
+        assert_ne!(to_read[10], 10);
     }
 }

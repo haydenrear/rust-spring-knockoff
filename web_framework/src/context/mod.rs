@@ -1,14 +1,11 @@
-use crate::convert::{
-    ConverterRegistry, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration,
-    Registry,
-};
+use crate::convert::{ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration, Registry};
 use crate::filter::filter::{Filter, FilterChain};
 use crate::security::security::AuthenticationConverterRegistry;
 use std::any::Any;
 use std::collections::LinkedList;
 use serde::{Deserialize, Serialize};
-use crate::http::{ProtocolToAdaptFrom, RequestStream};
-use crate::request::request::{HttpRequest, HttpResponse, ResponseWriter};
+use crate::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
+use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
 
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,
@@ -115,6 +112,7 @@ impl Default for RequestContext {
     fn default() -> Self {
         let mut registry = ConverterRegistry {
             converters: Box::new(LinkedList::new()),
+            request_convert:  &EndpointRequestExtractor {}
         };
         registry.register(&JsonMessageConverter {});
         registry.register(&OtherMessageConverter {});
