@@ -3,7 +3,7 @@ use crate::convert::{Converters, RequestExtractor};
 use crate::filter::filter::{Action, MediaType};
 use crate::message::MessageType;
 use crate::request::request::{
-    EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter,
+    EndpointMetadata, WebRequest, WebResponse, ResponseWriter,
 };
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
@@ -12,11 +12,14 @@ pub struct Dispatcher {
     pub context: RequestContext,
 }
 
+/**
+General dispatcher for web request.
+*/
 impl Dispatcher {
     pub(crate) fn do_request<'a, Response, Request>(
         &self,
-        request: HttpRequest,
-        response: &mut HttpResponse,
+        request: WebRequest,
+        response: &mut WebResponse,
         action: &Box<dyn Action<Request, Response>>,
     ) where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -28,6 +31,7 @@ impl Dispatcher {
                 .and_then(|found| {
                     self.context
                         .convert_extract(&request)
+                        // .filter(|e| action.matches(&request, e))
                         .and_then(|metadata| {
                             action.do_action(metadata, &found.message, &self.context)
                         })

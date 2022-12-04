@@ -32,14 +32,14 @@ pub mod request {
 
 
     #[derive(Serialize, Deserialize)]
-    pub struct HttpRequest {
+    pub struct WebRequest {
         pub headers: HashMap<String, String>,
         pub body: String,
         pub metadata: EndpointMetadata,
         pub method: HttpMethod,
     }
 
-    impl Clone for HttpRequest {
+    impl Clone for WebRequest {
         fn clone(&self) -> Self {
             Self {
                 headers: self.headers.clone(),
@@ -60,11 +60,17 @@ pub mod request {
     }
 
     #[derive(Clone, Serialize, Deserialize)]
-    pub struct HttpResponse {
+    pub struct WebResponse {
         pub session: HttpSession,
         pub response: String,
         #[serde(skip_serializing, skip_deserializing)]
         pub response_bytes: ResponseBytesBuffer
+    }
+
+    impl WebResponse {
+        pub fn response_bytes(&mut self) -> Result<Vec<u8>, String> {
+            self.response_bytes.read_and_empty_buffer()
+        }
     }
 
     #[derive(Clone)]
@@ -95,6 +101,14 @@ pub mod request {
             self.response_bytes.write(to_write)
         }
 
+        pub fn read_and_empty_buffer(&mut self) -> Result<Vec<u8>, String> {
+            let mut created_vec = vec![0; self.response_bytes.available_data()];
+            let mut response: &mut [u8] = created_vec.as_mut_slice();
+            self.response_bytes.read(response)
+                .map(|r| created_vec)
+                .or(Err("Error reading from buffer".to_string()))
+        }
+
     }
 
     impl Default for ResponseBytesBuffer {
@@ -105,7 +119,7 @@ pub mod request {
         }
     }
 
-    impl <'a> WriteToConnection<'a, &[u8]> for HttpResponse {
+    impl <'a> WriteToConnection<'a, &[u8]> for WebResponse {
         fn write_to_cxn(& mut self, cxn: & dyn Connection<&[u8]>) {
             while !self.response_bytes.empty() {
                 cxn.write_bytes(self.response_bytes.next());
@@ -117,7 +131,7 @@ pub mod request {
         fn write(&mut self, response: T);
     }
 
-    impl <'a> ResponseWriter<&[u8]> for HttpResponse {
+    impl <'a> ResponseWriter<&[u8]> for WebResponse {
         fn write(&mut self, response: &[u8]) {
             self.response = String::from_utf8(Vec::from(response))
                 .map(|response_str| self.response.clone() + response_str.as_str())
@@ -126,13 +140,13 @@ pub mod request {
         }
     }
 
-    impl <'a> ResponseWriter<&[u8]> for HttpRequest {
+    impl <'a> ResponseWriter<&[u8]> for WebRequest {
         fn write(&mut self, response: &[u8]) {
             todo!()
         }
     }
 
-    impl Default for HttpRequest {
+    impl Default for WebRequest {
         fn default() -> Self {
             Self {
                 headers: HashMap::new(),
@@ -145,7 +159,7 @@ pub mod request {
         }
     }
 
-    impl <'a> Default for HttpResponse {
+    impl <'a> Default for WebResponse {
         fn default() -> Self {
             Self {
                 session: HttpSession::default(),

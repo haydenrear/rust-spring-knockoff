@@ -11,7 +11,7 @@ use async_std::stream::{Stream};
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
 use crate::context::{ApplicationContext, RequestContext};
-use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
+use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
 use crate::dispatch::{Dispatcher, RequestMethodDispatcher};
 use crate::filter::filter::Action;
@@ -88,15 +88,15 @@ pub struct ChunkedBytes {
 pub struct ResponseType<'a> {
     #[serde(skip_serializing, skip_deserializing)]
     pub connection: Option<&'a dyn Connection<'a, &'a [u8]>>,
-    pub response: HttpResponse
+    pub response: WebResponse
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RequestType<'a> {
     #[serde(skip_serializing, skip_deserializing)]
     pub connection: Option<&'a dyn Connection<'a, &'a [u8]>>,
-    request: HttpRequest,
-    response: HttpResponse
+    request: WebRequest,
+    response: WebResponse
 }
 
 impl <'a> Default for RequestType<'a> {

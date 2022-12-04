@@ -5,7 +5,7 @@ use std::any::Any;
 use std::collections::LinkedList;
 use serde::{Deserialize, Serialize};
 use crate::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
-use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
+use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,

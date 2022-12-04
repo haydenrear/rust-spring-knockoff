@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="compiled with ctx">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jpa-buddy.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/convert/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/dispatch/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/filter/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/http/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/http/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/request/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/security/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/security/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/session/mod.rs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="true" />
+  </component>
+  <component name="KubernetesApiPersistence">
+    <option name="context" value="minikube" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="3w5p7qju" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="2" />
+  </component>
+  <component name="ProjectId" id="2DzlmC4mU0eDEClNIhS74zjTHUO" />
+  <component name="ProjectViewState">
+    <option name="abbreviatePackageNames" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;language.rust.build.tool.cargo&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/web_framework/src/static_registrar" />
+      <recent name="$PROJECT_DIR$/delegator_macro" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Cargo.Test filter::test::test_filter::test_get_in_filter">
+    <configuration name="Test filter::test::test_filter::filter_application_builder" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib filter::test::test_filter::filter_application_builder -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test filter::test::test_filter::test_buffer" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib filter::test::test_filter::test_buffer -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test filter::test::test_filter::test_get_in_filter" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib filter::test::test_filter::test_get_in_filter -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test static_registrar::test::tests::test_lazy_static" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib static_registrar::test::tests::test_lazy_static -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test::do_this" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="test --package rust-spring-knockoff --lib tests" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test filter::test::test_filter::test_get_in_filter" />
+        <item itemvalue="Cargo.Test filter::test::test_filter::test_buffer" />
+        <item itemvalue="Cargo.Test static_registrar::test::tests::test_lazy_static" />
+        <item itemvalue="Cargo.Test filter::test::test_filter::filter_application_builder" />
+        <item itemvalue="Cargo.Test test::do_this" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="" />
+      <created>1661709950791</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1661709950791</updated>
+      <workItem from="1661709952165" duration="3242000" />
+      <workItem from="1661899577540" duration="1713000" />
+      <workItem from="1667149459202" duration="8853000" />
+      <workItem from="1667767574358" duration="8547000" />
+      <workItem from="1668085835035" duration="582000" />
+      <workItem from="1668347252900" duration="19661000" />
+      <workItem from="1668776305387" duration="6393000" />
+      <workItem from="1668795217732" duration="31000" />
+      <workItem from="1668873972922" duration="11012000" />
+      <workItem from="1668890054430" duration="147000" />
+      <workItem from="1668903774902" duration="507000" />
+      <workItem from="1668904394534" duration="308000" />
+      <workItem from="1669304701232" duration="11789000" />
+      <workItem from="1669565619167" duration="19272000" />
+      <workItem from="1669721710588" duration="17000" />
+      <workItem from="1669721731995" duration="46000" />
+      <workItem from="1669721782343" duration="22000" />
+      <workItem from="1669721811188" duration="1018000" />
+      <workItem from="1669759600666" duration="343000" />
+      <workItem from="1669759950929" duration="5141000" />
+      <workItem from="1670079653703" duration="598000" />
+      <workItem from="1670080486333" duration="27116000" />
+      <workItem from="1670180643212" duration="2338000" />
+    </task>
+    <task id="LOCAL-00001" summary="add">
+      <created>1668363611774</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1668363611774</updated>
+    </task>
+    <task id="LOCAL-00002" summary="&quot;working&quot;">
+      <created>1668883381873</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1668883381873</updated>
+    </task>
+    <task id="LOCAL-00003" summary="tests passing">
+      <created>1668886232755</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1668886232755</updated>
+    </task>
+    <task id="LOCAL-00004" summary="session">
+      <created>1669308229667</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1669308229667</updated>
+    </task>
+    <task id="LOCAL-00005" summary="session">
+      <created>1669313026722</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1669313026722</updated>
+    </task>
+    <task id="LOCAL-00006" summary="session">
+      <created>1669357880251</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1669357880251</updated>
+    </task>
+    <task id="LOCAL-00007" summary="ctx">
+      <created>1669712094355</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1669712094355</updated>
+    </task>
+    <task id="LOCAL-00008" summary="ctx">
+      <created>1669712363467</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1669712363467</updated>
+    </task>
+    <task id="LOCAL-00009" summary="ctx">
+      <created>1669854227477</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1669854227477</updated>
+    </task>
+    <task id="LOCAL-00010" summary="ctx">
+      <created>1670100985611</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1670100985611</updated>
+    </task>
+    <task id="LOCAL-00011" summary="compiled with ctx">
+      <created>1670104614422</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1670104614422</updated>
+    </task>
+    <task id="LOCAL-00012" summary="compiled with ctx">
+      <created>1670107195183</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1670107195183</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add" />
+    <MESSAGE value="response" />
+    <MESSAGE value="&quot;working&quot;" />
+    <MESSAGE value="tests passing" />
+    <MESSAGE value="session" />
+    <MESSAGE value="ctx" />
+    <MESSAGE value="compiled with ctx" />
+    <option name="LAST_COMMIT_MESSAGE" value="compiled with ctx" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>false</integration-enabled>
+    <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

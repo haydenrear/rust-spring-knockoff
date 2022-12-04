@@ -5,7 +5,7 @@ pub mod session {
     extern crate core;
 
     use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{HttpRequest, HttpResponse};
+    use crate::request::request::{WebRequest, WebResponse};
     use crate::security::security::{Authentication, AuthenticationToken};
     use alloc::string::String;
     use async_std::task as async_task;
@@ -88,8 +88,8 @@ pub mod session {
     {
         fn filter(
             &self,
-            request: &HttpRequest,
-            response: &mut HttpResponse,
+            request: &WebRequest,
+            response: &mut WebResponse,
             mut filter: FilterChain,
         ) {
             if let Some(session) = request

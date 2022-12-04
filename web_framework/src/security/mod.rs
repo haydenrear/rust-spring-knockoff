@@ -9,7 +9,7 @@ pub mod security {
 
     use crate::convert::{Registration, Registry};
     use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{HttpRequest, HttpResponse};
+    use crate::request::request::{WebRequest, WebResponse};
     use crate::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::Borrow;
@@ -28,7 +28,7 @@ pub mod security {
     pub trait AuthenticationFilter: Filter {
         fn try_convert_to_authentication(
             &self,
-            request: HttpRequest,
+            request: WebRequest,
         ) -> Result<Box<Authentication>, AuthenticationConversionError>;
     }
 
@@ -41,7 +41,7 @@ pub mod security {
     }
 
     impl Filter for UsernamePasswordAuthenticationFilter {
-        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain) {
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain) {
             todo!()
         }
     }
@@ -59,7 +59,7 @@ pub mod security {
     impl AuthenticationFilter for UsernamePasswordAuthenticationFilter {
         fn try_convert_to_authentication(
             &self,
-            request: HttpRequest,
+            request: WebRequest,
         ) -> Result<Box<Authentication>, AuthenticationConversionError> {
             todo!()
             // if request.headers.contains_key("Authorization") {
@@ -155,7 +155,10 @@ pub mod security {
 
     impl Default for AuthenticationToken {
         fn default() -> Self {
-            todo!()
+            Self {
+                name: String::default(),
+                auth: Authentication::default()
+            }
         }
     }
 

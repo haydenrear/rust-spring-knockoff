@@ -8,7 +8,7 @@ pub mod filter {
     use crate::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
     use crate::convert::Registration;
     use crate::http::{Connection, HttpMethod};
-    use crate::request::request::{EndpointMetadata, HttpRequest, HttpResponse, ResponseWriter};
+    use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
     use crate::security::security::AuthenticationToken;
     use crate::session::session::HttpSession;
     use alloc::string::String;
@@ -28,7 +28,7 @@ pub mod filter {
     // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
     // resulting in new filter
     impl<'a> FilterChain<'a> {
-        pub fn do_filter(&mut self, request: &HttpRequest, response: &mut HttpResponse) {
+        pub fn do_filter(&mut self, request: &WebRequest, response: &mut WebResponse) {
             let next = self.next();
             if next != -1 {
                 let f = &self.filters[(next - 1) as usize];
@@ -82,9 +82,18 @@ pub mod filter {
         ) -> Option<Response>;
 
         fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool;
+
+        /**
+        determines if it matches endpoint, http method, etc.
+        */
+        fn matches(&self, request: &Request, endpoint_metadata: &EndpointMetadata) -> bool;
+
     }
 
 
+    /***
+    Every "controller endpoint" will create one of these.
+     */
     pub struct RequestResponseActionFilter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -95,7 +104,7 @@ pub mod filter {
     }
 
     pub trait Filter : Send + Sync{
-        fn filter(&self, request: &HttpRequest, response: &mut HttpResponse, filter: FilterChain);
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain);
     }
 
     impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
@@ -105,8 +114,8 @@ pub mod filter {
     {
         fn filter(
             &self,
-            request: &HttpRequest,
-            response: &mut HttpResponse,
+            request: &WebRequest,
+            response: &mut WebResponse,
             mut filter: FilterChain,
         ) {
             self.dispatcher

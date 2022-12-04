@@ -6,7 +6,7 @@ mod test_filter {
     use crate::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
     use crate::message::MessageType;
     use crate::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
-    use crate::request::request::{HttpRequest, HttpResponse};
+    use crate::request::request::{WebRequest, WebResponse};
     use crate::security::security::AuthenticationToken;
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
@@ -53,6 +53,10 @@ mod test_filter {
         fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
             true
         }
+
+        fn matches(&self, request: &Example, endpoint_metadata: &EndpointMetadata) -> bool {
+            true
+        }
     }
 
     impl Clone for TestAction {
@@ -74,7 +78,7 @@ mod test_filter {
             dispatcher: Dispatcher::default(),
         };
         let mut fc = FilterChain::new(vec![&one]);
-        fc.do_filter(&HttpRequest::default(), &mut HttpResponse::default());
+        fc.do_filter(&WebRequest::default(), &mut WebResponse::default());
         assert_eq!(fc.num, 0);
     }
 
@@ -85,15 +89,18 @@ mod test_filter {
             dispatcher: Dispatcher::default(),
         };
         let mut fc = FilterChain::new(vec![one]);
-        let mut request = HttpRequest::default();
+        let mut request = WebRequest::default();
         request
             .headers
             .insert("MediaType".to_string(), "json".to_string());
         request.body = serde_json::to_string(&Example::default()).unwrap();
-        let mut response = HttpResponse::default();
+        let mut response = WebResponse::default();
         fc.do_filter(&request, &mut response);
         assert_eq!(fc.num, 0);
-        assert_eq!(response.response, request.body)
+        let response_val = String::from_utf8(response.response_bytes().unwrap())
+            .unwrap();
+        assert_eq!(response_val, request.body);
+        assert_eq!(0, response.response_bytes().unwrap().len());
     }
 
     #[test]

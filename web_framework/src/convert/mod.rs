@@ -1,14 +1,14 @@
 use crate::context::RequestContext;
 use crate::filter::filter::MediaType;
 use crate::message::MessageType;
-use crate::request::request::{EndpointMetadata, HttpRequest};
+use crate::request::request::{EndpointMetadata, WebRequest};
 use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::collections::LinkedList;
 use std::ops::Deref;
 
 impl<'a> MessageConverter for &'a dyn MessageConverter {
-    fn do_convert(&self, request: HttpRequest) -> bool {
+    fn do_convert(&self, request: WebRequest) -> bool {
         (*self).do_convert(request)
     }
 
@@ -20,7 +20,7 @@ impl<'a> MessageConverter for &'a dyn MessageConverter {
 pub trait MessageConverter: Send + Sync {
     fn convert_to<U: Serialize + for<'a> Deserialize<'a>>(
         &self,
-        request: HttpRequest,
+        request: WebRequest,
     ) -> Option<MessageType<U>>
     where
         Self: Sized,
@@ -37,7 +37,7 @@ pub trait MessageConverter: Send + Sync {
         option
     }
 
-    fn do_convert(&self, request: HttpRequest) -> bool;
+    fn do_convert(&self, request: WebRequest) -> bool;
     fn message_type(&self) -> MediaType;
 }
 
@@ -47,7 +47,7 @@ pub struct JsonMessageConverter;
 impl MessageConverter for JsonMessageConverter {
     fn convert_to<U: Serialize + for<'a> Deserialize<'a>>(
         &self,
-        request: HttpRequest,
+        request: WebRequest,
     ) -> Option<MessageType<U>> {
         serde_json::from_str(&request.body).ok().map(|mr| {
             let message_type: MessageType<U> = MessageType { message: mr };
@@ -55,7 +55,7 @@ impl MessageConverter for JsonMessageConverter {
         })
     }
 
-    fn do_convert(&self, request: HttpRequest) -> bool {
+    fn do_convert(&self, request: WebRequest) -> bool {
         request.headers.contains_key("MediaType") && request.headers["MediaType"].contains("json")
     }
 
@@ -77,7 +77,7 @@ pub struct OtherMessageConverter;
 impl MessageConverter for OtherMessageConverter {
     fn convert_to<U: Serialize + for<'a> Deserialize<'a>>(
         &self,
-        request: HttpRequest,
+        request: WebRequest,
     ) -> Option<MessageType<U>>
     where
         Self: Sized,
@@ -92,7 +92,7 @@ impl MessageConverter for OtherMessageConverter {
         None
     }
 
-    fn do_convert(&self, request: HttpRequest) -> bool {
+    fn do_convert(&self, request: WebRequest) -> bool {
         false
     }
 
@@ -126,7 +126,7 @@ pub struct EndpointRequestExtractor {
 }
 
 impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
-    fn convert_extract(&self, request: &HttpRequest) -> Option<EndpointMetadata> {
+    fn convert_extract(&self, request: &WebRequest) -> Option<EndpointMetadata> {
         Some(EndpointMetadata::default())
     }
 }
@@ -152,7 +152,7 @@ where
 impl ConverterRegistryContainer for ConverterRegistry {
     fn converters(
         &self,
-        request: &HttpRequest,
+        request: &WebRequest,
     ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>> {
         Box::new(
             self.read_only_registrations()
@@ -180,11 +180,11 @@ impl ConverterRegistryContainer for ConverterRegistry {
 }
 
 pub trait RequestExtractor<T>: Send + Sync {
-    fn convert_extract(&self, request: &HttpRequest) -> Option<T>;
+    fn convert_extract(&self, request: &WebRequest) -> Option<T>;
 }
 
 impl RequestExtractor<EndpointMetadata> for RequestContext {
-    fn convert_extract(&self, request: &HttpRequest) -> Option<EndpointMetadata> {
+    fn convert_extract(&self, request: &WebRequest) -> Option<EndpointMetadata> {
         self.message_converters.endpoint_extractor().convert_extract(request)
     }
 }
@@ -192,7 +192,7 @@ impl RequestExtractor<EndpointMetadata> for RequestContext {
 impl Converters for RequestContext {
     fn convert_to<T: Serialize + for<'a> Deserialize<'a>>(
         &self,
-        request: &HttpRequest,
+        request: &WebRequest,
     ) -> Option<MessageType<T>> {
         self.message_converters.converters(request).find_map(|c| {
             let found = (&c).convert_to(request.clone());
@@ -217,7 +217,7 @@ impl Converters for RequestContext {
 pub trait Converters {
     fn convert_to<T: Serialize + for<'a> Deserialize<'a>>(
         &self,
-        request: &HttpRequest,
+        request: &WebRequest,
     ) -> Option<MessageType<T>>;
     fn convert_from<T: Serialize + for<'a> Deserialize<'a> + Clone>(
         &self,
@@ -229,7 +229,7 @@ pub trait Converters {
 pub trait ConverterRegistryContainer {
     fn converters(
         &self,
-        request: &HttpRequest,
+        request: &WebRequest,
     ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>>;
     fn convert_from_converters(
         &self,
