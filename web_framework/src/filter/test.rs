@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test_filter {
-    use crate::context::RequestContext;
+    use crate::context::{ApplicationContext, RequestContext};
     use crate::dispatch::Dispatcher;
     use crate::convert::{ConverterRegistry, Registry};
     use crate::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
@@ -54,7 +54,7 @@ mod test_filter {
             true
         }
 
-        fn matches(&self, request: &Example, endpoint_metadata: &EndpointMetadata) -> bool {
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
             true
         }
     }

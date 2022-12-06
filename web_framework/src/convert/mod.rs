@@ -112,12 +112,21 @@ pub trait Registry<C: ?Sized> {
 #[derive(Clone)]
 pub struct ConverterRegistry {
     pub converters: Box<LinkedList<&'static dyn MessageConverter>>,
-    pub request_convert: &'static dyn RequestExtractor<EndpointMetadata>
+    pub request_convert: Option<&'static dyn RequestExtractor<EndpointMetadata>>
 }
 
 impl ConverterRegistry {
     pub fn endpoint_extractor(&self) -> &'static dyn RequestExtractor<EndpointMetadata> {
-        self.request_convert
+        self.request_convert.map_or_else(
+            || &EndpointRequestExtractor{ } as &'static dyn RequestExtractor<EndpointMetadata>,
+            |f| f
+        )
+    }
+    pub fn new(request_extractor: &'static Option<&'static dyn RequestExtractor<EndpointMetadata>>) -> ConverterRegistry {
+        Self {
+            converters: Box::new(LinkedList::new()),
+            request_convert: *request_extractor,
+        }
     }
 }
 

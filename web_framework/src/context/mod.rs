@@ -1,6 +1,8 @@
+mod test;
+
 use crate::convert::{ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration, Registry};
 use crate::filter::filter::{Filter, FilterChain};
-use crate::security::security::AuthenticationConverterRegistry;
+use crate::security::security::{AuthenticationConverter, AuthenticationConverterRegistry, DelegatingAuthenticationManager};
 use std::any::Any;
 use std::collections::LinkedList;
 use serde::{Deserialize, Serialize};
@@ -9,6 +11,16 @@ use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, Respons
 
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,
+    pub authentication_manager: DelegatingAuthenticationManager
+}
+
+impl RequestContext {
+    pub fn new() -> RequestContext {
+        Self {
+            message_converters: ConverterRegistry::new(&None),
+            authentication_manager: DelegatingAuthenticationManager {providers: LinkedList::new()}
+        }
+    }
 }
 
 impl ContextType<ConverterRegistry, dyn MessageConverter> for RequestContext {
@@ -52,7 +64,7 @@ impl <'a> Registration<'a, dyn Filter> for ApplicationContext
     where 'a: 'static
 {
     fn register(&mut self, converter: &'a dyn Filter) {
-        self.register(converter);
+        self.filter_registry.register(converter)
     }
 }
 
@@ -68,19 +80,24 @@ impl ApplicationContext {
         FilterChain::new(filters.iter().map(|v| v.clone()).collect())
     }
 
+    pub fn new() -> Self {
+        Self {
+            filter_registry: FilterRegistrar::new(),
+            converter_registry: RequestContext::new(),
+            authentication_converters: AuthenticationConverterRegistry::new()
+        }
+    }
+
 }
 
-// impl <RequestStream, Response, IAdaptFrom, ResponseWriterType> Registry<dyn HandlerAdapter<IAdaptFrom, RequestStream, Response, ResponseWriterType>> for ApplicationContext
-//     where
-//         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + ResponseWriter<ResponseWriterType>,
-//         RequestStream: Serialize + for<'b> Deserialize<'b> + Clone + Default + RequestStream<Response, ResponseWriterType>,
-//         ResponseWriterType: Copy + Clone,
-//         IAdaptFrom: ProtocolToAdaptFrom<RequestStream, Response, ResponseWriterType>
-// {
-//     fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn HandlerAdapter<IAdaptFrom, RequestStream, Response, ResponseWriterType>>> {
-//         todo!()
-//     }
-// }
+impl <'a> Registration<'a, dyn AuthenticationConverter> for ApplicationContext
+where
+    'a : 'static
+{
+    fn register(&mut self, converter: &'a dyn AuthenticationConverter) {
+        self.authentication_converters.register(converter);
+    }
+}
 
 #[derive(Clone)]
 pub struct FilterContext {
@@ -98,6 +115,14 @@ pub struct FilterRegistrar {
     pub filters: LinkedList<&'static dyn Filter>,
 }
 
+impl FilterRegistrar {
+    fn new() -> FilterRegistrar {
+        Self {
+            filters: LinkedList::new()
+        }
+    }
+}
+
 impl ContextType<FilterRegistrar, dyn Filter> for FilterContext {
     fn detach_registry(&self) -> FilterRegistrar {
         self.registry.clone()
@@ -112,12 +137,13 @@ impl Default for RequestContext {
     fn default() -> Self {
         let mut registry = ConverterRegistry {
             converters: Box::new(LinkedList::new()),
-            request_convert:  &EndpointRequestExtractor {}
+            request_convert:  Some(&EndpointRequestExtractor {})
         };
         registry.register(&JsonMessageConverter {});
         registry.register(&OtherMessageConverter {});
         Self {
             message_converters: registry,
+            authentication_manager: DelegatingAuthenticationManager::new()
         }
     }
 }

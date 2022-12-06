@@ -17,6 +17,7 @@ pub mod request {
     pub struct EndpointMetadata {
         pub path_variables: String,
         pub query_params: String,
+        pub http_method: HttpMethod
     }
 
     impl Default for EndpointMetadata {
@@ -24,6 +25,7 @@ pub mod request {
             Self {
                 path_variables: String::default(),
                 query_params: String::default(),
+                http_method: HttpMethod::Get
             }
         }
     }

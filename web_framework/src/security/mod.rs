@@ -20,9 +20,18 @@ pub mod security {
     use std::collections::{HashMap, LinkedList};
     use std::ptr::null;
     use std::vec;
+    use security_model::UserAccount;
 
     pub struct DelegatingAuthenticationManager {
-        providers: LinkedList<Box<dyn AuthenticationProvider>>,
+        pub(crate) providers: LinkedList<Box<dyn AuthenticationProvider>>,
+    }
+
+    impl DelegatingAuthenticationManager {
+        pub(crate) fn new() -> Self {
+            Self {
+                providers: LinkedList::new()
+            }
+        }
     }
 
     pub trait AuthenticationFilter: Filter {
@@ -38,6 +47,10 @@ pub mod security {
         fn default() -> Self {
             Self {}
         }
+    }
+
+    pub trait DelegatingAuthenticationFilter {
+        fn do_authentication();
     }
 
     impl Filter for UsernamePasswordAuthenticationFilter {
@@ -101,7 +114,7 @@ pub mod security {
         authority: String,
     }
 
-    pub trait AuthenticationProvider {
+    pub trait AuthenticationProvider : Send + Sync{
         fn supports(&self, authentication_token: TypeId) -> bool;
         fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool;
     }
@@ -150,7 +163,7 @@ pub mod security {
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct AuthenticationToken {
         name: String,
-        auth: Authentication,
+        auth: Authentication
     }
 
     impl Default for AuthenticationToken {
@@ -164,12 +177,14 @@ pub mod security {
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct Authentication {
-        authentication_type: AuthenticationType,
+        authentication_type: AuthenticationType
     }
 
-    pub trait AuthenticationConverter: Converter<AuthenticationType, LinkedList<Authority>> + Send + Sync
-    {
+    impl Authentication {
+
     }
+
+    pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken> + Send + Sync {}
     pub trait JwtAuthenticationConverter: AuthenticationConverter {}
     pub trait UsernamePasswordAuthenticationConverter: AuthenticationConverter {}
     pub trait OpenSamlAuthenticationConverter: AuthenticationConverter {}
@@ -177,6 +192,23 @@ pub mod security {
     #[derive(Clone)]
     pub struct AuthenticationConverterRegistry {
         converters: LinkedList<&'static dyn AuthenticationConverter>,
+    }
+
+    impl <'a> Registration<'a, dyn AuthenticationConverter> for AuthenticationConverterRegistry
+    where
+        'a: 'static
+    {
+        fn register(&mut self, converter: &'a dyn AuthenticationConverter) {
+            self.converters.push_back(converter)
+        }
+    }
+
+    impl AuthenticationConverterRegistry {
+        pub fn new() -> Self {
+            Self {
+                converters: LinkedList::new()
+            }
+        }
     }
 
     //TODO: macro in app context builder for having user provided jwt authentication converter, or
@@ -193,26 +225,20 @@ pub mod security {
         fn supports(&self, auth_type: AuthenticationType) -> bool;
     }
 
+    pub trait AuthenticationAware {
+        fn get_authorities(&self) -> LinkedList<Authority>;
+        fn get_credentials(&self) -> Option<String>;
+        fn get_principal(&self) -> Option<String>;
+        fn set_credentials(&mut self, credential: String);
+        fn set_principal(&mut self, principal: String);
+    }
+
     impl Authentication {
         fn new(authentication_type: AuthenticationType) -> Self {
             return Self {
                 authentication_type: authentication_type,
             };
         }
-
-        fn get_authorities(&self) -> LinkedList<Authority> {
-            todo!()
-        }
-        fn get_credentials(&self) -> Option<String> {
-            todo!()
-        }
-        fn get_principal(&self) -> Option<String> {
-            todo!()
-        }
-        fn set_credentials(credential: String) {
-            todo!()
-        }
-        fn set_principal(principal: String) {}
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -220,11 +246,45 @@ pub mod security {
         authority: String,
     }
 
+    //TODO: each authentication provider is of generic type AuthType, allowing for generalization
+    // then when user provides authentication provider overriding getAuthType with own, macro adds
+    // the authentication provider to the map of auth providers in the authentication filter
     #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub enum AuthenticationType {
+    pub enum AuthenticationType
+    {
         Jwt(JwtToken),
         SAML(OpenSamlAssertion),
         Password(UsernamePassword),
+    }
+
+    impl AuthenticationAware for AuthenticationType {
+        fn get_authorities(&self) -> LinkedList<Authority> {
+            todo!()
+        }
+
+        fn get_credentials(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn get_principal(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn set_credentials(&mut self, credential: String) {
+            todo!()
+        }
+
+        fn set_principal(&mut self, principal: String) {
+            todo!()
+        }
+    }
+
+    impl AuthType for AuthenticationType {
+
+    }
+
+    pub trait AuthType: AuthenticationAware + Send + Sync {
+
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -239,8 +299,8 @@ pub mod security {
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct UsernamePassword {
-        username: String,
-        password: String,
+        pub(crate) username: String,
+        pub(crate) password: String,
     }
 
     impl Default for AuthenticationType {

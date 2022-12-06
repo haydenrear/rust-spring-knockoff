@@ -25,13 +25,16 @@ impl Dispatcher {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
+        // TODO: action is provided by user and an attribute on the action causes this
+        // method to be implemented for the action created by macro
         if action.authentication_granted(&response.session.authentication_token) {
             self.context
                 .convert_to(&request)
                 .and_then(|found| {
                     self.context
                         .convert_extract(&request)
-                        // .filter(|e| action.matches(&request, e))
+                                                    //TODO: why clone?
+                        .filter(|e| action.matches(&e))
                         .and_then(|metadata| {
                             action.do_action(metadata, &found.message, &self.context)
                         })

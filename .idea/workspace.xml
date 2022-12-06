@@ -9,24 +9,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="compiled with ctx">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jpa-buddy.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/context/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/convert/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/dispatch/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/filter/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/http/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/http/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/request/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/security/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/security/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/session/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +94,24 @@
       <recent name="$PROJECT_DIR$/delegator_macro" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test filter::test::test_filter::test_get_in_filter">
+  <component name="RunManager" selected="Cargo.Test context::test::test::test_building_context">
+    <configuration name="Test context::test::test::test_building_context" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib context::test::test::test_building_context -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test filter::test::test_filter::filter_application_builder" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework --lib filter::test::test_filter::filter_application_builder -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -172,23 +180,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::do_this" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="run" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="test --package rust-spring-knockoff --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -208,11 +199,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test context::test::test::test_building_context" />
         <item itemvalue="Cargo.Test filter::test::test_filter::test_get_in_filter" />
         <item itemvalue="Cargo.Test filter::test::test_filter::test_buffer" />
         <item itemvalue="Cargo.Test static_registrar::test::tests::test_lazy_static" />
         <item itemvalue="Cargo.Test filter::test::test_filter::filter_application_builder" />
-        <item itemvalue="Cargo.Test test::do_this" />
       </list>
     </recent_temporary>
   </component>
@@ -250,7 +241,8 @@
       <workItem from="1669759950929" duration="5141000" />
       <workItem from="1670079653703" duration="598000" />
       <workItem from="1670080486333" duration="27116000" />
-      <workItem from="1670180643212" duration="2338000" />
+      <workItem from="1670180643212" duration="2945000" />
+      <workItem from="1670285298900" duration="5415000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <created>1668363611774</created>
@@ -336,7 +328,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670107195183</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="compiled with ctx">
+      <created>1670182994294</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1670182994294</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

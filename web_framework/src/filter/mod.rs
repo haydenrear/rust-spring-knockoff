@@ -86,7 +86,7 @@ pub mod filter {
         /**
         determines if it matches endpoint, http method, etc.
         */
-        fn matches(&self, request: &Request, endpoint_metadata: &EndpointMetadata) -> bool;
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool;
 
     }
 
