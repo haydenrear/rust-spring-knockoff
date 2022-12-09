@@ -41,7 +41,7 @@ where
     RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
     ResponseWriterType: Copy + Clone
 {
-    fn flush_response(&self, response_writer_type: &'a mut RequestResponseType);
+    async fn do_request(&self, response_writer_type: RequestResponseType);
     async fn next(&self) -> RequestResponseType;
 }
 
@@ -144,11 +144,11 @@ impl <'a> WriteToConnection<'a, &[u8]> for RequestType<'a> {
 #[async_trait]
 impl <'a> RequestStream<'a, RequestType<'a>, &'a [u8]> for RequestStreamImpl<'a, RequestType<'a>, &'a [u8], ResponseType<'a>>
 {
-    fn flush_response(&self, response_writer_type: & mut RequestType<'a>) {
-        let mut request = self.converter.from(response_writer_type.clone());
+    async fn do_request(&self, response_writer_type: RequestType<'a>) {
+        let mut request = self.converter.from(response_writer_type);
         self.ctx.create_get_filter_chain()
             .do_filter(&request.request, &mut request.response);
-        response_writer_type.connection
+        request.connection
             .map(|cxn| {
                 request.response.write_to_cxn(cxn);
             });
@@ -157,4 +157,29 @@ impl <'a> RequestStream<'a, RequestType<'a>, &'a [u8]> for RequestStreamImpl<'a,
     async fn next(&self) -> RequestType<'a> {
         self.protocol.subscribe().next().await
     }
+
 }
+
+pub struct WebRunner<'a, RequestResponseType, ResponseWriterType>
+where
+    RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
+    ResponseWriterType: Copy + Clone
+{
+    request_stream: &'a dyn RequestStream<'a, RequestResponseType, ResponseWriterType>
+}
+
+impl <'a, RequestResponseType, ResponseWriterType> WebRunner<'a, RequestResponseType, ResponseWriterType>
+    where
+        RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
+        ResponseWriterType: Copy + Clone
+{
+
+    async fn do_run(&self) {
+        loop {
+            let mut next = self.request_stream.next().await;
+            self.request_stream.do_request(next);
+        }
+    }
+}
+
+
