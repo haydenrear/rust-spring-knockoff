@@ -8,14 +8,14 @@
     <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="security">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="compiling">
+      <change afterPath="$PROJECT_DIR$/test_app/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hyper/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/security_model/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/security_model/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/context/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/filter/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/http/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/http/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -93,7 +93,24 @@
       <recent name="$PROJECT_DIR$/delegator_macro" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test do_run">
+  <component name="RunManager" selected="Cargo.Run test_app">
+    <configuration name="Run test_app" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package test_app --bin test_app" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test context::test::test::test_building_context" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework --lib context::test::test::test_building_context -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -162,23 +179,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test static_registrar::test::tests::test_lazy_static" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib static_registrar::test::tests::test_lazy_static -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="test --package rust-spring-knockoff --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -198,11 +198,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Run test_app" />
         <item itemvalue="Cargo.Test do_run" />
         <item itemvalue="Cargo.Test context::test::test::test_building_context" />
         <item itemvalue="Cargo.Test filter::test::test_filter::test_get_in_filter" />
         <item itemvalue="Cargo.Test filter::test::test_filter::test_buffer" />
-        <item itemvalue="Cargo.Test static_registrar::test::tests::test_lazy_static" />
       </list>
     </recent_temporary>
   </component>
@@ -242,7 +242,7 @@
       <workItem from="1670080486333" duration="27116000" />
       <workItem from="1670180643212" duration="2945000" />
       <workItem from="1670285298900" duration="5437000" />
-      <workItem from="1670552207539" duration="18599000" />
+      <workItem from="1670552207539" duration="23463000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <created>1668363611774</created>
@@ -349,7 +349,14 @@
       <option name="project" value="LOCAL" />
       <updated>1670593553118</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="compiling">
+      <created>1670647174702</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1670647174702</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -375,7 +382,8 @@
     <MESSAGE value="ctx" />
     <MESSAGE value="compiled with ctx" />
     <MESSAGE value="security" />
-    <option name="LAST_COMMIT_MESSAGE" value="security" />
+    <MESSAGE value="compiling" />
+    <option name="LAST_COMMIT_MESSAGE" value="compiling" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

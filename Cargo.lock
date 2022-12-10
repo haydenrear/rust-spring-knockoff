@@ -1536,6 +1536,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f764005d11ee5f36500a149ace24e00e3da98b0158b3e2d53a7495660d3f4d60"
 
 [[package]]
+name = "test_app"
+version = "0.1.0"
+dependencies = [
+ "hyper 0.1.0",
+ "lazy_static",
+ "tokio",
+ "web_framework",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"

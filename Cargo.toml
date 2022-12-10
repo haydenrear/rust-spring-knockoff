@@ -8,5 +8,6 @@ members = [
     "delegator_macro",
     "delegator_test",
     "delegator_macro_rules",
-    "hyper"
+    "hyper",
+    "test_app"
 ]

@@ -1,6 +1,7 @@
 use core::slice::Chunks;
 use std::async_iter::AsyncIterator;
 use std::collections::LinkedList;
+use std::error::Error;
 use std::future::Future;
 use std::intrinsics::write_bytes;
 use std::io::Write;
@@ -54,11 +55,17 @@ pub trait RequestExecutor<'a, RequestType, ResponseType, ResponseWriterType>
     fn do_request(&self, response_writer_type: RequestType) -> ResponseType;
 }
 
-pub trait RequestConverter<T, U>: Send + Sync + Clone
+#[async_trait]
+pub trait RequestConverter<T, U, E>: Send + Sync + Clone
 where
-    U: Serialize + for<'b> Deserialize<'b> + Clone + Default
+    U: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+    E: RequestConversionError
 {
-    fn from(&self, in_value: T) -> U;
+    async fn from(&self, in_value: T) -> Result<U, E>;
+}
+
+pub trait RequestConversionError: Error {
+
 }
 
 pub trait Connection<'a, RequestResponseItem>: Send + Sync
