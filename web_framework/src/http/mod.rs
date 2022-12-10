@@ -29,23 +29,32 @@ pub trait Adapter<T,U> {
 pub trait ProtocolToAdaptFrom<'a, RequestResponseStream, RequestResponseItem, ResponseWriterType>: Send + Sync
 where
     RequestResponseStream: RequestStream<'a, RequestResponseItem, ResponseWriterType>,
-    RequestResponseItem: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
+    RequestResponseItem: Serialize + for<'b> Deserialize<'b> + Clone + Default,
     ResponseWriterType: Copy + Clone
 {
     fn subscribe(&self) -> &RequestResponseStream;
 }
 
 #[async_trait]
-pub trait RequestStream<'a, RequestResponseType, ResponseWriterType>
+pub trait RequestStream<'a, RequestResponseType, ResponseWriterType>: Send + Sync
 where
-    RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
+    RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default,
     ResponseWriterType: Copy + Clone
 {
-    async fn do_request(&self, response_writer_type: RequestResponseType);
     async fn next(&self) -> RequestResponseType;
 }
 
-pub trait RequestConverter<T, U>: Send + Sync
+#[async_trait]
+pub trait RequestExecutor<'a, RequestType, ResponseType, ResponseWriterType>
+    where
+        RequestType: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        ResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default,
+        ResponseWriterType: Copy + Clone
+{
+    fn do_request(&self, response_writer_type: RequestType) -> ResponseType;
+}
+
+pub trait RequestConverter<T, U>: Send + Sync + Clone
 where
     U: Serialize + for<'b> Deserialize<'b> + Clone + Default
 {
@@ -111,16 +120,9 @@ impl <'a> Default for ResponseType<'a> {
     }
 }
 
-pub struct RequestStreamImpl<'a, RequestResponseItem, ResponseWriterType, Response>
-    where
-        RequestResponseItem: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        ResponseWriterType: Copy + Clone,
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
-        Self: 'a
+pub  struct RequestExecutorImpl
 {
-    protocol: &'a dyn ProtocolToAdaptFrom<'a, RequestStreamImpl<'a, RequestResponseItem, ResponseWriterType, Response>, RequestResponseItem, ResponseWriterType>,
-    converter: &'a dyn RequestConverter<RequestResponseItem, RequestResponseItem>,
-    ctx: ApplicationContext
+    pub ctx: ApplicationContext
 }
 
 pub trait WriteToConnection<'a, ResponseWriterType>
@@ -141,45 +143,18 @@ impl <'a> WriteToConnection<'a, &[u8]> for RequestType<'a> {
     }
 }
 
+
+
 #[async_trait]
-impl <'a> RequestStream<'a, RequestType<'a>, &'a [u8]> for RequestStreamImpl<'a, RequestType<'a>, &'a [u8], ResponseType<'a>>
-{
-    async fn do_request(&self, response_writer_type: RequestType<'a>) {
-        let mut request = self.converter.from(response_writer_type);
-        self.ctx.create_get_filter_chain()
-            .do_filter(&request.request, &mut request.response);
-        request.connection
-            .map(|cxn| {
-                request.response.write_to_cxn(cxn);
-            });
-    }
-
-    async fn next(&self) -> RequestType<'a> {
-        self.protocol.subscribe().next().await
-    }
-
-}
-
-pub struct WebRunner<'a, RequestResponseType, ResponseWriterType>
+impl <'a> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>
+for RequestExecutorImpl
 where
-    RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
-    ResponseWriterType: Copy + Clone
-{
-    request_stream: &'a dyn RequestStream<'a, RequestResponseType, ResponseWriterType>
-}
-
-impl <'a, RequestResponseType, ResponseWriterType> WebRunner<'a, RequestResponseType, ResponseWriterType>
-    where
-        RequestResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default + WriteToConnection<'a, ResponseWriterType>,
-        ResponseWriterType: Copy + Clone
 {
 
-    async fn do_run(&self) {
-        loop {
-            let mut next = self.request_stream.next().await;
-            self.request_stream.do_request(next);
-        }
+    fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
+        let mut response = WebResponse::default();
+        self.ctx.create_get_filter_chain()
+            .do_filter(&web_request, &mut response);
+        response
     }
 }
-
-

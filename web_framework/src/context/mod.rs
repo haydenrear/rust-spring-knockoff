@@ -35,7 +35,6 @@ pub struct ApplicationContext {
     pub authentication_converters: AuthenticationConverterRegistry
 }
 
-
 impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
     where 'a: 'static
 {
