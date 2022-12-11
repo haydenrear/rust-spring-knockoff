@@ -439,9 +439,11 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "delegator_macro_rules",
+ "derive-syn-parse",
  "lazy_static",
  "proc-macro2",
  "quote",
+ "rust_spring_macro",
  "serde",
  "syn",
 ]
@@ -463,6 +465,11 @@ version = "0.1.0"
 dependencies = [
  "delegator_macro",
  "delegator_macro_rules",
+ "derive-syn-parse",
+ "dynpath",
+ "quote",
+ "rust_spring_macro",
+ "syn",
 ]
 
 [[package]]
@@ -470,6 +477,17 @@ name = "derivative"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fcc3dd5e9e9c0b295d6e1e4d811fb6f157d5ffd784b8d202fc62eac8035a770b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "derive-syn-parse"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e79116f119dd1dba1abf1f3405f03b9b0e79a27a3883864bfebded8a3dc768cd"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -485,6 +503,17 @@ dependencies = [
  "block-buffer",
  "crypto-common",
  "subtle",
+]
+
+[[package]]
+name = "dynpath"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "606884a4184cd6a5f7b9cf256b09ea2195d0b858a40dc8aeb0c75afb5e18242e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -1278,6 +1307,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_spring_macro"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn",
+]
+
+[[package]]
 name = "rustc_version"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1541,6 +1582,7 @@ version = "0.1.0"
 dependencies = [
  "hyper 0.1.0",
  "lazy_static",
+ "serde",
  "tokio",
  "web_framework",
 ]

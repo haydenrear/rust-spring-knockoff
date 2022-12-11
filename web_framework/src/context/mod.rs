@@ -2,7 +2,7 @@ mod test;
 
 use crate::convert::{ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration, Registry};
 use crate::filter::filter::{Filter, FilterChain};
-use crate::security::security::{AuthenticationConverter, AuthenticationConverterRegistry, DelegatingAuthenticationManager};
+use crate::security::security::{AuthenticationConverter, AuthenticationConverterRegistry, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, Converter, DelegatingAuthenticationManager};
 use std::any::Any;
 use std::collections::LinkedList;
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,8 @@ impl ContextType<ConverterRegistry, dyn MessageConverter> for RequestContext {
 pub struct ApplicationContext {
     pub filter_registry: FilterRegistrar,
     pub converter_registry: RequestContext,
-    pub authentication_converters: AuthenticationConverterRegistry
+    pub authentication_converters: AuthenticationConverterRegistry,
+    pub auth_type_convert: AuthenticationTypeConverterImpl
 }
 
 impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
@@ -83,8 +84,17 @@ impl ApplicationContext {
         Self {
             filter_registry: FilterRegistrar::new(),
             converter_registry: RequestContext::new(),
-            authentication_converters: AuthenticationConverterRegistry::new()
+            authentication_converters: AuthenticationConverterRegistry::new(),
+            auth_type_convert: AuthenticationTypeConverterImpl {}
         }
+    }
+
+    pub fn convert_authentication(&self, request: &WebRequest) -> AuthenticationType {
+        self.auth_type_convert.convert(request)
+    }
+
+    pub fn extract_authentication(&self, request: &WebRequest) -> AuthenticationToken {
+        self.authentication_converters.convert(request)
     }
 
 }

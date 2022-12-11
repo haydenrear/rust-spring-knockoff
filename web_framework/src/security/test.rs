@@ -12,6 +12,6 @@ mod test_security {
             String::from("Authorization"),
             String::from("faslkjaf:as;dljfkas"),
         );
-        username_password_auth_filter.try_convert_to_authentication(request);
+        username_password_auth_filter.try_convert_to_authentication(&request);
     }
 }

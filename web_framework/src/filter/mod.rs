@@ -4,7 +4,7 @@ pub mod filter {
     extern crate alloc;
     extern crate core;
 
-    use crate::context::RequestContext;
+    use crate::context::{ApplicationContext, RequestContext};
     use crate::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
     use crate::convert::Registration;
     use crate::http::{Connection, HttpMethod};
@@ -28,11 +28,11 @@ pub mod filter {
     // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
     // resulting in new filter
     impl<'a> FilterChain<'a> {
-        pub fn do_filter(&mut self, request: &WebRequest, response: &mut WebResponse) {
+        pub fn do_filter(&mut self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
             let next = self.next();
             if next != -1 {
                 let f = &self.filters[(next - 1) as usize];
-                f.filter(request, response, self.clone());
+                f.filter(request, response, self.clone(), ctx);
                 if self.num >= self.filters.len() {
                     self.num = 0;
                 }
@@ -104,8 +104,21 @@ pub mod filter {
         pub(crate) dispatcher: Dispatcher,
     }
 
+    impl <Request, Response> RequestResponseActionFilter<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    {
+        pub fn new(action: Box<dyn Action<Request, Response>>) -> Self {
+            Self {
+                actions: action,
+                dispatcher: Dispatcher::default()
+            }
+        }
+    }
+
     pub trait Filter : Send + Sync{
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain);
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext);
     }
 
     impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
@@ -118,10 +131,11 @@ pub mod filter {
             request: &WebRequest,
             response: &mut WebResponse,
             mut filter: FilterChain,
+            ctx: &ApplicationContext
         ) {
             self.dispatcher
                 .do_request(request.clone(), response, &self.actions);
-            filter.do_filter(request, response)
+            filter.do_filter(request, response, ctx)
         }
     }
 }

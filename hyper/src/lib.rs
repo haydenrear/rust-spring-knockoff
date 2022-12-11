@@ -19,7 +19,13 @@ use serde::de::StdError;
 use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use web_framework::context::ApplicationContext;
-use web_framework::http::{HttpMethod, ProtocolToAdaptFrom, RequestConversionError, RequestConverter, RequestExecutor, RequestExecutorImpl, RequestStream, ResponseType, WriteToConnection};
+use web_framework::convert::Registration;
+use web_framework::filter::filter::Filter;
+use web_framework::http::{
+    HttpMethod, ProtocolToAdaptFrom, RequestConversionError,
+    RequestConverter, RequestExecutor, RequestExecutorImpl,
+    RequestStream, ResponseType
+};
 use web_framework::request::request::{WebRequest, WebResponse};
 use web_framework::security::security::Converter;
 
@@ -44,8 +50,15 @@ impl HyperRequestStream {
     }
 }
 
+impl <'a> Registration<'a, dyn Filter> for HyperRequestStream
+where 'a: 'static
+{
+    fn register(&mut self, converter: &'a dyn Filter) {
+        self.request_executor.ctx.register(converter);
+    }
+}
 
-impl <'a> HyperRequestStream {
+impl HyperRequestStream {
     pub async fn do_run(&'static self) {
         let addr = ([127, 0, 0, 1], 3000).into();
 
@@ -68,11 +81,6 @@ impl <'a> HyperRequestStream {
     }
 }
 
-#[test]
-fn test_hyper_request_stream() {
-
-}
-
 #[derive(Debug, Default)]
 pub struct Error;
 
@@ -83,7 +91,6 @@ impl Display for Error {
 }
 
 impl StdError for Error {}
-
 
 #[derive(Clone)]
 pub struct HyperRequestConverter {

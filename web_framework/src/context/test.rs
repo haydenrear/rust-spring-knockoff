@@ -13,7 +13,7 @@ mod test {
     where
         'a: 'static
     {
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain) {
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext) {
         }
     }
 
@@ -25,12 +25,13 @@ mod test {
             todo!()
         }
 
+    }
+
+    impl AuthenticationConverter for TestUsernamePasswordAuthenticationConverter {
         fn supports(&self, auth_type: AuthenticationType) -> bool {
             todo!()
         }
     }
-
-    impl AuthenticationConverter for TestUsernamePasswordAuthenticationConverter {}
 
     impl UsernamePasswordAuthenticationConverter for TestUsernamePasswordAuthenticationConverter {
 

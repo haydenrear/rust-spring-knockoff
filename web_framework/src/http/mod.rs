@@ -14,8 +14,9 @@ use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
 use crate::context::{ApplicationContext, RequestContext};
 use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
+use crate::convert::Registration;
 use crate::dispatch::{Dispatcher, RequestMethodDispatcher};
-use crate::filter::filter::Action;
+use crate::filter::filter::{Action, Filter};
 
 #[derive(Serialize, Deserialize)]
 pub enum HttpMethod {
@@ -127,29 +128,10 @@ impl <'a> Default for ResponseType<'a> {
     }
 }
 
-pub  struct RequestExecutorImpl
+pub struct RequestExecutorImpl
 {
     pub ctx: ApplicationContext
 }
-
-pub trait WriteToConnection<'a, ResponseWriterType>
-where
-    ResponseWriterType: Copy + Clone {
-    fn write_to_cxn(&mut self, cxn: & dyn Connection<'a, ResponseWriterType>);
-}
-
-impl <'a> WriteToConnection<'a, &[u8]> for ResponseType<'a> {
-    fn write_to_cxn(&mut self, cxn: &dyn Connection<'a, &[u8]>) {
-        self.response.write_to_cxn(cxn)
-    }
-}
-
-impl <'a> WriteToConnection<'a, &[u8]> for RequestType<'a> {
-    fn write_to_cxn(&mut self, cxn: &dyn Connection<'a, &[u8]>) {
-        self.response.write_to_cxn(cxn);
-    }
-}
-
 
 
 #[async_trait]
@@ -161,7 +143,7 @@ where
     fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
         let mut response = WebResponse::default();
         self.ctx.create_get_filter_chain()
-            .do_filter(&web_request, &mut response);
+            .do_filter(&web_request, &mut response, &self.ctx);
         response
     }
 }

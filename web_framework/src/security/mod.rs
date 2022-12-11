@@ -3,6 +3,7 @@
 use std::collections::LinkedList;
 
 pub mod test;
+pub mod security_filter;
 pub mod security {
 
     extern crate core;
@@ -21,6 +22,7 @@ pub mod security {
     use std::ptr::null;
     use std::vec;
     use security_model::UserAccount;
+    use crate::context::ApplicationContext;
 
     pub struct DelegatingAuthenticationManager {
         pub(crate) providers: LinkedList<Box<dyn AuthenticationProvider>>,
@@ -37,8 +39,8 @@ pub mod security {
     pub trait AuthenticationFilter: Filter {
         fn try_convert_to_authentication(
             &self,
-            request: WebRequest,
-        ) -> Result<Box<Authentication>, AuthenticationConversionError>;
+            request: &WebRequest,
+        ) -> Option<Authentication>;
     }
 
     pub struct UsernamePasswordAuthenticationFilter {}
@@ -54,7 +56,7 @@ pub mod security {
     }
 
     impl Filter for UsernamePasswordAuthenticationFilter {
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain) {
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext) {
             todo!()
         }
     }
@@ -72,8 +74,8 @@ pub mod security {
     impl AuthenticationFilter for UsernamePasswordAuthenticationFilter {
         fn try_convert_to_authentication(
             &self,
-            request: WebRequest,
-        ) -> Result<Box<Authentication>, AuthenticationConversionError> {
+            request: &WebRequest,
+        ) -> Option<Authentication> {
             todo!()
             // if request.headers.contains_key("Authorization") {
             //
@@ -180,11 +182,10 @@ pub mod security {
         authentication_type: AuthenticationType
     }
 
-    impl Authentication {
-
+    pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken> + Send + Sync {
+        fn supports(&self, auth_type: AuthenticationType) -> bool;
     }
 
-    pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken> + Send + Sync {}
     pub trait JwtAuthenticationConverter: AuthenticationConverter {}
     pub trait UsernamePasswordAuthenticationConverter: AuthenticationConverter {}
     pub trait OpenSamlAuthenticationConverter: AuthenticationConverter {}
@@ -192,6 +193,25 @@ pub mod security {
     #[derive(Clone)]
     pub struct AuthenticationConverterRegistry {
         converters: LinkedList<&'static dyn AuthenticationConverter>,
+        authentication_type_converter: &'static dyn AuthenticationTypeConverter
+    }
+
+    impl Converter<WebRequest, AuthenticationType> for AuthenticationConverterRegistry{
+        fn convert(&self, from: &WebRequest) -> AuthenticationType {
+            self.authentication_type_converter.convert(from)
+        }
+    }
+
+    impl Converter<WebRequest, AuthenticationToken> for AuthenticationConverterRegistry{
+        fn convert(&self, from: &WebRequest) -> AuthenticationToken {
+            let authentication_type = self.authentication_type_converter.convert(from);
+            AuthenticationToken {
+                name: authentication_type.get_principal().unwrap_or("".to_string()),
+                auth: Authentication {
+                    authentication_type,
+                },
+            }
+        }
     }
 
     impl <'a> Registration<'a, dyn AuthenticationConverter> for AuthenticationConverterRegistry
@@ -206,7 +226,8 @@ pub mod security {
     impl AuthenticationConverterRegistry {
         pub fn new() -> Self {
             Self {
-                converters: LinkedList::new()
+                converters: LinkedList::new(),
+                authentication_type_converter: &AuthenticationTypeConverterImpl {}
             }
         }
     }
@@ -222,7 +243,6 @@ pub mod security {
 
     pub trait Converter<From, To> {
         fn convert(&self, from: &From) -> To;
-        fn supports(&self, auth_type: AuthenticationType) -> bool;
     }
 
     pub trait AuthenticationAware {
@@ -246,6 +266,36 @@ pub mod security {
         authority: String,
     }
 
+    pub trait AuthenticationTypeConverter: Converter<WebRequest, AuthenticationType> + Send + Sync {
+    }
+
+    pub struct AuthenticationTypeConverterImpl;
+
+    impl Converter<WebRequest, AuthenticationType> for AuthenticationTypeConverterImpl {
+        fn convert(&self, from: &WebRequest) -> AuthenticationType {
+            let auth_header = from.headers["Authorization"].as_str();
+            let first_split: Vec<&str> = auth_header.split_whitespace().collect();
+            if first_split.len() < 2 {
+                return AuthenticationType::Unauthenticated;
+            }
+            match first_split[0] {
+                "Basic" => {
+                    let token = String::from(first_split[1]);
+                    AuthenticationType::Jwt(JwtToken{ token })
+                }
+                "Bearer" => {
+                    let username = "".to_string();
+                    let password = "".to_string();
+                    AuthenticationType::Password(UsernamePassword{username, password})
+                }
+                _ => AuthenticationType::Unauthenticated
+            }
+        }
+    }
+
+    impl AuthenticationTypeConverter for AuthenticationTypeConverterImpl {
+    }
+
     //TODO: each authentication provider is of generic type AuthType, allowing for generalization
     // then when user provides authentication provider overriding getAuthType with own, macro adds
     // the authentication provider to the map of auth providers in the authentication filter
@@ -255,6 +305,7 @@ pub mod security {
         Jwt(JwtToken),
         SAML(OpenSamlAssertion),
         Password(UsernamePassword),
+        Unauthenticated
     }
 
     impl AuthenticationAware for AuthenticationType {

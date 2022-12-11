@@ -20,6 +20,7 @@ pub mod session {
     use std::marker::PhantomData;
     use std::ops::Deref;
     use std::pin::Pin;
+    use crate::context::ApplicationContext;
 
     impl Default for WebApplication {
         fn default() -> Self {
@@ -91,15 +92,15 @@ pub mod session {
             request: &WebRequest,
             response: &mut WebResponse,
             mut filter: FilterChain,
+            ctx: &ApplicationContext
         ) {
             if let Some(session) = request
                 .headers
                 .get("R_SESSION_ID")
-                .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id.clone())))
-            {
+                .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id.clone()))) {
                 response.session = session;
             }
-            filter.do_filter(request, response);
+            filter.do_filter(request, response, ctx);
         }
     }
 }

@@ -8,13 +8,16 @@ edition = "2021"
 [dependencies]
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = "1.0"
+syn = {version = "1.0", features = ["full"]}
+derive-syn-parse = "0.1.5"
 lazy_static = "1.4.0"
 serde = "1.0.137"
 base64 = "0.13.0"
 
 [dependencies.delegator_macro_rules]
 path = "../delegator_macro_rules"
+[dependencies.rust_spring_macro]
+path = "../rust_spring_macro"
 
 [lib]
 proc-macro = true

@@ -1,7 +1,7 @@
 pub mod request {
 
     use crate::context::RequestContext;
-    use crate::http::{Connection, HttpMethod, WriteToConnection};
+    use crate::http::{Connection, HttpMethod};
     use crate::session::session::HttpSession;
     use std::collections::{HashMap, LinkedList};
     use std::fs::Metadata;
@@ -117,14 +117,6 @@ pub mod request {
         fn default() -> Self {
             Self {
                 response_bytes: Buffer::with_capacity(12000)
-            }
-        }
-    }
-
-    impl <'a> WriteToConnection<'a, &[u8]> for WebResponse {
-        fn write_to_cxn(& mut self, cxn: & dyn Connection<&[u8]>) {
-            while !self.response_bytes.empty() {
-                cxn.write_bytes(self.response_bytes.next());
             }
         }
     }
