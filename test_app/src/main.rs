@@ -50,7 +50,7 @@ impl Action<Example, Example> for TestAction {
         true
     }
 
-    fn replicate(&self) -> Box<dyn Action<Example, Example>> {
+    fn dyn_clone(&self) -> Box<dyn Action<Example, Example>> {
         todo!()
     }
 }

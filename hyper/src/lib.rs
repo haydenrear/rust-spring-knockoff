@@ -60,19 +60,19 @@ impl <'a> HyperRequestStream {
 impl HyperRequestStream {
     pub async fn do_run(&self) {
         let addr = ([127, 0, 0, 1], 3000).into();
-        let converter = self.converter.clone();
-        let request_executor = self.request_executor.clone();
+
+
         let service = make_service_fn(|cnn: &AddrStream| {
-            let converter = converter.clone();
-            let request_executor = request_executor.clone();
+            let converter = self.converter.clone();
+            let request_executor = self.request_executor.clone();
             async move {
                 Ok::<_, Error>(service_fn(move |rqst| {
-                    let converter_1 = converter.clone();
-                    let request_executor_1 = request_executor.clone();
+                    let converter_cloned = converter.clone();
+                    let request_exec_cloned = request_executor.clone();
                     async move {
-                        converter_1.clone().from(rqst).await
+                        converter_cloned.from(rqst).await
                             .map(|converted| {
-                                let web_response = request_executor_1.clone().do_request(converted);
+                                let web_response = request_exec_cloned.do_request(converted);
                                 Response::new(Body::from(web_response.response))
                             })
                             .or(Err(HyperBodyConvertError { error: "failure" }))

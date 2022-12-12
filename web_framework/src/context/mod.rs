@@ -75,7 +75,7 @@ impl <'a> ApplicationContext {
     */
     pub fn create_get_filter_chain(&self) -> FilterChain {
         let vec = self.filter_registry.filters.iter()
-            .map(|f| f.replicate())
+            .map(|f: &Box<dyn Filter>| f.dyn_clone())
             .collect::<Vec<Box<dyn Filter>>>();
         FilterChain::new(vec)
     }

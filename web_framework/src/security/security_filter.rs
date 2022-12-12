@@ -10,7 +10,7 @@ pub mod security_filter {
             todo!()
         }
 
-        fn replicate(&self) -> Box<dyn Filter> {
+        fn dyn_clone(&self) -> Box<dyn Filter> {
             todo!()
         }
     }

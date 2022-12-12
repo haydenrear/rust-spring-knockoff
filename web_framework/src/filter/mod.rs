@@ -26,7 +26,7 @@ pub mod filter {
     impl Clone for FilterChain {
         fn clone(&self) -> Self {
             let filters = self.filters.iter()
-                .map(|f| f.replicate())
+                .map(|f: &Box<dyn Filter>| f.dyn_clone())
                 .collect::<Vec<Box<dyn Filter>>>();
             Self {
                 filters: filters
@@ -82,10 +82,9 @@ pub mod filter {
         */
         fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool;
 
-        fn replicate(&self) -> Box<dyn Action<Request, Response>>;
+        fn dyn_clone(&self) -> Box<dyn Action<Request, Response>>;
 
     }
-
 
     /***
     Every "controller endpoint" will create one of these.
@@ -114,7 +113,7 @@ pub mod filter {
 
     pub trait Filter : Send + Sync{
         fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext);
-        fn replicate(&self) -> Box<dyn Filter>;
+        fn dyn_clone(&self) -> Box<dyn Filter>;
     }
 
     impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
@@ -132,9 +131,9 @@ pub mod filter {
                 .do_request(request.clone(), response, &self.actions);
         }
 
-        fn replicate(&self) -> Box<dyn Filter> {
+        fn dyn_clone(&self) -> Box<dyn Filter> {
             Box::new(RequestResponseActionFilter {
-                actions: self.actions.replicate(),
+                actions: self.actions.dyn_clone(),
                 dispatcher: Default::default(),
             })
         }
