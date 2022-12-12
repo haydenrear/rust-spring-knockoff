@@ -1,6 +1,6 @@
 #![feature(proc_macro_hygiene)]
 use delegator_macro_rules::{last_thing, types};
-use delegator_macro::module_attr;
+use module_macro::module_attr;
 use std::fmt::Display;
 use crate::test_library::*;
 
@@ -20,7 +20,7 @@ use crate::test_library::test_library_two::test_library_two::Three;
 pub mod test_library {
 
 
-    use delegator_macro::module_attr;
+    use module_macro::module_attr;
     use syn::{parse_macro_input, LitStr, Token, Ident, token::Paren, DeriveInput, ItemStruct, Fields, Field};
 
     use quote::{quote, format_ident, IdentFragment, ToTokens};
@@ -31,6 +31,7 @@ pub mod test_library {
     #[path = "test_library_two.rs"]
     pub mod test_library_two;
 
+
     pub trait Found {
     }
 
@@ -39,11 +40,19 @@ pub mod test_library {
 
     impl One {
         fn new() -> Self {
-            Self {a: String::from("")}
+            Self {
+                a: String::from(""),
+                two: String::default()
+            }
         }
     }
 
+    pub struct Four<'a> {
+        one: &'a [String]
+    }
+
     pub struct One {
+        pub(crate) two: String
     }
 
 
@@ -52,7 +61,10 @@ pub mod test_library {
 #[test]
 fn test() {
     use test_library::One;
-    let one: One = One{a: String::from("hello")};
+    let one: One = One{
+        a: String::from("hello"),
+        two: String::default()
+    };
     // let three: Three = Three{a: String::from("hello")};
 }
 

@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod test_filter {
-    use crate::context::{ApplicationContext, RequestContext};
-    use crate::dispatch::Dispatcher;
-    use crate::convert::{ConverterRegistry, Registry};
-    use crate::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
-    use crate::message::MessageType;
-    use crate::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
-    use crate::request::request::{WebRequest, WebResponse};
-    use crate::security::security::AuthenticationToken;
+    use crate::web_framework::context::{ApplicationContext, RequestContext};
+    use crate::web_framework::dispatch::Dispatcher;
+    use crate::web_framework::convert::{ConverterRegistry, Registry};
+    use crate::web_framework::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
+    use crate::web_framework::message::MessageType;
+    use crate::web_framework::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
+    use crate::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::security::security::AuthenticationToken;
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
     use std::any::Any;
@@ -79,7 +79,6 @@ mod test_filter {
         };
         let mut fc = FilterChain::new(vec![&one]);
         fc.do_filter(&WebRequest::default(), &mut WebResponse::default(), &ApplicationContext::new());
-        assert_eq!(fc.num, 0);
     }
 
     #[test]
@@ -96,7 +95,6 @@ mod test_filter {
         request.body = serde_json::to_string(&Example::default()).unwrap();
         let mut response = WebResponse::default();
         fc.do_filter(&request, &mut response, &ApplicationContext::new());
-        assert_eq!(fc.num, 0);
         let response_val = String::from_utf8(response.response_bytes().unwrap())
             .unwrap();
         assert_eq!(response_val, request.body);

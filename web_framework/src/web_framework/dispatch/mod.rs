@@ -1,13 +1,14 @@
-use crate::context::RequestContext;
-use crate::convert::{Converters, RequestExtractor};
-use crate::filter::filter::{Action, MediaType};
-use crate::message::MessageType;
-use crate::request::request::{
+use crate::web_framework::context::{ApplicationContext, RequestContext};
+use crate::web_framework::convert::{Converters, RequestExtractor};
+use crate::web_framework::filter::filter::{Action, MediaType};
+use crate::web_framework::message::MessageType;
+use crate::web_framework::request::request::{
     EndpointMetadata, WebRequest, WebResponse, ResponseWriter,
 };
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone)]
 pub struct Dispatcher {
     pub context: RequestContext,
 }
@@ -21,6 +22,7 @@ impl Dispatcher {
         request: WebRequest,
         response: &mut WebResponse,
         action: &Box<dyn Action<Request, Response>>,
+        application_context: &ApplicationContext<Request, Response>
     ) where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -33,10 +35,9 @@ impl Dispatcher {
                 .and_then(|found| {
                     self.context
                         .convert_extract(&request)
-                                                    //TODO: why clone?
                         .filter(|e| action.matches(&e))
                         .and_then(|metadata| {
-                            action.do_action(metadata, &found.message, &self.context)
+                            action.do_action(metadata, &found.message, &request, response, &self.context, application_context)
                         })
                         .and_then(|action_response| {
                             self.context.convert_from(&found.message, MediaType::Json)

@@ -18,62 +18,88 @@ use serde::{Deserialize, Serialize};
 use serde::de::StdError;
 use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use web_framework::context::ApplicationContext;
-use web_framework::convert::Registration;
-use web_framework::filter::filter::Filter;
-use web_framework::http::{
+use web_framework::web_framework::context::ApplicationContext;
+use web_framework::web_framework::convert::Registration;
+use web_framework::web_framework::http::{
     HttpMethod, ProtocolToAdaptFrom, RequestConversionError,
     RequestConverter, RequestExecutor, RequestExecutorImpl,
     RequestStream, ResponseType
 };
-use web_framework::request::request::{WebRequest, WebResponse};
-use web_framework::security::security::Converter;
+use web_framework::web_framework::request::request::{WebRequest, WebResponse};
+use web_framework::web_framework::security::security::Converter;
 
 pub struct HyperHandlerAdapter<'a>
 {
     request_stream: &'a dyn RequestStream<'a, WebRequest, &'a [u8]>
 }
 
-pub struct HyperRequestStream {
-    pub request_executor: RequestExecutorImpl,
+pub struct HyperRequestStream<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+
+{
+    pub request_executor: RequestExecutorImpl<Request, Response>,
     pub converter: HyperRequestConverter,
 }
 
-impl HyperRequestStream {
-    pub fn new() -> Self {
+impl <Request, Response> HyperRequestStream<Request, Response>
+where
+    Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+
+{
+    pub fn new(request_executor: RequestExecutorImpl<Request, Response>) -> Self {
         HyperRequestStream {
-            request_executor: RequestExecutorImpl {
-                ctx: ApplicationContext::new()
-            },
+            request_executor: request_executor,
             converter: HyperRequestConverter::new()
         }
     }
 }
 
-impl <'a> Registration<'a, dyn Filter> for HyperRequestStream
-where 'a: 'static
-{
-    fn register(&mut self, converter: &'a dyn Filter) {
-        self.request_executor.ctx.register(converter);
-    }
+// impl <'a> Registration<'a, dyn Filter> for HyperRequestStream<'a>
+// {
+//     fn register(&mut self, converter: &'a dyn Filter) {
+//         self.request_executor.ctx.filter_registry.register(converter);
+//     }
+// }
+
+pub struct Addr<'a> {
+    addr: &'a AddrStream
 }
 
-impl HyperRequestStream {
-    pub async fn do_run(&'static self) {
+impl <HRequest, HResponse> HyperRequestStream<HRequest, HResponse>
+    where
+        HResponse: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        HRequest: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+
+    pub async fn do_run(&mut self) {
         let addr = ([127, 0, 0, 1], 3000).into();
 
-        let service = make_service_fn(|cnn: &AddrStream| async move {
-            Ok::<_, Error>(service_fn(move |rqst| async move {
-                self.converter.from(rqst).await
-                    .map(|converted | {
-                        let web_response = self.request_executor.do_request(converted);
-                        Response::new(Body::from(web_response.response))
-                    })
-                    .or(Err(HyperBodyConvertError{error: "failure"}))
-            }))
+        self.request_executor.ctx.filter_registry.build();
+
+        let service = make_service_fn(|cnn: &AddrStream| {
+            let converter = self.converter.clone();
+            let request_executor = self.request_executor.clone();
+            async move  {
+                Ok::<_, Error>(service_fn(move |rqst| {
+                    let converter_cloned = converter.clone();
+                    let request_exec_cloned = request_executor.clone();
+                    async move {
+                        converter_cloned.from(rqst).await
+                            .map(|converted| {
+                                let web_response = request_exec_cloned.do_request(converted);
+                                Response::new(Body::from(web_response.response))
+                            })
+                            .or(Err(HyperBodyConvertError { error: "failure" }))
+                    }
+                }))
+            }
         });
 
-        let server = Server::bind(&addr).serve(service);
+        let server = Server::bind(&addr)
+            .serve(service);
 
         if let Err(e) = server.await {
             eprintln!("server error: {}", e);

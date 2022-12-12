@@ -10,8 +10,8 @@ syn = {version = "1.0", features = ["full"]}
 quote = "1.0"
 dynpath = "0.1.4"
 
-[dependencies.delegator_macro]
-path = "../delegator_macro"
+[dependencies.module_macro]
+path = "../module_macro"
 [dependencies.delegator_macro_rules]
 path = "../delegator_macro_rules"
 [dependencies.rust_spring_macro]

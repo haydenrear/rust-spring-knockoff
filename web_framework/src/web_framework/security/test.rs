@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod test_security {
-    use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{WebRequest, WebResponse};
-    use crate::security::security::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
+    use crate::web_framework::filter::filter::{Filter, FilterChain};
+    use crate::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::security::security::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
 
     #[test]
     fn test_split() {

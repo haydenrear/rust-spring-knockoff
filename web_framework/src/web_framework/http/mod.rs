@@ -1,6 +1,6 @@
 use core::slice::Chunks;
 use std::async_iter::AsyncIterator;
-use std::collections::LinkedList;
+use std::collections::{LinkedList};
 use std::error::Error;
 use std::future::Future;
 use std::intrinsics::write_bytes;
@@ -11,12 +11,12 @@ use std::task::{Context, Poll};
 use async_std::stream::{Stream};
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
-use crate::context::{ApplicationContext, RequestContext};
-use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
+use crate::web_framework::context::{ApplicationContext, RequestContext};
+use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
-use crate::convert::Registration;
-use crate::dispatch::{Dispatcher, RequestMethodDispatcher};
-use crate::filter::filter::{Action, Filter};
+use crate::web_framework::convert::Registration;
+use crate::web_framework::dispatch::{Dispatcher, RequestMethodDispatcher};
+use crate::web_framework::filter::filter::{Action};
 
 #[derive(Serialize, Deserialize)]
 pub enum HttpMethod {
@@ -128,21 +128,38 @@ impl <'a> Default for ResponseType<'a> {
     }
 }
 
-pub struct RequestExecutorImpl
+pub struct RequestExecutorImpl<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub ctx: ApplicationContext
+    pub ctx: ApplicationContext< Request, Response>,
+}
+
+impl <Request, Response> Clone for RequestExecutorImpl<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
+{
+    fn clone(&self) -> Self {
+        Self {
+            ctx: self.ctx.clone()
+        }
+    }
 }
 
 
 #[async_trait]
-impl <'a> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>
-for RequestExecutorImpl
+impl <'a, Request, Response> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>
+for RequestExecutorImpl< Request, Response>
 where
+    Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-
     fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
         let mut response = WebResponse::default();
-        self.ctx.create_get_filter_chain()
+        self.ctx.filter_registry
+            .filters_build
             .do_filter(&web_request, &mut response, &self.ctx);
         response
     }

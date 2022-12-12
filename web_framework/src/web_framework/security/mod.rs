@@ -8,10 +8,10 @@ pub mod security {
 
     extern crate core;
 
-    use crate::convert::{Registration, Registry};
-    use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{WebRequest, WebResponse};
-    use crate::session::session::HttpSession;
+    use crate::web_framework::convert::{Registration, Registry};
+    use crate::web_framework::filter::filter::{Action, FilterChain};
+    use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
+    use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::Borrow;
     use core::fmt::{Error, Formatter};
@@ -22,10 +22,20 @@ pub mod security {
     use std::ptr::null;
     use std::vec;
     use security_model::UserAccount;
-    use crate::context::ApplicationContext;
+    use crate::web_framework::context::{ApplicationContext, RequestContext};
 
     pub struct DelegatingAuthenticationManager {
         pub(crate) providers: LinkedList<Box<dyn AuthenticationProvider>>,
+    }
+
+    impl Clone for DelegatingAuthenticationManager {
+        fn clone(&self) -> Self {
+            Self {
+                providers: self.providers.iter()
+                    .map(|a| a.clone_auth_provider())
+                    .collect()
+            }
+        }
     }
 
     impl DelegatingAuthenticationManager {
@@ -36,7 +46,8 @@ pub mod security {
         }
     }
 
-    pub trait AuthenticationFilter: Filter {
+    //TODO: replace filter with action
+    pub trait AuthenticationFilter{
         fn try_convert_to_authentication(
             &self,
             request: &WebRequest,
@@ -55,8 +66,32 @@ pub mod security {
         fn do_authentication();
     }
 
-    impl Filter for UsernamePasswordAuthenticationFilter {
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext) {
+    impl <Request, Response> Action<Request, Response> for UsernamePasswordAuthenticationFilter
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    {
+    fn do_action(
+            &self,
+            metadata: EndpointMetadata,
+            request: &Option<Request>,
+            web_request: &WebRequest,
+            response: &mut WebResponse,
+            context: &RequestContext,
+            application_context: &ApplicationContext<Request, Response>
+        ) -> Option<Response> {
+            todo!()
+        }
+
+        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+            todo!()
+        }
+
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
+            todo!()
+        }
+
+        fn clone(&self) -> Box<dyn Action<Request, Response>> {
             todo!()
         }
     }
@@ -116,11 +151,13 @@ pub mod security {
         authority: String,
     }
 
-    pub trait AuthenticationProvider : Send + Sync{
+    pub trait AuthenticationProvider : Send + Sync {
         fn supports(&self, authentication_token: TypeId) -> bool;
         fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool;
+        fn clone_auth_provider(&self) -> Box<dyn AuthenticationProvider>;
     }
 
+    #[derive(Clone)]
     pub struct UsernamePasswordAuthenticationProvider {}
 
     impl AuthenticationProvider for UsernamePasswordAuthenticationProvider {
@@ -130,6 +167,10 @@ pub mod security {
         }
 
         fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool {
+            todo!()
+        }
+
+        fn clone_auth_provider(&self) -> Box<dyn AuthenticationProvider> {
             todo!()
         }
     }
@@ -269,6 +310,7 @@ pub mod security {
     pub trait AuthenticationTypeConverter: Converter<WebRequest, AuthenticationType> + Send + Sync {
     }
 
+    #[derive(Clone)]
     pub struct AuthenticationTypeConverterImpl;
 
     impl Converter<WebRequest, AuthenticationType> for AuthenticationTypeConverterImpl {

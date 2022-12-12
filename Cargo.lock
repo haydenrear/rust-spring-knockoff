@@ -434,21 +434,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "delegator_macro"
-version = "0.1.0"
-dependencies = [
- "base64",
- "delegator_macro_rules",
- "derive-syn-parse",
- "lazy_static",
- "proc-macro2",
- "quote",
- "rust_spring_macro",
- "serde",
- "syn",
-]
-
-[[package]]
 name = "delegator_macro_rules"
 version = "0.1.0"
 dependencies = [
@@ -463,10 +448,10 @@ dependencies = [
 name = "delegator_test"
 version = "0.1.0"
 dependencies = [
- "delegator_macro",
  "delegator_macro_rules",
  "derive-syn-parse",
  "dynpath",
+ "module_macro",
  "quote",
  "rust_spring_macro",
  "syn",
@@ -1023,6 +1008,21 @@ dependencies = [
  "log",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys",
+]
+
+[[package]]
+name = "module_macro"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "delegator_macro_rules",
+ "derive-syn-parse",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "rust_spring_macro",
+ "serde",
+ "syn",
 ]
 
 [[package]]

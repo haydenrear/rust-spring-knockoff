@@ -1,8 +1,8 @@
 pub mod request {
 
-    use crate::context::RequestContext;
-    use crate::http::{Connection, HttpMethod};
-    use crate::session::session::HttpSession;
+    use crate::web_framework::context::RequestContext;
+    use crate::web_framework::http::{Connection, HttpMethod};
+    use crate::web_framework::session::session::HttpSession;
     use std::collections::{HashMap, LinkedList};
     use std::fs::Metadata;
     use std::io::{Bytes, Read, Write};
