@@ -133,6 +133,14 @@ pub struct RequestExecutorImpl
     pub ctx: ApplicationContext
 }
 
+impl <'a> Clone for RequestExecutorImpl {
+    fn clone(&self) -> Self {
+        Self {
+            ctx: ApplicationContext::new()
+        }
+    }
+}
+
 
 #[async_trait]
 impl <'a> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>

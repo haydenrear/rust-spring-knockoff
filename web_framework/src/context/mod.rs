@@ -52,32 +52,32 @@ impl <'a> Registration<'a, dyn MessageConverter> for ApplicationContext
     }
 }
 
-impl <'a> Registration<'a, dyn Filter> for FilterRegistrar
-    where 'a: 'static
+impl FilterRegistrar
 {
-    fn register(&mut self, converter: &'a dyn Filter) {
-        self.filters.push_back(converter.clone())
+    pub fn register(&mut self, converter: Box<dyn Filter>) {
+        self.filters.push(converter)
     }
 }
 
-impl <'a> Registration<'a, dyn Filter> for ApplicationContext
-    where 'a: 'static
-{
-    fn register(&mut self, converter: &'a dyn Filter) {
-        self.filter_registry.register(converter)
-    }
-}
+// impl <'a> Registration<'a, dyn Filter> for ApplicationContext
+// {
+//     fn register(&mut self, converter: &'a dyn Filter) {
+//         self.filter_registry.register(converter)
+//     }
+// }
 
-impl ApplicationContext {
+impl <'a> ApplicationContext {
 
     /**
     New filter chain for each request - because it's mutable self reference. Because the filter chain
     has lifetime of 'a and it's being added to that, even though filterRegistrar Filter have lifetime of 'static
     it will go to lifetime of 'a, and therefore fix issue of unending static memory. coercion
     */
-    pub fn create_get_filter_chain<'a>(&self) -> FilterChain<'a> {
-        let filters = self.filter_registry.filters.clone();
-        FilterChain::new(filters.iter().map(|v| v.clone()).collect())
+    pub fn create_get_filter_chain(&self) -> FilterChain {
+        let vec = self.filter_registry.filters.iter()
+            .map(|f| f.replicate())
+            .collect::<Vec<Box<dyn Filter>>>();
+        FilterChain::new(vec)
     }
 
     pub fn new() -> Self {
@@ -108,35 +108,33 @@ where
     }
 }
 
-#[derive(Clone)]
 pub struct FilterContext {
     pub registry: FilterRegistrar,
 }
 
-impl Registry<dyn Filter> for FilterRegistrar {
-    fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn Filter>> {
-        Box::new(self.filters.clone())
-    }
-}
+// impl <'a> Registry<dyn Filter> for FilterRegistrar<'a> {
+//     fn read_only_registrations(&self) -> Box<LinkedList<&'a dyn Filter>> {
+//         Box::new(self.filters.clone())
+//     }
+// }
 
-#[derive(Clone)]
 pub struct FilterRegistrar {
-    pub filters: LinkedList<&'static dyn Filter>,
+    pub filters: Vec<Box<dyn Filter>>,
 }
 
-impl FilterRegistrar {
+impl <'a> FilterRegistrar {
     fn new() -> FilterRegistrar {
         Self {
-            filters: LinkedList::new()
+            filters: vec![]
         }
     }
 }
 
-impl ContextType<FilterRegistrar, dyn Filter> for FilterContext {
-    fn detach_registry(&self) -> FilterRegistrar {
-        self.registry.clone()
-    }
-}
+// impl <'a> ContextType<FilterRegistrar<'a>, dyn Filter> for FilterContext<'a> {
+//     fn detach_registry(&self) -> FilterRegistrar<'a> {
+//         self.registry.clone()
+//     }
+// }
 
 pub trait ContextType<R: Registry<C>, C: ?Sized> {
     fn detach_registry(&self) -> R;

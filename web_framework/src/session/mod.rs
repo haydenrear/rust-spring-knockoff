@@ -91,7 +91,6 @@ pub mod session {
             &self,
             request: &WebRequest,
             response: &mut WebResponse,
-            mut filter: FilterChain,
             ctx: &ApplicationContext
         ) {
             if let Some(session) = request
@@ -100,7 +99,10 @@ pub mod session {
                 .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id.clone()))) {
                 response.session = session;
             }
-            filter.do_filter(request, response, ctx);
+        }
+
+        fn replicate(&self) -> Box<dyn Filter> {
+            todo!()
         }
     }
 }

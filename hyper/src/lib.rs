@@ -39,7 +39,7 @@ pub struct HyperRequestStream {
     pub converter: HyperRequestConverter,
 }
 
-impl HyperRequestStream {
+impl <'a> HyperRequestStream {
     pub fn new() -> Self {
         HyperRequestStream {
             request_executor: RequestExecutorImpl {
@@ -50,30 +50,39 @@ impl HyperRequestStream {
     }
 }
 
-impl <'a> Registration<'a, dyn Filter> for HyperRequestStream
-where 'a: 'static
-{
-    fn register(&mut self, converter: &'a dyn Filter) {
-        self.request_executor.ctx.register(converter);
-    }
-}
+// impl <'a> Registration<'a, dyn Filter> for HyperRequestStream<'a>
+// {
+//     fn register(&mut self, converter: &'a dyn Filter) {
+//         self.request_executor.ctx.filter_registry.register(converter);
+//     }
+// }
 
 impl HyperRequestStream {
-    pub async fn do_run(&'static self) {
+    pub async fn do_run(&self) {
         let addr = ([127, 0, 0, 1], 3000).into();
-
-        let service = make_service_fn(|cnn: &AddrStream| async move {
-            Ok::<_, Error>(service_fn(move |rqst| async move {
-                self.converter.from(rqst).await
-                    .map(|converted | {
-                        let web_response = self.request_executor.do_request(converted);
-                        Response::new(Body::from(web_response.response))
-                    })
-                    .or(Err(HyperBodyConvertError{error: "failure"}))
-            }))
+        let converter = self.converter.clone();
+        let request_executor = self.request_executor.clone();
+        let service = make_service_fn(|cnn: &AddrStream| {
+            let converter = converter.clone();
+            let request_executor = request_executor.clone();
+            async move {
+                Ok::<_, Error>(service_fn(move |rqst| {
+                    let converter_1 = converter.clone();
+                    let request_executor_1 = request_executor.clone();
+                    async move {
+                        converter_1.clone().from(rqst).await
+                            .map(|converted| {
+                                let web_response = request_executor_1.clone().do_request(converted);
+                                Response::new(Body::from(web_response.response))
+                            })
+                            .or(Err(HyperBodyConvertError { error: "failure" }))
+                    }
+                }))
+            }
         });
 
-        let server = Server::bind(&addr).serve(service);
+        let server = Server::bind(&addr)
+            .serve(service);
 
         if let Err(e) = server.await {
             eprintln!("server error: {}", e);

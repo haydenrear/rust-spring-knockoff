@@ -56,7 +56,11 @@ pub mod security {
     }
 
     impl Filter for UsernamePasswordAuthenticationFilter {
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext) {
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
+            todo!()
+        }
+
+        fn replicate(&self) -> Box<dyn Filter> {
             todo!()
         }
     }

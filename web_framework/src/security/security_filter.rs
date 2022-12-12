@@ -6,7 +6,11 @@ pub mod security_filter {
     pub struct SecurityFilter;
 
     impl Filter for SecurityFilter {
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext) {
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
+            todo!()
+        }
+
+        fn replicate(&self) -> Box<dyn Filter> {
             todo!()
         }
     }

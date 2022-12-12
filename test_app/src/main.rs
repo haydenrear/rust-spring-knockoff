@@ -10,14 +10,6 @@ use web_framework::filter::filter::{Action, RequestResponseActionFilter};
 use web_framework::request::request::EndpointMetadata;
 use web_framework::security::security::AuthenticationToken;
 
-lazy_static!(pub static ref RUNNER: Arc<Mutex<HyperRequestStream>> =
-    Arc::new(Mutex::new(HyperRequestStream {
-        request_executor: RequestExecutorImpl {
-            ctx: ApplicationContext::new()
-        },
-        converter: HyperRequestConverter::new()
-    }));
-);
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Example {
@@ -57,6 +49,10 @@ impl Action<Example, Example> for TestAction {
     fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
         true
     }
+
+    fn replicate(&self) -> Box<dyn Action<Example, Example>> {
+        todo!()
+    }
 }
 
 impl Clone for TestAction {
@@ -72,11 +68,13 @@ impl Default for TestAction {
 }
 
 
+
 #[tokio::main]
 async fn main() {
-    let one = &RequestResponseActionFilter::new(
+    let one = RequestResponseActionFilter::new(
         Box::new(TestAction::default())
     );
-    RUNNER.lock().unwrap().register(one);
-    RUNNER.lock().unwrap().do_run().await;
+    let mut r = HyperRequestStream::new();
+    r.request_executor.ctx.filter_registry.register(Box::new(one));
+    r.do_run().await;
 }

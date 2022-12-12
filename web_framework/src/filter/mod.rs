@@ -19,42 +19,35 @@ pub mod filter {
     use std::ops::{Deref, Index};
     use std::path::Iter;
 
-    #[derive(Clone)]
-    pub struct FilterChain<'a> {
-        filters: Vec<&'a dyn Filter>,
-        pub(crate) num: usize,
+    pub struct FilterChain {
+        filters: Vec<Box<dyn Filter>>
+    }
+
+    impl Clone for FilterChain {
+        fn clone(&self) -> Self {
+            let filters = self.filters.iter()
+                .map(|f| f.replicate())
+                .collect::<Vec<Box<dyn Filter>>>();
+            Self {
+                filters: filters
+            }
+        }
     }
 
     // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
     // resulting in new filter
-    impl<'a> FilterChain<'a> {
+    impl FilterChain {
         pub fn do_filter(&mut self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
-            let next = self.next();
-            if next != -1 {
-                let f = &self.filters[(next - 1) as usize];
-                f.filter(request, response, self.clone(), ctx);
-                if self.num >= self.filters.len() {
-                    self.num = 0;
-                }
+            for f in &self.filters {
+                f.filter(request, response, ctx);
             }
         }
 
-        pub(crate) fn next(&mut self) -> i64 {
-            if self.filters.len() > self.num {
-                self.num += 1;
-                return self.num as i64;
-            } else {
-                -1
-            }
-        }
-
-        pub fn new(filters: Vec<&'a dyn Filter>) -> Self {
+        pub fn new(filters: Vec<Box<dyn Filter>>) -> Self {
             Self {
-                filters: filters,
-                num: 0,
+                filters: filters
             }
         }
-
     }
 
     #[derive(PartialEq)]
@@ -89,6 +82,8 @@ pub mod filter {
         */
         fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool;
 
+        fn replicate(&self) -> Box<dyn Action<Request, Response>>;
+
     }
 
 
@@ -118,24 +113,30 @@ pub mod filter {
     }
 
     pub trait Filter : Send + Sync{
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, filter: FilterChain, ctx: &ApplicationContext);
+        fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext);
+        fn replicate(&self) -> Box<dyn Filter>;
     }
 
     impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
     where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     {
         fn filter(
             &self,
             request: &WebRequest,
             response: &mut WebResponse,
-            mut filter: FilterChain,
             ctx: &ApplicationContext
         ) {
             self.dispatcher
                 .do_request(request.clone(), response, &self.actions);
-            filter.do_filter(request, response, ctx)
+        }
+
+        fn replicate(&self) -> Box<dyn Filter> {
+            Box::new(RequestResponseActionFilter {
+                actions: self.actions.replicate(),
+                dispatcher: Default::default(),
+            })
         }
     }
 }
