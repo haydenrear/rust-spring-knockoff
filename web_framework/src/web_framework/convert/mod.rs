@@ -1,7 +1,7 @@
-use crate::context::RequestContext;
-use crate::filter::filter::MediaType;
-use crate::message::MessageType;
-use crate::request::request::{EndpointMetadata, WebRequest};
+use crate::web_framework::context::RequestContext;
+use crate::web_framework::filter::filter::MediaType;
+use crate::web_framework::message::MessageType;
+use crate::web_framework::request::request::{EndpointMetadata, WebRequest};
 use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::collections::LinkedList;

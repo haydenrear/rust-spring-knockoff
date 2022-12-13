@@ -4,13 +4,13 @@ pub mod filter {
     extern crate alloc;
     extern crate core;
 
-    use crate::context::{ApplicationContext, RequestContext};
-    use crate::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
-    use crate::convert::Registration;
-    use crate::http::{Connection, HttpMethod};
-    use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
-    use crate::security::security::AuthenticationToken;
-    use crate::session::session::HttpSession;
+    use crate::web_framework::context::{ApplicationContext, RequestContext};
+    use crate::web_framework::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
+    use crate::web_framework::convert::Registration;
+    use crate::web_framework::http::{Connection, HttpMethod};
+    use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
+    use crate::web_framework::security::security::AuthenticationToken;
+    use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
     use std::cmp::Ordering;

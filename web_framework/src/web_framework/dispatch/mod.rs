@@ -1,8 +1,8 @@
-use crate::context::RequestContext;
-use crate::convert::{Converters, RequestExtractor};
-use crate::filter::filter::{Action, MediaType};
-use crate::message::MessageType;
-use crate::request::request::{
+use crate::web_framework::context::RequestContext;
+use crate::web_framework::convert::{Converters, RequestExtractor};
+use crate::web_framework::filter::filter::{Action, MediaType};
+use crate::web_framework::message::MessageType;
+use crate::web_framework::request::request::{
     EndpointMetadata, WebRequest, WebResponse, ResponseWriter,
 };
 use futures::TryStreamExt;

@@ -1,14 +1,14 @@
 use lazy_static::lazy_static;
 use hyper::{HyperRequestConverter, HyperRequestStream};
-use web_framework::http::{RequestExecutorImpl};
-use web_framework::context::{ApplicationContext, RequestContext};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
-use web_framework::convert::Registration;
-use web_framework::dispatch::Dispatcher;
-use web_framework::filter::filter::{Action, RequestResponseActionFilter};
-use web_framework::request::request::EndpointMetadata;
-use web_framework::security::security::AuthenticationToken;
+use web_framework::web_framework::convert::Registration;
+use web_framework::web_framework::dispatch::Dispatcher;
+use web_framework::web_framework::filter::filter::{Action, RequestResponseActionFilter};
+use web_framework::web_framework::request::request::EndpointMetadata;
+use web_framework::web_framework::security::security::AuthenticationToken;
+use web_framework::web_framework::http::{RequestExecutorImpl};
+use web_framework::web_framework::context::{ApplicationContext, RequestContext};
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

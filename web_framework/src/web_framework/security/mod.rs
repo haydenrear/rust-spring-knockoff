@@ -8,10 +8,10 @@ pub mod security {
 
     extern crate core;
 
-    use crate::convert::{Registration, Registry};
-    use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{WebRequest, WebResponse};
-    use crate::session::session::HttpSession;
+    use crate::web_framework::convert::{Registration, Registry};
+    use crate::web_framework::filter::filter::{Filter, FilterChain};
+    use crate::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::Borrow;
     use core::fmt::{Error, Formatter};
@@ -22,7 +22,7 @@ pub mod security {
     use std::ptr::null;
     use std::vec;
     use security_model::UserAccount;
-    use crate::context::ApplicationContext;
+    use crate::web_framework::context::ApplicationContext;
 
     pub struct DelegatingAuthenticationManager {
         pub(crate) providers: LinkedList<Box<dyn AuthenticationProvider>>,

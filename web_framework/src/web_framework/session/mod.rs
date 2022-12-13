@@ -4,9 +4,9 @@ pub mod session {
     extern crate alloc;
     extern crate core;
 
-    use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{WebRequest, WebResponse};
-    use crate::security::security::{Authentication, AuthenticationToken};
+    use crate::web_framework::filter::filter::{Filter, FilterChain};
+    use crate::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::security::security::{Authentication, AuthenticationToken};
     use alloc::string::String;
     use async_std::task as async_task;
     use core::borrow::Borrow;
@@ -20,7 +20,7 @@ pub mod session {
     use std::marker::PhantomData;
     use std::ops::Deref;
     use std::pin::Pin;
-    use crate::context::ApplicationContext;
+    use crate::web_framework::context::ApplicationContext;
 
     impl Default for WebApplication {
         fn default() -> Self {

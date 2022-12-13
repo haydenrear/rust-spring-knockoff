@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod test_filter {
-    use crate::context::{ApplicationContext, RequestContext};
-    use crate::dispatch::Dispatcher;
-    use crate::convert::{ConverterRegistry, Registry};
-    use crate::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
-    use crate::message::MessageType;
-    use crate::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
-    use crate::request::request::{WebRequest, WebResponse};
-    use crate::security::security::AuthenticationToken;
+    use crate::web_framework::web_framework::context::{ApplicationContext, RequestContext};
+    use crate::web_framework::web_framework::dispatch::Dispatcher;
+    use crate::web_framework::web_framework::convert::{ConverterRegistry, Registry};
+    use crate::web_framework::web_framework::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
+    use crate::web_framework::web_framework::message::MessageType;
+    use crate::web_framework::web_framework::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
+    use crate::web_framework::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::web_framework::security::security::AuthenticationToken;
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
     use std::any::Any;

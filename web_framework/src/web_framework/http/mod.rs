@@ -11,12 +11,12 @@ use std::task::{Context, Poll};
 use async_std::stream::{Stream};
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
-use crate::context::{ApplicationContext, RequestContext};
-use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
+use crate::web_framework::context::{ApplicationContext, RequestContext};
+use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
-use crate::convert::Registration;
-use crate::dispatch::{Dispatcher, RequestMethodDispatcher};
-use crate::filter::filter::{Action, Filter};
+use crate::web_framework::convert::Registration;
+use crate::web_framework::dispatch::{Dispatcher, RequestMethodDispatcher};
+use crate::web_framework::filter::filter::{Action, Filter};
 
 #[derive(Serialize, Deserialize)]
 pub enum HttpMethod {

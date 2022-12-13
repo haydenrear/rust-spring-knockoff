@@ -18,16 +18,16 @@ use serde::{Deserialize, Serialize};
 use serde::de::StdError;
 use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use web_framework::context::ApplicationContext;
-use web_framework::convert::Registration;
-use web_framework::filter::filter::Filter;
-use web_framework::http::{
+use web_framework::web_framework::context::ApplicationContext;
+use web_framework::web_framework::convert::Registration;
+use web_framework::web_framework::filter::filter::Filter;
+use web_framework::web_framework::http::{
     HttpMethod, ProtocolToAdaptFrom, RequestConversionError,
     RequestConverter, RequestExecutor, RequestExecutorImpl,
     RequestStream, ResponseType
 };
-use web_framework::request::request::{WebRequest, WebResponse};
-use web_framework::security::security::Converter;
+use web_framework::web_framework::request::request::{WebRequest, WebResponse};
+use web_framework::web_framework::security::security::Converter;
 
 pub struct HyperHandlerAdapter<'a>
 {

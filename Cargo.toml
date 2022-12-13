@@ -5,7 +5,7 @@ members = [
     "mongo_repo",
     "security_model",
     "data_framework",
-    "delegator_macro",
+    "module_macro",
     "delegator_test",
     "delegator_macro_rules",
     "hyper",

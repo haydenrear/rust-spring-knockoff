@@ -1,13 +1,15 @@
 mod test;
 
-use crate::convert::{ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration, Registry};
-use crate::filter::filter::{Filter, FilterChain};
-use crate::security::security::{AuthenticationConverter, AuthenticationConverterRegistry, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, Converter, DelegatingAuthenticationManager};
+use crate::web_framework::convert::{ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration, Registry};
+use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationConverterRegistry,
+                                     AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl,
+                                     Converter, DelegatingAuthenticationManager};
+use crate::web_framework::filter::filter::{Filter, FilterChain};
 use std::any::Any;
 use std::collections::LinkedList;
 use serde::{Deserialize, Serialize};
-use crate::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
-use crate::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
+use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
+use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,

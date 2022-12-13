@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod test {
     use std::collections::LinkedList;
-    use crate::context::{ApplicationContext, RequestContext};
-    use crate::convert::{JsonMessageConverter, MessageConverter, Registration};
-    use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{WebRequest, WebResponse};
-    use crate::security::security::{AuthenticationAware, AuthenticationConverter, AuthenticationToken, AuthenticationType, Authority, AuthType, Converter, UsernamePassword, UsernamePasswordAuthenticationConverter};
+    use crate::web_framework::web_framework::context::{ApplicationContext, RequestContext};
+    use crate::web_framework::web_framework::convert::{JsonMessageConverter, MessageConverter, Registration};
+    use crate::web_framework::web_framework::filter::filter::{Filter, FilterChain};
+    use crate::web_framework::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::web_framework::security::security::{AuthenticationAware, AuthenticationConverter, AuthenticationToken, AuthenticationType, Authority, AuthType, Converter, UsernamePassword, UsernamePasswordAuthenticationConverter};
 
     pub struct TestFilter;
 

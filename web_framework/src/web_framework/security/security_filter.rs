@@ -1,7 +1,7 @@
 pub mod security_filter {
-    use crate::context::ApplicationContext;
-    use crate::filter::filter::{Filter, FilterChain};
-    use crate::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::context::ApplicationContext;
+    use crate::web_framework::filter::filter::{Filter, FilterChain};
+    use crate::web_framework::request::request::{WebRequest, WebResponse};
 
     pub struct SecurityFilter;
 

@@ -1,6 +1,6 @@
 #![feature(proc_macro_hygiene)]
 use delegator_macro_rules::{last_thing, types};
-use delegator_macro::module_attr;
+use module_macro::module_attr;
 use std::fmt::Display;
 use crate::test_library::*;
 
@@ -20,7 +20,7 @@ use crate::test_library::test_library_two::test_library_two::Three;
 pub mod test_library {
 
 
-    use delegator_macro::module_attr;
+    use module_macro::module_attr;
     use syn::{parse_macro_input, LitStr, Token, Ident, token::Paren, DeriveInput, ItemStruct, Fields, Field};
 
     use quote::{quote, format_ident, IdentFragment, ToTokens};

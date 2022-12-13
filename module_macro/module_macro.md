@@ -11,3 +11,6 @@ must be implemented to check for hygiene, but supporting hygiene is out of scope
 3. Recursively create injectors for each module, and then aggregating injector
 
 Hygiene checker can probably just be adding all identifiers to a map and making sure that there are no collisions.
+
+After going to each module and in-lining it, then add an attribute to the module file that it came from to #[cfg(never)] compile -
+never be included - then there won't be collisions because those files'll be turned off. 
