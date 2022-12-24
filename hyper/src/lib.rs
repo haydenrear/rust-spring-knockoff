@@ -57,10 +57,14 @@ impl <'a> HyperRequestStream {
 //     }
 // }
 
+pub struct Addr<'a> {
+    addr: &'a AddrStream
+}
+
 impl HyperRequestStream {
+
     pub async fn do_run(&self) {
         let addr = ([127, 0, 0, 1], 3000).into();
-
 
         let service = make_service_fn(|cnn: &AddrStream| {
             let converter = self.converter.clone();

@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
 use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 
+#[derive(Clone)]
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,
     pub authentication_manager: DelegatingAuthenticationManager
@@ -101,6 +102,17 @@ impl <'a> ApplicationContext {
 
 }
 
+impl Clone for ApplicationContext {
+    fn clone(&self) -> Self {
+        Self {
+            filter_registry: self.filter_registry.clone(),
+            converter_registry: self.converter_registry.clone(),
+            authentication_converters: self.authentication_converters.clone(),
+            auth_type_convert: self.auth_type_convert.clone()
+        }
+    }
+}
+
 impl <'a> Registration<'a, dyn AuthenticationConverter> for ApplicationContext
 where
     'a : 'static
@@ -124,6 +136,16 @@ pub struct FilterRegistrar {
     pub filters: Vec<Box<dyn Filter>>,
 }
 
+impl Clone for FilterRegistrar {
+    fn clone(&self) -> Self {
+        Self {
+            filters: self.filters.iter()
+                .map(|f| f.dyn_clone())
+                .collect()
+        }
+    }
+}
+
 impl <'a> FilterRegistrar {
     fn new() -> FilterRegistrar {
         Self {
@@ -131,12 +153,6 @@ impl <'a> FilterRegistrar {
         }
     }
 }
-
-// impl <'a> ContextType<FilterRegistrar<'a>, dyn Filter> for FilterContext<'a> {
-//     fn detach_registry(&self) -> FilterRegistrar<'a> {
-//         self.registry.clone()
-//     }
-// }
 
 pub trait ContextType<R: Registry<C>, C: ?Sized> {
     fn detach_registry(&self) -> R;

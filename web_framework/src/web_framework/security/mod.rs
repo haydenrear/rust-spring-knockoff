@@ -28,6 +28,16 @@ pub mod security {
         pub(crate) providers: LinkedList<Box<dyn AuthenticationProvider>>,
     }
 
+    impl Clone for DelegatingAuthenticationManager {
+        fn clone(&self) -> Self {
+            Self {
+                providers: self.providers.iter()
+                    .map(|a| a.clone_auth_provider())
+                    .collect()
+            }
+        }
+    }
+
     impl DelegatingAuthenticationManager {
         pub(crate) fn new() -> Self {
             Self {
@@ -120,11 +130,13 @@ pub mod security {
         authority: String,
     }
 
-    pub trait AuthenticationProvider : Send + Sync{
+    pub trait AuthenticationProvider : Send + Sync {
         fn supports(&self, authentication_token: TypeId) -> bool;
         fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool;
+        fn clone_auth_provider(&self) -> Box<dyn AuthenticationProvider>;
     }
 
+    #[derive(Clone)]
     pub struct UsernamePasswordAuthenticationProvider {}
 
     impl AuthenticationProvider for UsernamePasswordAuthenticationProvider {
@@ -134,6 +146,10 @@ pub mod security {
         }
 
         fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool {
+            todo!()
+        }
+
+        fn clone_auth_provider(&self) -> Box<dyn AuthenticationProvider> {
             todo!()
         }
     }
@@ -273,6 +289,7 @@ pub mod security {
     pub trait AuthenticationTypeConverter: Converter<WebRequest, AuthenticationType> + Send + Sync {
     }
 
+    #[derive(Clone)]
     pub struct AuthenticationTypeConverterImpl;
 
     impl Converter<WebRequest, AuthenticationType> for AuthenticationTypeConverterImpl {

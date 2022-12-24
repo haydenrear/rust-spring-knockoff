@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type};
+use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -78,9 +78,41 @@ fn parse_item_recursive(item_found: &mut ItemMod) {
         .for_each(|i: &mut Item|  parse_item(i));
 }
 
+/// 1. parse the module into struct impls that contain the struct, all impls
+/// 2. iterate through each of struct impls and implement get_create for each of the types
+///    for the container that contains.
+/// Then, you impl create<StructImpls> for the container for each StructItem add container as
+/// field for each struct, and then create a new_inject() for each item that calls the
+/// create_get<StructImpl> for each field that is injected.
+struct StructImpls<'a> {
+    struct_type: ItemImpl,
+    traits: &'a [ItemTrait],
+    attr:   Vec<Attribute>,
+    deps_map: HashMap<TypeId, &'a StructImpls<'a>>
+}
+
+struct ModuleContainer<'a> {
+    types: HashMap<TypeId, &'a StructImpls<'a>>
+}
+
+struct Component<T> {
+    inner: T
+}
+
+trait Container {
+    fn get_create<T>(&self, type_id: TypeId) -> Component<T>
+    where Self: Sized;
+}
+
+struct ApplicationContainer<'a> {
+    modules: Vec<ModuleContainer<'a>>
+}
+
 fn parse_item(i: &mut Item) {
     match i {
-        Item::Const(_) => {}
+        Item::Const(_) => {
+
+        }
         Item::Enum(_) => {}
         Item::ExternCrate(_) => {}
         Item::Fn(_) => {}
