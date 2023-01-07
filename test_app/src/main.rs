@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::dispatch::Dispatcher;
-use web_framework::web_framework::filter::filter::{Action, RequestResponseActionFilter};
+use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
 use web_framework::web_framework::security::security::AuthenticationToken;
 use web_framework::web_framework::http::{RequestExecutorImpl};
@@ -53,6 +53,9 @@ impl Action<Example, Example> for TestAction {
         true
     }
 
+    fn clone(&self) -> Box<dyn Action<Example, Example>> {
+        todo!()
+    }
 }
 
 impl Clone for TestAction {
@@ -78,7 +81,9 @@ async fn main() {
     );
     let mut filter_registrar = FilterRegistrar {
         filters: Arc::new(Mutex::new(vec![])),
-        phantom: PhantomData::default()
+        phantom: PhantomData::default(),
+        build: false,
+        filters_build: Arc::new(FilterChain::default())
     };
     filter_registrar.with_filter(filter);
     let mut r: HyperRequestStream<Example, Example> = HyperRequestStream::new(

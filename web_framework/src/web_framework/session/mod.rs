@@ -115,5 +115,8 @@ pub mod session {
             true
         }
 
+        fn clone(&self) -> Box<dyn Action<Request, Response>> {
+            todo!()
+        }
     }
 }

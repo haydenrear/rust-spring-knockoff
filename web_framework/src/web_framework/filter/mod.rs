@@ -31,7 +31,7 @@ pub mod filter {
     {
         fn default() -> Self {
             Self {
-                filters: Arc::new(Mutex::new(vec![])),
+                filters: Arc::new(vec![]),
                 phantom: PhantomData::default()
             }
         }
@@ -42,7 +42,7 @@ pub mod filter {
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
     {
-        pub(crate) filters: Arc<Mutex<Vec<RequestResponseActionFilter<Request, Response>>>>,
+        pub(crate) filters: Arc<Vec<RequestResponseActionFilter<Request, Response>>>,
         pub(crate) phantom: PhantomData<&'a (dyn Any + Send + Sync)>
     }
 
@@ -68,13 +68,13 @@ pub mod filter {
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
     {
         pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext<Request, Response>) {
-            self.filters.lock().unwrap().iter()
+            self.filters.iter()
                 .for_each(|f| f.filter(request, response, ctx));
         }
 
-        pub fn new(filters: Arc<Mutex<Vec<RequestResponseActionFilter<Request, Response>>>>) -> Self {
+        pub fn new(filters: Vec<RequestResponseActionFilter<Request, Response>>) -> Self {
             Self {
-                filters: filters,
+                filters: Arc::new(filters),
                 phantom: PhantomData::default()
             }
         }
@@ -114,6 +114,8 @@ pub mod filter {
         */
         fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool;
 
+        fn clone(&self) -> Box<dyn Action<Request, Response>>;
+
     }
 
     /***
@@ -126,6 +128,20 @@ pub mod filter {
     {
         pub(crate) actions: Box<dyn Action<Request, Response>>,
         pub(crate) dispatcher: Dispatcher,
+    }
+
+    impl <Request, Response>Clone for RequestResponseActionFilter<Request, Response>
+        where
+              Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+              Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+
+    {
+        fn clone(&self) -> Self {
+            Self {
+                actions: self.actions.clone(),
+                dispatcher: self.dispatcher.clone()
+            }
+        }
     }
 
     impl <Request, Response> RequestResponseActionFilter<Request, Response>

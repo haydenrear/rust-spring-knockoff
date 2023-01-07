@@ -75,8 +75,10 @@ impl <'a, HRequest, HResponse> HyperRequestStream<'a, HRequest, HResponse>
         HRequest: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
 
-    pub async fn do_run(&self) {
+    pub async fn do_run(&mut self) {
         let addr = ([127, 0, 0, 1], 3000).into();
+
+        self.request_executor.ctx.filter_registry.build();
 
         let service = make_service_fn(|cnn: &AddrStream| {
             let converter = self.converter.clone();

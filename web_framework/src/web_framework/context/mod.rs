@@ -193,6 +193,8 @@ pub struct FilterRegistrar<'a, Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
     pub filters: Arc<Mutex<Vec<RequestResponseActionFilter<Request, Response>>>>,
+    pub filters_build: Arc<FilterChain<'a, Request, Response>>,
+    pub build: bool,
     pub phantom: PhantomData<&'a (dyn Any + Send + Sync)>
 }
 
@@ -202,14 +204,22 @@ where
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     'a: 'static
 {
+
     pub fn with_filter(&mut self, filter: RequestResponseActionFilter<Request, Response>) {
         self.filters.lock().unwrap().borrow_mut().push(filter);
     }
-    pub fn build(&self) -> FilterChain<Request, Response> {
-        FilterChain {
-            filters: self.filters.clone(),
-            phantom: Default::default(),
+
+    pub fn build(&mut self) -> Arc<FilterChain<Request, Response>> {
+        if self.build {
+            return self.filters_build.clone();
         }
+        let result = self.filters.lock().unwrap();
+        let filters_found: Vec<RequestResponseActionFilter<Request, Response>> = result.clone();
+        self.filters_build = Arc::new(FilterChain {
+            filters: Arc::new(filters_found),
+            phantom: Default::default(),
+        });
+        self.filters_build.clone()
     }
 }
 
@@ -222,6 +232,8 @@ impl <'a, Request, Response> Clone for FilterRegistrar<'a, Request, Response>
     fn clone(&self) -> Self {
         Self {
             filters: self.filters.clone(),
+            filters_build: self.filters_build.clone(),
+            build: self.build,
             phantom: PhantomData::default()
         }
     }
@@ -235,7 +247,9 @@ impl <'a, Request, Response> FilterRegistrar<'a, Request, Response>
     fn new() -> FilterRegistrar<'a, Request, Response> {
         Self {
             filters: Arc::new(Mutex::new(vec![])),
-            phantom: PhantomData::default()
+            phantom: PhantomData::default(),
+            filters_build: Arc::new(FilterChain::default()),
+            build: false
         }
     }
 }

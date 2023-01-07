@@ -159,7 +159,7 @@ where
     fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
         let mut response = WebResponse::default();
         self.ctx.filter_registry
-            .build()
+            .filters_build
             .do_filter(&web_request, &mut response, &self.ctx);
         response
     }
