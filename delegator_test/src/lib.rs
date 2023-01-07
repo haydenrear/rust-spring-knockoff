@@ -31,6 +31,7 @@ pub mod test_library {
     #[path = "test_library_two.rs"]
     pub mod test_library_two;
 
+
     pub trait Found {
     }
 
@@ -39,11 +40,19 @@ pub mod test_library {
 
     impl One {
         fn new() -> Self {
-            Self {a: String::from("")}
+            Self {
+                a: String::from(""),
+                two: String::default()
+            }
         }
     }
 
+    pub struct Four<'a> {
+        one: &'a [String]
+    }
+
     pub struct One {
+        pub(crate) two: String
     }
 
 
@@ -52,7 +61,10 @@ pub mod test_library {
 #[test]
 fn test() {
     use test_library::One;
-    let one: One = One{a: String::from("hello")};
+    let one: One = One{
+        a: String::from("hello"),
+        two: String::default()
+    };
     // let three: Three = Three{a: String::from("hello")};
 }
 
