@@ -34,10 +34,9 @@ impl Dispatcher {
                 .and_then(|found| {
                     self.context
                         .convert_extract(&request)
-                                                    //TODO: why clone?
                         .filter(|e| action.matches(&e))
                         .and_then(|metadata| {
-                            action.do_action(metadata, &found.message, &self.context)
+                            action.do_action(metadata, &found.message, &request, response, &self.context)
                         })
                         .and_then(|action_response| {
                             self.context.convert_from(&found.message, MediaType::Json)

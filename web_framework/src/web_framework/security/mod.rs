@@ -9,7 +9,7 @@ pub mod security {
     extern crate core;
 
     use crate::web_framework::convert::{Registration, Registry};
-    use crate::web_framework::filter::filter::{Filter, FilterChain};
+    use crate::web_framework::filter::filter::{FilterChain};
     use crate::web_framework::request::request::{WebRequest, WebResponse};
     use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
@@ -46,7 +46,8 @@ pub mod security {
         }
     }
 
-    pub trait AuthenticationFilter: Filter {
+    //TODO: replace filter with action
+    pub trait AuthenticationFilter{
         fn try_convert_to_authentication(
             &self,
             request: &WebRequest,
@@ -65,12 +66,14 @@ pub mod security {
         fn do_authentication();
     }
 
-    impl Filter for UsernamePasswordAuthenticationFilter {
-        fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
-            todo!()
-        }
-
-    }
+    //TODO: replace with action
+    // impl UsernamePasswordAuthenticationFilter
+    // {
+    //     fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
+    //         todo!()
+    //     }
+    //
+    // }
 
     pub struct AuthenticationConversionError {
         message: String,

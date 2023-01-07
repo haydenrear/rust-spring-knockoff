@@ -20,7 +20,6 @@ use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use web_framework::web_framework::context::ApplicationContext;
 use web_framework::web_framework::convert::Registration;
-use web_framework::web_framework::filter::filter::Filter;
 use web_framework::web_framework::http::{
     HttpMethod, ProtocolToAdaptFrom, RequestConversionError,
     RequestConverter, RequestExecutor, RequestExecutorImpl,
@@ -34,17 +33,26 @@ pub struct HyperHandlerAdapter<'a>
     request_stream: &'a dyn RequestStream<'a, WebRequest, &'a [u8]>
 }
 
-pub struct HyperRequestStream<'a> where 'a: 'static {
-    pub request_executor: RequestExecutorImpl<'a>,
+pub struct HyperRequestStream<'a, Request, Response>
+    where
+        'a: 'static,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+
+{
+    pub request_executor: RequestExecutorImpl<'a, Request, Response>,
     pub converter: HyperRequestConverter,
 }
 
-impl <'a> HyperRequestStream<'a> {
-    pub fn new() -> Self {
+impl <'a, Request, Response> HyperRequestStream<'a, Request, Response>
+where
+    Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+
+{
+    pub fn new(request_executor: RequestExecutorImpl<Request, Response>) -> Self {
         HyperRequestStream {
-            request_executor: RequestExecutorImpl {
-                ctx: ApplicationContext::new()
-            },
+            request_executor: request_executor,
             converter: HyperRequestConverter::new()
         }
     }
@@ -61,11 +69,11 @@ pub struct Addr<'a> {
     addr: &'a AddrStream
 }
 
-impl <'a> HyperRequestStream<'a> where 'a: 'static {
-
-    pub fn initialize(&'a mut self) {
-        self.request_executor.ctx.initialize();
-    }
+impl <'a, HRequest, HResponse> HyperRequestStream<'a, HRequest, HResponse>
+    where
+        HResponse: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        HRequest: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
 
     pub async fn do_run(&self) {
         let addr = ([127, 0, 0, 1], 3000).into();

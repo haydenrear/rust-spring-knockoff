@@ -1,14 +1,15 @@
+use std::marker::PhantomData;
 use lazy_static::lazy_static;
 use hyper::{HyperRequestConverter, HyperRequestStream};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::dispatch::Dispatcher;
-use web_framework::web_framework::filter::filter::{Action, Filter, RequestResponseActionFilter};
-use web_framework::web_framework::request::request::EndpointMetadata;
+use web_framework::web_framework::filter::filter::{Action, RequestResponseActionFilter};
+use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
 use web_framework::web_framework::security::security::AuthenticationToken;
 use web_framework::web_framework::http::{RequestExecutorImpl};
-use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext, Values};
+use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -37,6 +38,8 @@ impl Action<Example, Example> for TestAction {
         &self,
         metadata: EndpointMetadata,
         request: &Option<Example>,
+        web_request: &WebRequest,
+        response: &mut WebResponse,
         context: &RequestContext,
     ) -> Option<Example> {
         Some(Example::default())
@@ -50,9 +53,6 @@ impl Action<Example, Example> for TestAction {
         true
     }
 
-    fn clone(&self) -> Box<dyn Action<Example, Example>> {
-        todo!()
-    }
 }
 
 impl Clone for TestAction {
@@ -73,10 +73,20 @@ impl Default for TestAction {
 
 #[tokio::main]
 async fn main() {
-    let filter = RequestResponseActionFilter::new(
+    let filter: RequestResponseActionFilter<Example, Example> = RequestResponseActionFilter::new(
         Box::new(TestAction::default())
     );
-    let mut r = HyperRequestStream::new();
-    r.request_executor.ctx.values_handler = Values {filters: vec![Some(Box::new(filter))]};
+    let mut filter_registrar = FilterRegistrar {
+        filters: Arc::new(Mutex::new(vec![])),
+        phantom: PhantomData::default()
+    };
+    filter_registrar.with_filter(filter);
+    let mut r: HyperRequestStream<Example, Example> = HyperRequestStream::new(
+        RequestExecutorImpl {
+            ctx: ApplicationContext::with_filter_registry(filter_registrar)
+        }
+    );
+    // r.request_executor.ctx.do_something();
+    // r.request_executor.ctx.initialize();
     r.do_run().await;
 }

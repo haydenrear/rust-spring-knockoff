@@ -4,6 +4,7 @@
 #![feature(async_iterator)]
 #[macro_use]
 extern crate alloc;
+extern crate core;
 
 
 pub mod web_framework {

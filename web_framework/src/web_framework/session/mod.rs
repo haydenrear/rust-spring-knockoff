@@ -4,8 +4,8 @@ pub mod session {
     extern crate alloc;
     extern crate core;
 
-    use crate::web_framework::filter::filter::{Filter, FilterChain};
-    use crate::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::filter::filter::{Action, FilterChain};
+    use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
     use crate::web_framework::security::security::{Authentication, AuthenticationToken};
     use alloc::string::String;
     use async_std::task as async_task;
@@ -20,7 +20,7 @@ pub mod session {
     use std::marker::PhantomData;
     use std::ops::Deref;
     use std::pin::Pin;
-    use crate::web_framework::context::ApplicationContext;
+    use crate::web_framework::context::{ApplicationContext, RequestContext};
 
     impl Default for WebApplication {
         fn default() -> Self {
@@ -83,22 +83,36 @@ pub mod session {
         repo: Box<R>,
     }
 
-    impl<'a, R> Filter for SessionFilter<'a, R>
+    impl<'a, R, Request, Response> Action<Request, Response> for SessionFilter<'a, R>
     where
         R: Repo<'a, HttpSession, String>,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        fn filter(
+
+        fn do_action(
             &self,
-            request: &WebRequest,
-            response: &mut WebResponse,
-            ctx: &ApplicationContext
-        ) {
-            if let Some(session) = request
+            metadata: EndpointMetadata,
+            request: &Option<Request>,
+            mut web_request: &WebRequest,
+            mut response: &mut WebResponse,
+            context: &RequestContext
+        ) -> Option<Response> {
+            if let Some(session) = web_request
                 .headers
                 .get("R_SESSION_ID")
                 .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id.clone()))) {
                 response.session = session;
             }
+            None
+        }
+
+        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+            true
+        }
+
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
+            true
         }
 
     }
