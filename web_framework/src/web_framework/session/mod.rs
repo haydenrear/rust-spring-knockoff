@@ -96,7 +96,8 @@ pub mod session {
             request: &Option<Request>,
             mut web_request: &WebRequest,
             mut response: &mut WebResponse,
-            context: &RequestContext
+            context: &RequestContext,
+            application_context: &ApplicationContext<Request, Response>
         ) -> Option<Response> {
             if let Some(session) = web_request
                 .headers

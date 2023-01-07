@@ -1,4 +1,4 @@
-use crate::web_framework::context::RequestContext;
+use crate::web_framework::context::{ApplicationContext, RequestContext};
 use crate::web_framework::convert::{Converters, RequestExtractor};
 use crate::web_framework::filter::filter::{Action, MediaType};
 use crate::web_framework::message::MessageType;
@@ -22,6 +22,7 @@ impl Dispatcher {
         request: WebRequest,
         response: &mut WebResponse,
         action: &Box<dyn Action<Request, Response>>,
+        application_context: &ApplicationContext<Request, Response>
     ) where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -36,7 +37,7 @@ impl Dispatcher {
                         .convert_extract(&request)
                         .filter(|e| action.matches(&e))
                         .and_then(|metadata| {
-                            action.do_action(metadata, &found.message, &request, response, &self.context)
+                            action.do_action(metadata, &found.message, &request, response, &self.context, application_context)
                         })
                         .and_then(|action_response| {
                             self.context.convert_from(&found.message, MediaType::Json)

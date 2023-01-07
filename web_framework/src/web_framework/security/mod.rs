@@ -9,8 +9,8 @@ pub mod security {
     extern crate core;
 
     use crate::web_framework::convert::{Registration, Registry};
-    use crate::web_framework::filter::filter::{FilterChain};
-    use crate::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::filter::filter::{Action, FilterChain};
+    use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
     use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::Borrow;
@@ -22,7 +22,7 @@ pub mod security {
     use std::ptr::null;
     use std::vec;
     use security_model::UserAccount;
-    use crate::web_framework::context::ApplicationContext;
+    use crate::web_framework::context::{ApplicationContext, RequestContext};
 
     pub struct DelegatingAuthenticationManager {
         pub(crate) providers: LinkedList<Box<dyn AuthenticationProvider>>,
@@ -66,14 +66,35 @@ pub mod security {
         fn do_authentication();
     }
 
-    //TODO: replace with action
-    // impl UsernamePasswordAuthenticationFilter
-    // {
-    //     fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
-    //         todo!()
-    //     }
-    //
-    // }
+    impl <Request, Response> Action<Request, Response> for UsernamePasswordAuthenticationFilter
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    {
+    fn do_action(
+            &self,
+            metadata: EndpointMetadata,
+            request: &Option<Request>,
+            web_request: &WebRequest,
+            response: &mut WebResponse,
+            context: &RequestContext,
+            application_context: &ApplicationContext<Request, Response>
+        ) -> Option<Response> {
+            todo!()
+        }
+
+        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+            todo!()
+        }
+
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
+            todo!()
+        }
+
+        fn clone(&self) -> Box<dyn Action<Request, Response>> {
+            todo!()
+        }
+    }
 
     pub struct AuthenticationConversionError {
         message: String,

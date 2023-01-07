@@ -41,6 +41,7 @@ impl Action<Example, Example> for TestAction {
         web_request: &WebRequest,
         response: &mut WebResponse,
         context: &RequestContext,
+        ctx: &ApplicationContext<Example, Example>
     ) -> Option<Example> {
         Some(Example::default())
     }
@@ -54,7 +55,7 @@ impl Action<Example, Example> for TestAction {
     }
 
     fn clone(&self) -> Box<dyn Action<Example, Example>> {
-        todo!()
+        Box::new(TestAction::default())
     }
 }
 
@@ -70,18 +71,13 @@ impl Default for TestAction {
     }
 }
 
-// lazy_static!(pub static ref RUNNER: Arc<HyperRequestStream> =
-//     Arc::new();
-// );
-
 #[tokio::main]
 async fn main() {
     let filter: RequestResponseActionFilter<Example, Example> = RequestResponseActionFilter::new(
-        Box::new(TestAction::default())
+        Box::new(TestAction::default()), None
     );
     let mut filter_registrar = FilterRegistrar {
         filters: Arc::new(Mutex::new(vec![])),
-        phantom: PhantomData::default(),
         build: false,
         filters_build: Arc::new(FilterChain::default())
     };
@@ -91,7 +87,5 @@ async fn main() {
             ctx: ApplicationContext::with_filter_registry(filter_registrar)
         }
     );
-    // r.request_executor.ctx.do_something();
-    // r.request_executor.ctx.initialize();
     r.do_run().await;
 }

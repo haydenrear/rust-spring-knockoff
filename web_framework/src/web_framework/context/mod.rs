@@ -38,13 +38,12 @@ impl ContextType<ConverterRegistry, dyn MessageConverter> for RequestContext {
     }
 }
 
-pub struct ApplicationContext<'a, Request, Response>
+pub struct ApplicationContext<Request, Response>
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-    'a: 'static
+    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub filter_registry: FilterRegistrar<'a, Request, Response>,
+    pub filter_registry: FilterRegistrar<Request, Response>,
     pub converter_registry: RequestContext,
     pub authentication_converters: AuthenticationConverterRegistry,
     pub auth_type_convert: AuthenticationTypeConverterImpl
@@ -58,7 +57,7 @@ impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
     }
 }
 
-impl <'a, Request, Response> Registration<'a, dyn MessageConverter> for ApplicationContext<'a, Request, Response>
+impl <'a, Request, Response> Registration<'a, dyn MessageConverter> for ApplicationContext<Request, Response>
     where 'a: 'static,
           Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
           Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -68,9 +67,8 @@ impl <'a, Request, Response> Registration<'a, dyn MessageConverter> for Applicat
     }
 }
 
-impl <'a, Request, Response> FilterRegistrar<'a, Request, Response>
+impl <Request, Response> FilterRegistrar<Request, Response>
     where
-        'a: 'static,
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
@@ -86,7 +84,7 @@ impl <'a, Request, Response> FilterRegistrar<'a, Request, Response>
 //     }
 // }
 
-impl <'a, Request, Response> ApplicationContext<'a, Request, Response>
+impl <Request, Response> ApplicationContext<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -105,19 +103,6 @@ impl <'a, Request, Response> ApplicationContext<'a, Request, Response>
     //     FilterChain::new(vec)
     // }
 
-    pub fn do_something(&'a self) {
-
-    }
-
-    pub fn initialize(&'a mut self) where 'a: 'static {
-        // self.val.filters
-        //     .iter_mut()
-        //     .map(move |&f| f)
-        //     .for_each(|filter| {
-        //         self.filter_registry.register(filter)
-        //     })
-    }
-
     pub fn new() -> Self {
         Self {
             filter_registry: FilterRegistrar::new(),
@@ -127,7 +112,7 @@ impl <'a, Request, Response> ApplicationContext<'a, Request, Response>
         }
     }
 
-    pub fn with_filter_registry(f: FilterRegistrar<'a, Request, Response>) -> Self {
+    pub fn with_filter_registry(f: FilterRegistrar<Request, Response>) -> Self {
         Self {
             filter_registry: f,
             converter_registry: RequestContext::new(),
@@ -146,7 +131,7 @@ impl <'a, Request, Response> ApplicationContext<'a, Request, Response>
 
 }
 
-impl <'a, Request, Response> Clone for ApplicationContext<'a, Request, Response>
+impl <'a, Request, Response> Clone for ApplicationContext<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -161,7 +146,7 @@ impl <'a, Request, Response> Clone for ApplicationContext<'a, Request, Response>
         }
 }
 
-impl <'a, Request, Response> Registration<'a, dyn AuthenticationConverter> for ApplicationContext<'a, Request, Response>
+impl <'a, Request, Response> Registration<'a, dyn AuthenticationConverter> for ApplicationContext<Request, Response>
 where
     'a : 'static,
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -172,13 +157,12 @@ fn register(&mut self, converter: &'a dyn AuthenticationConverter) {
     }
 }
 
-pub struct FilterContext<'a, Request, Response>
+pub struct FilterContext<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        'a: 'static
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub registry: FilterRegistrar<'a, Request, Response>,
+    pub registry: FilterRegistrar<Request, Response>,
 }
 
 // impl <'a> Registry<dyn Filter> for FilterRegistrar<'a> {
@@ -187,43 +171,42 @@ pub struct FilterContext<'a, Request, Response>
 //     }
 // }
 
-pub struct FilterRegistrar<'a, Request, Response>
+pub struct FilterRegistrar<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
     pub filters: Arc<Mutex<Vec<RequestResponseActionFilter<Request, Response>>>>,
-    pub filters_build: Arc<FilterChain<'a, Request, Response>>,
+    pub filters_build: Arc<FilterChain<Request, Response>>,
     pub build: bool,
-    pub phantom: PhantomData<&'a (dyn Any + Send + Sync)>
 }
 
-impl <'a, Request, Response> FilterRegistrar<'a, Request, Response>
+impl <Request, Response> FilterRegistrar<Request, Response>
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-    'a: 'static
+    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
 
     pub fn with_filter(&mut self, filter: RequestResponseActionFilter<Request, Response>) {
         self.filters.lock().unwrap().borrow_mut().push(filter);
     }
 
+    // Sets the filter_build for later - so you don't have to do it every time.
     pub fn build(&mut self) -> Arc<FilterChain<Request, Response>> {
         if self.build {
             return self.filters_build.clone();
         }
         let result = self.filters.lock().unwrap();
-        let filters_found: Vec<RequestResponseActionFilter<Request, Response>> = result.clone();
+        let mut filters_found: Vec<RequestResponseActionFilter<Request, Response>> = result.clone();
+        filters_found.sort();
         self.filters_build = Arc::new(FilterChain {
-            filters: Arc::new(filters_found),
-            phantom: Default::default(),
+            filters: Arc::new(filters_found)
         });
         self.filters_build.clone()
     }
 }
 
-impl <'a, Request, Response> Clone for FilterRegistrar<'a, Request, Response>
+impl <Request, Response> Clone for FilterRegistrar<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -233,21 +216,19 @@ impl <'a, Request, Response> Clone for FilterRegistrar<'a, Request, Response>
         Self {
             filters: self.filters.clone(),
             filters_build: self.filters_build.clone(),
-            build: self.build,
-            phantom: PhantomData::default()
+            build: self.build
         }
     }
 }
 
-impl <'a, Request, Response> FilterRegistrar<'a, Request, Response>
+impl <Request, Response> FilterRegistrar<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-    fn new() -> FilterRegistrar<'a, Request, Response> {
+    fn new() -> FilterRegistrar<Request, Response> {
         Self {
             filters: Arc::new(Mutex::new(vec![])),
-            phantom: PhantomData::default(),
             filters_build: Arc::new(FilterChain::default()),
             build: false
         }

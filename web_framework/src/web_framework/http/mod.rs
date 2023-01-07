@@ -128,15 +128,15 @@ impl <'a> Default for ResponseType<'a> {
     }
 }
 
-pub struct RequestExecutorImpl<'a, Request, Response>
-    where 'a: 'static,
+pub struct RequestExecutorImpl<Request, Response>
+    where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub ctx: ApplicationContext<'a, Request, Response>,
+    pub ctx: ApplicationContext< Request, Response>,
 }
 
-impl <'a, Request, Response> Clone for RequestExecutorImpl<'a, Request, Response>
+impl <Request, Response> Clone for RequestExecutorImpl<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -151,7 +151,7 @@ impl <'a, Request, Response> Clone for RequestExecutorImpl<'a, Request, Response
 
 #[async_trait]
 impl <'a, Request, Response> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>
-for RequestExecutorImpl<'a, Request, Response>
+for RequestExecutorImpl< Request, Response>
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
