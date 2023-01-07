@@ -70,9 +70,6 @@ pub mod security {
             todo!()
         }
 
-        fn dyn_clone(&self) -> Box<dyn Filter> {
-            todo!()
-        }
     }
 
     pub struct AuthenticationConversionError {

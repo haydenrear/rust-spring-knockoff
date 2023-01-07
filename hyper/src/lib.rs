@@ -34,12 +34,12 @@ pub struct HyperHandlerAdapter<'a>
     request_stream: &'a dyn RequestStream<'a, WebRequest, &'a [u8]>
 }
 
-pub struct HyperRequestStream {
-    pub request_executor: RequestExecutorImpl,
+pub struct HyperRequestStream<'a> where 'a: 'static {
+    pub request_executor: RequestExecutorImpl<'a>,
     pub converter: HyperRequestConverter,
 }
 
-impl <'a> HyperRequestStream {
+impl <'a> HyperRequestStream<'a> {
     pub fn new() -> Self {
         HyperRequestStream {
             request_executor: RequestExecutorImpl {
@@ -61,7 +61,11 @@ pub struct Addr<'a> {
     addr: &'a AddrStream
 }
 
-impl HyperRequestStream {
+impl <'a> HyperRequestStream<'a> where 'a: 'static {
+
+    pub fn initialize(&'a mut self) {
+        self.request_executor.ctx.initialize();
+    }
 
     pub async fn do_run(&self) {
         let addr = ([127, 0, 0, 1], 3000).into();
@@ -69,7 +73,7 @@ impl HyperRequestStream {
         let service = make_service_fn(|cnn: &AddrStream| {
             let converter = self.converter.clone();
             let request_executor = self.request_executor.clone();
-            async move {
+            async move  {
                 Ok::<_, Error>(service_fn(move |rqst| {
                     let converter_cloned = converter.clone();
                     let request_exec_cloned = request_executor.clone();

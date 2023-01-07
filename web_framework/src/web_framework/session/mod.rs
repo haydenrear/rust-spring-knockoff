@@ -101,8 +101,5 @@ pub mod session {
             }
         }
 
-        fn dyn_clone(&self) -> Box<dyn Filter> {
-            todo!()
-        }
     }
 }

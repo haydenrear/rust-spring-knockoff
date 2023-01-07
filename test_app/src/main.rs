@@ -4,11 +4,11 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::dispatch::Dispatcher;
-use web_framework::web_framework::filter::filter::{Action, RequestResponseActionFilter};
+use web_framework::web_framework::filter::filter::{Action, Filter, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::EndpointMetadata;
 use web_framework::web_framework::security::security::AuthenticationToken;
 use web_framework::web_framework::http::{RequestExecutorImpl};
-use web_framework::web_framework::context::{ApplicationContext, RequestContext};
+use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext, Values};
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -50,7 +50,7 @@ impl Action<Example, Example> for TestAction {
         true
     }
 
-    fn dyn_clone(&self) -> Box<dyn Action<Example, Example>> {
+    fn clone(&self) -> Box<dyn Action<Example, Example>> {
         todo!()
     }
 }
@@ -67,14 +67,16 @@ impl Default for TestAction {
     }
 }
 
-
+// lazy_static!(pub static ref RUNNER: Arc<HyperRequestStream> =
+//     Arc::new();
+// );
 
 #[tokio::main]
 async fn main() {
-    let one = RequestResponseActionFilter::new(
+    let filter = RequestResponseActionFilter::new(
         Box::new(TestAction::default())
     );
     let mut r = HyperRequestStream::new();
-    r.request_executor.ctx.filter_registry.register(Box::new(one));
+    r.request_executor.ctx.values_handler = Values {filters: vec![Some(Box::new(filter))]};
     r.do_run().await;
 }

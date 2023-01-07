@@ -18,16 +18,15 @@ pub mod filter {
     use std::collections::{HashMap, LinkedList};
     use std::ops::{Deref, Index};
     use std::path::Iter;
+    use std::sync::Arc;
 
-    pub struct FilterChain {
-        filters: Vec<Box<dyn Filter>>
+    pub struct FilterChain<'a> {
+        filters: Vec<&'a Option<Box<dyn Filter>>>
     }
 
-    impl Clone for FilterChain {
+    impl <'a> Clone for FilterChain<'a> {
         fn clone(&self) -> Self {
-            let filters = self.filters.iter()
-                .map(|f: &Box<dyn Filter>| f.dyn_clone())
-                .collect::<Vec<Box<dyn Filter>>>();
+            let filters = self.filters.clone();
             Self {
                 filters: filters
             }
@@ -36,14 +35,19 @@ pub mod filter {
 
     // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
     // resulting in new filter
-    impl FilterChain {
+    impl <'a> FilterChain<'a> {
         pub fn do_filter(&mut self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
             for f in &self.filters {
-                f.filter(request, response, ctx);
+                match f {
+                    None => {}
+                    Some(found) => {
+                        found.filter(request, response, ctx)
+                    }
+                }
             }
         }
 
-        pub fn new(filters: Vec<Box<dyn Filter>>) -> Self {
+        pub fn new(filters: Vec<&'a Option<Box<dyn Filter>>>) -> Self {
             Self {
                 filters: filters
             }
@@ -82,7 +86,7 @@ pub mod filter {
         */
         fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool;
 
-        fn dyn_clone(&self) -> Box<dyn Action<Request, Response>>;
+        fn clone(&self) -> Box<dyn Action<Request, Response>>;
 
     }
 
@@ -90,12 +94,25 @@ pub mod filter {
     Every "controller endpoint" will create one of these.
      */
     pub struct RequestResponseActionFilter<Request, Response>
-    where
+    where Self: 'static,
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
         pub(crate) actions: Box<dyn Action<Request, Response>>,
         pub(crate) dispatcher: Dispatcher,
+    }
+
+    impl <Request, Response> Clone for RequestResponseActionFilter<Request, Response>
+        where Self: 'static,
+              Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+              Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
+    {
+        fn clone(&self) -> Self {
+            Self {
+                actions: self.actions.clone(),
+                dispatcher: self.dispatcher.clone()
+            }
+        }
     }
 
     impl <Request, Response> RequestResponseActionFilter<Request, Response>
@@ -113,7 +130,6 @@ pub mod filter {
 
     pub trait Filter : Send + Sync{
         fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext);
-        fn dyn_clone(&self) -> Box<dyn Filter>;
     }
 
     impl<Request, Response> Filter for RequestResponseActionFilter<Request, Response>
@@ -129,13 +145,6 @@ pub mod filter {
         ) {
             self.dispatcher
                 .do_request(request.clone(), response, &self.actions);
-        }
-
-        fn dyn_clone(&self) -> Box<dyn Filter> {
-            Box::new(RequestResponseActionFilter {
-                actions: self.actions.dyn_clone(),
-                dispatcher: Default::default(),
-            })
         }
     }
 }

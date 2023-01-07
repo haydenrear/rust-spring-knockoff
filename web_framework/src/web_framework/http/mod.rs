@@ -128,11 +128,11 @@ impl <'a> Default for ResponseType<'a> {
     }
 }
 
-pub struct RequestExecutorImpl {
-    pub ctx: ApplicationContext
+pub struct RequestExecutorImpl<'a> where 'a: 'static {
+    pub ctx: ApplicationContext<'a>
 }
 
-impl <'a> Clone for RequestExecutorImpl {
+impl <'a> Clone for RequestExecutorImpl<'a> {
     fn clone(&self) -> Self {
         Self {
             ctx: self.ctx.clone()
@@ -143,7 +143,7 @@ impl <'a> Clone for RequestExecutorImpl {
 
 #[async_trait]
 impl <'a> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>
-for RequestExecutorImpl
+for RequestExecutorImpl<'a>
 where
 {
 

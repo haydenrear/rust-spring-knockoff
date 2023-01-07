@@ -10,9 +10,6 @@ pub mod security_filter {
             todo!()
         }
 
-        fn dyn_clone(&self) -> Box<dyn Filter> {
-            todo!()
-        }
     }
 
 }

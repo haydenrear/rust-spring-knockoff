@@ -7,6 +7,9 @@ use crate::web_framework::security::security::{AuthenticationConverter, Authenti
 use crate::web_framework::filter::filter::{Filter, FilterChain};
 use std::any::Any;
 use std::collections::LinkedList;
+use std::mem;
+use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
 use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
@@ -32,11 +35,16 @@ impl ContextType<ConverterRegistry, dyn MessageConverter> for RequestContext {
     }
 }
 
-pub struct ApplicationContext {
-    pub filter_registry: FilterRegistrar,
+pub struct ApplicationContext<'a> where 'a: 'static {
+    pub values_handler: Values,
+    pub filter_registry: FilterRegistrar<'a>,
     pub converter_registry: RequestContext,
     pub authentication_converters: AuthenticationConverterRegistry,
     pub auth_type_convert: AuthenticationTypeConverterImpl
+}
+
+pub struct Values {
+    pub filters: Vec<Option<Box<dyn Filter>>>
 }
 
 impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
@@ -47,7 +55,7 @@ impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
     }
 }
 
-impl <'a> Registration<'a, dyn MessageConverter> for ApplicationContext
+impl <'a> Registration<'a, dyn MessageConverter> for ApplicationContext<'a>
     where 'a: 'static
 {
     fn register(&mut self, converter: &'a dyn MessageConverter) {
@@ -55,9 +63,9 @@ impl <'a> Registration<'a, dyn MessageConverter> for ApplicationContext
     }
 }
 
-impl FilterRegistrar
+impl <'a> FilterRegistrar<'a> where Self: 'static, 'a: 'static
 {
-    pub fn register(&mut self, converter: Box<dyn Filter>) {
+    pub fn register(&mut self, converter: &'a Option<Box<dyn Filter>>) {
         self.filters.push(converter)
     }
 }
@@ -69,7 +77,7 @@ impl FilterRegistrar
 //     }
 // }
 
-impl <'a> ApplicationContext {
+impl <'a> ApplicationContext<'a> where 'a: 'static{
 
     /**
     New filter chain for each request - because it's mutable self reference. Because the filter chain
@@ -77,14 +85,21 @@ impl <'a> ApplicationContext {
     it will go to lifetime of 'a, and therefore fix issue of unending static memory. coercion
     */
     pub fn create_get_filter_chain(&self) -> FilterChain {
-        let vec = self.filter_registry.filters.iter()
-            .map(|f: &Box<dyn Filter>| f.dyn_clone())
-            .collect::<Vec<Box<dyn Filter>>>();
+        let vec = self.filter_registry.filters.clone();
         FilterChain::new(vec)
+    }
+
+    pub fn initialize(&'a mut self) {
+        self.values_handler.filters
+            .iter_mut()
+            .for_each(|filter| {
+                self.filter_registry.register(filter)
+            })
     }
 
     pub fn new() -> Self {
         Self {
+            values_handler: Values {filters: vec![]},
             filter_registry: FilterRegistrar::new(),
             converter_registry: RequestContext::new(),
             authentication_converters: AuthenticationConverterRegistry::new(),
@@ -102,9 +117,10 @@ impl <'a> ApplicationContext {
 
 }
 
-impl Clone for ApplicationContext {
+impl <'a> Clone for ApplicationContext<'a> {
     fn clone(&self) -> Self {
         Self {
+            values_handler: Values {filters: vec![]},
             filter_registry: self.filter_registry.clone(),
             converter_registry: self.converter_registry.clone(),
             authentication_converters: self.authentication_converters.clone(),
@@ -113,7 +129,7 @@ impl Clone for ApplicationContext {
     }
 }
 
-impl <'a> Registration<'a, dyn AuthenticationConverter> for ApplicationContext
+impl <'a> Registration<'a, dyn AuthenticationConverter> for ApplicationContext<'a>
 where
     'a : 'static
 {
@@ -122,8 +138,8 @@ where
     }
 }
 
-pub struct FilterContext {
-    pub registry: FilterRegistrar,
+pub struct FilterContext<'a> {
+    pub registry: FilterRegistrar<'a>,
 }
 
 // impl <'a> Registry<dyn Filter> for FilterRegistrar<'a> {
@@ -132,22 +148,20 @@ pub struct FilterContext {
 //     }
 // }
 
-pub struct FilterRegistrar {
-    pub filters: Vec<Box<dyn Filter>>,
+pub struct FilterRegistrar<'a> {
+    pub filters: Vec<&'a Option<Box<dyn Filter>>>
 }
 
-impl Clone for FilterRegistrar {
+impl <'a> Clone for FilterRegistrar<'a> {
     fn clone(&self) -> Self {
         Self {
-            filters: self.filters.iter()
-                .map(|f| f.dyn_clone())
-                .collect()
+            filters: self.filters.clone()
         }
     }
 }
 
-impl <'a> FilterRegistrar {
-    fn new() -> FilterRegistrar {
+impl <'a> FilterRegistrar<'a> {
+    fn new() -> FilterRegistrar<'a> {
         Self {
             filters: vec![]
         }

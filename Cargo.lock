@@ -695,7 +695,7 @@ dependencies = [
  "http",
  "indexmap",
  "slab",
- "tokio 1.20.1",
+ "tokio",
  "tokio-util",
  "tracing",
 ]
@@ -805,7 +805,7 @@ dependencies = [
  "lazy_static",
  "serde",
  "serde_json",
- "tokio 1.20.1",
+ "tokio",
  "web_framework",
 ]
 
@@ -827,7 +827,7 @@ dependencies = [
  "itoa",
  "pin-project-lite",
  "socket2",
- "tokio 1.20.1",
+ "tokio",
  "tower-service",
  "tracing",
  "want",
@@ -1078,7 +1078,7 @@ dependencies = [
  "strsim",
  "take_mut",
  "thiserror",
- "tokio 1.20.1",
+ "tokio",
  "tokio-rustls",
  "tokio-util",
  "trust-dns-proto",
@@ -1583,7 +1583,7 @@ dependencies = [
  "hyper 0.1.0",
  "lazy_static",
  "serde",
- "tokio 1.20.1",
+ "tokio",
  "web_framework",
 ]
 
@@ -1653,10 +1653,6 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "0.1.0"
-
-[[package]]
-name = "tokio"
 version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a8325f63a7d4774dd041e363b2409ed1c5cbbd0f867795e661df066b2b0a581"
@@ -1692,7 +1688,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c43ee83903113e03984cb9e5cebe6c04a5116269e900e3ddba8f068a62adda59"
 dependencies = [
  "rustls",
- "tokio 1.20.1",
+ "tokio",
  "webpki",
 ]
 
@@ -1704,7 +1700,7 @@ checksum = "df54d54117d6fdc4e4fea40fe1e4e566b3505700e148a6827e59b34b0d2600d9"
 dependencies = [
  "futures-core",
  "pin-project-lite",
- "tokio 1.20.1",
+ "tokio",
 ]
 
 [[package]]
@@ -1716,7 +1712,7 @@ dependencies = [
  "async-stream",
  "bytes",
  "futures-core",
- "tokio 1.20.1",
+ "tokio",
  "tokio-stream",
 ]
 
@@ -1731,7 +1727,7 @@ dependencies = [
  "futures-io",
  "futures-sink",
  "pin-project-lite",
- "tokio 1.20.1",
+ "tokio",
  "tracing",
 ]
 
@@ -1782,7 +1778,7 @@ dependencies = [
  "smallvec",
  "thiserror",
  "tinyvec",
- "tokio 1.20.1",
+ "tokio",
  "url",
 ]
 
@@ -1802,7 +1798,7 @@ dependencies = [
  "resolv-conf",
  "smallvec",
  "thiserror",
- "tokio 1.20.1",
+ "tokio",
  "trust-dns-proto",
 ]
 

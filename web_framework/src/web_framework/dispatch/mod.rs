@@ -8,6 +8,7 @@ use crate::web_framework::request::request::{
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone)]
 pub struct Dispatcher {
     pub context: RequestContext,
 }
