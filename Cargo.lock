@@ -1172,6 +1172,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "paste"
+version = "1.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d01a5bd0424d00070b0098dd17ebca6f961a959dead1dbcbbbc1d1cd8d3deeba"
+
+[[package]]
 name = "pbkdf2"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1582,7 +1588,9 @@ version = "0.1.0"
 dependencies = [
  "hyper 0.1.0",
  "lazy_static",
+ "paste",
  "serde",
+ "serde_json",
  "tokio",
  "web_framework",
 ]
@@ -2015,6 +2023,7 @@ dependencies = [
  "futures",
  "lazy_static",
  "mongo_repo",
+ "paste",
  "security_model",
  "serde",
  "serde_json",

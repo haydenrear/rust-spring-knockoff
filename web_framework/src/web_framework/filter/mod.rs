@@ -5,7 +5,7 @@ pub mod filter {
     extern crate core;
 
     use crate::web_framework::context::{ApplicationContext, RequestContext};
-    use crate::web_framework::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
+    use crate::web_framework::dispatch::{Dispatcher};
     use crate::web_framework::convert::Registration;
     use crate::web_framework::http::{Connection, HttpMethod};
     use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
@@ -77,10 +77,11 @@ pub mod filter {
         }
     }
 
-    #[derive(PartialEq)]
+    #[derive(PartialEq, Clone, Copy)]
     pub enum MediaType {
         Json,
         Xml,
+        Html
     }
 
     pub trait DispatcherContainer {
@@ -101,7 +102,7 @@ pub mod filter {
             request: &Option<Request>,
             web_request: &WebRequest,
             response: &mut WebResponse,
-            context: &RequestContext,
+            context: &RequestContext<Request, Response>,
             application_context: &ApplicationContext<Request, Response>
         ) -> Option<Response>;
 
@@ -129,15 +130,25 @@ pub mod filter {
         pub order: u8
     }
 
-    impl<Request, Response> Eq for RequestResponseActionFilter<Request, Response> where Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>, Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {}
+    impl<Request, Response> Eq for RequestResponseActionFilter<Request, Response>
+        where
+            Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
+            Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {}
 
-    impl<Request, Response> PartialEq<Self> for RequestResponseActionFilter<Request, Response> where Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>, Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {
+    impl<Request, Response> PartialEq<Self> for RequestResponseActionFilter<Request, Response>
+        where
+            Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
+            Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {
         fn eq(&self, other: &Self) -> bool {
             self.order == other.order
         }
     }
 
-    impl<Request, Response> PartialOrd<Self> for RequestResponseActionFilter<Request, Response> where Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>, Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {
+    impl<Request, Response> PartialOrd<Self> for RequestResponseActionFilter<Request, Response>
+        where
+            Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
+            Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>
+    {
         fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             self.order.partial_cmp(&other.order)
         }

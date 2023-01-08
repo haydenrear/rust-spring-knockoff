@@ -8,16 +8,16 @@
     <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="back to &amp;'a filter">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="message converter 2">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/http/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/http/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,8 +114,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test filter::test::test_filter::test_filter" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib filter::test::test_filter::test_filter -- --exact" />
+    <configuration name="Test test::test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::context::test::test" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -125,25 +125,6 @@
       <option name="buildTarget" value="REMOTE" />
       <option name="backtrace" value="SHORT" />
       <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test test (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package delegator_test --lib test -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs>
-        <env name="DYN_PATH" value="./test_library" />
-      </envs>
       <option name="isRedirectInput" value="false" />
       <option name="redirectInputPath" value="" />
       <method v="2">
@@ -167,8 +148,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test web_framework::filter::test::test_filter::test_filter" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib web_framework::filter::test::test_filter::test_filter -- --exact" />
+    <configuration name="Test test_security" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test web_framework::context::test::test::test_building_context" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::context::test::test::test_building_context -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -203,19 +201,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test test::test" />
+      <item itemvalue="Cargo.Test test_security" />
+      <item itemvalue="Cargo.Test web_framework::context::test::test::test_building_context" />
       <item itemvalue="Cargo.Test test_filter" />
-      <item itemvalue="Cargo.Test web_framework::filter::test::test_filter::test_filter" />
-      <item itemvalue="Cargo.Test filter::test::test_filter::test_filter" />
       <item itemvalue="Cargo.Run test_app" />
-      <item itemvalue="Cargo.Test test (1)" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Run test_app" />
+        <item itemvalue="Cargo.Test test_security" />
         <item itemvalue="Cargo.Test test_filter" />
-        <item itemvalue="Cargo.Test web_framework::filter::test::test_filter::test_filter" />
-        <item itemvalue="Cargo.Test filter::test::test_filter::test_filter" />
-        <item itemvalue="Cargo.Test test (1)" />
+        <item itemvalue="Cargo.Test web_framework::context::test::test::test_building_context" />
+        <item itemvalue="Cargo.Test test::test" />
       </list>
     </recent_temporary>
   </component>
@@ -257,7 +255,8 @@
       <workItem from="1670285298900" duration="5437000" />
       <workItem from="1670552207539" duration="57551000" />
       <workItem from="1671908351271" duration="22541000" />
-      <workItem from="1673008948968" duration="16230000" />
+      <workItem from="1673008948968" duration="42696000" />
+      <workItem from="1673398800430" duration="2921000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <created>1668363611774</created>
@@ -420,7 +419,35 @@
       <option name="project" value="LOCAL" />
       <updated>1673113206855</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="back to &amp;'a filter">
+      <created>1673124337115</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1673124337115</updated>
+    </task>
+    <task id="LOCAL-00025" summary="fixed tests">
+      <created>1673146693967</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1673146693967</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Builder">
+      <created>1673198558511</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1673198558511</updated>
+    </task>
+    <task id="LOCAL-00027" summary="message converter 2">
+      <created>1673268684654</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1673268684654</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -451,7 +478,10 @@
     <MESSAGE value="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register..." />
     <MESSAGE value="working" />
     <MESSAGE value="back to &amp;'a filter" />
-    <option name="LAST_COMMIT_MESSAGE" value="back to &amp;'a filter" />
+    <MESSAGE value="fixed tests" />
+    <MESSAGE value="Builder" />
+    <MESSAGE value="message converter 2" />
+    <option name="LAST_COMMIT_MESSAGE" value="message converter 2" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -462,8 +492,33 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro/src/lib.rs</url>
-          <line>256</line>
+          <line>255</line>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs</url>
+          <line>385</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/http/mod.rs</url>
+          <line>162</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/request/mod.rs</url>
+          <line>144</line>
+          <option name="timeStamp" value="33" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs</url>
+          <line>359</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs</url>
+          <line>403</line>
+          <option name="timeStamp" value="48" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

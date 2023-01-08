@@ -15,7 +15,7 @@ use crate::web_framework::context::{ApplicationContext, RequestContext};
 use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
 use crate::web_framework::convert::Registration;
-use crate::web_framework::dispatch::{Dispatcher, RequestMethodDispatcher};
+use crate::web_framework::dispatch::{Dispatcher};
 use crate::web_framework::filter::filter::{Action};
 
 #[derive(Serialize, Deserialize)]
@@ -133,7 +133,7 @@ pub struct RequestExecutorImpl<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub ctx: ApplicationContext< Request, Response>,
+    pub ctx: ApplicationContext<Request, Response>,
 }
 
 impl <Request, Response> Clone for RequestExecutorImpl<Request, Response>
@@ -159,7 +159,7 @@ where
     fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
         let mut response = WebResponse::default();
         self.ctx.filter_registry
-            .filters_build
+            .fiter_chain
             .do_filter(&web_request, &mut response, &self.ctx);
         response
     }

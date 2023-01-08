@@ -1,3 +1,5 @@
+
+use core::borrow::BorrowMut;
 use crate::web_framework::context::RequestContext;
 use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
@@ -6,132 +8,321 @@ use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::collections::LinkedList;
 use std::ops::Deref;
+use std::sync::{Arc, Mutex};
+use std::vec;
 
-impl<'a> MessageConverter for &'a dyn MessageConverter {
-    fn do_convert(&self, request: WebRequest) -> bool {
-        (*self).do_convert(request)
-    }
-
-    fn message_type(&self) -> MediaType {
-        MediaType::Json
+#[macro_export]
+macro_rules! default_message_converters {
+    () => {
+        #[derive(Clone)]
+        pub struct JsonMessageConverterImpl;
+        #[derive(Clone)]
+        pub struct HtmlMessageConverter;
     }
 }
 
-pub trait MessageConverter: Send + Sync {
-    fn convert_to<U: Serialize + for<'a> Deserialize<'a>>(
+#[macro_export]
+macro_rules! create_message_converter {
+    (($($converter_path:path => $converter_ident:expr =>> $matcher:literal => $converter:ty => $field_name:ident),*) ===> $gen:ty => $delegator:ident) => {
+
+        use crate::*;
+        $(
+            use $converter_path;
+        )*
+
+        //TODO: have to edit this struct to add fields... adding the message converters in order to use
+        // DelegatingMessageConverter in place of dyn MessageConverter so it won't be invoking generic
+        // on trait - this
+        #[derive(Clone)]
+        pub struct $delegator{
+            $(
+                $field_name: $converter,
+            )*
+            media_types: Vec<String>
+        }
+
+        impl MessageConverter<$gen, $gen> for $delegator
+        {
+
+            fn new() -> Self where Self: Sized {
+                let mut media_types = vec![];
+                $(
+                    let to_add = $converter_ident.message_type();
+                    for media_type in &to_add {
+                        media_types.push(media_type.clone());
+                    }
+                )*
+                Self {
+                    $(
+                        $field_name: $converter_ident,
+                    )*
+                    media_types
+                }
+            }
+
+            fn convert_to(
+                &self,
+                request: &WebRequest,
+            ) -> Option<MessageType<$gen>>
+            where
+                Self: Sized,
+            {
+                $(
+                    if request.headers["MediaType"] == $matcher || request.headers["mediatype"] == $matcher {
+                        return <$converter_path as MessageConverter<$gen, $gen>>::convert_to(&self.$field_name, request);
+                    }
+                )*
+                None
+            }
+
+            fn convert_from(&self, request_body: &$gen, web_request: &WebRequest) -> Option<String>
+            where
+                Self: Sized,
+            {
+                $(
+                    if web_request.headers["MediaType"] == $matcher || web_request.headers["mediatype"] == $matcher {
+                        return <$converter_path as MessageConverter<$gen,$gen>>::convert_from(&self.$field_name, request_body, web_request);
+                    }
+                )*
+                None
+            }
+
+            fn do_convert(&self, request: &WebRequest) -> bool {
+                $(
+                    if <$converter_path as MessageConverter<$gen,$gen>>::do_convert(&self.$field_name, request) {
+                        return true;
+                    }
+                )*
+                false
+            }
+
+            fn message_type(&self) -> Vec<String> {
+                self.media_types.clone()
+            }
+        }
+
+        impl MessageConverter<$gen, $gen> for JsonMessageConverterImpl
+        {
+
+            fn new() -> Self where Self: Sized {
+                Self {}
+            }
+
+            fn convert_to(
+                &self,
+                request: &WebRequest,
+            ) -> Option<MessageType<$gen>> {
+                let result = serde_json::from_str(&request.body);
+                match result {
+                    Ok(mr) => {
+                        let message_type: MessageType<$gen> = MessageType { message: mr };
+                        Some(message_type)
+                    }
+                    Err(err) => {
+                        println!("Error {}!", err.to_string());
+                        None
+                    }
+                }
+            }
+
+            fn do_convert(&self, request: &WebRequest) -> bool {
+                for header in request.headers.iter() {
+                    if (header.0 == "MediaType" || header.0 == "mediatype") && header.1.contains("json") {
+                        return true;
+                    }
+                }
+                false
+            }
+
+            fn convert_from(&self, request: &$gen, web_request: &WebRequest) -> Option<String>
+            where
+                Self: Sized,
+            {
+                serde_json::to_string(&request).ok()
+            }
+
+            fn message_type(&self) -> Vec<String> {
+                vec!["application/json".to_string()]
+            }
+        }
+
+
+        impl MessageConverter<$gen, $gen> for HtmlMessageConverter
+        {
+            fn new() -> Self where Self: Sized {
+                todo!()
+            }
+
+            fn convert_to(&self, request: &WebRequest) -> Option<MessageType<$gen>> {
+                todo!()
+            }
+
+            fn convert_from(&self,  request: &$gen, request_body: &WebRequest) -> Option<String> {
+                todo!()
+            }
+
+            fn do_convert(&self, request: &WebRequest) -> bool {
+                for header in request.headers.iter() {
+                    if (header.0 == "MediaType" || header.0 == "mediatype") && header.1.contains("json") {
+                        return true;
+                    }
+                }
+                false
+            }
+
+
+            fn message_type(&self) -> Vec<String> {
+                vec!["text/html".to_string()]
+            }
+        }
+
+    }
+}
+
+pub struct MessageConverterBuilder<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    builders: Vec<(Box<dyn MessageConverter<Request, Response>>, String)>
+}
+
+impl <Request, Response> MessageConverterBuilder<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub fn add(&mut self, tuple: (Box<dyn MessageConverter<Request,Response>>, String)) {
+        self.builders.push(tuple)
+    }
+}
+
+pub trait MessageConverter<Request, Response>: Send + Sync
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+
+    fn new() -> Self where Self: Sized;
+
+    fn convert_to(
         &self,
-        request: WebRequest,
-    ) -> Option<MessageType<U>>
-    where
-        Self: Sized,
-    {
-        let option = JsonMessageConverter {}.convert_to(request);
-        option
-    }
+        request: &WebRequest,
+    ) -> Option<MessageType<Request>>;
 
-    fn convert_from<U: Serialize + for<'a> Deserialize<'a>>(&self, request: &U) -> Option<String>
-    where
-        Self: Sized,
-    {
-        let option = JsonMessageConverter {}.convert_from(request);
-        option
-    }
+    fn convert_from(&self, request_body: &Response, request: &WebRequest) -> Option<String>;
 
-    fn do_convert(&self, request: WebRequest) -> bool;
-    fn message_type(&self) -> MediaType;
+    fn do_convert(&self, request: &WebRequest) -> bool;
+
+    fn message_type(&self) -> Vec<String>;
+
 }
 
-#[derive(Copy, Clone)]
-pub struct JsonMessageConverter;
 
-impl MessageConverter for JsonMessageConverter {
-    fn convert_to<U: Serialize + for<'a> Deserialize<'a>>(
-        &self,
-        request: WebRequest,
-    ) -> Option<MessageType<U>> {
-        serde_json::from_str(&request.body).ok().map(|mr| {
-            let message_type: MessageType<U> = MessageType { message: mr };
-            message_type
-        })
-    }
-
-    fn do_convert(&self, request: WebRequest) -> bool {
-        request.headers.contains_key("MediaType") && request.headers["MediaType"].contains("json")
-    }
-
-    fn convert_from<U: Serialize + for<'a> Deserialize<'a>>(&self, request: &U) -> Option<String>
+pub trait JsonMessageConverter<Request, Response>: MessageConverter<Request,Response>
     where
-        Self: Sized,
-    {
-        serde_json::to_string(&request).ok()
-    }
-
-    fn message_type(&self) -> MediaType {
-        MediaType::Json
-    }
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
 }
+
+
 
 #[derive(Copy, Clone)]
 pub struct OtherMessageConverter;
 
-impl MessageConverter for OtherMessageConverter {
-    fn convert_to<U: Serialize + for<'a> Deserialize<'a>>(
+impl<Request, Response> MessageConverter<Request, Response> for OtherMessageConverter
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    fn new() -> Self where Self: Sized {
+        todo!()
+    }
+
+    fn convert_to(
         &self,
-        request: WebRequest,
-    ) -> Option<MessageType<U>>
+        request: &WebRequest,
+    ) -> Option<MessageType<Request>>
     where
         Self: Sized,
     {
         None
     }
 
-    fn convert_from<U: Serialize + for<'a> Deserialize<'a>>(&self, request: &U) -> Option<String>
+    fn convert_from(&self, request: &Response, web_request: &WebRequest) -> Option<String>
     where
         Self: Sized,
     {
         None
     }
 
-    fn do_convert(&self, request: WebRequest) -> bool {
+    fn do_convert(&self, request: &WebRequest) -> bool {
         false
     }
 
-    fn message_type(&self) -> MediaType {
-        MediaType::Json
+    fn message_type(&self) -> Vec<String> {
+        vec!["application/json".to_string()]
     }
 }
 
 pub trait Registration<'a, C: ?Sized> {
-    fn register(&mut self, converter: &'a C);
+    fn register(&self, converter: &'a C);
 }
 
 pub trait Registry<C: ?Sized> {
     fn read_only_registrations(&self) -> Box<LinkedList<&'static C>>;
 }
 
-#[derive(Clone)]
-pub struct ConverterRegistry {
-    pub converters: Box<LinkedList<&'static dyn MessageConverter>>,
-    pub request_convert: Option<&'static dyn RequestExtractor<EndpointMetadata>>
+#[derive(Clone, Default)]
+pub struct ConverterRegistry<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub converters: Arc<Option<Box<dyn MessageConverter<Request, Response>>>>,
+    pub request_convert: Arc<Option<&'static dyn RequestExtractor<EndpointMetadata>>>
 }
 
-impl ConverterRegistry {
-    pub fn endpoint_extractor(&self) -> &'static dyn RequestExtractor<EndpointMetadata> {
-        self.request_convert.map_or_else(
-            || &EndpointRequestExtractor{ } as &'static dyn RequestExtractor<EndpointMetadata>,
-            |f| f
-        )
+
+#[derive(Clone)]
+pub struct ConverterRegistryBuilder<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub converters: Arc<Mutex<Option<Box<dyn MessageConverter<Request, Response>>>>>,
+    pub request_convert: Arc<Mutex<Option<&'static dyn RequestExtractor<EndpointMetadata>>>>
+}
+
+impl <Request, Response> ConverterRegistryBuilder<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub fn build(&mut self) -> ConverterRegistry<Request, Response> {
+        let mut to_switch: Option<Box<dyn MessageConverter<Request, Response>>> = None;
+        std::mem::swap(&mut to_switch, &mut self.converters.lock().unwrap().take());
+        ConverterRegistry {
+            converters: Arc::new(to_switch),
+            request_convert: Arc::new(self.request_convert.lock().unwrap().clone())
+        }
     }
-    pub fn new(request_extractor: &'static Option<&'static dyn RequestExtractor<EndpointMetadata>>) -> ConverterRegistry {
+}
+
+impl <Request, Response> ConverterRegistry<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub fn new(request_extractor: Option<&'static dyn RequestExtractor<EndpointMetadata>>) -> ConverterRegistry<Request, Response> {
         Self {
-            converters: Box::new(LinkedList::new()),
-            request_convert: *request_extractor,
+            converters: Arc::new(None),
+            request_convert: Arc::new(request_extractor),
         }
     }
 }
 
 pub struct EndpointRequestExtractor {
-
 }
 
 impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
@@ -140,51 +331,46 @@ impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
     }
 }
 
-impl Registry<dyn MessageConverter> for ConverterRegistry {
-    fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn MessageConverter>> {
-        self.converters.clone()
-    }
-}
-
-//TODO: macro in app context builder for having user provided message converter, or
-// other authentication converter to implement Registration<UserProvidedJwt> for ConverterRegistry
-// and also it will add it - the registry![userProvided] will go inside of the app context register
-impl<'a> Registration<'a, dyn MessageConverter> for ConverterRegistry
-where
-    'a: 'static,
+impl <Request, Response> ConverterRegistryContainer<Request, Response> for ConverterRegistry<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
-    fn register(&mut self, converter: &'a dyn MessageConverter) {
-        self.converters.push_front(converter)
-    }
-}
 
-impl ConverterRegistryContainer for ConverterRegistry {
     fn converters(
         &self,
         request: &WebRequest,
-    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>> {
-        Box::new(
-            self.read_only_registrations()
-                .iter()
-                .filter(|&c| c.do_convert(request.clone()))
-                .map(|&c| c)
-                .collect::<Vec<&'static dyn MessageConverter>>()
-                .into_iter(),
-        )
+    ) -> Arc<Option<Box<dyn MessageConverter<Request, Response>>>> {
+        match self.converters.as_ref() {
+            None => {
+                Arc::new(None)
+            }
+            Some(converter) => {
+                if converter.do_convert(request) {
+                    return self.converters.clone()
+                }
+                Arc::new(None)
+            }
+        }
     }
 
     fn convert_from_converters(
         &self,
-        media_type: MediaType,
-    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>> {
-        Box::new(
-            self.read_only_registrations()
-                .iter()
-                .filter(|&&c| c.message_type() == media_type)
-                .map(|&c| c)
-                .collect::<Vec<&'static dyn MessageConverter>>()
-                .into_iter(),
-        )
+        media_type: String,
+    ) -> Arc<Option<Box<dyn MessageConverter<Request, Response>>>> {
+        match self.converters.as_ref() {
+            None => {
+                Arc::new(None)
+            }
+            Some(converter) => {
+                if converter.message_type()
+                    .iter()
+                    .any(|message_type| message_type.clone() == media_type) {
+                    return self.converters.clone();
+                }
+                Arc::new(None)
+            }
+        }
     }
 }
 
@@ -192,56 +378,83 @@ pub trait RequestExtractor<T>: Send + Sync {
     fn convert_extract(&self, request: &WebRequest) -> Option<T>;
 }
 
-impl RequestExtractor<EndpointMetadata> for RequestContext {
+impl <Request, Response> RequestExtractor<EndpointMetadata> for RequestContext<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+{
     fn convert_extract(&self, request: &WebRequest) -> Option<EndpointMetadata> {
-        self.message_converters.endpoint_extractor().convert_extract(request)
-    }
-}
-
-impl Converters for RequestContext {
-    fn convert_to<T: Serialize + for<'a> Deserialize<'a>>(
-        &self,
-        request: &WebRequest,
-    ) -> Option<MessageType<T>> {
-        self.message_converters.converters(request).find_map(|c| {
-            let found = (&c).convert_to(request.clone());
-            found
-        })
-    }
-
-    fn convert_from<T: Serialize + for<'a> Deserialize<'a> + Clone>(
-        &self,
-        request: &T,
-        media_type: MediaType,
-    ) -> Option<String> {
         self.message_converters
-            .convert_from_converters(media_type)
-            .find_map(|c| {
-                let found = (&c).convert_from(request);
-                found
-            })
+            .request_convert
+            .map(|converter| converter.convert_extract(request).or(None))
+            .unwrap()
     }
 }
 
-pub trait Converters {
-    fn convert_to<T: Serialize + for<'a> Deserialize<'a>>(
+impl <Request, Response> Converters<Request, Response> for RequestContext<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+{
+    fn convert_to(
         &self,
         request: &WebRequest,
-    ) -> Option<MessageType<T>>;
-    fn convert_from<T: Serialize + for<'a> Deserialize<'a> + Clone>(
+    ) -> Option<MessageType<Request>> {
+        // self.message_converters.converters(request)
+            // .map(|c| (&c).convert_to(request).or(None))
+            // .unwrap()
+        None
+    }
+
+    fn convert_from(
         &self,
-        request: &T,
-        media_type: MediaType,
+        request: &Response,
+        web_request: &WebRequest,
+        media_type: Option<String>
+    ) -> Option<String> {
+        match self.message_converters
+            .convert_from_converters(media_type
+                .or(Some("application/json".to_string())).unwrap()
+            )
+            .as_ref() {
+            None => {
+                None
+            }
+            Some(message) => {
+                None
+            }
+        }
+    }
+}
+
+pub trait Converters<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+{
+    fn convert_to(
+        &self,
+        request: &WebRequest,
+    ) -> Option<MessageType<Request>>;
+    fn convert_from(
+        &self,
+        request: &Response,
+        web_request: &WebRequest,
+        media_type: Option<String>,
     ) -> Option<String>;
 }
 
-pub trait ConverterRegistryContainer {
+pub trait  ConverterRegistryContainer<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+{
     fn converters(
         &self,
         request: &WebRequest,
-    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>>;
+    ) -> Arc<Option<Box<dyn MessageConverter<Request, Response>>>>;
     fn convert_from_converters(
         &self,
-        media_type: MediaType,
-    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>>;
+        media_type: String,
+    ) -> Arc<Option<Box<dyn MessageConverter<Request, Response>>>>;
 }

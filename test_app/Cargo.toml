@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 tokio = "1.18.2"
+serde_json = "1.0.87"
 lazy_static = "1.4.0"
+paste = "1.0.6"
 serde = "1.0.137"
 [dependencies.web_framework]
 path = "../web_framework"
