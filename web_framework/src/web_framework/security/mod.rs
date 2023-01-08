@@ -51,7 +51,7 @@ pub mod security {
         fn try_convert_to_authentication(
             &self,
             request: &WebRequest,
-        ) -> Option<Authentication>;
+        ) -> Result<Option<Authentication>, AuthenticationConversionError>;
     }
 
     pub struct UsernamePasswordAuthenticationFilter {}
@@ -110,32 +110,35 @@ pub mod security {
         fn try_convert_to_authentication(
             &self,
             request: &WebRequest,
-        ) -> Option<Authentication> {
-            todo!()
-            // if request.headers.contains_key("Authorization") {
-            //
-            //     let auth_string = request.headers["Authorization"].clone();
-            //
-            //     let mut auth_header = auth_string.as_str();
-            //
-            //     let found = auth_header.split(":").collect::<Vec<&str>>();
-            //
-            //     let username64 = found[0];
-            //     let password64 = found[1];
-            //
-            //     let username = base64::decode(username64);
-            //     let password = base64::decode(password64);
-            //
-            //     if username.is_err() {
-            //         return Err(AuthenticationConversionError::new(String::from("Username could not be decoded")));
-            //     }
-            //     if password.is_err(){
-            //         return Err(AuthenticationConversionError::new(String::from("Password could not be decoded")));
-            //     }
-            // return Ok(Box::new(AuthenticationImpl::new(String::from_utf8(username.unwrap()).unwrap(), String::from_utf8(password.unwrap()).unwrap())));
-            // } else {
-            //     return Err(AuthenticationConversionError::new(String::from(String::from("Failed to find auth header"))));
-            // }
+        ) -> Result<Option<Authentication>, AuthenticationConversionError> {
+            if request.headers.contains_key("Authorization") {
+
+                let auth_string = request.headers["Authorization"].clone();
+
+                let mut auth_header = auth_string.as_str();
+
+                let found = auth_header.split(":").collect::<Vec<&str>>();
+
+                let username64 = found[0];
+                let password64 = found[1];
+
+                let username_result = base64::decode(username64);
+                let password_result = base64::decode(password64);
+
+                if username_result.is_err() {
+                    return Err(AuthenticationConversionError::new(String::from("Username could not be decoded")));
+                }
+                if password_result.is_err(){
+                    return Err(AuthenticationConversionError::new(String::from("Password could not be decoded")));
+                }
+                let username = String::from_utf8(username_result.unwrap())
+                    .unwrap();
+                let password = String::from_utf8(password_result.unwrap())
+                    .unwrap();
+                return Ok(Some(Authentication::new(AuthenticationType::Password(UsernamePassword{username, password}))));
+            } else {
+                return Err(AuthenticationConversionError::new(String::from(String::from("Failed to find auth header"))));
+            }
         }
     }
 

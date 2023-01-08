@@ -3,7 +3,7 @@ mod test_filter {
     use crate::web_framework::context::{ApplicationContext, RequestContext};
     use crate::web_framework::dispatch::Dispatcher;
     use crate::web_framework::convert::{ConverterRegistry, Registry};
-    use crate::web_framework::filter::filter::{Action, Filter, FilterChain, RequestResponseActionFilter, MediaType};
+    use crate::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter, MediaType};
     use crate::web_framework::message::MessageType;
     use crate::web_framework::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
     use crate::web_framework::request::request::{WebRequest, WebResponse};
@@ -45,9 +45,12 @@ mod test_filter {
             &self,
             metadata: EndpointMetadata,
             request: &Option<Example>,
+            web_request: &WebRequest,
+            response: &mut WebResponse,
             context: &RequestContext,
+            application_context: &ApplicationContext<Example, Example>
         ) -> Option<Example> {
-            Some(Example::default())
+            Some(Example{ value: String::default() })
         }
 
         fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
@@ -56,6 +59,10 @@ mod test_filter {
 
         fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
             true
+        }
+
+        fn clone(&self) -> Box<dyn Action<Example, Example>> {
+            todo!()
         }
     }
 
@@ -74,18 +81,20 @@ mod test_filter {
     #[test]
     fn test_filter() {
         let one = RequestResponseActionFilter {
-            actions: Box::new(TestAction::default()),
-            dispatcher: Dispatcher::default(),
+            actions: Box::new((TestAction {})),
+            dispatcher: Default::default(),
+            order: 0,
         };
-        let mut fc = FilterChain::new(vec![&one]);
+        let mut fc = FilterChain::new(vec![one]);
         fc.do_filter(&WebRequest::default(), &mut WebResponse::default(), &ApplicationContext::new());
     }
 
     #[test]
     fn test_get_in_filter() {
-        let one = &RequestResponseActionFilter {
-            actions: Box::new(TestAction::default()),
-            dispatcher: Dispatcher::default(),
+        let one = RequestResponseActionFilter {
+            actions: Box::new((TestAction {})),
+            dispatcher: Default::default(),
+            order: 0,
         };
         let mut fc = FilterChain::new(vec![one]);
         let mut request = WebRequest::default();
@@ -103,10 +112,11 @@ mod test_filter {
 
     #[test]
     fn filter_application_builder() {
-        let mut vec: Vec<&dyn Filter> = vec![];
-        vec.push(&RequestResponseActionFilter {
+        let mut vec: Vec<RequestResponseActionFilter<Example, Example>> = vec![];
+        vec.push(RequestResponseActionFilter {
             actions: Box::new(TestAction {}),
-            dispatcher: Dispatcher::default(),
+            dispatcher: Default::default(),
+            order: 0,
         });
     }
 

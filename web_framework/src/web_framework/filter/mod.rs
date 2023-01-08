@@ -129,15 +129,25 @@ pub mod filter {
         pub order: u8
     }
 
-    impl<Request, Response> Eq for RequestResponseActionFilter<Request, Response> where Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>, Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {}
+    impl<Request, Response> Eq for RequestResponseActionFilter<Request, Response>
+        where
+            Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
+            Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {}
 
-    impl<Request, Response> PartialEq<Self> for RequestResponseActionFilter<Request, Response> where Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>, Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {
+    impl<Request, Response> PartialEq<Self> for RequestResponseActionFilter<Request, Response>
+        where
+            Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
+            Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {
         fn eq(&self, other: &Self) -> bool {
             self.order == other.order
         }
     }
 
-    impl<Request, Response> PartialOrd<Self> for RequestResponseActionFilter<Request, Response> where Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>, Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {
+    impl<Request, Response> PartialOrd<Self> for RequestResponseActionFilter<Request, Response>
+        where
+            Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
+            Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>
+    {
         fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             self.order.partial_cmp(&other.order)
         }

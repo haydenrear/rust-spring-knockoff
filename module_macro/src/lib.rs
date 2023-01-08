@@ -253,9 +253,7 @@ impl ModuleContainer {
             Type::Reference(reference_found) => {
                 let ref_type = reference_found.elem.clone();
                 println!("{} is the ref type", ref_type.to_token_stream());
-
                 self.match_ty_recursive(item_impl, ref_type.clone().deref().clone())
-                // TODO: match type recursively
             }
             Type::Slice(_) => {
                 println!("found field hello");
@@ -290,6 +288,7 @@ impl ModuleContainer {
             .or(Some(path.to_token_stream().to_string().clone()))
             .unwrap();
         if contains_key && struct_exists && id != String::default() {
+            println!("Adding dependency with id {} to struct_impl of name {}", id, &item_impl.ident.to_string().clone());
             self.types.get_mut(
                 &item_impl.ident.to_string().clone()
             )
