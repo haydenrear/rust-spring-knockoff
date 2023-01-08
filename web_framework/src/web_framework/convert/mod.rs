@@ -1,3 +1,4 @@
+use core::borrow::BorrowMut;
 use crate::web_framework::context::RequestContext;
 use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
@@ -6,9 +7,10 @@ use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::collections::LinkedList;
 use std::ops::Deref;
+use std::sync::{Arc, Mutex};
 
 impl<'a> MessageConverter for &'a dyn MessageConverter {
-    fn do_convert(&self, request: WebRequest) -> bool {
+    fn do_convert(&self, request: &WebRequest) -> bool {
         (*self).do_convert(request)
     }
 
@@ -37,7 +39,7 @@ pub trait MessageConverter: Send + Sync {
         option
     }
 
-    fn do_convert(&self, request: WebRequest) -> bool;
+    fn do_convert(&self, request: &WebRequest) -> bool;
     fn message_type(&self) -> MediaType;
 }
 
@@ -55,7 +57,7 @@ impl MessageConverter for JsonMessageConverter {
         })
     }
 
-    fn do_convert(&self, request: WebRequest) -> bool {
+    fn do_convert(&self, request: &WebRequest) -> bool {
         request.headers.contains_key("MediaType") && request.headers["MediaType"].contains("json")
     }
 
@@ -92,7 +94,7 @@ impl MessageConverter for OtherMessageConverter {
         None
     }
 
-    fn do_convert(&self, request: WebRequest) -> bool {
+    fn do_convert(&self, request: &WebRequest) -> bool {
         false
     }
 
@@ -102,36 +104,45 @@ impl MessageConverter for OtherMessageConverter {
 }
 
 pub trait Registration<'a, C: ?Sized> {
-    fn register(&mut self, converter: &'a C);
+    fn register(&self, converter: &'a C);
 }
 
 pub trait Registry<C: ?Sized> {
     fn read_only_registrations(&self) -> Box<LinkedList<&'static C>>;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ConverterRegistry {
-    pub converters: Box<LinkedList<&'static dyn MessageConverter>>,
-    pub request_convert: Option<&'static dyn RequestExtractor<EndpointMetadata>>
+    pub converters: Arc<Vec<&'static dyn MessageConverter>>,
+    pub request_convert: Arc<Option<&'static dyn RequestExtractor<EndpointMetadata>>>
+}
+
+#[derive(Clone)]
+pub struct ConverterRegistryBuilder {
+    pub converters: Arc<Mutex<Vec<&'static dyn MessageConverter>>>,
+    pub request_convert: Arc<Mutex<Option<&'static dyn RequestExtractor<EndpointMetadata>>>>
+}
+
+impl ConverterRegistryBuilder {
+    pub fn build(&self) -> ConverterRegistry {
+        ConverterRegistry {
+            converters: Arc::new(self.converters.lock().unwrap().clone()),
+            request_convert: Arc::new(self.request_convert.lock().unwrap().clone()),
+        }
+    }
 }
 
 impl ConverterRegistry {
-    pub fn endpoint_extractor(&self) -> &'static dyn RequestExtractor<EndpointMetadata> {
-        self.request_convert.map_or_else(
-            || &EndpointRequestExtractor{ } as &'static dyn RequestExtractor<EndpointMetadata>,
-            |f| f
-        )
-    }
-    pub fn new(request_extractor: &'static Option<&'static dyn RequestExtractor<EndpointMetadata>>) -> ConverterRegistry {
+
+    pub fn new(request_extractor: Option<&'static dyn RequestExtractor<EndpointMetadata>>) -> ConverterRegistry {
         Self {
-            converters: Box::new(LinkedList::new()),
-            request_convert: *request_extractor,
+            converters: Arc::new(vec![]),
+            request_convert: Arc::new(request_extractor),
         }
     }
 }
 
 pub struct EndpointRequestExtractor {
-
 }
 
 impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
@@ -140,22 +151,26 @@ impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
     }
 }
 
-impl Registry<dyn MessageConverter> for ConverterRegistry {
-    fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn MessageConverter>> {
-        self.converters.clone()
-    }
-}
-
 //TODO: macro in app context builder for having user provided message converter, or
 // other authentication converter to implement Registration<UserProvidedJwt> for ConverterRegistry
 // and also it will add it - the registry![userProvided] will go inside of the app context register
-impl<'a> Registration<'a, dyn MessageConverter> for ConverterRegistry
+impl<'a> Registration<'a, dyn MessageConverter> for ConverterRegistryBuilder
 where
     'a: 'static,
 {
-    fn register(&mut self, converter: &'a dyn MessageConverter) {
-        self.converters.push_front(converter)
+    fn register(&self, converter: &'a dyn MessageConverter) {
+        self.converters.lock().unwrap().borrow_mut().push(converter.clone())
     }
+}
+
+impl ConverterRegistryBuilder {
+    // fn build(&mut self) -> ConverterRegistry {
+    //     let iter = self.converters.lock().iter();
+    //     ConverterRegistry {
+    //         converters: Arc::new(iter),
+    //         request_convert: Arc::new(None),
+    //     }
+    // }
 }
 
 impl ConverterRegistryContainer for ConverterRegistry {
@@ -164,9 +179,9 @@ impl ConverterRegistryContainer for ConverterRegistry {
         request: &WebRequest,
     ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>> {
         Box::new(
-            self.read_only_registrations()
+            self.converters
                 .iter()
-                .filter(|&c| c.do_convert(request.clone()))
+                .filter(|&c| c.do_convert(request))
                 .map(|&c| c)
                 .collect::<Vec<&'static dyn MessageConverter>>()
                 .into_iter(),
@@ -178,7 +193,7 @@ impl ConverterRegistryContainer for ConverterRegistry {
         media_type: MediaType,
     ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>> {
         Box::new(
-            self.read_only_registrations()
+            self.converters
                 .iter()
                 .filter(|&&c| c.message_type() == media_type)
                 .map(|&c| c)
@@ -194,7 +209,10 @@ pub trait RequestExtractor<T>: Send + Sync {
 
 impl RequestExtractor<EndpointMetadata> for RequestContext {
     fn convert_extract(&self, request: &WebRequest) -> Option<EndpointMetadata> {
-        self.message_converters.endpoint_extractor().convert_extract(request)
+        self.message_converters
+            .request_convert
+            .map(|converter| converter.convert_extract(request).or(None))
+            .unwrap()
     }
 }
 
@@ -239,9 +257,9 @@ pub trait ConverterRegistryContainer {
     fn converters(
         &self,
         request: &WebRequest,
-    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>>;
+    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>> ;
     fn convert_from_converters(
         &self,
         media_type: MediaType,
-    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>>;
+    ) -> Box<dyn Iterator<Item = &'static dyn MessageConverter>> ;
 }

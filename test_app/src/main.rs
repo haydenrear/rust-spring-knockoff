@@ -3,13 +3,13 @@ use lazy_static::lazy_static;
 use hyper::{HyperRequestConverter, HyperRequestStream};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
-use web_framework::web_framework::convert::Registration;
+use web_framework::web_framework::convert::{ConverterRegistryBuilder, EndpointRequestExtractor, JsonMessageConverter, Registration};
 use web_framework::web_framework::dispatch::Dispatcher;
 use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-use web_framework::web_framework::security::security::AuthenticationToken;
+use web_framework::web_framework::security::security::{AuthenticationConverterRegistryBuilder, AuthenticationToken, AuthenticationTypeConverterImpl, DelegatingAuthenticationManagerBuilder};
 use web_framework::web_framework::http::{RequestExecutorImpl};
-use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
+use web_framework::web_framework::context::{ApplicationContext, ApplicationContextBuilder, FilterRegistrar, RequestContext, RequestContextBuilder};
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -81,10 +81,26 @@ async fn main() {
         build: false,
         filters_build: Arc::new(FilterChain::default())
     };
-    filter_registrar.with_filter(filter);
+    filter_registrar.register(filter);
+    let ctx_builder = ApplicationContextBuilder {
+        filter_registry: Some(Arc::new(filter_registrar)),
+        request_context_builder: Some(Arc::new(Mutex::new(RequestContextBuilder {
+            message_converter_builder: ConverterRegistryBuilder {
+                converters: Arc::new(Mutex::new(vec![&JsonMessageConverter{}])),
+                request_convert: Arc::new(Mutex::new(Some(&EndpointRequestExtractor{})))
+            },
+            authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
+                providers: Arc::new(Mutex::new(vec![])),
+            },
+        }))),
+        authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
+            converters: Arc::new(Mutex::new(vec![])),
+            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
+        })),
+    };
     let mut r: HyperRequestStream<Example, Example> = HyperRequestStream::new(
         RequestExecutorImpl {
-            ctx: ApplicationContext::with_filter_registry(filter_registrar)
+            ctx: ctx_builder.build()
         }
     );
     r.do_run().await;

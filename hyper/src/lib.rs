@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, Pointer};
 use std::future::Future;
@@ -77,7 +78,7 @@ impl <HRequest, HResponse> HyperRequestStream<HRequest, HResponse>
     pub async fn do_run(&mut self) {
         let addr = ([127, 0, 0, 1], 3000).into();
 
-        self.request_executor.ctx.filter_registry.build();
+        // self.request_executor.ctx.filter_registry.borrow_mut().build();
 
         let service = make_service_fn(|cnn: &AddrStream| {
             let converter = self.converter.clone();

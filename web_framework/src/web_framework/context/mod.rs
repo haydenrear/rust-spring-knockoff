@@ -1,10 +1,8 @@
 mod test;
 
 use core::borrow::BorrowMut;
-use crate::web_framework::convert::{ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration, Registry};
-use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationConverterRegistry,
-                                     AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl,
-                                     Converter, DelegatingAuthenticationManager};
+use crate::web_framework::convert::{ConverterRegistry, ConverterRegistryBuilder, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration};
+use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationConverterRegistry, AuthenticationConverterRegistryBuilder, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, Converter, DelegatingAuthenticationManager, DelegatingAuthenticationManagerBuilder};
 use crate::web_framework::filter::filter::{FilterChain, RequestResponseActionFilter};
 use std::any::Any;
 use std::cell::RefCell;
@@ -17,24 +15,33 @@ use serde::{Deserialize, Serialize};
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
 use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct RequestContext {
     pub message_converters: ConverterRegistry,
     pub authentication_manager: DelegatingAuthenticationManager
 }
 
-impl RequestContext {
-    pub fn new() -> RequestContext {
-        Self {
-            message_converters: ConverterRegistry::new(&None),
-            authentication_manager: DelegatingAuthenticationManager {providers: LinkedList::new()}
+#[derive(Clone)]
+pub struct RequestContextBuilder {
+    pub message_converter_builder: ConverterRegistryBuilder,
+    pub authentication_manager_builder: DelegatingAuthenticationManagerBuilder
+}
+
+impl RequestContextBuilder {
+    fn build(&self) -> RequestContext {
+        RequestContext {
+            message_converters: Default::default(),
+            authentication_manager: Default::default(),
         }
     }
 }
 
-impl ContextType<ConverterRegistry, dyn MessageConverter> for RequestContext {
-    fn detach_registry(&self) -> ConverterRegistry {
-        self.message_converters.clone()
+impl RequestContext {
+    pub fn new() -> RequestContext {
+        Self {
+            message_converters: ConverterRegistry::new(None),
+            authentication_manager: DelegatingAuthenticationManager {providers: Arc::new(vec![])}
+        }
     }
 }
 
@@ -43,27 +50,37 @@ where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub filter_registry: FilterRegistrar<Request, Response>,
+    pub filter_registry: Arc<FilterRegistrar<Request, Response>>,
     pub converter_registry: RequestContext,
     pub authentication_converters: AuthenticationConverterRegistry,
     pub auth_type_convert: AuthenticationTypeConverterImpl
 }
 
-impl <'a> Registration<'a, dyn MessageConverter> for RequestContext
+impl <'a> Registration<'a, dyn MessageConverter> for RequestContextBuilder
     where 'a: 'static
 {
-    fn register(&mut self, converter: &'a dyn MessageConverter) {
-        self.message_converters.register(converter);
+    fn register(&self, converter: &'a dyn MessageConverter) {
+        self.message_converter_builder.register(converter);
     }
 }
 
-impl <'a, Request, Response> Registration<'a, dyn MessageConverter> for ApplicationContext<Request, Response>
+pub struct ApplicationContextBuilder<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub filter_registry: Option<Arc<FilterRegistrar<Request, Response>>>,
+    pub request_context_builder: Option<Arc<Mutex<RequestContextBuilder>>>,
+    pub authentication_converters: Option<Arc<AuthenticationConverterRegistryBuilder>>
+}
+
+impl <'a, Request, Response> Registration<'a, dyn MessageConverter> for ApplicationContextBuilder<Request, Response>
     where 'a: 'static,
           Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
           Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-    fn register(&mut self, converter: &'a dyn MessageConverter) {
-        self.converter_registry.register(converter)
+    fn register(&self, converter: &'a dyn MessageConverter) {
+        self.request_context_builder.as_ref().unwrap().lock().unwrap().register(converter);
     }
 }
 
@@ -83,6 +100,21 @@ impl <Request, Response> FilterRegistrar<Request, Response>
 //         self.filter_registry.register(converter)
 //     }
 // }
+
+impl <Request, Response> ApplicationContextBuilder<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
+{
+    pub fn build(&self) -> ApplicationContext<Request, Response> {
+        ApplicationContext {
+            filter_registry: self.filter_registry.as_ref().unwrap().clone(),
+            converter_registry: self.request_context_builder.as_ref().unwrap().lock().unwrap().build(),
+            authentication_converters: self.authentication_converters.as_ref().unwrap().build(),
+            auth_type_convert: AuthenticationTypeConverterImpl,
+        }
+    }
+}
 
 impl <Request, Response> ApplicationContext<Request, Response>
     where
@@ -105,7 +137,7 @@ impl <Request, Response> ApplicationContext<Request, Response>
 
     pub fn new() -> Self {
         Self {
-            filter_registry: FilterRegistrar::new(),
+            filter_registry: Arc::new(FilterRegistrar::new()),
             converter_registry: RequestContext::new(),
             authentication_converters: AuthenticationConverterRegistry::new(),
             auth_type_convert: AuthenticationTypeConverterImpl {}
@@ -114,11 +146,15 @@ impl <Request, Response> ApplicationContext<Request, Response>
 
     pub fn with_filter_registry(f: FilterRegistrar<Request, Response>) -> Self {
         Self {
-            filter_registry: f,
+            filter_registry: Arc::new(f),
             converter_registry: RequestContext::new(),
             authentication_converters: AuthenticationConverterRegistry::new(),
             auth_type_convert: AuthenticationTypeConverterImpl {}
         }
+    }
+
+    pub fn and_converter_registry(&mut self) {
+
     }
 
     pub fn convert_authentication(&self, request: &WebRequest) -> AuthenticationType {
@@ -146,14 +182,17 @@ impl <'a, Request, Response> Clone for ApplicationContext<Request, Response>
         }
 }
 
-impl <'a, Request, Response> Registration<'a, dyn AuthenticationConverter> for ApplicationContext<Request, Response>
+impl <'a, Request, Response> Registration<'a, dyn AuthenticationConverter> for ApplicationContextBuilder<Request, Response>
 where
     'a : 'static,
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-fn register(&mut self, converter: &'a dyn AuthenticationConverter) {
-        self.authentication_converters.register(converter);
+fn register(&self, converter: &'a dyn AuthenticationConverter) {
+        self.authentication_converters.as_ref()
+            .map(|r| {
+                r.register(converter)
+            });
     }
 }
 
@@ -235,21 +274,19 @@ impl <Request, Response> FilterRegistrar<Request, Response>
     }
 }
 
-pub trait ContextType<R: Registry<C>, C: ?Sized> {
-    fn detach_registry(&self) -> R;
-}
-
-impl Default for RequestContext {
+impl Default for RequestContextBuilder {
     fn default() -> Self {
-        let mut registry = ConverterRegistry {
-            converters: Box::new(LinkedList::new()),
-            request_convert:  Some(&EndpointRequestExtractor {})
+        let mut registry = ConverterRegistryBuilder {
+            converters: Arc::new(Mutex::new(vec![])),
+            request_convert:  Arc::new(Mutex::new(Some(&EndpointRequestExtractor {})))
         };
         registry.register(&JsonMessageConverter {});
         registry.register(&OtherMessageConverter {});
         Self {
-            message_converters: registry,
-            authentication_manager: DelegatingAuthenticationManager::new()
+            message_converter_builder: registry,
+            authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
+                providers: Arc::new(Mutex::new(vec![]))
+            },
         }
     }
 }

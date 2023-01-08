@@ -133,7 +133,7 @@ pub struct RequestExecutorImpl<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub ctx: ApplicationContext< Request, Response>,
+    pub ctx: ApplicationContext<Request, Response>,
 }
 
 impl <Request, Response> Clone for RequestExecutorImpl<Request, Response>

@@ -1,4 +1,4 @@
-use crate::web_framework::context::{ApplicationContext, RequestContext};
+use crate::web_framework::context::{ApplicationContext, RequestContext, RequestContextBuilder};
 use crate::web_framework::convert::{Converters, RequestExtractor};
 use crate::web_framework::filter::filter::{Action, MediaType};
 use crate::web_framework::message::MessageType;
@@ -11,6 +11,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone)]
 pub struct Dispatcher {
     pub context: RequestContext,
+}
+
+#[deny(Clone)]
+pub struct DispatcherBuilder {
+    pub context: RequestContextBuilder
 }
 
 /**

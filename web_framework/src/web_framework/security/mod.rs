@@ -8,7 +8,7 @@ pub mod security {
 
     extern crate core;
 
-    use crate::web_framework::convert::{Registration, Registry};
+    use crate::web_framework::convert::{Registration};
     use crate::web_framework::filter::filter::{Action, FilterChain};
     use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
     use crate::web_framework::session::session::HttpSession;
@@ -19,29 +19,27 @@ pub mod security {
     use std::any::{Any, TypeId};
     use std::cell::RefCell;
     use std::collections::{HashMap, LinkedList};
+    use std::ops::{Deref, DerefMut};
     use std::ptr::null;
+    use std::sync::{Arc, Mutex};
     use std::vec;
     use security_model::UserAccount;
     use crate::web_framework::context::{ApplicationContext, RequestContext};
 
-    pub struct DelegatingAuthenticationManager {
-        pub(crate) providers: LinkedList<Box<dyn AuthenticationProvider>>,
+    #[derive(Clone)]
+    pub struct DelegatingAuthenticationManagerBuilder {
+        pub providers: Arc<Mutex<Vec<Box<dyn AuthenticationProvider>>>>,
     }
 
-    impl Clone for DelegatingAuthenticationManager {
-        fn clone(&self) -> Self {
-            Self {
-                providers: self.providers.iter()
-                    .map(|a| a.clone_auth_provider())
-                    .collect()
-            }
-        }
+    #[derive(Clone, Default)]
+    pub struct DelegatingAuthenticationManager {
+        pub(crate) providers: Arc<Vec<Box<dyn AuthenticationProvider>>>,
     }
 
     impl DelegatingAuthenticationManager {
         pub(crate) fn new() -> Self {
             Self {
-                providers: LinkedList::new()
+                providers: Arc::new(vec![])
             }
         }
     }
@@ -71,16 +69,16 @@ pub mod security {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-    fn do_action(
-            &self,
-            metadata: EndpointMetadata,
-            request: &Option<Request>,
-            web_request: &WebRequest,
-            response: &mut WebResponse,
-            context: &RequestContext,
-            application_context: &ApplicationContext<Request, Response>
-        ) -> Option<Response> {
-            todo!()
+        fn do_action(
+                &self,
+                metadata: EndpointMetadata,
+                request: &Option<Request>,
+                web_request: &WebRequest,
+                response: &mut WebResponse,
+                context: &RequestContext,
+                application_context: &ApplicationContext<Request, Response>
+            ) -> Option<Response> {
+                                        todo!()
         }
 
         fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
@@ -236,8 +234,23 @@ pub mod security {
 
     #[derive(Clone)]
     pub struct AuthenticationConverterRegistry {
-        converters: LinkedList<&'static dyn AuthenticationConverter>,
-        authentication_type_converter: &'static dyn AuthenticationTypeConverter
+        converters: Arc<Vec<&'static dyn AuthenticationConverter>>,
+        authentication_type_converter: Arc<&'static dyn AuthenticationTypeConverter>
+    }
+
+    #[derive(Clone)]
+    pub struct AuthenticationConverterRegistryBuilder {
+        pub converters: Arc<Mutex<Vec<&'static dyn AuthenticationConverter>>>,
+        pub authentication_type_converter: Arc<Mutex<&'static dyn AuthenticationTypeConverter>>
+    }
+
+    impl AuthenticationConverterRegistryBuilder {
+        pub(crate) fn build(&self) -> AuthenticationConverterRegistry {
+            AuthenticationConverterRegistry {
+                converters: Arc::new(self.converters.lock().unwrap().clone()),
+                authentication_type_converter: Arc::new(self.authentication_type_converter.lock().unwrap().clone()),
+            }
+        }
     }
 
     impl Converter<WebRequest, AuthenticationType> for AuthenticationConverterRegistry{
@@ -258,30 +271,22 @@ pub mod security {
         }
     }
 
-    impl <'a> Registration<'a, dyn AuthenticationConverter> for AuthenticationConverterRegistry
+    impl <'a> Registration<'a, dyn AuthenticationConverter> for AuthenticationConverterRegistryBuilder
     where
         'a: 'static
     {
-        fn register(&mut self, converter: &'a dyn AuthenticationConverter) {
-            self.converters.push_back(converter)
+        fn register(&self, converter: &'a dyn AuthenticationConverter) {
+            let x = converter.clone();
+            self.converters.lock().unwrap().push(x)
         }
     }
 
     impl AuthenticationConverterRegistry {
         pub fn new() -> Self {
             Self {
-                converters: LinkedList::new(),
-                authentication_type_converter: &AuthenticationTypeConverterImpl {}
+                converters: Arc::new(vec![]),
+                authentication_type_converter: Arc::new(&AuthenticationTypeConverterImpl {})
             }
-        }
-    }
-
-    //TODO: macro in app context builder for having user provided jwt authentication converter, or
-    // other authentication converter to implement Registration<UserProvidedJwt> for JwtAuthenticationConverterRegistry
-    // and also it will add it - the registry![userProvided] will go inside of the app context register
-    impl Registry<dyn AuthenticationConverter> for AuthenticationConverterRegistry {
-        fn read_only_registrations(&self) -> Box<LinkedList<&'static dyn AuthenticationConverter>> {
-            Box::new(self.converters.clone())
         }
     }
 
