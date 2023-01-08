@@ -10,7 +10,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
 pub struct Dispatcher {
-    pub context: RequestContext,
 }
 
 #[deny(Clone)]
@@ -32,20 +31,25 @@ impl Dispatcher {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        // TODO: action is provided by user and an attribute on the action causes this
-        // method to be implemented for the action created by macro
         if action.authentication_granted(&response.session.authentication_token) {
-            self.context
+            application_context
+                .request_context
                 .convert_to(&request)
                 .and_then(|found| {
-                    self.context
+                    application_context.request_context
                         .convert_extract(&request)
                         .filter(|e| action.matches(&e))
                         .and_then(|metadata| {
-                            action.do_action(metadata, &found.message, &request, response, &self.context, application_context)
+                            action.do_action(metadata, &found.message, &request, response, &application_context.request_context, application_context)
                         })
                         .and_then(|action_response| {
-                            self.context.convert_from(&found.message, MediaType::Json)
+                            let media_type = request.headers.get("mediatype").cloned()
+                                .or(request.headers.get("MediaType").cloned())
+                                .or(request.headers.get("Mediatype").cloned())
+                                .or(Some("application/json".to_string()));
+
+                            application_context.request_context
+                                .convert_from(&found.message, &request, media_type)
                         })
                 })
                 .map(|response_to_write| {
@@ -59,7 +63,6 @@ impl Dispatcher {
 impl Default for Dispatcher {
     fn default() -> Self {
         Self {
-            context: RequestContext::default(),
         }
     }
 }

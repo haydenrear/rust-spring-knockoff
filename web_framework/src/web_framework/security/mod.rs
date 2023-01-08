@@ -28,12 +28,20 @@ pub mod security {
 
     #[derive(Clone)]
     pub struct DelegatingAuthenticationManagerBuilder {
-        pub providers: Arc<Mutex<Vec<Box<dyn AuthenticationProvider>>>>,
+        pub providers: Arc<Mutex<Vec<&'static dyn AuthenticationProvider>>>,
+    }
+
+    impl DelegatingAuthenticationManagerBuilder {
+        pub(crate) fn build(&self) -> DelegatingAuthenticationManager {
+            DelegatingAuthenticationManager{
+                providers: Arc::new(self.providers.lock().unwrap().clone()),
+            }
+        }
     }
 
     #[derive(Clone, Default)]
     pub struct DelegatingAuthenticationManager {
-        pub(crate) providers: Arc<Vec<Box<dyn AuthenticationProvider>>>,
+        pub(crate) providers: Arc<Vec<&'static dyn AuthenticationProvider>>,
     }
 
     impl DelegatingAuthenticationManager {

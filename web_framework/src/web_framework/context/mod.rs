@@ -8,10 +8,11 @@ use std::any::Any;
 use std::cell::RefCell;
 use std::collections::LinkedList;
 use std::marker::PhantomData;
-use std::mem;
+use std::{mem, vec};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
+use crate::web_framework::dispatch::Dispatcher;
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
 use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 
@@ -28,10 +29,10 @@ pub struct RequestContextBuilder {
 }
 
 impl RequestContextBuilder {
-    fn build(&self) -> RequestContext {
+    fn build(&mut self) -> RequestContext {
         RequestContext {
-            message_converters: Default::default(),
-            authentication_manager: Default::default(),
+            message_converters: self.message_converter_builder.build(),
+            authentication_manager: self.authentication_manager_builder.build(),
         }
     }
 }
@@ -51,7 +52,7 @@ where
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
     pub filter_registry: Arc<FilterRegistrar<Request, Response>>,
-    pub converter_registry: RequestContext,
+    pub request_context: RequestContext,
     pub authentication_converters: AuthenticationConverterRegistry,
     pub auth_type_convert: AuthenticationTypeConverterImpl
 }
@@ -69,7 +70,7 @@ pub struct ApplicationContextBuilder<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub filter_registry: Option<Arc<FilterRegistrar<Request, Response>>>,
+    pub filter_registry: Option<Arc<Mutex<FilterRegistrar<Request, Response>>>>,
     pub request_context_builder: Option<Arc<Mutex<RequestContextBuilder>>>,
     pub authentication_converters: Option<Arc<AuthenticationConverterRegistryBuilder>>
 }
@@ -107,9 +108,12 @@ impl <Request, Response> ApplicationContextBuilder<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
     pub fn build(&self) -> ApplicationContext<Request, Response> {
+        let mut filter_registry_found = self.filter_registry.as_ref().unwrap().lock().unwrap().clone();
+        filter_registry_found.build();
+        let context = self.request_context_builder.as_ref().unwrap().lock().unwrap().build();
         ApplicationContext {
-            filter_registry: self.filter_registry.as_ref().unwrap().clone(),
-            converter_registry: self.request_context_builder.as_ref().unwrap().lock().unwrap().build(),
+            filter_registry: Arc::new(filter_registry_found),
+            request_context: context,
             authentication_converters: self.authentication_converters.as_ref().unwrap().build(),
             auth_type_convert: AuthenticationTypeConverterImpl,
         }
@@ -138,7 +142,7 @@ impl <Request, Response> ApplicationContext<Request, Response>
     pub fn new() -> Self {
         Self {
             filter_registry: Arc::new(FilterRegistrar::new()),
-            converter_registry: RequestContext::new(),
+            request_context: RequestContext::new(),
             authentication_converters: AuthenticationConverterRegistry::new(),
             auth_type_convert: AuthenticationTypeConverterImpl {}
         }
@@ -147,7 +151,7 @@ impl <Request, Response> ApplicationContext<Request, Response>
     pub fn with_filter_registry(f: FilterRegistrar<Request, Response>) -> Self {
         Self {
             filter_registry: Arc::new(f),
-            converter_registry: RequestContext::new(),
+            request_context: RequestContext::new(),
             authentication_converters: AuthenticationConverterRegistry::new(),
             auth_type_convert: AuthenticationTypeConverterImpl {}
         }
@@ -175,7 +179,7 @@ impl <'a, Request, Response> Clone for ApplicationContext<Request, Response>
     fn clone(&self) -> Self {
             Self {
                 filter_registry: self.filter_registry.clone(),
-                converter_registry: self.converter_registry.clone(),
+                request_context: self.request_context.clone(),
                 authentication_converters: self.authentication_converters.clone(),
                 auth_type_convert: self.auth_type_convert.clone()
             }
@@ -273,12 +277,11 @@ impl <Request, Response> FilterRegistrar<Request, Response>
         }
     }
 }
-
 impl Default for RequestContextBuilder {
     fn default() -> Self {
         let mut registry = ConverterRegistryBuilder {
-            converters: Arc::new(Mutex::new(vec![])),
-            request_convert:  Arc::new(Mutex::new(Some(&EndpointRequestExtractor {})))
+            converters: Arc::new(Mutex::new(Some(Box::new(JsonMessageConverter{})))),
+            request_convert:  Arc::new(Mutex::new(Some(&EndpointRequestExtractor { })))
         };
         registry.register(&JsonMessageConverter {});
         registry.register(&OtherMessageConverter {});

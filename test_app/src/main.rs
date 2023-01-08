@@ -3,7 +3,8 @@ use lazy_static::lazy_static;
 use hyper::{HyperRequestConverter, HyperRequestStream};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
-use web_framework::web_framework::convert::{ConverterRegistryBuilder, EndpointRequestExtractor, JsonMessageConverter, Registration};
+use web_framework::create_message_converter;
+use web_framework::web_framework::convert::{ConverterRegistryBuilder, EndpointRequestExtractor, HtmlMessageConverter, JsonMessageConverter, MessageConverter, Registration};
 use web_framework::web_framework::dispatch::Dispatcher;
 use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
@@ -71,6 +72,36 @@ impl Default for TestAction {
     }
 }
 
+#[derive(Clone)]
+pub struct NewConverter {
+
+}
+
+impl MessageConverter for NewConverter {
+    fn do_convert(&self, request: &WebRequest) -> bool {
+        todo!()
+    }
+
+    fn message_type(&self) -> Vec<String> {
+        todo!()
+    }
+}
+
+#[derive(Clone)]
+pub struct NewConverter1 {
+
+}
+
+impl MessageConverter for NewConverter1 {
+    fn do_convert(&self, request: &WebRequest) -> bool {
+        todo!()
+    }
+
+    fn message_type(&self) -> Vec<String> {
+        todo!()
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let filter: RequestResponseActionFilter<Example, Example> = RequestResponseActionFilter::new(
@@ -81,12 +112,18 @@ async fn main() {
         build: false,
         filters_build: Arc::new(FilterChain::default())
     };
+    create_message_converter!(
+        (crate => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => json_message_converter),
+        (crate => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => html_message_converter),
+        (crate => NewConverter{} =>> "custom/convert" => NewConverter => new_converter),
+        (crate => NewConverter1{} =>> "custom/convert1" => NewConverter1 => new_converter_1)
+    );
     filter_registrar.register(filter);
     let ctx_builder = ApplicationContextBuilder {
-        filter_registry: Some(Arc::new(filter_registrar)),
+        filter_registry: Some(Arc::new(Mutex::new(filter_registrar))),
         request_context_builder: Some(Arc::new(Mutex::new(RequestContextBuilder {
             message_converter_builder: ConverterRegistryBuilder {
-                converters: Arc::new(Mutex::new(vec![&JsonMessageConverter{}])),
+                converters: Arc::new(Mutex::new(Some(Box::new(DelegatingMessageConverter::new())))),
                 request_convert: Arc::new(Mutex::new(Some(&EndpointRequestExtractor{})))
             },
             authentication_manager_builder: DelegatingAuthenticationManagerBuilder {

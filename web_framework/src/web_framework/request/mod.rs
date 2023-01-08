@@ -147,8 +147,6 @@ pub mod request {
                 body: String::default(),
                 metadata: EndpointMetadata::default(),
                 method: HttpMethod::Get,
-                // connection: None,
-                // bytes: &[0]
             }
         }
     }

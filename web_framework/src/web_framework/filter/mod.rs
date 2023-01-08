@@ -77,10 +77,11 @@ pub mod filter {
         }
     }
 
-    #[derive(PartialEq)]
+    #[derive(PartialEq, Clone, Copy)]
     pub enum MediaType {
         Json,
         Xml,
+        Html
     }
 
     pub trait DispatcherContainer {

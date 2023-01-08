@@ -78,8 +78,6 @@ impl <HRequest, HResponse> HyperRequestStream<HRequest, HResponse>
     pub async fn do_run(&mut self) {
         let addr = ([127, 0, 0, 1], 3000).into();
 
-        // self.request_executor.ctx.filter_registry.borrow_mut().build();
-
         let service = make_service_fn(|cnn: &AddrStream| {
             let converter = self.converter.clone();
             let request_executor = self.request_executor.clone();
@@ -149,6 +147,7 @@ impl Display for HyperBodyConvertError {
 impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for HyperRequestConverter
 {
     async fn from(&self, in_value: Request<Body>) -> Result<WebRequest,HyperBodyConvertError> {
+        let from_headers = in_value.headers().clone();
         let http_body = in_value.into_body();
         hyper::body::to_bytes(http_body).await
             .map(|b| {
@@ -156,8 +155,15 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
             })
             .map(|v| {
                 v.map_or_else(|_| WebRequest::default(), |s| {
+                    let mut headers = HashMap::new();
+                    for header_tuple in from_headers.iter() {
+                        header_tuple.1.to_str().ok()
+                            .map(|header_value| {
+                                headers.insert(header_tuple.0.to_string().clone(), String::from(header_value));
+                            });
+                    }
                     WebRequest {
-                        headers: Default::default(),
+                        headers: headers,
                         body: s,
                         metadata: Default::default(),
                         method: HttpMethod::Post,
