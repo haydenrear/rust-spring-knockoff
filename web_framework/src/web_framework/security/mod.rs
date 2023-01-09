@@ -83,7 +83,7 @@ pub mod security {
                 request: &Option<Request>,
                 web_request: &WebRequest,
                 response: &mut WebResponse,
-                context: &RequestContext,
+                context: &RequestContext<Request, Response>,
                 application_context: &ApplicationContext<Request, Response>
             ) -> Option<Response> {
                                         todo!()

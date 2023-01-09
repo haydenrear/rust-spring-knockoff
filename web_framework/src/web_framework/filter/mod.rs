@@ -5,7 +5,7 @@ pub mod filter {
     extern crate core;
 
     use crate::web_framework::context::{ApplicationContext, RequestContext};
-    use crate::web_framework::dispatch::{Dispatcher, PostMethodRequestDispatcher, RequestMethodDispatcher};
+    use crate::web_framework::dispatch::{Dispatcher};
     use crate::web_framework::convert::Registration;
     use crate::web_framework::http::{Connection, HttpMethod};
     use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
@@ -102,7 +102,7 @@ pub mod filter {
             request: &Option<Request>,
             web_request: &WebRequest,
             response: &mut WebResponse,
-            context: &RequestContext,
+            context: &RequestContext<Request, Response>,
             application_context: &ApplicationContext<Request, Response>
         ) -> Option<Response>;
 

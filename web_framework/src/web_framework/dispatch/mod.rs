@@ -13,8 +13,11 @@ pub struct Dispatcher {
 }
 
 #[deny(Clone)]
-pub struct DispatcherBuilder {
-    pub context: RequestContextBuilder
+pub struct DispatcherBuilder <Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
+    pub context: RequestContextBuilder<Request, Response>
 }
 
 /**
@@ -49,7 +52,7 @@ impl Dispatcher {
                                 .or(Some("application/json".to_string()));
 
                             application_context.request_context
-                                .convert_from(&found.message, &request, media_type)
+                                .convert_from(&action_response, &request, media_type)
                         })
                 })
                 .map(|response_to_write| {
@@ -67,18 +70,3 @@ impl Default for Dispatcher {
     }
 }
 
-pub trait RequestMethodDispatcher<Response, Request> {
-    fn do_method(&self) -> dyn Fn(EndpointMetadata, Request, &RequestContext) -> Response;
-}
-
-pub struct PostMethodRequestDispatcher {
-    pub context: RequestContext,
-}
-
-impl Default for PostMethodRequestDispatcher {
-    fn default() -> Self {
-        Self {
-            context: RequestContext::default(),
-        }
-    }
-}

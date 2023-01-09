@@ -15,7 +15,7 @@ use crate::web_framework::context::{ApplicationContext, RequestContext};
 use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
 use crate::web_framework::convert::Registration;
-use crate::web_framework::dispatch::{Dispatcher, RequestMethodDispatcher};
+use crate::web_framework::dispatch::{Dispatcher};
 use crate::web_framework::filter::filter::{Action};
 
 #[derive(Serialize, Deserialize)]

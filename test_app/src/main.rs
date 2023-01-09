@@ -4,18 +4,19 @@ use hyper::{HyperRequestConverter, HyperRequestStream};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use web_framework::create_message_converter;
-use web_framework::web_framework::convert::{ConverterRegistryBuilder, EndpointRequestExtractor, HtmlMessageConverter, JsonMessageConverter, MessageConverter, Registration};
+use web_framework::web_framework::convert::{ConverterRegistryBuilder, EndpointRequestExtractor, HtmlMessageConverter, JsonMessageConverter, MessageConverter, Registration, Something};
 use web_framework::web_framework::dispatch::Dispatcher;
 use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
 use web_framework::web_framework::security::security::{AuthenticationConverterRegistryBuilder, AuthenticationToken, AuthenticationTypeConverterImpl, DelegatingAuthenticationManagerBuilder};
 use web_framework::web_framework::http::{RequestExecutorImpl};
 use web_framework::web_framework::context::{ApplicationContext, ApplicationContextBuilder, FilterRegistrar, RequestContext, RequestContextBuilder};
+use web_framework::web_framework::message::MessageType;
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Example {
-    value: String,
+    value: String
 }
 
 impl Default for Example {
@@ -41,7 +42,7 @@ impl Action<Example, Example> for TestAction {
         request: &Option<Example>,
         web_request: &WebRequest,
         response: &mut WebResponse,
-        context: &RequestContext,
+        context: &RequestContext<Example, Example>,
         ctx: &ApplicationContext<Example, Example>
     ) -> Option<Example> {
         Some(Example::default())
@@ -77,13 +78,29 @@ pub struct NewConverter {
 
 }
 
-impl MessageConverter for NewConverter {
+impl <Request, Response> MessageConverter<Request, Response> for NewConverter
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    fn new() -> Self where Self: Sized {
+        todo!()
+    }
+
+    fn convert_to(&self, request: &WebRequest) -> Option<MessageType<Request>> {
+        todo!()
+    }
+
+    fn convert_from(&self, request_body: &Response, request: &WebRequest) -> Option<String> {
+        todo!()
+    }
+
     fn do_convert(&self, request: &WebRequest) -> bool {
         todo!()
     }
 
     fn message_type(&self) -> Vec<String> {
-        todo!()
+        vec!["".to_string()]
     }
 }
 
@@ -92,13 +109,26 @@ pub struct NewConverter1 {
 
 }
 
-impl MessageConverter for NewConverter1 {
+impl MessageConverter<Example, Example> for NewConverter1
+{
+    fn new() -> Self where Self: Sized {
+        todo!()
+    }
+
+    fn convert_to(&self, request: &WebRequest) -> Option<MessageType<Example>> {
+        todo!()
+    }
+
+    fn convert_from(&self, request_body: &Example, request: &WebRequest) -> Option<String> {
+        todo!()
+    }
+
     fn do_convert(&self, request: &WebRequest) -> bool {
         todo!()
     }
 
     fn message_type(&self) -> Vec<String> {
-        todo!()
+        vec!["".to_string()]
     }
 }
 
@@ -113,13 +143,14 @@ async fn main() {
         filters_build: Arc::new(FilterChain::default())
     };
     create_message_converter!(
-        (crate => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => json_message_converter),
-        (crate => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => html_message_converter),
-        (crate => NewConverter{} =>> "custom/convert" => NewConverter => new_converter),
-        (crate => NewConverter1{} =>> "custom/convert1" => NewConverter1 => new_converter_1)
+        // (web_framework::web_framework::convert::JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => json_message_converter => Something)
+        // (web_framework::web_framework::convert::HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => html_message_converter)
+        // (crate => NewConverter{} =>> "custom/convert" => NewConverter => new_converter),
+        (crate::NewConverter1 => NewConverter1{} =>> "custom/convert1" => NewConverter1 => new_converter_1)
+        ===> Example
     );
     filter_registrar.register(filter);
-    let ctx_builder = ApplicationContextBuilder {
+    let ctx_builder = ApplicationContextBuilder::<Example, Example> {
         filter_registry: Some(Arc::new(Mutex::new(filter_registrar))),
         request_context_builder: Some(Arc::new(Mutex::new(RequestContextBuilder {
             message_converter_builder: ConverterRegistryBuilder {
