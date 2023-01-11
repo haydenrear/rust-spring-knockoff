@@ -1,3 +1,4 @@
+
 use core::borrow::BorrowMut;
 use crate::web_framework::context::RequestContext;
 use crate::web_framework::filter::filter::MediaType;
@@ -10,18 +11,20 @@ use std::ops::Deref;
 use std::sync::{Arc, Mutex};
 use std::vec;
 
-#[derive(Serialize, Deserialize, Copy, Clone, Default)]
-pub struct Something where Self: 'static {
+#[macro_export]
+macro_rules! default_message_converters {
+    () => {
+        #[derive(Clone)]
+        pub struct JsonMessageConverterImpl;
+        #[derive(Clone)]
+        pub struct HtmlMessageConverter;
+    }
 }
 
 #[macro_export]
 macro_rules! create_message_converter {
-    (($($converter_path:path => $converter_ident:expr =>> $matcher:literal => $converter:ty => $field_name:ident),*) ===> $gen:ty) => {
+    (($($converter_path:path => $converter_ident:expr =>> $matcher:literal => $converter:ty => $field_name:ident),*) ===> $gen:ty => $delegator:ident) => {
 
-        use web_framework::web_framework::convert::MessageConverter;
-        use web_framework::web_framework::message::MessageType;
-        use serde_json;
-        use web_framework::web_framework::filter::filter::MediaType;
         use crate::*;
         $(
             use $converter_path;
@@ -31,14 +34,14 @@ macro_rules! create_message_converter {
         // DelegatingMessageConverter in place of dyn MessageConverter so it won't be invoking generic
         // on trait - this
         #[derive(Clone)]
-        pub struct DelegatingMessageConverter{
+        pub struct $delegator{
             $(
                 $field_name: $converter,
             )*
             media_types: Vec<String>
         }
 
-        impl MessageConverter<$gen, $gen> for DelegatingMessageConverter
+        impl MessageConverter<$gen, $gen> for $delegator
         {
 
             fn new() -> Self where Self: Sized {
@@ -98,7 +101,6 @@ macro_rules! create_message_converter {
             }
         }
 
-        pub struct JsonMessageConverterImpl;
         impl MessageConverter<$gen, $gen> for JsonMessageConverterImpl
         {
 
@@ -143,6 +145,37 @@ macro_rules! create_message_converter {
                 vec!["application/json".to_string()]
             }
         }
+
+
+        impl MessageConverter<$gen, $gen> for HtmlMessageConverter
+        {
+            fn new() -> Self where Self: Sized {
+                todo!()
+            }
+
+            fn convert_to(&self, request: &WebRequest) -> Option<MessageType<$gen>> {
+                todo!()
+            }
+
+            fn convert_from(&self,  request: &$gen, request_body: &WebRequest) -> Option<String> {
+                todo!()
+            }
+
+            fn do_convert(&self, request: &WebRequest) -> bool {
+                for header in request.headers.iter() {
+                    if (header.0 == "MediaType" || header.0 == "mediatype") && header.1.contains("json") {
+                        return true;
+                    }
+                }
+                false
+            }
+
+
+            fn message_type(&self) -> Vec<String> {
+                vec!["text/html".to_string()]
+            }
+        }
+
     }
 }
 
@@ -183,41 +216,6 @@ pub trait MessageConverter<Request, Response>: Send + Sync
 
     fn message_type(&self) -> Vec<String>;
 
-}
-
-#[derive(Clone)]
-pub struct HtmlMessageConverter;
-
-impl <Request, Response> MessageConverter<Request, Response> for HtmlMessageConverter
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    fn new() -> Self where Self: Sized {
-        todo!()
-    }
-
-    fn convert_to(&self, request: &WebRequest) -> Option<MessageType<Request>> {
-        todo!()
-    }
-
-    fn convert_from(&self,  request: &Response, request_body: &WebRequest) -> Option<String> {
-        todo!()
-    }
-
-    fn do_convert(&self, request: &WebRequest) -> bool {
-        for header in request.headers.iter() {
-            if (header.0 == "MediaType" || header.0 == "mediatype") && header.1.contains("json") {
-                return true;
-            }
-        }
-        false
-    }
-
-
-    fn message_type(&self) -> Vec<String> {
-        vec!["text/html".to_string()]
-    }
 }
 
 
@@ -332,18 +330,6 @@ impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
         Some(EndpointMetadata::default())
     }
 }
-
-impl <'a, Request, Response> Registration<'a, dyn MessageConverter<Request, Response>> for ConverterRegistryBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        'a: 'static,
-{
-fn register(&self, converter: &'a dyn MessageConverter<Request, Response>) {
-        // self.converters.lock().unwrap().borrow_mut().push(converter.clone())
-    }
-}
-
 
 impl <Request, Response> ConverterRegistryContainer<Request, Response> for ConverterRegistry<Request, Response>
     where

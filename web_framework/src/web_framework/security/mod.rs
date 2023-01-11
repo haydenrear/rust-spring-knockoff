@@ -60,11 +60,15 @@ pub mod security {
         ) -> Result<Option<Authentication>, AuthenticationConversionError>;
     }
 
-    pub struct UsernamePasswordAuthenticationFilter {}
+    pub struct UsernamePasswordAuthenticationFilter {
+        converter: Arc<Box<dyn AuthenticationTypeConverter>>
+    }
 
     impl Default for UsernamePasswordAuthenticationFilter {
         fn default() -> Self {
-            Self {}
+            Self {
+                converter: Arc::new(Box::new(AuthenticationTypeConverterImpl{}))
+            }
         }
     }
 
@@ -117,34 +121,7 @@ pub mod security {
             &self,
             request: &WebRequest,
         ) -> Result<Option<Authentication>, AuthenticationConversionError> {
-            if request.headers.contains_key("Authorization") {
-
-                let auth_string = request.headers["Authorization"].clone();
-
-                let mut auth_header = auth_string.as_str();
-
-                let found = auth_header.split(":").collect::<Vec<&str>>();
-
-                let username64 = found[0];
-                let password64 = found[1];
-
-                let username_result = base64::decode(username64);
-                let password_result = base64::decode(password64);
-
-                if username_result.is_err() {
-                    return Err(AuthenticationConversionError::new(String::from("Username could not be decoded")));
-                }
-                if password_result.is_err(){
-                    return Err(AuthenticationConversionError::new(String::from("Password could not be decoded")));
-                }
-                let username = String::from_utf8(username_result.unwrap())
-                    .unwrap();
-                let password = String::from_utf8(password_result.unwrap())
-                    .unwrap();
-                return Ok(Some(Authentication::new(AuthenticationType::Password(UsernamePassword{username, password}))));
-            } else {
-                return Err(AuthenticationConversionError::new(String::from(String::from("Failed to find auth header"))));
-            }
+            Ok(None)
         }
     }
 
@@ -261,21 +238,25 @@ pub mod security {
         }
     }
 
-    impl Converter<WebRequest, AuthenticationType> for AuthenticationConverterRegistry{
-        fn convert(&self, from: &WebRequest) -> AuthenticationType {
+    impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for AuthenticationConverterRegistry{
+        fn convert(&self, from: &WebRequest) -> Result<AuthenticationType,AuthenticationConversionError> {
             self.authentication_type_converter.convert(from)
         }
     }
 
-    impl Converter<WebRequest, AuthenticationToken> for AuthenticationConverterRegistry{
-        fn convert(&self, from: &WebRequest) -> AuthenticationToken {
-            let authentication_type = self.authentication_type_converter.convert(from);
-            AuthenticationToken {
-                name: authentication_type.get_principal().unwrap_or("".to_string()),
-                auth: Authentication {
-                    authentication_type,
-                },
-            }
+    impl Converter<WebRequest, Result<AuthenticationToken, AuthenticationConversionError>> for AuthenticationConverterRegistry{
+        fn convert(&self, from: &WebRequest) -> Result<AuthenticationToken, AuthenticationConversionError>{
+            self.authentication_type_converter.convert(from)
+                .map(|auth| {
+                    let name = auth.get_principal()
+                        .or(Some(String::default()))
+                        .unwrap();
+                    let auth = Authentication::new(auth);
+                    AuthenticationToken {
+                        name,
+                        auth
+                    }
+                })
         }
     }
 
@@ -323,33 +304,66 @@ pub mod security {
         authority: String,
     }
 
-    pub trait AuthenticationTypeConverter: Converter<WebRequest, AuthenticationType> + Send + Sync {
+    pub trait AuthenticationTypeConverter: Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> + Send + Sync {
     }
 
     #[derive(Clone)]
     pub struct AuthenticationTypeConverterImpl;
 
-    impl Converter<WebRequest, AuthenticationType> for AuthenticationTypeConverterImpl {
-        fn convert(&self, from: &WebRequest) -> AuthenticationType {
+    impl AuthenticationTypeConverterImpl {
+       fn convert_to(&self, request: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
+           if request.headers.contains_key("Authorization") {
+
+               let auth_string = request.headers["Authorization"].clone();
+
+               let mut auth_header = auth_string.as_str();
+
+               let found = auth_header.split(":").collect::<Vec<&str>>();
+
+               let username64 = found[0];
+               let password64 = found[1];
+
+               let username_result = base64::decode(username64);
+               let password_result = base64::decode(password64);
+
+               if username_result.is_err() {
+                   return Err(AuthenticationConversionError::new(String::from("Username could not be decoded")));
+               }
+               if password_result.is_err(){
+                   return Err(AuthenticationConversionError::new(String::from("Password could not be decoded")));
+               }
+               let username = String::from_utf8(username_result.unwrap())
+                   .unwrap();
+               let password = String::from_utf8(password_result.unwrap())
+                   .unwrap();
+               return Ok(AuthenticationType::Password(UsernamePassword{username, password}));
+           } else {
+               return Err(AuthenticationConversionError::new(String::from(String::from("Failed to find auth header"))));
+           }
+       }
+    }
+
+    impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for AuthenticationTypeConverterImpl {
+
+        fn convert(&self, from: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
             let auth_header = from.headers["Authorization"].as_str();
             let first_split: Vec<&str> = auth_header.split_whitespace().collect();
             if first_split.len() < 2 {
-                return AuthenticationType::Unauthenticated;
+                return Ok(AuthenticationType::Unauthenticated);
             }
             match first_split[0] {
                 "Basic" => {
-                    let token = String::from(first_split[1]);
-                    AuthenticationType::Jwt(JwtToken{ token })
+                    self.convert_to(from)
                 }
                 "Bearer" => {
-                    let username = "".to_string();
-                    let password = "".to_string();
-                    AuthenticationType::Password(UsernamePassword{username, password})
+                    Ok(AuthenticationType::Jwt(JwtToken { token: "".to_string() }))
                 }
-                _ => AuthenticationType::Unauthenticated
+                _ => Ok(AuthenticationType::Unauthenticated)
             }
         }
+
     }
+
 
     impl AuthenticationTypeConverter for AuthenticationTypeConverterImpl {
     }
