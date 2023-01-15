@@ -280,6 +280,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "build_lib"
+version = "0.1.0"
+dependencies = [
+ "derive-syn-parse",
+ "dynpath",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -448,6 +458,7 @@ dependencies = [
 name = "delegator_test"
 version = "0.1.0"
 dependencies = [
+ "build_lib",
  "delegator_macro_rules",
  "derive-syn-parse",
  "dynpath",

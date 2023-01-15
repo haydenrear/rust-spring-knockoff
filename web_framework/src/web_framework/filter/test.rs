@@ -7,7 +7,7 @@ mod test_filter {
     use crate::web_framework::message::MessageType;
     use crate::web_framework::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
     use crate::web_framework::request::request::{WebRequest, WebResponse};
-    use crate::web_framework::security::security::AuthenticationToken;
+    use crate::web_framework::security::security::{AuthenticationToken, AuthenticationType};
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
     use std::any::Any;
@@ -47,13 +47,13 @@ mod test_filter {
             request: &Option<Example>,
             web_request: &WebRequest,
             response: &mut WebResponse,
-            context: &RequestContext,
+            context: &RequestContext<Example, Example>,
             application_context: &ApplicationContext<Example, Example>
         ) -> Option<Example> {
             Some(Example{ value: String::default() })
         }
 
-        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+        fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
             true
         }
 

@@ -28,28 +28,30 @@ pub mod security {
 
     #[derive(Clone)]
     pub struct DelegatingAuthenticationManagerBuilder {
-        pub providers: Arc<Mutex<Vec<&'static dyn AuthenticationProvider>>>,
+        pub providers: Arc<Mutex<Arc<Vec<Box<dyn AuthenticationProvider<AuthenticationType>>>>>>,
     }
 
     impl DelegatingAuthenticationManagerBuilder {
         pub(crate) fn build(&self) -> DelegatingAuthenticationManager {
             DelegatingAuthenticationManager{
-                providers: Arc::new(self.providers.lock().unwrap().clone()),
+                providers: self.providers.lock().unwrap().clone(),
             }
         }
     }
 
     #[derive(Clone, Default)]
     pub struct DelegatingAuthenticationManager {
-        pub(crate) providers: Arc<Vec<&'static dyn AuthenticationProvider>>,
+        pub(crate) providers: Arc<Vec<Box<dyn AuthenticationProvider<AuthenticationType>>>>,
     }
 
     impl DelegatingAuthenticationManager {
+
         pub(crate) fn new() -> Self {
             Self {
                 providers: Arc::new(vec![])
             }
         }
+
     }
 
     //TODO: replace filter with action
@@ -72,10 +74,6 @@ pub mod security {
         }
     }
 
-    pub trait DelegatingAuthenticationFilter {
-        fn do_authentication();
-    }
-
     impl <Request, Response> Action<Request, Response> for UsernamePasswordAuthenticationFilter
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -90,10 +88,28 @@ pub mod security {
                 context: &RequestContext<Request, Response>,
                 application_context: &ApplicationContext<Request, Response>
             ) -> Option<Response> {
-                                        todo!()
+
+            self.converter.convert(web_request)
+                .ok().map(|auth_type| {
+                    application_context
+                        .authentication_converters
+                        .converters
+                        .iter()
+                        .filter(|c| c.supports(&auth_type))
+                        .map(|c| c.convert(&auth_type))
+                        .for_each(|mut auth_token| {
+                            application_context
+                                .request_context
+                                .authentication_manager
+                                .authenticate(&mut auth_token)
+                        })
+                })
+                .map(|f| None)
+                .unwrap()
+
         }
 
-        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+        fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
             todo!()
         }
 
@@ -137,43 +153,36 @@ pub mod security {
         authority: String,
     }
 
-    pub trait AuthenticationProvider : Send + Sync {
+    pub trait AuthenticationProvider<A: AuthType> : Send + Sync {
         fn supports(&self, authentication_token: TypeId) -> bool;
-        fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool;
-        fn clone_auth_provider(&self) -> Box<dyn AuthenticationProvider>;
+        fn authenticate(&self, auth_token: &AuthenticationToken<A>);
     }
 
     #[derive(Clone)]
     pub struct UsernamePasswordAuthenticationProvider {}
 
-    impl AuthenticationProvider for UsernamePasswordAuthenticationProvider {
+    impl AuthenticationProvider<AuthenticationType> for UsernamePasswordAuthenticationProvider {
         fn supports(&self, authentication_token: TypeId) -> bool {
             // authentication_token == UsernamePasswordAuthenticationToken::get_type(String::from("UsernamePasswordAuthenticationToken"))
             todo!()
         }
 
-        fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool {
+        fn authenticate(&self, auth_token: &AuthenticationToken<AuthenticationType>){
             todo!()
         }
 
-        fn clone_auth_provider(&self) -> Box<dyn AuthenticationProvider> {
-            todo!()
-        }
     }
 
     impl DelegatingAuthenticationManager {
-        fn authenticate(&self, auth_token: Box<AuthenticationToken>) -> bool {
-            self.providers.iter().any(|provider| {
-                if provider.supports(auth_token.type_id()) {
-                    return provider.authenticate(auth_token.clone());
-                }
-                false
-            })
+        fn authenticate(&self, auth_token: &mut AuthenticationToken<AuthenticationType>) {
+            for provider in self.providers.iter() {
+                provider.authenticate(&auth_token);
+            }
         }
     }
 
-    impl AuthenticationToken {
-        fn auth(&self) -> Box<Authentication> {
+    impl <T: AuthType> AuthenticationToken<T> {
+        fn auth(&self) -> T {
             todo!()
         }
         fn name(&self) -> &'static str {
@@ -190,16 +199,16 @@ pub mod security {
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
-    pub struct AuthenticationToken {
+    pub struct AuthenticationToken<T: AuthType> {
         name: String,
-        auth: Authentication
+        auth: T
     }
 
-    impl Default for AuthenticationToken {
+    impl <T: AuthType> Default for AuthenticationToken<T> {
         fn default() -> Self {
             Self {
                 name: String::default(),
-                auth: Authentication::default()
+                auth: T::default()
             }
         }
     }
@@ -209,8 +218,8 @@ pub mod security {
         authentication_type: AuthenticationType
     }
 
-    pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken> + Send + Sync {
-        fn supports(&self, auth_type: AuthenticationType) -> bool;
+    pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken<AuthenticationType>> + Send + Sync {
+        fn supports(&self, auth_type: &AuthenticationType) -> bool;
     }
 
     pub trait JwtAuthenticationConverter: AuthenticationConverter {}
@@ -244,14 +253,13 @@ pub mod security {
         }
     }
 
-    impl Converter<WebRequest, Result<AuthenticationToken, AuthenticationConversionError>> for AuthenticationConverterRegistry{
-        fn convert(&self, from: &WebRequest) -> Result<AuthenticationToken, AuthenticationConversionError>{
+    impl Converter<WebRequest, Result<AuthenticationToken<AuthenticationType>, AuthenticationConversionError>> for AuthenticationConverterRegistry{
+        fn convert(&self, from: &WebRequest) -> Result<AuthenticationToken<AuthenticationType>, AuthenticationConversionError>{
             self.authentication_type_converter.convert(from)
                 .map(|auth| {
                     let name = auth.get_principal()
                         .or(Some(String::default()))
                         .unwrap();
-                    let auth = Authentication::new(auth);
                     AuthenticationToken {
                         name,
                         auth
@@ -406,13 +414,17 @@ pub mod security {
 
     }
 
-    pub trait AuthType: AuthenticationAware + Send + Sync {
+    pub trait AuthType: AuthenticationAware + Send + Sync + Default {
+
+        fn get_type() -> TypeId where Self: Sized {
+            Self::get_type()
+        }
 
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct JwtToken {
-        token: String,
+        pub(crate) token: String,
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]

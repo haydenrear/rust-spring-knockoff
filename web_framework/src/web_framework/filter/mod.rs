@@ -9,7 +9,7 @@ pub mod filter {
     use crate::web_framework::convert::Registration;
     use crate::web_framework::http::{Connection, HttpMethod};
     use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
-    use crate::web_framework::security::security::AuthenticationToken;
+    use crate::web_framework::security::security::{AuthenticationToken, AuthenticationType};
     use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
@@ -106,7 +106,7 @@ pub mod filter {
             application_context: &ApplicationContext<Request, Response>
         ) -> Option<Response>;
 
-        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool;
+        fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool;
 
         /**
         determines if it matches endpoint, http method, etc.

@@ -1,31 +1,25 @@
 use std::{env, fs};
 use std::ffi::{OsStr, OsString};
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::ops::Deref;
 use std::path::Path;
+use std::ptr::write;
+use syn::__private::{Span, ToTokens};
+use syn::{braced, Fields, Ident, Item, ItemMod, ItemStruct, Token, token, Visibility, VisPublic};
+use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
+use syn::token::Brace;
+use build_lib::replace_modules;
 
 fn main() {
-    // replace_modules();
-}
 
-//TODO: take all modules declared as not inline and move them in-line to allow for attribute macro to have full access to all
-// the types in the modules.
-fn replace_modules() {
-    // env::var_os("OUT_DIR")
-    let mut file = File::open(Path::new(env::current_dir().unwrap().to_str().unwrap()).join("test_library/test_library_two.rs"))
-        .unwrap();
-
-    let mut src = String::new();
-    file.read_to_string(&mut src);
-
-    let syn_file = syn::parse_file(&src).unwrap();
-
-
-    let out_path = Path::new(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff").deref()).join("another.rs");
-
-    fs::write(&out_path, env::current_dir().unwrap().to_str().unwrap()).unwrap() ;
-
-    println!("cargo:rerun-if-changed=build.rs");
+    let mut log_file = File::create(
+        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
+        .join("log.txt")
+    ).unwrap();
+    replace_modules(
+        Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
+        &mut log_file
+    );
 }

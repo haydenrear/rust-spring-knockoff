@@ -280,7 +280,7 @@ pub struct ConverterRegistry<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
     pub converters: Arc<Option<Box<dyn MessageConverter<Request, Response>>>>,
-    pub request_convert: Arc<Option<&'static dyn RequestExtractor<EndpointMetadata>>>
+    pub request_convert: Arc<Option<Box<dyn RequestExtractor<EndpointMetadata>>>>
 }
 
 
@@ -291,7 +291,7 @@ pub struct ConverterRegistryBuilder<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
     pub converters: Arc<Mutex<Option<Box<dyn MessageConverter<Request, Response>>>>>,
-    pub request_convert: Arc<Mutex<Option<&'static dyn RequestExtractor<EndpointMetadata>>>>
+    pub request_convert: Arc<Mutex<Option<Box<dyn RequestExtractor<EndpointMetadata>>>>>
 }
 
 impl <Request, Response> ConverterRegistryBuilder<Request, Response>
@@ -302,9 +302,11 @@ impl <Request, Response> ConverterRegistryBuilder<Request, Response>
     pub fn build(&mut self) -> ConverterRegistry<Request, Response> {
         let mut to_switch: Option<Box<dyn MessageConverter<Request, Response>>> = None;
         std::mem::swap(&mut to_switch, &mut self.converters.lock().unwrap().take());
+        let mut request_extractor_found: Option<Box<dyn RequestExtractor<EndpointMetadata>>> = None;
+        std::mem::swap(&mut request_extractor_found, &mut self.request_convert.lock().unwrap().take());
         ConverterRegistry {
             converters: Arc::new(to_switch),
-            request_convert: Arc::new(self.request_convert.lock().unwrap().clone())
+            request_convert: Arc::new(request_extractor_found)
         }
     }
 }
@@ -314,7 +316,7 @@ impl <Request, Response> ConverterRegistry<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub fn new(request_extractor: Option<&'static dyn RequestExtractor<EndpointMetadata>>) -> ConverterRegistry<Request, Response> {
+    pub fn new(request_extractor: Option<Box<dyn RequestExtractor<EndpointMetadata>>>) -> ConverterRegistry<Request, Response> {
         Self {
             converters: Arc::new(None),
             request_convert: Arc::new(request_extractor),
@@ -384,10 +386,16 @@ impl <Request, Response> RequestExtractor<EndpointMetadata> for RequestContext<R
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
     fn convert_extract(&self, request: &WebRequest) -> Option<EndpointMetadata> {
-        self.message_converters
+        match self.message_converters
             .request_convert
-            .map(|converter| converter.convert_extract(request).or(None))
-            .unwrap()
+            .as_ref() {
+            None => {
+                None
+            }
+            Some(converter) => {
+                converter.convert_extract(request)
+            }
+        }
     }
 }
 
