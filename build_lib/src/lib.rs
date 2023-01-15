@@ -5,24 +5,30 @@ use std::io::{Read, Write};
 use std::ops::Deref;
 use std::path::Path;
 use std::ptr::write;
-use quote::__private::ext::RepToTokensExt;
 use syn::__private::{Span, ToTokens};
 use syn::{braced, Fields, Ident, Item, ItemMod, ItemStruct, Token, token, Visibility, VisPublic};
 use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
+use syn::spanned::Spanned;
 use syn::token::Brace;
 
-pub fn replace_modules(base_env: Option<&str>) {
+pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File) {
 
-    let mut log_file = File::create(Path::new(base_env.unwrap())
-        .join("log.txt")
-    ).unwrap();
-
-    let mut file = File::open(
+    let mut file_result = File::open(
         Path::new(base_env.unwrap())
-            .join("lib.rs")
+                .join("lib.rs")
     )
-        .unwrap();
+        .or_else(|f| {
+            write_to_log(&mut log_file, "Failed to open lib.rs");
+            write_to_log(&mut log_file, f.to_string().as_str());
+            Err(())
+        });
+
+    if file_result.is_err() {
+        return;
+    }
+
+    let mut file = file_result.unwrap();
 
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
@@ -42,14 +48,12 @@ pub fn replace_modules(base_env: Option<&str>) {
             let mod_file_tup = created_mod.unwrap();
             let log_file = mod_file_tup.1;
             let mod_created = mod_file_tup.0;
-            let out_dir = env::var_os("OUT_DIR").unwrap();
-            let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
-            write_to_log(log_file, "here is the finished lib file");
+            write_to_log(log_file, "here is the finished lib file:");
             write_to_log(log_file, mod_created.to_token_stream().to_string().as_str());
             let mut existing = fs::read_to_string(dest_path.clone())
                 .unwrap();
             existing.push_str(mod_created.to_token_stream().to_string().as_str());
-            fs::write(dest_path, existing)
+            fs::write(dest_path.clone(), existing)
                 .unwrap();
         }
     }
@@ -113,6 +117,7 @@ fn make_change(
     let mut counter = 0;
     for item in &found_inner.1 {
         let option = inner_macro(&mut log_file, &item);
+        let module_span = module.span().clone();
         if option.is_some() {
             match &mut module.content {
                 None => {
@@ -123,7 +128,10 @@ fn make_change(
                     write_to_log(log_file, module.ident.to_string().as_str());
                     write_to_log(log_file, "the module module name is ");
                     write_to_log(log_file, outer_module_name);
-                    let mod_to_replace = get_module_to_replace(log_file, option.unwrap().as_str(), outer_module_name);
+                    let mod_to_replace = get_module_to_replace(
+                        log_file, option.unwrap().as_str(),
+                        outer_module_name, module_span
+                    );
                     match mod_to_replace {
                         None => {}
                         Some(mod_found) => {
@@ -136,7 +144,6 @@ fn make_change(
                             counter += 1;
                         }
                     }
-
                 }
             }
         } else {
@@ -144,7 +151,7 @@ fn make_change(
     }
 }
 
-fn get_module_to_replace(mut log_file: &mut File, module_name: &str, base: &str) -> Option<ItemMod> {
+fn get_module_to_replace(mut log_file: &mut File, module_name: &str, base: &str, span: Span) -> Option<ItemMod> {
     let mut module_rs_file = String::from(module_name);
     module_rs_file.push_str(".rs");
     let inner_module_path = Path::new(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src").deref())
@@ -155,11 +162,11 @@ fn get_module_to_replace(mut log_file: &mut File, module_name: &str, base: &str)
         attrs: vec![],
         vis: Visibility::Inherited,
         mod_token: Default::default(),
-        ident: Ident::new(module_name, Span::call_site()),
+        ident: Ident::new(module_name, span.clone()),
         content: None,
         semi: None,
     };
-    let brace = token::Brace { span: Span::call_site() };
+    let brace = token::Brace { span: span.clone() };
     let mut items = vec![];
     if inner_module_file.is_ok() {
         let syn_found = parse_syn_file(&mut inner_module_file.unwrap());
