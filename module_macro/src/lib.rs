@@ -142,14 +142,18 @@ impl Default for Trait {
     }
 }
 
+/**
+    Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
+ **/
 struct ModulesFunctions {
-    fn_found: ItemFn,
+    fn_found: ItemFn
 }
 
 struct ModuleContainer {
     types: HashMap<String, DepImpl>,
     traits: HashMap<String, Trait>,
     fns: HashMap<String, ModulesFunctions>,
+    profiles: Vec<Profile>
 }
 
 impl ModuleContainer {
@@ -383,7 +387,8 @@ impl Default for ModuleContainer {
         Self {
             traits: HashMap::new(),
             types: HashMap::new(),
-            fns: HashMap::new()
+            fns: HashMap::new(),
+            profiles: vec![]
         }
     }
 }
