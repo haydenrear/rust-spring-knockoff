@@ -72,11 +72,12 @@ fn parse_syn_file(file: &mut File) -> syn::File {
 fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a mut ItemMod, &'a mut File)> {
     match x {
         Item::Mod(ref mut module) => {
-
             let found_inner = module.content.clone().unwrap();
+
             let mut make_change_bool = false;
             let mut cfg_attr = 0;
             let mut counter = 0;
+
             for attr in module.attrs.clone().iter() {
                 if attr.to_token_stream().to_string().as_str().contains("module_attr") {
                     write_to_log(&mut log_file, "found attr on main module");
@@ -96,9 +97,7 @@ fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a m
                 }
                 return Some((module, log_file));
             }
-
             None
-
         }
         _ => {
             None

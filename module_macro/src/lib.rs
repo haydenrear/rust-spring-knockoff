@@ -20,7 +20,7 @@ use syn::{
     token::Paren,
 };
 
-use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token};
+use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 
@@ -77,7 +77,7 @@ fn parse_module(mut found: Item) -> TokenStream {
 fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ModuleContainer) {
     item_found.content.iter_mut()
         .flat_map(|mut c| c.1.iter_mut())
-        .for_each(|i: &mut Item|  parse_item(i, module_container));
+        .for_each(|i: &mut Item| parse_item(i, module_container));
 }
 
 /// 1. parse the module into struct impls that contain the struct, all impls
@@ -90,7 +90,7 @@ struct DepImpl {
     struct_type: Option<ItemImpl>,
     struct_found: Option<ItemStruct>,
     traits_impl: Vec<Path>,
-    attr:   Vec<Attribute>,
+    attr: Vec<Attribute>,
     // A reference to another DepImpl - the id is the Type.
     deps_map: Vec<DepType>,
     id: String,
@@ -98,14 +98,14 @@ struct DepImpl {
 }
 
 struct Profile {
-    profile: Vec<String>
+    profile: Vec<String>,
 }
 
 #[derive(Clone)]
 struct DepType {
     id: String,
     is_ref: bool,
-    type_found: Type
+    type_found: Type,
 }
 
 impl Default for DepImpl {
@@ -117,13 +117,13 @@ impl Default for DepImpl {
             attr: vec![],
             deps_map: vec![],
             id: String::default(),
-            profile: vec![]
+            profile: vec![],
         }
     }
 }
 
 struct Trait {
-    trait_type: Option<ItemTrait>
+    trait_type: Option<ItemTrait>,
 }
 
 impl Trait {
@@ -143,20 +143,41 @@ impl Default for Trait {
 }
 
 /**
-    Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
+Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
  **/
 struct ModulesFunctions {
-    fn_found: ItemFn
+    fn_found: ItemFn,
 }
 
 struct ModuleContainer {
     types: HashMap<String, DepImpl>,
     traits: HashMap<String, Trait>,
     fns: HashMap<String, ModulesFunctions>,
-    profiles: Vec<Profile>
+    profiles: Vec<Profile>,
 }
 
+
 impl ModuleContainer {
+
+    fn to_token_stream(&self) -> TokenStream {
+        let mut token = quote! {};
+        for token_type in &self.types {
+            let struct_type = token_type.1.struct_type.clone()
+                .unwrap().self_ty.deref().clone();
+            let this_struct_impl = quote! {
+                impl Container<#struct_type> for ModuleContainer {
+                    fn get_create(&self, type_id: String) -> Component<T> {
+                        self.get_create(for each...)
+                        Component::default()
+                    }
+                }
+            };
+
+            token.append_all(this_struct_impl);
+        }
+
+        token.into()
+    }
 
     fn create_update_impl(&mut self, item_impl: &mut ItemImpl) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
@@ -220,10 +241,8 @@ impl ModuleContainer {
                     self.match_ty_recursive_add_container(item_impl, field.ty.clone(), false);
                 });
             }
-            Fields::Unnamed(unnamed_field) => {
-            }
-            _ => {
-            }
+            Fields::Unnamed(unnamed_field) => {}
+            _ => {}
         };
     }
 
@@ -281,8 +300,7 @@ impl ModuleContainer {
             Type::Verbatim(_) => {
                 println!("found field hello");
             }
-            _ => {
-            }
+            _ => {}
         };
     }
 
@@ -341,14 +359,10 @@ impl ModuleContainer {
         DepImpl::default()
     }
 
-    fn add_type(
-        &mut self,
-        item_impl: &mut ItemStruct,
-        path: Path,
-        is_ref: bool,
-        type_found: Type,
-        new_item_ident: Ident,
-    ) {
+    fn add_type(&mut self, item_impl: &mut ItemStruct, path: Path, is_ref: bool,
+                type_found: Type, new_item_ident: Ident,
+    )
+    {
         let type_dep = &type_found.to_token_stream().to_string();
         let contains_key = self.types.contains_key(type_dep);
         let struct_exists = self.types.get_mut(&new_item_ident.to_string().clone()).is_some();
@@ -361,7 +375,7 @@ impl ModuleContainer {
             self.types.get_mut(&item_impl.ident.to_string().clone())
                 .unwrap()
                 .deps_map
-                .push(DepType{ id, is_ref: is_ref, type_found });
+                .push(DepType { id, is_ref: is_ref, type_found });
         } else {
             println!("Could not add dependency {} to struct_impl {}!", id.clone(), item_impl.ident.to_string().clone());
             if !struct_exists {
@@ -388,28 +402,26 @@ impl Default for ModuleContainer {
             traits: HashMap::new(),
             types: HashMap::new(),
             fns: HashMap::new(),
-            profiles: vec![]
+            profiles: vec![],
         }
     }
 }
 
 struct Component<T> {
-    inner: Option<T>
+    inner: Option<T>,
 }
 
-trait Container {
-    fn get_create<T>(&self, type_id: String) -> Component<T>
-    where Self: Sized;
+trait Container<T> {
+    fn get_create(&self, type_id: String) -> Component<T>;
 }
 
 struct ApplicationContainer {
-    modules: Vec<ModuleContainer>
+    modules: Vec<ModuleContainer>,
 }
 
 fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
     match i {
-        Item::Const(_) => {
-        }
+        Item::Const(_) => {}
         Item::Enum(_) => {}
         Item::ExternCrate(_) => {}
         Item::Fn(_) => {}
@@ -423,7 +435,8 @@ fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
             // has a vec of Fn, and in the impl Parse
             // the behavior as a function that is added to the struct
             // to be called, and that function is passed as a closure
-            // to the macro that creates the impl Parse
+            // to the macro that creates the impl Parse - this will have to be
+            // handled in the build.rs file - to relocate
             // macro_created.mac.parse_body()
         }
         Item::Macro2(_) => {}
@@ -451,19 +464,16 @@ fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
         Item::Verbatim(_) => {}
         _ => {}
     }
-
-
 }
 
 macro_rules! test_field_add {
     ($tt:tt) => {
 
     }
-
-
 }
 
 struct TestFieldAdding;
+
 // A way to edit fields of structs - probably only possible to do through attributes..
 impl TestFieldAdding {
     fn process(&self, struct_item: &mut ItemStruct) {
