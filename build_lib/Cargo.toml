@@ -1,5 +1,5 @@
 [package]
-name = "delegator_test"
+name = "build_lib"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,16 +9,6 @@ derive-syn-parse = "0.1.5"
 syn = {version = "1.0", features = ["full"]}
 quote = "1.0"
 dynpath = "0.1.4"
-
-[dependencies.module_macro]
-path = "../module_macro"
-[dependencies.delegator_macro_rules]
-path = "../delegator_macro_rules"
-[dependencies.rust_spring_macro]
-path = "../rust_spring_macro"
-
-[build-dependencies.build_lib]
-path = "../build_lib"
 
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}

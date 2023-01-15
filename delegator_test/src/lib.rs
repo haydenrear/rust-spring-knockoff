@@ -45,5 +45,5 @@ fn test() {
             println!()
         })],
     };
+    let container = AppContainer {};
 }
-
