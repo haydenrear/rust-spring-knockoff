@@ -73,6 +73,16 @@ where
     pub auth_type_convert: AuthenticationTypeConverterImpl
 }
 
+impl <Request, Response> ApplicationContextBuilder<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    // fn new() -> ApplicationContextBuilder<Request, Response>  {
+    //
+    // }
+}
+
 pub struct ApplicationContextBuilder<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -93,22 +103,17 @@ impl <Request, Response> FilterRegistrar<Request, Response>
     }
 }
 
-// impl <'a> Registration<'a, dyn Filter> for ApplicationContext
-// {
-//     fn register(&mut self, converter: &'a dyn Filter) {
-//         self.filter_registry.register(converter)
-//     }
-// }
-
 impl <Request, Response> ApplicationContextBuilder<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
     pub fn build(&self) -> ApplicationContext<Request, Response> {
-        let mut filter_registry_found = self.filter_registry.as_ref().unwrap().lock().unwrap().clone();
+        let mut filter_registry_found = self.filter_registry.as_ref()
+            .unwrap().lock().unwrap().clone();
         filter_registry_found.build();
-        let context = self.request_context_builder.as_ref().unwrap().lock().unwrap().build();
+        let context = self.request_context_builder.as_ref()
+            .unwrap().lock().unwrap().build();
         ApplicationContext {
             filter_registry: Arc::new(filter_registry_found),
             request_context: context,
@@ -124,19 +129,6 @@ impl <Request, Response> ApplicationContext<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
 
-    /**
-    New filter chain for each request - because it's mutable self reference. Because the filter chain
-    has lifetime of 'a and it's being added to that, even though filterRegistrar Filter have lifetime of 'static
-    it will go to lifetime of 'a, and therefore fix issue of unending static memory. coercion
-    */
-    // pub fn create_get_filter_chain(&self) -> FilterChain<Request, Response> {
-    //     if self.filter_chain.is_some() {
-    //         self.filter_chain
-    //     }
-    //     let vec = self.filter_registry.filters.lock().unwrap().clone();
-    //     FilterChain::new(vec)
-    // }
-
     pub fn new() -> Self {
         Self {
             filter_registry: Arc::new(FilterRegistrar::new()),
@@ -146,24 +138,11 @@ impl <Request, Response> ApplicationContext<Request, Response>
         }
     }
 
-    pub fn with_filter_registry(f: FilterRegistrar<Request, Response>) -> Self {
-        Self {
-            filter_registry: Arc::new(f),
-            request_context: RequestContext::new(),
-            authentication_converters: AuthenticationConverterRegistry::new(),
-            auth_type_convert: AuthenticationTypeConverterImpl {}
-        }
-    }
-
-    pub fn and_converter_registry(&mut self) {
-
-    }
-
     pub fn convert_authentication(&self, request: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
         self.auth_type_convert.convert(request)
     }
 
-    pub fn extract_authentication(&self, request: &WebRequest) -> Result<AuthenticationToken, AuthenticationConversionError> {
+    pub fn extract_authentication(&self, request: &WebRequest) -> Result<AuthenticationToken<AuthenticationType>, AuthenticationConversionError> {
         self.authentication_converters.convert(request)
     }
 
@@ -274,12 +253,12 @@ impl <Request, Response> Default for RequestContextBuilder<Request, Response>
     fn default() -> Self {
         let mut registry = ConverterRegistryBuilder {
             converters: Arc::new(Mutex::new(Some(Box::new(OtherMessageConverter{})))),
-            request_convert:  Arc::new(Mutex::new(Some(&EndpointRequestExtractor { })))
+            request_convert:  Arc::new(Mutex::new(Some(Box::new(EndpointRequestExtractor { }))))
         };
         Self {
             message_converter_builder: registry,
             authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
-                providers: Arc::new(Mutex::new(vec![]))
+                providers: Arc::new(Mutex::new(vec![].into()))
             },
         }
     }

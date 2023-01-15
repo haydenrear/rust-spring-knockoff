@@ -1,5 +1,3 @@
-#![feature(decl_macro)]
-
 use async_std::task as async_task;
 use bson::{doc, Bson, Document};
 use data_framework::{Entity, HDatabase, Repo, RepoDelegate};
@@ -38,14 +36,6 @@ lazy_static! {
         client_uri: "mongodb://admin:admin@localhost:27017/?authSource=admin"
     });
 }
-
-macro foo($i: item) {
-    $i
-}
-
-foo!(
-    pub struct A;
-);
 
 #[test]
 fn test() {

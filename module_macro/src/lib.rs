@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem};
+use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -20,7 +20,7 @@ use syn::{
     token::Paren,
 };
 
-use quote::{quote, format_ident, IdentFragment, ToTokens};
+use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 
@@ -86,30 +86,38 @@ fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ModuleC
 /// Then, you impl create<StructImpls> for the container for each StructItem add container as
 /// field for each struct, and then create a new_inject() for each item that calls the
 /// create_get<StructImpl> for each field that is injected.
-struct StructImpls {
+struct DepImpl {
     struct_type: Option<ItemImpl>,
     struct_found: Option<ItemStruct>,
-    traits: Vec<Path>,
+    traits_impl: Vec<Path>,
     attr:   Vec<Attribute>,
+    // A reference to another DepImpl - the id is the Type.
     deps_map: Vec<DepType>,
-    id: String
+    id: String,
+    profile: Vec<Profile>
+}
+
+struct Profile {
+    profile: Vec<String>
 }
 
 #[derive(Clone)]
 struct DepType {
     id: String,
-    is_ref: bool
+    is_ref: bool,
+    type_found: Type
 }
 
-impl Default for StructImpls {
+impl Default for DepImpl {
     fn default() -> Self {
         Self {
             struct_type: None,
             struct_found: None,
-            traits: vec![],
+            traits_impl: vec![],
             attr: vec![],
             deps_map: vec![],
-            id: String::default()
+            id: String::default(),
+            profile: vec![]
         }
     }
 }
@@ -135,11 +143,11 @@ impl Default for Trait {
 }
 
 struct ModulesFunctions {
-    fn_found: ItemFn
+    fn_found: ItemFn,
 }
 
 struct ModuleContainer {
-    types: HashMap<String, StructImpls>,
+    types: HashMap<String, DepImpl>,
     traits: HashMap<String, Trait>,
     fns: HashMap<String, ModulesFunctions>,
 }
@@ -147,23 +155,20 @@ struct ModuleContainer {
 impl ModuleContainer {
 
     fn create_update_impl(&mut self, item_impl: &mut ItemImpl) {
-        println!("adding type with name {}", item_impl.self_ty.clone().to_token_stream().to_string());
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
         &mut self.types.get_mut(&id)
-            .map(|struct_impl: &mut StructImpls| {
-                get_traits(item_impl)
-                    .map(|path| {
-                        struct_impl.traits.push(path);
-                    });
+            .map(|struct_impl: &mut DepImpl| {
+                get_trait(item_impl).map(|path| struct_impl.traits_impl.push(path));
             })
             .or_else(|| {
-                let impl_found = StructImpls {
+                let impl_found = DepImpl {
                     struct_type: Some(item_impl.clone()),
                     struct_found: None,
-                    traits: get_traits(item_impl).map(|path| vec![path]).unwrap_or(vec![]),
+                    traits_impl: get_trait(item_impl).map(|path| vec![path]).unwrap_or(vec![]),
                     attr: vec![],
                     deps_map: vec![],
-                    id: id.clone()
+                    id: id.clone(),
+                    profile: vec![],
                 };
                 self.types.insert(id, impl_found);
                 None
@@ -173,22 +178,23 @@ impl ModuleContainer {
     fn add_item_struct(&mut self, item_impl: &mut ItemStruct) {
         println!("adding type with name {}", item_impl.ident.clone().to_token_stream().to_string());
         &mut self.types.get_mut(&item_impl.ident.to_string().clone())
-            .map(|struct_impl: &mut StructImpls| {
+            .map(|struct_impl: &mut DepImpl| {
                 struct_impl.struct_found = Some(item_impl.clone());
             })
             .or_else(|| {
-                let impl_found = StructImpls {
+                let mut impl_found = DepImpl {
                     struct_type: None,
                     struct_found: Some(item_impl.clone()),
-                    traits: vec![],
+                    traits_impl: vec![],
                     attr: vec![],
                     deps_map: vec![],
                     id: item_impl.ident.to_string(),
+                    profile: vec![],
                 };
                 self.types.insert(item_impl.ident.to_string().clone(), impl_found);
                 None
             });
-        self.get_deps(item_impl);
+        self.set_deps(item_impl);
     }
 
     fn create_update_trait(&mut self, trait_found: &mut ItemTrait) {
@@ -199,9 +205,7 @@ impl ModuleContainer {
         }
     }
 
-    // Called after this ItemStruct has been added.
-    fn get_deps(&mut self, item_impl: &mut ItemStruct) {
-        println!("hello");
+    fn set_deps(&mut self, item_impl: &mut ItemStruct) {
         match item_impl.fields.clone() {
             Fields::Named(fields_named) => {
                 fields_named.named.iter().for_each(|field: &Field| {
@@ -209,15 +213,21 @@ impl ModuleContainer {
                         println!("found field {}.", ident.to_string().clone());
                     });
                     println!("{} is the field type!", field.ty.to_token_stream().clone());
-                    self.match_ty_recursive(item_impl, field.ty.clone());
+                    self.match_ty_recursive_add_container(item_impl, field.ty.clone(), false);
                 });
+            }
+            Fields::Unnamed(unnamed_field) => {
             }
             _ => {
             }
         };
     }
 
-    fn match_ty_recursive(&mut self, item_impl: &mut ItemStruct, field: Type) {
+    /**
+    Adds the field to the to the tree as a dependency.
+    //TODO: need to recursively update tree for references, arrays, etc arbitrarily deep.
+    **/
+    fn match_ty_recursive_add_container(&mut self, item_impl: &mut ItemStruct, field: Type, is_ref: bool) {
         match field.clone() {
             Type::Array(arr) => {
                 println!("found field hello");
@@ -253,7 +263,62 @@ impl ModuleContainer {
             Type::Reference(reference_found) => {
                 let ref_type = reference_found.elem.clone();
                 println!("{} is the ref type", ref_type.to_token_stream());
-                self.match_ty_recursive(item_impl, ref_type.clone().deref().clone())
+                self.match_ty_recursive_add_container(item_impl, ref_type.clone().deref().clone(), true)
+            }
+            Type::Slice(_) => {
+                println!("found field hello");
+            }
+            Type::TraitObject(_) => {
+                println!("found field hello");
+            }
+            Type::Tuple(_) => {
+                println!("found field hello");
+            }
+            Type::Verbatim(_) => {
+                println!("found field hello");
+            }
+            _ => {
+            }
+        };
+    }
+
+    fn match_ty_recursive_get_dependency(
+        &mut self,
+        type_to_resolve: &Type,
+    ) -> DepImpl {
+        match type_to_resolve {
+            Type::Array(arr) => {
+                println!("found field hello");
+            }
+            Type::BareFn(_) => {
+                println!("found field hello");
+            }
+            Type::Group(_) => {
+                println!("found field hello");
+            }
+            Type::ImplTrait(_) => {
+                println!("found field hello");
+            }
+            Type::Infer(_) => {
+                println!("found field hello");
+            }
+            Type::Macro(_) => {
+                println!("found field hello");
+            }
+            Type::Never(_) => {
+                println!("found field hello");
+            }
+            Type::Paren(_) => {
+                println!("HELLO")
+            }
+            Type::Path(path) => {
+                println!("Adding path: {}.", path.path.to_token_stream().to_string().clone());
+            }
+            Type::Ptr(_) => {
+                println!("found ptr");
+            }
+            Type::Reference(reference_found) => {
+                println!("is the ref type");
             }
             Type::Slice(_) => {
                 println!("found field hello");
@@ -269,6 +334,7 @@ impl ModuleContainer {
             }
             _ => {}
         };
+        DepImpl::default()
     }
 
     fn add_type(
@@ -279,28 +345,21 @@ impl ModuleContainer {
         type_found: Type,
         new_item_ident: Ident,
     ) {
-        println!("{} IS THE PATH!", path.to_token_stream().to_string().clone());
         let type_dep = &type_found.to_token_stream().to_string();
         let contains_key = self.types.contains_key(type_dep);
         let struct_exists = self.types.get_mut(&new_item_ident.to_string().clone()).is_some();
         let id = self.types.get(type_dep)
-            .and_then(|struct_found: &StructImpls| Some(struct_found.id.clone()))
+            .and_then(|struct_found: &DepImpl| Some(struct_found.id.clone()))
             .or(Some(path.to_token_stream().to_string().clone()))
             .unwrap();
         if contains_key && struct_exists && id != String::default() {
             println!("Adding dependency with id {} to struct_impl of name {}", id, &item_impl.ident.to_string().clone());
-            self.types.get_mut(
-                &item_impl.ident.to_string().clone()
-            )
+            self.types.get_mut(&item_impl.ident.to_string().clone())
                 .unwrap()
                 .deps_map
-                .push(
-                    DepType{
-                        id, is_ref: is_ref
-                    }
-                );
+                .push(DepType{ id, is_ref: is_ref, type_found });
         } else {
-            println!("Could not add dependency to struct_impl!");
+            println!("Could not add dependency {} to struct_impl {}!", id.clone(), item_impl.ident.to_string().clone());
             if !struct_exists {
                 println!("Struct impl did not exist in module container.")
             }
@@ -309,18 +368,15 @@ impl ModuleContainer {
             }
         }
     }
-
 }
 
-
-fn get_traits(item_impl: &mut ItemImpl) -> Option<Path> {
+fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
     item_impl.trait_.clone()
         .and_then(|item_impl_found| {
             Some(item_impl_found.1)
         })
         .or_else(|| None)
 }
-
 
 impl Default for ModuleContainer {
     fn default() -> Self {
@@ -356,7 +412,15 @@ fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
         Item::Impl(impl_found) => {
             module_container.create_update_impl(impl_found);
         }
-        Item::Macro(_) => {}
+        Item::Macro(macro_created) => {
+            // to add behavior to module macro,
+            // have another macro impl Parse for a struct that
+            // has a vec of Fn, and in the impl Parse
+            // the behavior as a function that is added to the struct
+            // to be called, and that function is passed as a closure
+            // to the macro that creates the impl Parse
+            // macro_created.mac.parse_body()
+        }
         Item::Macro2(_) => {}
         Item::Mod(ref mut module) => {
             println!("Found module with name {} !!!", module.ident.to_string().clone());
@@ -364,7 +428,7 @@ fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
         }
         Item::Static(_) => {}
         Item::Struct(ref mut item_struct) => {
-            let f = ImplRunningPostProcessor{};
+            let f = TestFieldAdding {};
             f.process(item_struct);
             module_container.add_item_struct(item_struct);
             println!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
@@ -384,24 +448,30 @@ fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
     }
 
 
+}
 
+macro_rules! test_field_add {
+    ($tt:tt) => {
 
-    struct ImplRunningPostProcessor;
-    // A way to edit fields of structs - probably only possible to do through attributes..
-    impl ImplRunningPostProcessor {
-        fn process(&self, struct_item: &mut ItemStruct) {
-            match &mut struct_item.fields {
-                Fields::Named(ref mut fields_named) => {
-                    fields_named.named.push(
-                        Field::parse_named.parse2(quote!(
-                        pub a: String
-                    ).into()).unwrap()
-                    )
-                }
-                Fields::Unnamed(ref mut fields_unnamed) => {}
-                _ => {}
-            }
-        }
     }
 
+
+}
+
+struct TestFieldAdding;
+// A way to edit fields of structs - probably only possible to do through attributes..
+impl TestFieldAdding {
+    fn process(&self, struct_item: &mut ItemStruct) {
+        match &mut struct_item.fields {
+            Fields::Named(ref mut fields_named) => {
+                fields_named.named.push(
+                    Field::parse_named.parse2(quote!(
+                        pub a: String
+                    ).into()).unwrap()
+                )
+            }
+            Fields::Unnamed(ref mut fields_unnamed) => {}
+            _ => {}
+        }
+    }
 }

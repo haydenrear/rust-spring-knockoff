@@ -1,7 +1,3 @@
-#![feature(unboxed_closures)]
-#![feature(slice_as_chunks)]
-#![feature(iter_next_chunk)]
-#![feature(async_iterator)]
 #[macro_use]
 extern crate alloc;
 

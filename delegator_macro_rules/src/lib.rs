@@ -24,6 +24,7 @@ macro_rules! last_thing {
     };
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;

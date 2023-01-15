@@ -8,11 +8,92 @@ use web_framework::web_framework::convert::{ConverterRegistryBuilder, EndpointRe
 use web_framework::web_framework::dispatch::Dispatcher;
 use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-use web_framework::web_framework::security::security::{AuthenticationConverterRegistryBuilder, AuthenticationToken, AuthenticationTypeConverterImpl, DelegatingAuthenticationManagerBuilder};
+use web_framework::web_framework::security::security::{AuthenticationConverterRegistryBuilder, AuthenticationProvider, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, DelegatingAuthenticationManagerBuilder, UsernamePasswordAuthenticationProvider};
 use web_framework::web_framework::http::{RequestExecutorImpl};
 use web_framework::web_framework::context::{ApplicationContext, ApplicationContextBuilder, FilterRegistrar, RequestContext, RequestContextBuilder};
 use web_framework::web_framework::message::MessageType;
 
+#[tokio::main]
+async fn main() {
+    let filter: RequestResponseActionFilter<Example, Example> = RequestResponseActionFilter::new(
+        Box::new(TestAction::default()), None
+    );
+    let mut filter_registrar = FilterRegistrar {
+        filters: Arc::new(Mutex::new(vec![])),
+        build: false,
+        fiter_chain: Arc::new(FilterChain::default())
+    };
+
+    default_message_converters!();
+    create_message_converter!(
+        (crate::NewConverter1 => NewConverter1{} =>> "custom/convert1" => NewConverter1 => new_converter_1)
+        ===> Example => DelegatingMessageConverter
+    );
+
+    create_message_converter!(
+        (crate::NewConverter3 => NewConverter3{} =>> "custom/convert1" => NewConverter3 => new_converter)
+        ===> Example1 => ExampleDelegatingMessageConverter
+    );
+
+    filter_registrar.register(filter);
+    let ctx_builder = ApplicationContextBuilder::<Example, Example> {
+        filter_registry: Some(Arc::new(Mutex::new(filter_registrar))),
+        request_context_builder: Some(Arc::new(Mutex::new(RequestContextBuilder {
+            message_converter_builder: ConverterRegistryBuilder {
+                converters: Arc::new(Mutex::new(Some(Box::new(DelegatingMessageConverter::new())))),
+                request_convert: Arc::new(Mutex::new(Some(Box::new(EndpointRequestExtractor{}))))
+            },
+            authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
+                providers: Arc::new(Mutex::new(vec![].into())),
+            },
+        }))),
+        authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
+            converters: Arc::new(Mutex::new(vec![])),
+            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
+        })),
+    };
+    let mut r: HyperRequestStream<Example, Example> = HyperRequestStream::new(
+        RequestExecutorImpl {
+            ctx: ctx_builder.build()
+        }
+    );
+
+    r.do_run();
+
+    let filter1: RequestResponseActionFilter<Example1, Example1> = RequestResponseActionFilter::new(
+        Box::new(TestAction::default()), None
+    );
+    let mut filter_registrar1 = FilterRegistrar {
+        filters: Arc::new(Mutex::new(vec![])),
+        build: false,
+        fiter_chain: Arc::new(FilterChain::default())
+    };
+    filter_registrar1.register(filter1);
+    let ctx_builder1 = ApplicationContextBuilder::<Example1, Example1> {
+        filter_registry: Some(Arc::new(Mutex::new(filter_registrar1))),
+        request_context_builder: Some(Arc::new(Mutex::new(RequestContextBuilder {
+            message_converter_builder: ConverterRegistryBuilder {
+                converters: Arc::new(Mutex::new(Some(Box::new(ExampleDelegatingMessageConverter::new())))),
+                request_convert: Arc::new(Mutex::new(Some(Box::new(EndpointRequestExtractor{}))))
+            },
+            authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
+                providers: Arc::new(Mutex::new(Arc::new(vec![Box::new(UsernamePasswordAuthenticationProvider{})]))),
+            },
+        }))),
+        authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
+            converters: Arc::new(Mutex::new(vec![])),
+            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
+        })),
+    };
+    let mut r: HyperRequestStream<Example1, Example1> = HyperRequestStream::new(
+        RequestExecutorImpl {
+            ctx: ctx_builder1.build()
+        }
+    );
+
+    r.do_run().await;
+
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Example {
@@ -53,7 +134,7 @@ impl Action<Example1, Example1> for TestAction {
         Some(Example1::default())
     }
 
-    fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+    fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
         true
     }
 
@@ -81,7 +162,7 @@ impl Action<Example, Example> for TestAction {
         Some(Example::default())
     }
 
-    fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+    fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
         true
     }
 
@@ -168,7 +249,7 @@ impl MessageConverter<Example, Example> for NewConverter1
 pub struct NewConverter3;
 impl MessageConverter<Example1, Example1> for NewConverter3 {
     fn new() -> Self where Self: Sized {
-        todo!()
+        Self {}
     }
 
     fn convert_to(&self, request: &WebRequest) -> Option<MessageType<Example1>> {
@@ -186,83 +267,4 @@ impl MessageConverter<Example1, Example1> for NewConverter3 {
     fn message_type(&self) -> Vec<String> {
         todo!()
     }
-}
-
-#[tokio::main]
-async fn main() {
-    let filter: RequestResponseActionFilter<Example, Example> = RequestResponseActionFilter::new(
-        Box::new(TestAction::default()), None
-    );
-    let mut filter_registrar = FilterRegistrar {
-        filters: Arc::new(Mutex::new(vec![])),
-        build: false,
-        fiter_chain: Arc::new(FilterChain::default())
-    };
-    default_message_converters!();
-    create_message_converter!(
-        (crate::NewConverter1 => NewConverter1{} =>> "custom/convert1" => NewConverter1 => new_converter_1)
-        ===> Example => DelegatingMessageConverter
-    );
-    create_message_converter!(
-        (crate::NewConverter3 => NewConverter3{} =>> "custom/convert1" => NewConverter3 => new_converter)
-        ===> Example1 => ExampleDelegatingMessageConverter
-    );
-    filter_registrar.register(filter);
-    let ctx_builder = ApplicationContextBuilder::<Example, Example> {
-        filter_registry: Some(Arc::new(Mutex::new(filter_registrar))),
-        request_context_builder: Some(Arc::new(Mutex::new(RequestContextBuilder {
-            message_converter_builder: ConverterRegistryBuilder {
-                converters: Arc::new(Mutex::new(Some(Box::new(DelegatingMessageConverter::new())))),
-                request_convert: Arc::new(Mutex::new(Some(&EndpointRequestExtractor{})))
-            },
-            authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
-                providers: Arc::new(Mutex::new(vec![])),
-            },
-        }))),
-        authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
-            converters: Arc::new(Mutex::new(vec![])),
-            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
-        })),
-    };
-    let mut r: HyperRequestStream<Example, Example> = HyperRequestStream::new(
-        RequestExecutorImpl {
-            ctx: ctx_builder.build()
-        }
-    );
-
-    r.do_run();
-
-    let filter1: RequestResponseActionFilter<Example1, Example1> = RequestResponseActionFilter::new(
-        Box::new(TestAction::default()), None
-    );
-    let mut filter_registrar1 = FilterRegistrar {
-        filters: Arc::new(Mutex::new(vec![])),
-        build: false,
-        fiter_chain: Arc::new(FilterChain::default())
-    };
-    filter_registrar1.register(filter1);
-    let ctx_builder1 = ApplicationContextBuilder::<Example1, Example1> {
-        filter_registry: Some(Arc::new(Mutex::new(filter_registrar1))),
-        request_context_builder: Some(Arc::new(Mutex::new(RequestContextBuilder {
-            message_converter_builder: ConverterRegistryBuilder {
-                converters: Arc::new(Mutex::new(Some(Box::new(ExampleDelegatingMessageConverter::new())))),
-                request_convert: Arc::new(Mutex::new(Some(&EndpointRequestExtractor{})))
-            },
-            authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
-                providers: Arc::new(Mutex::new(vec![])),
-            },
-        }))),
-        authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
-            converters: Arc::new(Mutex::new(vec![])),
-            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
-        })),
-    };
-    let mut r: HyperRequestStream<Example1, Example1> = HyperRequestStream::new(
-        RequestExecutorImpl {
-            ctx: ctx_builder1.build()
-        }
-    );
-
-    r.do_run().await;
-
 }
