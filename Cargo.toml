@@ -4,6 +4,7 @@ members = [
     "build_lib",
     "http_macro",
     "mongo_repo",
+    "module_macro_lib",
     "security_model",
     "data_framework",
     "module_macro",

@@ -1030,9 +1030,23 @@ dependencies = [
  "delegator_macro_rules",
  "derive-syn-parse",
  "lazy_static",
+ "module_macro_lib",
  "proc-macro2",
  "quote",
  "rust_spring_macro",
+ "serde",
+ "syn",
+]
+
+[[package]]
+name = "module_macro_lib"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "derive-syn-parse",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
  "serde",
  "syn",
 ]
