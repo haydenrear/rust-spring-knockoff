@@ -12,7 +12,7 @@ use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
 
-pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File) {
+pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File, rerun_files: Vec<&str>) {
 
     let mut file_result = File::open(
         Path::new(base_env.unwrap())
@@ -59,6 +59,10 @@ pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File) {
     }
 
     println!("cargo:rerun-if-changed=build.rs");
+    rerun_files.iter().for_each(|rerun_file| {
+        print!("cargo:rerun-if-changed=");
+        print!("{}", rerun_file);
+    })
 
 }
 
@@ -86,7 +90,8 @@ fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a m
                     write_to_log(&mut log_file, attr.tokens.to_string().as_str());
                     write_to_log(&mut log_file, "Found with module_attr");
                     make_change_bool = true;
-                } else if attr.to_token_stream().to_string().as_str().contains("cfg"){
+                } else if attr.to_token_stream().to_string().as_str().contains("cfg")
+                    && attr.to_token_stream().to_string().as_str().contains("springknockoff") {
                     cfg_attr = counter;
                 }
                 counter += 1;
@@ -209,4 +214,9 @@ fn write_to_log_ref(log_file: &mut &File, to_write: &str) {
         .unwrap();
     log_file.write("\n\n".as_bytes())
         .unwrap();
+}
+
+
+pub trait NewComponent<T> {
+    fn new() -> T;
 }

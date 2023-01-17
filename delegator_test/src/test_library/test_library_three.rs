@@ -1,26 +1,36 @@
+use module_macro::{bean, singleton, Component};
+
 pub trait Found {
+}
+
+#[singleton("hello_string")]
+fn this_one() -> Option<&'static str> {
+    Some("hello")
 }
 
 impl Found for One {
 }
 
+impl Found for Four {
+}
+
+
 impl One {
-    // fn new() -> Self {
-    //     Self {
-    //         a: String::from(""),
-    //         two: String::default()
-    //     }
-    // }
 }
 
-pub struct Four<'a> {
-    one: &'a [String]
+#[derive(Default, Debug)]
+#[Component]
+pub struct Four {
+    two: String
 }
 
+#[derive(Default, Debug)]
 pub struct One {
-    pub(crate) two: String
+    pub two: String
 }
 
+#[derive(Default, Debug)]
 pub struct Once {
-    pub(crate) fns: Vec<Box<dyn FnOnce(())>>
+    // pub(crate) fns: Vec<Box<dyn FnOnce(())>>
 }
+

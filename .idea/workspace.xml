@@ -8,10 +8,15 @@
     <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Build script prototype created">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="knockoff context">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,6 +81,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs&quot;: &quot;true&quot;,
     &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
@@ -95,24 +101,7 @@
       <recent name="$PROJECT_DIR$/delegator_macro" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test">
-    <configuration name="Run test_app" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="run --package test_app --bin test_app" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="Cargo.Test test_module_macro">
     <configuration name="Test test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package delegator_test --lib test -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -130,8 +119,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_security" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security" />
+    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -200,19 +206,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test test_module_macro" />
+      <item itemvalue="Cargo.Test test_downcast" />
       <item itemvalue="Cargo.Test tests::it_works" />
       <item itemvalue="Cargo.Test test" />
       <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_auth_type" />
-      <item itemvalue="Cargo.Test test_security" />
-      <item itemvalue="Cargo.Run test_app" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test test_downcast" />
         <item itemvalue="Cargo.Test test" />
         <item itemvalue="Cargo.Test tests::it_works" />
         <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_auth_type" />
-        <item itemvalue="Cargo.Run test_app" />
-        <item itemvalue="Cargo.Test test_security" />
       </list>
     </recent_temporary>
   </component>
@@ -266,6 +272,8 @@
       <workItem from="1673571478843" duration="8251000" />
       <workItem from="1673714151323" duration="35617000" />
       <workItem from="1673822902731" duration="811000" />
+      <workItem from="1673959355319" duration="1727000" />
+      <workItem from="1674439958777" duration="24329000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <created>1668363611774</created>
@@ -491,7 +499,42 @@
       <option name="project" value="LOCAL" />
       <updated>1673822976661</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="di">
+      <created>1673923050667</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1673923050667</updated>
+    </task>
+    <task id="LOCAL-00034" summary="di">
+      <created>1674169955600</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1674169955600</updated>
+    </task>
+    <task id="LOCAL-00035" summary="di">
+      <created>1674337934212</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1674337934212</updated>
+    </task>
+    <task id="LOCAL-00036" summary="di">
+      <created>1674405812960</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1674405812960</updated>
+    </task>
+    <task id="LOCAL-00037" summary="knockoff context">
+      <created>1674563448094</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1674563448094</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -527,7 +570,9 @@
     <MESSAGE value="message converter 2" />
     <MESSAGE value="many message converter" />
     <MESSAGE value="Build script prototype created" />
-    <option name="LAST_COMMIT_MESSAGE" value="Build script prototype created" />
+    <MESSAGE value="di" />
+    <MESSAGE value="knockoff context" />
+    <option name="LAST_COMMIT_MESSAGE" value="knockoff context" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

@@ -1,5 +1,5 @@
 [package]
-name = "module_macro"
+name = "module_macro_lib"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,15 +13,3 @@ derive-syn-parse = "0.1.5"
 lazy_static = "1.4.0"
 serde = "1.0.137"
 base64 = "0.13.0"
-
-[dependencies.module_macro_lib]
-path = "../module_macro_lib"
-[dependencies.delegator_macro_rules]
-path = "../delegator_macro_rules"
-[dependencies.rust_spring_macro]
-path = "../rust_spring_macro"
-[dependencies.build_lib]
-path = "../build_lib"
-
-[lib]
-proc-macro = true

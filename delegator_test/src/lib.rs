@@ -1,4 +1,6 @@
 #![feature(proc_macro_hygiene)]
+
+use std::any::TypeId;
 use std::fmt::Display;
 
 use quote::{format_ident, IdentFragment, quote, ToTokens};
@@ -10,13 +12,20 @@ use syn::{
     Token,
     token::Paren
 };
+use syn::token::Type;
 
 use delegator_macro_rules::{last_thing, types};
-use module_macro::module_attr;
+use module_macro::{module_attr};
 
 use crate::test_library::*;
-use crate::test_library::test_library_three::{One, Once};
+use crate::test_library::test_library_three::{One, Once, Four};
 use crate::test_library::test_library_two::Ten;
+
+use build_lib::NewComponent;
+use std::any::Any;
+use std::sync::Arc;
+use std::collections::HashMap;
+use std::ops::Deref;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
@@ -30,20 +39,31 @@ pub mod test_library {
 
 }
 
+
+
 #[test]
-fn test() {
+fn test_module_macro() {
     let ten = Ten {
         a: String::from("hell")
     };
+
     let one: One = One{
-        a: String::from("hello"),
+        a: String::default(),
         two: String::default()
     };
+
     let mut once = Once {
         a: String::from("hello"),
-        fns: vec![Box::new(|()| {
-            println!()
-        })],
+        // fns: vec![Box::new(|()| {
+        //     println!()
+        // })],
     };
-    let container = AppContainer {};
+
+
+    let listable = ListableBeanFactory::new();
+    assert_ne!(listable.singleton_bean_definitions.len(), 0);
+    let one_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
+    let two_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
+    assert!(one_found.is_some());
+
 }
