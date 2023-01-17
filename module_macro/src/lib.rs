@@ -7,8 +7,9 @@ use std::any::{Any, TypeId};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::ops::Deref;
+use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime};
+use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -69,15 +70,8 @@ fn write_starting_types() -> TokenStream {
         pub struct Component<T> {
             inner: Option<T>,
         }
-        pub trait Container<T: Default> {
+        pub trait Container<T> {
             fn get_create(&self) -> Component<T>;
-        }
-        impl <T> Component<T> {
-            fn new(value: T) -> Self {
-                Self {
-                    inner: Some(value)
-                }
-            }
         }
     };
     tokens.into()
@@ -178,6 +172,8 @@ struct ModulesFunctions {
     fn_found: ItemFn,
 }
 
+
+
 struct ModuleContainer {
     types: HashMap<String, DepImpl>,
     traits: HashMap<String, Trait>,
@@ -185,16 +181,20 @@ struct ModuleContainer {
     profiles: Vec<Profile>,
 }
 
-impl ModuleContainer {
 
+
+impl ModuleContainer {
+    /**
+    Generate the token stream from the created ModuleContainer tree.
+     **/
     fn to_token_stream(&self) -> proc_macro2::TokenStream {
         let mut token = quote! {};
         for token_type in &self.types {
-            println!("Implementing container for {} if is not none.", token_type.1.id.clone());
-            if token_type.1.struct_type.is_some() && token_type.1.traits_impl.iter().any(|p| p.to_token_stream().to_string().contains("Default")) {
+            println!("Implementing container for {} if is not none and implements Default.", token_type.1.id.clone());
+            if token_type.1.struct_type.is_some() {
 
                 let struct_type =  token_type.1.struct_type.clone()
-                    .unwrap().self_ty.deref().clone();
+                    .unwrap();
 
                 println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
@@ -218,9 +218,10 @@ impl ModuleContainer {
                     .collect::<Vec<Ident>>();
 
                 let this_struct_impl = quote! {
+
                     impl Container<#struct_type> for AppContainer {
                         fn get_create(&self) -> Component<#struct_type> {
-                            let this_component = Component::new::<#struct_type>();
+                            let this_component = <Component<#struct_type>>::new();
                             this_component
                         }
                     }
@@ -231,7 +232,9 @@ impl ModuleContainer {
                             #(
                                 inner.#identifiers = AppContainer::get_create::<#field_types>();
                             )*
-                            Component::new(Some(inner))
+                            Self {
+                                inner: Some(inner)
+                            }
                         }
                     }
                 };
@@ -244,17 +247,20 @@ impl ModuleContainer {
         token
     }
 
+    /**
+    Add the struct and the impl from the ItemImpl
+     **/
     fn create_update_impl(&mut self, item_impl: &mut ItemImpl) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
         &mut self.types.get_mut(&id)
             .map(|struct_impl: &mut DepImpl| {
-                get_trait(item_impl).map(|path| struct_impl.traits_impl.push(path));
+                struct_impl.traits_impl.push(item_impl.clone());
             })
             .or_else(|| {
                 let impl_found = DepImpl {
-                    struct_type: Some(item_impl.clone()),
+                    struct_type: Some(item_impl.self_ty.deref().clone()),
                     struct_found: None,
-                    traits_impl: get_trait(item_impl).map(|path| vec![path]).unwrap_or(vec![]),
+                    traits_impl: vec![item_impl.clone()],
                     attr: vec![],
                     deps_map: vec![],
                     id: id.clone(),
@@ -305,7 +311,7 @@ impl ModuleContainer {
                         println!("found field {}.", ident.to_string().clone());
                     });
                     println!("{} is the field type!", field.ty.to_token_stream().clone());
-                    self.match_ty_recursive_add_container(item_impl, field.ty.clone(), false);
+                    self.match_ty_add_dep_recursive(item_impl, field.ty.clone(), false);
                 });
             }
             Fields::Unnamed(unnamed_field) => {}
@@ -317,55 +323,58 @@ impl ModuleContainer {
     Adds the field to the to the tree as a dependency.
     //TODO: need to recursively update tree for references, arrays, etc arbitrarily deep.
     **/
-    fn match_ty_recursive_add_container(&mut self, item_impl: &mut ItemStruct, field: Type, is_ref: bool) {
+    fn match_ty_add_dep_recursive(&mut self, item_impl: &mut ItemStruct, field: Type, is_ref: bool) {
         match field.clone() {
             Type::Array(arr) => {
-                println!("found field hello");
+                println!("found array type {}.", arr.to_token_stream().to_string().clone());
             }
-            Type::BareFn(_) => {
-                println!("found field hello");
+            Type::BareFn(bare_fn) => {
+                println!("found bare fn type {}.", bare_fn.to_token_stream().to_string().clone());
             }
-            Type::Group(_) => {
-                println!("found field hello");
+            Type::Group(grp) => {
+                println!("found group type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::ImplTrait(_) => {
-                println!("found field hello");
+            Type::ImplTrait(grp) => {
+                println!("found impl trait type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::Infer(_) => {
-                println!("found field hello");
+            Type::Infer(grp) => {
+                println!("found infer type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::Macro(_) => {
-                println!("found field hello");
+            Type::Macro(grp) => {
+                println!("found macro type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::Never(_) => {
-                println!("found field hello");
+            Type::Never(grp) => {
+                println!("found never type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::Paren(_) => {
-                println!("HELLO")
+            Type::Paren(grp) => {
+                println!("found paren type {}.", grp.to_token_stream().to_string().clone());
             }
             Type::Path(path) => {
                 println!("Adding path: {}.", path.path.to_token_stream().to_string().clone());
-                self.add_type(item_impl, path.path.clone(), false, field.clone(), item_impl.ident.clone());
+                path.qself.map(|q_self| {
+                    println!("Asserting that {} and {} are the same.", q_self.ty.clone().to_token_stream().clone(), field.clone().to_token_stream().to_string().clone());
+                });
+                self.add_type_dep(item_impl, path.path.clone(), false, field.clone(), item_impl.ident.clone());
             }
-            Type::Ptr(_) => {
-                println!("found ptr");
+            Type::Ptr(grp) => {
+                println!("found ptr type {}.", grp.to_token_stream().to_string().clone());
             }
             Type::Reference(reference_found) => {
                 let ref_type = reference_found.elem.clone();
                 println!("{} is the ref type", ref_type.to_token_stream());
-                self.match_ty_recursive_add_container(item_impl, ref_type.clone().deref().clone(), true)
+                self.match_ty_add_dep_recursive(item_impl, ref_type.clone().deref().clone(), true)
             }
-            Type::Slice(_) => {
-                println!("found field hello");
+            Type::Slice(grp) => {
+                println!("found slice type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::TraitObject(_) => {
-                println!("found field hello");
+            Type::TraitObject(grp) => {
+                println!("found trait object type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::Tuple(_) => {
-                println!("found field hello");
+            Type::Tuple(grp) => {
+                println!("found tuple type {}.", grp.to_token_stream().to_string().clone());
             }
-            Type::Verbatim(_) => {
-                println!("found field hello");
+            Type::Verbatim(grp) => {
+                println!("found verbatim type {}.", grp.to_token_stream().to_string().clone());
             }
             _ => {}
         };
@@ -401,7 +410,7 @@ impl ModuleContainer {
                 println!("HELLO")
             }
             Type::Path(path) => {
-                println!("Adding path: {}.", path.path.to_token_stream().to_string().clone());
+                // println!("Adding path: {}.", path.path.to_token_stream().to_string().clone());
             }
             Type::Ptr(_) => {
                 println!("found ptr");
@@ -426,8 +435,8 @@ impl ModuleContainer {
         DepImpl::default()
     }
 
-    fn add_type(&mut self, item_impl: &mut ItemStruct, path: Path, is_ref: bool,
-                type_found: Type, new_item_ident: Ident,
+    fn add_type_dep(&mut self, item_impl: &mut ItemStruct, path: Path, is_ref: bool,
+                    type_found: Type, new_item_ident: Ident,
     )
     {
         let type_dep = &type_found.to_token_stream().to_string();
@@ -442,7 +451,12 @@ impl ModuleContainer {
             self.types.get_mut(&item_impl.ident.to_string().clone())
                 .unwrap()
                 .deps_map
-                .push(DepType { ident: Some(new_item_ident), id, is_ref: is_ref, type_found });
+                .push(DepType {
+                    ident: Some(new_item_ident),
+                    id,
+                    is_ref: is_ref, type_found,
+                    dep_path: path.clone()
+                });
         } else {
             println!("Could not add dependency {} to struct_impl {}!", id.clone(), item_impl.ident.to_string().clone());
             if !struct_exists {
@@ -456,9 +470,9 @@ impl ModuleContainer {
 }
 
 struct DepImpl {
-    struct_type: Option<ItemImpl>,
+    struct_type: Option<Type>,
     struct_found: Option<ItemStruct>,
-    traits_impl: Vec<Path>,
+    traits_impl: Vec<ItemImpl>,
     attr: Vec<Attribute>,
     // A reference to another DepImpl - the id is the Type.
     deps_map: Vec<DepType>,
@@ -476,7 +490,8 @@ struct DepType {
     id: String,
     is_ref: bool,
     type_found: Type,
-    ident: Option<Ident>
+    ident: Option<Ident>,
+    dep_path: Path
 }
 
 impl Default for DepImpl {

@@ -175,6 +175,11 @@ fn get_module_to_replace(mut log_file: &mut File, module_name: &str, base: &str,
             write_to_log(log_file, "parsed inner file and found");
             write_to_log(log_file, item.to_token_stream().to_string().as_str());
         }
+        // for attr in syn_found.attrs {
+        //     new_mod.attrs.push(attr.clone());
+        //     write_to_log(log_file, "here are the attr:");
+        //     write_to_log(log_file, attr.to_token_stream().to_string().clone().as_str());
+        // }
     } else {
         write_to_log(log_file, "Did not find");
         write_to_log(log_file, module_rs_file.as_str());
@@ -209,4 +214,9 @@ fn write_to_log_ref(log_file: &mut &File, to_write: &str) {
         .unwrap();
     log_file.write("\n\n".as_bytes())
         .unwrap();
+}
+
+
+pub trait NewComponent<T> {
+    fn new() -> T;
 }

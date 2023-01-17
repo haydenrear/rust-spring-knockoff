@@ -18,6 +18,8 @@ use crate::test_library::*;
 use crate::test_library::test_library_three::{One, Once};
 use crate::test_library::test_library_two::Ten;
 
+use build_lib::NewComponent;
+
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
 #[module_attr]
@@ -30,20 +32,28 @@ pub mod test_library {
 
 }
 
+
 #[test]
 fn test() {
     let ten = Ten {
         a: String::from("hell")
     };
+
     let one: One = One{
-        a: String::from("hello"),
+        a: String::default(),
         two: String::default()
     };
+
     let mut once = Once {
         a: String::from("hello"),
         fns: vec![Box::new(|()| {
             println!()
         })],
     };
-    let container = AppContainer {};
+
+    let one_dep = Container::<One>::get_create(&AppContainer{});
+    let one_unwrapped: One = one_dep.inner.unwrap();
+
+    assert_eq!(one_unwrapped.a, one.a);
+    assert_eq!(one_unwrapped.two, one.two);
 }

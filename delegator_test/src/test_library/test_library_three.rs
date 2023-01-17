@@ -5,22 +5,20 @@ impl Found for One {
 }
 
 impl One {
-    // fn new() -> Self {
-    //     Self {
-    //         a: String::from(""),
-    //         two: String::default()
-    //     }
-    // }
 }
 
+#[derive(Default)]
 pub struct Four<'a> {
-    one: &'a [String]
+    one: Option<&'a [String]>
 }
 
+#[derive(Default)]
 pub struct One {
-    pub(crate) two: String
+    pub two: String
 }
 
+#[derive(Default)]
 pub struct Once {
     pub(crate) fns: Vec<Box<dyn FnOnce(())>>
 }
+

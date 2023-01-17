@@ -25,6 +25,7 @@ async fn main() {
     };
 
     default_message_converters!();
+
     create_message_converter!(
         (crate::NewConverter1 => NewConverter1{} =>> "custom/convert1" => NewConverter1 => new_converter_1)
         ===> Example => DelegatingMessageConverter
@@ -34,6 +35,7 @@ async fn main() {
         (crate::NewConverter3 => NewConverter3{} =>> "custom/convert1" => NewConverter3 => new_converter)
         ===> Example1 => ExampleDelegatingMessageConverter
     );
+
 
     filter_registrar.register(filter);
     let ctx_builder = ApplicationContextBuilder::<Example, Example> {
@@ -85,6 +87,7 @@ async fn main() {
             authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
         })),
     };
+
     let mut r: HyperRequestStream<Example1, Example1> = HyperRequestStream::new(
         RequestExecutorImpl {
             ctx: ctx_builder1.build()
