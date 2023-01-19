@@ -1,4 +1,12 @@
+use module_macro::{bean, singleton, Component};
+
 pub trait Found {
+}
+
+#[bean("hello_string")]
+#[singleton]
+fn this_one() -> Option<&'static str> {
+    Some("hello")
 }
 
 impl Found for One {
@@ -8,8 +16,10 @@ impl One {
 }
 
 #[derive(Default)]
-pub struct Four<'a> {
-    one: Option<&'a [String]>
+#[Component]
+pub struct Four {
+    #[autowired]
+    one: Option<&'static [String]>
 }
 
 #[derive(Default)]

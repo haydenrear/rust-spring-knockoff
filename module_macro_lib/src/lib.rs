@@ -1,5 +1,6 @@
+#![feature(pattern)]
 pub mod module_macro_lib {
-    pub mod module_container;
+    pub mod app_container;
     pub mod module_parser;
     pub mod module_tree;
 }

@@ -12,7 +12,7 @@ use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
 
-pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File) {
+pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File, rerun_files: Vec<&str>) {
 
     let mut file_result = File::open(
         Path::new(base_env.unwrap())
@@ -59,6 +59,10 @@ pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File) {
     }
 
     println!("cargo:rerun-if-changed=build.rs");
+    rerun_files.iter().for_each(|rerun_file| {
+        print!("cargo:rerun-if-changed=");
+        print!("{}", rerun_file);
+    })
 
 }
 
@@ -175,11 +179,6 @@ fn get_module_to_replace(mut log_file: &mut File, module_name: &str, base: &str,
             write_to_log(log_file, "parsed inner file and found");
             write_to_log(log_file, item.to_token_stream().to_string().as_str());
         }
-        // for attr in syn_found.attrs {
-        //     new_mod.attrs.push(attr.clone());
-        //     write_to_log(log_file, "here are the attr:");
-        //     write_to_log(log_file, attr.to_token_stream().to_string().clone().as_str());
-        // }
     } else {
         write_to_log(log_file, "Did not find");
         write_to_log(log_file, module_rs_file.as_str());

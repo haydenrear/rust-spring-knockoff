@@ -41,6 +41,29 @@ pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
     token_stream_builder.build()
 }
 
+#[proc_macro_attribute]
+pub fn singleton(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
+#[proc_macro_attribute]
+pub fn bean(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
+#[proc_macro_attribute]
+pub fn autowired(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
+#[proc_macro_attribute]
+pub fn Component(attr: TokenStream, input: TokenStream) -> TokenStream {
+    let mut found: ItemStruct = parse_macro_input!(input as ItemStruct);
+    found.fields.iter_mut().for_each(|f| {
+        f.attrs.clear();
+    });
+    found.to_token_stream().into()
+}
 
 #[derive(Default)]
 struct TokenStreamBuilder {

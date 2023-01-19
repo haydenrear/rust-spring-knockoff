@@ -18,7 +18,7 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
-use crate::module_macro_lib::module_container::ModuleContainer;
+use crate::module_macro_lib::app_container::AppContainer;
 
 pub struct DepImpl {
     pub struct_type: Option<Type>,
@@ -42,7 +42,25 @@ pub struct DepType {
     pub is_ref: bool,
     pub type_found: Type,
     pub ident: Option<Ident>,
-    pub dep_path: Path
+    pub dep_path: Path,
+    pub bean_type: Option<BeanType>
+}
+
+#[derive(Clone)]
+pub enum BeanType {
+    // contains the identifier and the qualifier as string
+    Singleton(BeanDefinition), Prototype(BeanDefinition)
+}
+
+#[derive(Clone)]
+pub struct BeanDefinition {
+    pub qualifier: Option<String>
+}
+
+pub struct AutowiredField {
+    pub qualifier: Option<String>,
+    pub lazy: bool,
+    pub field: Field
 }
 
 impl Default for DepImpl {
@@ -80,20 +98,15 @@ impl Default for Trait {
     }
 }
 
-impl Default for ModuleContainer {
+impl Default for AppContainer {
     fn default() -> Self {
         Self {
             traits: HashMap::new(),
-            types: HashMap::new(),
+            struct_types: HashMap::new(),
             fns: HashMap::new(),
             profiles: vec![],
         }
     }
-}
-
-
-pub struct ApplicationContainer {
-    pub modules: Vec<ModuleContainer>,
 }
 
 macro_rules! test_field_add {

@@ -12,7 +12,7 @@ use syn::{
 };
 
 use delegator_macro_rules::{last_thing, types};
-use module_macro::module_attr;
+use module_macro::{module_attr};
 
 use crate::test_library::*;
 use crate::test_library::test_library_three::{One, Once};
@@ -54,8 +54,6 @@ fn test() {
     let one_dep = Container::<One>::get_create(&AppContainer{});
     let one_unwrapped: One = one_dep.inner.unwrap();
 
-    // assert_eq!(one_unwrapped.a, one.a);
-    // assert_eq!(one_unwrapped.two, one.two);
-
+    assert_eq!(one_unwrapped.a, one.a);
 
 }

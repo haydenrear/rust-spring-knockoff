@@ -19,14 +19,14 @@ use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStre
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use proc_macro2::TokenStream;
-use crate::module_macro_lib::module_container::ModuleContainer;
+use crate::module_macro_lib::app_container::AppContainer;
 use crate::module_macro_lib::module_tree::TestFieldAdding;
 
 pub fn parse_module(mut found: Item) -> TokenStream {
     match &mut found {
-        Item::Mod(ref mut struct_found) => {
-            let mut container = ModuleContainer::default();
-            parse_item_recursive(struct_found, &mut container);
+        Item::Mod(ref mut module_found) => {
+            let mut container = AppContainer::default();
+            parse_item_recursive(module_found, &mut container);
             let container_tokens = container.to_token_stream();
             quote!(
                 #found
@@ -41,12 +41,11 @@ pub fn parse_module(mut found: Item) -> TokenStream {
 
 
 
-pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ModuleContainer) {
+pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut AppContainer) {
     item_found.content.iter_mut()
         .flat_map(|mut c| c.1.iter_mut())
         .for_each(|i: &mut Item| parse_item(i, module_container));
 }
-
 
 
 pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
@@ -59,15 +58,21 @@ pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
 
 
 
-pub fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
+pub fn parse_item(i: &mut Item, mut app_container: &mut AppContainer) {
     match i {
-        Item::Const(_) => {}
+        Item::Const(const_val) => {
+            println!("Found const val {}.", const_val.to_token_stream().clone());
+        }
         Item::Enum(_) => {}
         Item::ExternCrate(_) => {}
-        Item::Fn(_) => {}
+        Item::Fn(fn_type) => {
+            println!("Found fn type {}.", fn_type.to_token_stream().clone());
+            app_container.add_fn(fn_type);
+        }
         Item::ForeignMod(_) => {}
         Item::Impl(impl_found) => {
-            module_container.create_update_impl(impl_found);
+            println!("Found impl type {}.", impl_found.to_token_stream().clone());
+            app_container.create_update_impl(impl_found);
         }
         Item::Macro(macro_created) => {
             // to add behavior to module macro,
@@ -82,22 +87,24 @@ pub fn parse_item(i: &mut Item, mut module_container: &mut ModuleContainer) {
         Item::Macro2(_) => {}
         Item::Mod(ref mut module) => {
             println!("Found module with name {} !!!", module.ident.to_string().clone());
-            parse_item_recursive(module, module_container);
+            parse_item_recursive(module, app_container);
         }
-        Item::Static(_) => {}
+        Item::Static(static_val) => {
+            println!("Found static val {}.", static_val.to_token_stream().clone());
+        }
         Item::Struct(ref mut item_struct) => {
             let f = TestFieldAdding {};
             f.process(item_struct);
-            module_container.add_item_struct(item_struct);
+            app_container.add_item_struct(item_struct);
             println!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
         }
         Item::Trait(trait_created) => {
             println!("Trait created: {}", trait_created.ident.clone().to_string());
-            module_container.create_update_trait(trait_created);
+            app_container.create_update_trait(trait_created);
         }
         Item::TraitAlias(_) => {}
-        Item::Type(_) => {
-            println!("Item type found!")
+        Item::Type(type_found) => {
+            println!("Item type found {}!", type_found.ident.to_token_stream().to_string().clone());
         }
         Item::Union(_) => {}
         Item::Use(_) => {}

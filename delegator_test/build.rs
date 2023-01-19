@@ -13,13 +13,13 @@ use syn::token::Brace;
 use build_lib::replace_modules;
 
 fn main() {
-
     let mut log_file = File::create(
         Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
-        .join("log.txt")
+                .join("log.txt")
     ).unwrap();
     replace_modules(
         Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
-        &mut log_file
+        &mut log_file,
+        vec![".git/HEAD"]
     );
 }
