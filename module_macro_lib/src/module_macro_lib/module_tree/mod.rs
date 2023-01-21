@@ -5,7 +5,7 @@ use std::collections::{HashMap, LinkedList};
 use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf};
+use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -18,18 +18,20 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
-use crate::module_macro_lib::app_container::AppContainer;
+use crate::module_macro_lib::app_container::ParseContainer;
 
 pub struct DepImpl {
     pub struct_type: Option<Type>,
     pub struct_found: Option<ItemStruct>,
     pub traits_impl: Vec<ItemImpl>,
+    pub enum_found: Option<ItemEnum>,
     pub attr: Vec<Attribute>,
     // A reference to another DepImpl - the id is the Type.
     pub deps_map: Vec<DepType>,
     pub id: String,
     pub profile: Vec<Profile>,
-    pub ident: Option<Ident>
+    pub ident: Option<Ident>,
+    pub fields: Vec<Fields>
 }
 
 pub struct Profile {
@@ -38,12 +40,10 @@ pub struct Profile {
 
 #[derive(Clone)]
 pub struct DepType {
-    pub id: String,
-    pub is_ref: bool,
-    pub type_found: Type,
-    pub ident: Option<Ident>,
-    pub dep_path: Path,
-    pub bean_type: Option<BeanType>
+    pub bean_info: AutowiredField,
+    pub lifetime: Option<Lifetime>,
+    pub bean_type: Option<BeanType>,
+    pub array_type: Option<TypeArray>
 }
 
 #[derive(Clone)]
@@ -57,10 +57,12 @@ pub struct BeanDefinition {
     pub qualifier: Option<String>
 }
 
+#[derive(Clone)]
 pub struct AutowiredField {
     pub qualifier: Option<String>,
     pub lazy: bool,
-    pub field: Field
+    pub field: Field,
+    pub type_of_field: Type
 }
 
 impl Default for DepImpl {
@@ -70,10 +72,12 @@ impl Default for DepImpl {
             struct_found: None,
             traits_impl: vec![],
             attr: vec![],
+            enum_found: None,
             deps_map: vec![],
             id: String::default(),
             profile: vec![],
-            ident: None
+            ident: None,
+            fields: vec![],
         }
     }
 }
@@ -98,11 +102,11 @@ impl Default for Trait {
     }
 }
 
-impl Default for AppContainer {
+impl Default for ParseContainer {
     fn default() -> Self {
         Self {
             traits: HashMap::new(),
-            struct_types: HashMap::new(),
+            injectable_types: HashMap::new(),
             fns: HashMap::new(),
             profiles: vec![],
         }

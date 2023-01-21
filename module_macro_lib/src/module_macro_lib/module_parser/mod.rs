@@ -19,13 +19,13 @@ use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStre
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use proc_macro2::TokenStream;
-use crate::module_macro_lib::app_container::AppContainer;
+use crate::module_macro_lib::app_container::ParseContainer;
 use crate::module_macro_lib::module_tree::TestFieldAdding;
 
 pub fn parse_module(mut found: Item) -> TokenStream {
     match &mut found {
         Item::Mod(ref mut module_found) => {
-            let mut container = AppContainer::default();
+            let mut container = ParseContainer::default();
             parse_item_recursive(module_found, &mut container);
             let container_tokens = container.to_token_stream();
             quote!(
@@ -41,7 +41,7 @@ pub fn parse_module(mut found: Item) -> TokenStream {
 
 
 
-pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut AppContainer) {
+pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer) {
     item_found.content.iter_mut()
         .flat_map(|mut c| c.1.iter_mut())
         .for_each(|i: &mut Item| parse_item(i, module_container));
@@ -58,13 +58,14 @@ pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
 
 
 
-pub fn parse_item(i: &mut Item, mut app_container: &mut AppContainer) {
+pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
     match i {
         Item::Const(const_val) => {
             println!("Found const val {}.", const_val.to_token_stream().clone());
         }
-        Item::Enum(_) => {}
-        Item::ExternCrate(_) => {}
+        Item::Enum(enum_type) => {
+            app_container.add_item_enum(enum_type);
+        }
         Item::Fn(fn_type) => {
             println!("Found fn type {}.", fn_type.to_token_stream().clone());
             app_container.add_fn(fn_type);
@@ -107,7 +108,6 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut AppContainer) {
             println!("Item type found {}!", type_found.ident.to_token_stream().to_string().clone());
         }
         Item::Union(_) => {}
-        Item::Use(_) => {}
         Item::Verbatim(_) => {}
         _ => {}
     }

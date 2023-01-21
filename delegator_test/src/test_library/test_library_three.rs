@@ -18,7 +18,7 @@ impl One {
 #[derive(Default)]
 #[Component]
 pub struct Four {
-    #[autowired]
+    #[autowired(hello_string)]
     one: Option<&'static [String]>
 }
 

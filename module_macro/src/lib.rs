@@ -47,6 +47,11 @@ pub fn singleton(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn prototype(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
+#[proc_macro_attribute]
 pub fn bean(attr: TokenStream, input: TokenStream) -> TokenStream {
     input.into()
 }
