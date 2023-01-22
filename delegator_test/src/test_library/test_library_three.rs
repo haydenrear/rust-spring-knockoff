@@ -12,14 +12,16 @@ fn this_one() -> Option<&'static str> {
 impl Found for One {
 }
 
+impl Found for Four {
+}
+
 impl One {
 }
 
 #[derive(Default)]
 #[Component]
 pub struct Four {
-    #[autowired(hello_string)]
-    one: Option<&'static [String]>
+    two: String
 }
 
 #[derive(Default)]

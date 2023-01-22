@@ -1,4 +1,6 @@
 #![feature(proc_macro_hygiene)]
+
+use std::any::TypeId;
 use std::fmt::Display;
 
 use quote::{format_ident, IdentFragment, quote, ToTokens};
@@ -10,12 +12,13 @@ use syn::{
     Token,
     token::Paren
 };
+use syn::token::Type;
 
 use delegator_macro_rules::{last_thing, types};
 use module_macro::{module_attr};
 
 use crate::test_library::*;
-use crate::test_library::test_library_three::{One, Once};
+use crate::test_library::test_library_three::{One, Once, Four};
 use crate::test_library::test_library_two::Ten;
 
 use build_lib::NewComponent;
@@ -51,8 +54,10 @@ fn test() {
         })],
     };
 
-    let one_dep = Container::<One>::get_create(&AppContainer{});
+    let one_dep = BeanFactory::<One>::get_bean(&ListableBeanFactory{});
     let one_unwrapped: One = one_dep.inner.unwrap();
+    let four_dep = BeanFactory::<Four>::get_bean(&ListableBeanFactory{});
+    let one_unwrapped: Four = four_dep.inner.unwrap();
 
     assert_eq!(one_unwrapped.a, one.a);
 

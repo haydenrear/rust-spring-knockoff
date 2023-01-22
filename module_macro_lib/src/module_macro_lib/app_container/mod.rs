@@ -21,6 +21,7 @@ use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use crate::module_macro_lib::module_parser::parse_item;
 use crate::module_macro_lib::module_tree::{DepImpl, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField};
+use crate::module_macro_lib::spring_knockoff_context::ApplicationContextGenerator;
 
 
 /**
@@ -54,12 +55,8 @@ impl ParseContainer {
 
         for token_type in &self.injectable_types {
             println!("Implementing container for {} if is not none and implements Default.", token_type.1.id.clone());
-            if token_type.1.struct_type.is_some() {
+            if token_type.1.struct_type.is_some() || token_type.1.ident.is_some() {
 
-                let struct_type =  token_type.1.struct_type.clone()
-                    .unwrap();
-
-                println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
                 let field_types = token_type.1.deps_map
                     .clone().iter()
@@ -80,29 +77,30 @@ impl ParseContainer {
                     })
                     .collect::<Vec<Ident>>();
 
-                let this_struct_impl = quote! {
+                if token_type.1.struct_type.is_some() {
 
-                    impl Container<#struct_type> for AppContainer {
-                        fn get_create(&self) -> Component<#struct_type> {
-                            let this_component = <Component<#struct_type>>::new();
-                            this_component
-                        }
-                    }
+                    let struct_type =  token_type.1.struct_type.clone()
+                        .unwrap();
 
-                    impl Component<#struct_type> {
-                        fn new() -> Self {
-                            let mut inner = #struct_type::default();
-                            #(
-                                inner.#identifiers = AppContainer::get_create::<#field_types>();
-                            )*
-                            Self {
-                                inner: Some(inner)
-                            }
-                        }
-                    }
-                };
+                    println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
-                token.append_all(this_struct_impl);
+                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code(
+                        field_types, identifiers, struct_type
+                    );
+                    token.append_all(this_struct_impl);
+                } else {
+                    let struct_type =  token_type.1.ident.clone()
+                        .unwrap();
+
+                    println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+
+                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_ident(
+                        field_types, identifiers, struct_type
+                    );
+                    token.append_all(this_struct_impl);
+
+                }
+
 
             }
         }
@@ -146,6 +144,7 @@ impl ParseContainer {
 
     pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct) {
         println!("adding type with name {}", item_impl.ident.clone().to_token_stream().to_string());
+        println!("adding type with name {}", item_impl.to_token_stream().to_string().clone());
         self.injectable_types.get_mut(&item_impl.ident.to_string().clone())
             .map(|struct_impl: &mut DepImpl| {
                 struct_impl.struct_found = Some(item_impl.clone());

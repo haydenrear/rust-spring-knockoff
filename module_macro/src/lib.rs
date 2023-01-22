@@ -24,6 +24,7 @@ use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStre
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use module_macro_lib::module_macro_lib::module_parser::parse_module;
+use module_macro_lib::module_macro_lib::spring_knockoff_context::ApplicationContextGenerator;
 
 #[proc_macro_attribute]
 pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
@@ -90,17 +91,10 @@ impl TokenStreamBuilder {
 }
 
 fn write_starting_types() -> TokenStream {
-    let tokens = quote! {
-        pub struct AppContainer {
-        }
-        pub struct Component<T> {
-            inner: Option<T>,
-        }
-        pub trait Container<T> {
-            fn get_create(&self) -> Component<T>;
-        }
-    };
-    tokens.into()
+    let mut tokens = TokenStreamBuilder::default();
+    tokens.add_to_tokens(ApplicationContextGenerator::create_application_context().into());
+    tokens.add_to_tokens(ApplicationContextGenerator::create_bean_factory().into());
+    tokens.build()
 }
 
 
