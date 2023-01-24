@@ -68,7 +68,7 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
         }
         Item::Fn(fn_type) => {
             println!("Found fn type {}.", fn_type.to_token_stream().clone());
-            app_container.add_fn(fn_type);
+            app_container.add_fn_to_dep_types(fn_type);
         }
         Item::ForeignMod(_) => {}
         Item::Impl(impl_found) => {

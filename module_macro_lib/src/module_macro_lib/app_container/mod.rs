@@ -6,7 +6,7 @@ use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::str::pattern::Pattern;
 use std::sync::{Arc, Mutex};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum};
+use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum, ReturnType};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -31,15 +31,16 @@ pub struct ModulesFunctions {
     pub fn_found: FunctionType
 }
 
+#[derive(Clone)]
 pub enum FunctionType {
-    Singleton(ItemFn),
-    Prototype(ItemFn)
+    Singleton(ItemFn, Option<String>, Option<Type>),
+    Prototype(ItemFn, Option<String>, Option<Type>)
 }
 
 pub struct ParseContainer {
     pub injectable_types: HashMap<String, DepImpl>,
     pub traits: HashMap<String, Trait>,
-    pub fns: HashMap<String, ModulesFunctions>,
+    pub fns: HashMap<TypeId, ModulesFunctions>,
     pub profiles: Vec<Profile>
 }
 
@@ -77,18 +78,21 @@ impl ParseContainer {
                     })
                     .collect::<Vec<Ident>>();
 
-                if token_type.1.struct_type.is_some() {
 
-                    let struct_type =  token_type.1.struct_type.clone()
-                        .unwrap();
 
-                    println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
-
-                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code(
-                        field_types, identifiers, struct_type
-                    );
-                    token.append_all(this_struct_impl);
-                } else {
+                // if token_type.1.struct_type.is_some() {
+                //
+                //     let struct_type =  token_type.1.struct_type.clone()
+                //         .unwrap();
+                //
+                //     println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+                //
+                //     let this_struct_impl = ApplicationContextGenerator::gen_autowire_code(
+                //         field_types, identifiers, struct_type
+                //     );
+                //     token.append_all(this_struct_impl);
+                // } else {
+                if token_type.1.ident.is_some() {
                     let struct_type =  token_type.1.ident.clone()
                         .unwrap();
 
@@ -105,7 +109,24 @@ impl ParseContainer {
             }
         }
 
+        let deps = self.injectable_types.values()
+            .into_iter()
+            .collect::<Vec<&DepImpl>>();
+
+
+        let listable_bean_factory = ApplicationContextGenerator::new_listable_bean_factory(deps);
+
+        token.extend(listable_bean_factory.into_iter());
+
         token
+    }
+
+    /**
+    1. Make sure that there are no cyclic dependencies.
+    2. Reorder so that the beans are added to the container in the correct order.
+    **/
+    pub fn is_valid_reorder_context(&mut self) -> bool {
+        true
     }
 
     pub fn log_app_container_info(&self) {
@@ -288,10 +309,38 @@ impl ParseContainer {
             });
     }
 
-    pub fn add_fn(&mut self, item_fn: &mut ItemFn) {
+    pub fn add_fn_to_dep_types(&mut self, item_fn: &mut ItemFn) {
         ParseContainer::get_fn_type(item_fn.clone())
             .map(|fn_found| {
-                self.fns.insert(item_fn.to_token_stream().to_string().clone(), ModulesFunctions{fn_found});
+                self.fns.insert(item_fn.clone().type_id().clone(), ModulesFunctions{ fn_found: fn_found.clone() });
+                for i_type in self.injectable_types.iter_mut() {
+                    for dep_type in i_type.1.deps_map.iter_mut() {
+                        if dep_type.bean_type.is_none() {
+                            match &fn_found {
+                                FunctionType::Singleton(fn_type, qualifier, type_found) => {
+                                    dep_type.bean_type = Some(
+                                        BeanType::Singleton(
+                                            BeanDefinition {
+                                            qualifier: qualifier.clone(),
+                                                bean_type_type: type_found.clone(),
+                                            },
+                                            Some(fn_found.clone()))
+                                    );
+                                }
+                                FunctionType::Prototype(fn_type, qualifier, type_found) => {
+                                    dep_type.bean_type = Some(
+                                        BeanType::Prototype(
+                                        BeanDefinition {
+                                            qualifier: qualifier.clone(),
+                                            bean_type_type: type_found.clone()
+                                        },
+                                        Some(fn_found.clone())
+                                    ));
+                                }
+                            };
+                        }
+                    }
+                }
             });
     }
 
@@ -301,30 +350,49 @@ impl ParseContainer {
     )
     {
         let type_dep = &field_to_add.field.clone().ty.to_token_stream().to_string();
-        //TODO: is the ident equal to ty?
         let contains_key = self.injectable_types.contains_key(type_dep);
         let struct_exists = self.injectable_types.get_mut(&field_to_add.field.clone().ty.to_token_stream().to_string()).is_some();
         let autowired_qualifier = field_to_add.qualifier.clone().is_some();
         if autowired_qualifier && contains_key && struct_exists {
-            let id = self.injectable_types.get(field_to_add.qualifier.clone().unwrap().as_str())
-                .and_then(|struct_found: &DepImpl| Some((struct_found.id.clone())))
-                .or(Some(field_to_add.qualifier.clone().unwrap()))
-                .unwrap();
+
             dep_impl.ident.clone().map(|ident| {
                 println!("Adding dependency with id {} to struct_impl of name {}", dep_impl.id.clone(), ident.to_string().clone());
             }).or_else(|| {
                 println!("Could not find ident for {}.", dep_impl.id.clone());
                 None
             });
-            self.injectable_types.get_mut(dep_impl.id.as_str())
-                .unwrap()
-                .deps_map
-                .push(DepType {
-                    bean_info: field_to_add,
-                    lifetime,
-                    bean_type: None,
-                    array_type
-                });
+
+            let bean_type = self.get_fn_for_qualifier(
+                field_to_add.qualifier.clone(),
+                Some(field_to_add.type_of_field.clone())
+            ).map(|fn_type| {
+                ParseContainer::get_bean_type_from_qual(field_to_add.qualifier.clone(), None, fn_type)
+            })
+                .or(None);
+
+            if bean_type.is_some() {
+                self.injectable_types.get_mut(dep_impl.id.as_str())
+                    .unwrap()
+                    .deps_map
+                    .push(DepType {
+                        bean_info: field_to_add,
+                        lifetime,
+                        bean_type: bean_type.unwrap(),
+                        array_type
+                    });
+            } else {
+                self.injectable_types.get_mut(dep_impl.id.as_str())
+                    .unwrap()
+                    .deps_map
+                    .push(DepType {
+                        bean_info: field_to_add,
+                        lifetime,
+                        bean_type: None,
+                        array_type
+                    });
+            }
+
+
         } else {
             if !struct_exists {
                 println!("Struct impl did not exist in module container.")
@@ -335,20 +403,76 @@ impl ParseContainer {
         }
     }
 
+    fn get_fn_for_qualifier(&self, qualifier: Option<String>, type_of: Option<Type>) -> Option<FunctionType> {
+        for module_fn_entry in &self.fns {
+            match &module_fn_entry.1.fn_found  {
+                FunctionType::Singleton(_, fn_qualifier, type_of_fn) => {
+                    if type_of.clone().is_some() && type_of_fn.clone().is_some() && type_of.clone().unwrap().to_token_stream().to_string().as_str() == type_of_fn.clone().unwrap().to_token_stream().to_string().as_str() {
+                        return Some(module_fn_entry.1.fn_found.clone())
+                    } else if qualifier.clone().is_some() && fn_qualifier.clone().is_some() && qualifier.clone().unwrap() == fn_qualifier.clone().unwrap() {
+                        return Some(module_fn_entry.1.fn_found.clone())
+                    }
+                }
+                FunctionType::Prototype(_, qualifier, _) => {
+                    // if fn_qualifier.filter(|qual| qual == qualifier).is_some() {
+                    //     return Some(module_fn_entry.1.fn_found.clone())
+                    // }
+                    //TODO:
+                    return None;
+                }
+            }
+        }
+        None
+    }
+
     fn get_fn_type(fn_found: ItemFn) -> Option<FunctionType> {
         fn_found.attrs.iter()
             .filter(|attr| {
-                println!("Checking attribuge: {} for fn.", attr.to_token_stream().to_string().clone());
-                attr.to_token_stream().to_string().contains("bean")
+                let attr_name = attr.to_token_stream().to_string();
+                println!("Checking attribute: {} for fn.", attr_name.clone());
+                attr_name.contains("singleton") || attr_name.contains("prototype")
             })
             .flat_map(|attr| {
-                if attr.to_token_stream().to_string().contains("singleton") {
-                    Some(FunctionType::Singleton(fn_found.clone()))
-                } else if attr.to_token_stream().to_string().contains("prototype") {
-                    Some(FunctionType::Prototype(fn_found.clone()))
-                } else {
-                   None
-                }
+                    match fn_found.sig.output.clone() {
+                        ReturnType::Default => {
+                            if attr.to_token_stream().to_string().contains("singleton") {
+                                Some(FunctionType::Singleton(
+                                    fn_found.clone(),
+                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string())
+                                        .map(|qual| String::from(qual)),
+                                    None
+                                ))
+                            } else if attr.to_token_stream().to_string().contains("prototype") {
+                                Some(FunctionType::Prototype(
+                                    fn_found.clone(),
+                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string())
+                                        .map(|qual| String::from(qual)),
+                                    None
+                                ))
+                            } else {
+                                None
+                            }
+                        }
+                        ReturnType::Type(_, ty) => {
+                            if attr.to_token_stream().to_string().contains("singleton") {
+                                Some(FunctionType::Singleton(
+                                    fn_found.clone(),
+                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string())
+                                        .map(|qual| String::from(qual)),
+                                    Some(ty.deref().clone())
+                                ))
+                            } else if attr.to_token_stream().to_string().contains("prototype") {
+                                Some(FunctionType::Prototype(
+                                    fn_found.clone(),
+                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string())
+                                        .map(|qual| String::from(qual)),
+                                    Some(ty.deref().clone())
+                                ))
+                            } else {
+                                None
+                            }
+                        }
+                    }
             })
             .next()
     }
@@ -356,7 +480,7 @@ impl ParseContainer {
     pub fn get_autowired_field_dep(attrs: Vec<Attribute>, field: Field) -> Option<AutowiredField> {
         println!("Checking attribuges for field {}.", field.to_token_stream().to_string().clone());
         attrs.iter().map(|attr| {
-            println!("Checking attribuge: {} for field.", attr.to_token_stream().to_string().clone());
+            println!("Checking attribute: {} for field.", attr.to_token_stream().to_string().clone());
             ParseContainer::get_qualifier_from_autowired(attr.clone())
                 .map(|autowired_value| {
                     AutowiredField{
@@ -366,46 +490,88 @@ impl ParseContainer {
                         type_of_field: field.ty.clone(),
                     }
                 })
-        }).next().or(None).unwrap_or(None)
+        }).next().unwrap_or(None)
+    }
+
+    pub fn strip_value(value: String) -> Option<String> {
+        value.strip_prefix("(")
+            .map(|without_prefix| without_prefix.strip_suffix(")")
+                .map(|str| String::from(str))
+                .or(None)
+            ).unwrap_or(None)
     }
 
     pub fn get_qualifier_from_autowired(autowired_attr: Attribute) -> Option<String> {
-        let autowired_tokens = autowired_attr.tokens.to_string();
         if autowired_attr.path.to_token_stream().to_string().clone().contains("autowired") {
-            return autowired_tokens.strip_prefix("(")
-                .map(|without_prefix| {
-                    without_prefix.strip_suffix(")").or(None)
-                })
-                .map(|qualifier| qualifier
-                    .map(|qualifier_found| {
-                        println!("Found autowired attribute with tokens: {}.", qualifier_found);
-                        String::from(qualifier_found)
-                    })
-                    .or(None)
-                )
-                .unwrap();
+            return ParseContainer::strip_value(autowired_attr.path.to_token_stream().to_string().clone());
         }
         None
     }
 
-    pub fn get_bean_type_from_factory_fn(attrs: Vec<Attribute>) -> Option<BeanType> {
+    pub fn get_bean_type_from_factory_fn(attrs: Vec<Attribute>, module_fn: ModulesFunctions) -> Option<BeanType> {
         if attrs.iter().any(|attr| {
-            attr.to_token_stream().to_string().contains("bean")
+            let attr_str = attr.to_token_stream().to_string();
+            attr_str.contains("bean") || attr_str.contains("singleton") || attr_str.contains("prototype")
         }) {
-            return attrs.iter().map(|attr| {
+            return attrs.iter().flat_map(|attr| {
+                let qualifier = ParseContainer::strip_value(attr.path.to_token_stream().to_string().clone());
                 if attr.to_token_stream().to_string().contains("singleton") {
-                    let qualifier = attr.to_token_stream().to_string().clone();
-                    println!("Found bean with qualifier: {}.", qualifier.clone());
-                    return Some(BeanType::Singleton(BeanDefinition{ qualifier: None }));
+                    return Some(
+                        BeanType::Singleton(
+                            BeanDefinition{
+                                qualifier,
+                                bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn.fn_found)
+                            },
+                            Some(module_fn.fn_found.clone())
+                        ));
                 } else if attr.to_token_stream().to_string().contains("prototype") {
-                    let qualifier = attr.to_token_stream().to_string().clone();
-                    println!("Found bean with qualifier: {}.", qualifier.clone());
-                    return Some(BeanType::Prototype(BeanDefinition{qualifier: None}));
+                    return Some(BeanType::Prototype(
+                        BeanDefinition{
+                            qualifier,
+                            bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn.fn_found)
+                        },
+                        Some(module_fn.fn_found.clone())
+                    ));
                 }
                 None
-            }).next().unwrap()
+            }).next()
         }
         None
+    }
+
+    pub fn get_bean_type_from_qual(qualifier: Option<String>, type_type: Option<Type>, module_fn: FunctionType) -> Option<BeanType> {
+        match &module_fn {
+            FunctionType::Singleton(_, qualifier_found, _) => {
+                return Some(
+                    BeanType::Singleton(
+                        BeanDefinition{
+                            qualifier: qualifier_found.clone(),
+                            bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn)
+                        },
+                        Some(module_fn)
+                    ));
+            }
+            FunctionType::Prototype(_, qualifier_found, _) => {
+                return Some(BeanType::Prototype(
+                    BeanDefinition{
+                        qualifier: qualifier_found.clone(),
+                        bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn)
+                    },
+                    Some(module_fn)
+                ));
+            }
+        }
+    }
+
+    pub fn get_type_from_fn_type(fn_type: &FunctionType) -> Option<Type> {
+        match fn_type {
+            FunctionType::Singleton(_, _, ty) => {
+                ty.clone()
+            }
+            FunctionType::Prototype(_, _, ty) => {
+                ty.clone()
+            }
+        }
     }
 
 

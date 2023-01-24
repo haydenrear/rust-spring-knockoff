@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod test {
     use std::collections::LinkedList;
+    use std::ops::Deref;
     use std::sync::{Arc, Mutex};
     use crate::web_framework::filter::filter::{Action, RequestResponseActionFilter};
     use crate::web_framework::context::{ApplicationContext, ApplicationContextBuilder, FilterRegistrar, RequestContext, RequestContextBuilder};
@@ -69,7 +70,9 @@ mod test {
             }))),
             authentication_converters: None,
         };
-        ctx.filter_registry.register(RequestResponseActionFilter::new(Box::new(TestAction {}), Some(0)));
+        ctx.filter_registry.as_ref().unwrap()
+            .lock().unwrap()
+            .register(RequestResponseActionFilter::new(Box::new(TestAction {}), Some(0)));
         let username = "".to_string();
         let password = "".to_string();
         ctx.register(&TestUsernamePasswordAuthenticationConverter{} as &dyn AuthenticationConverter)

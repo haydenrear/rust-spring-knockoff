@@ -10,16 +10,14 @@
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="di">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/build.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,8 +137,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_security" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security" />
+    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -209,19 +207,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test test_downcast" />
       <item itemvalue="Cargo.Test tests::it_works" />
       <item itemvalue="Cargo.Test test" />
       <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_auth_type" />
-      <item itemvalue="Cargo.Test test_security" />
       <item itemvalue="Cargo.Run test_app" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Test test" />
+        <item itemvalue="Cargo.Test test_downcast" />
         <item itemvalue="Cargo.Test tests::it_works" />
         <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_auth_type" />
         <item itemvalue="Cargo.Run test_app" />
-        <item itemvalue="Cargo.Test test_security" />
       </list>
     </recent_temporary>
   </component>
@@ -276,6 +274,7 @@
       <workItem from="1673714151323" duration="35617000" />
       <workItem from="1673822902731" duration="811000" />
       <workItem from="1673959355319" duration="1727000" />
+      <workItem from="1674439958777" duration="11002000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <created>1668363611774</created>
@@ -508,7 +507,28 @@
       <option name="project" value="LOCAL" />
       <updated>1673923050667</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="di">
+      <created>1674169955600</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1674169955600</updated>
+    </task>
+    <task id="LOCAL-00035" summary="di">
+      <created>1674337934212</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1674337934212</updated>
+    </task>
+    <task id="LOCAL-00036" summary="di">
+      <created>1674405812960</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1674405812960</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -550,6 +570,17 @@
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
     <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/delegator_test/src/lib.rs</url>
+          <line>66</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -3,8 +3,7 @@ use module_macro::{bean, singleton, Component};
 pub trait Found {
 }
 
-#[bean("hello_string")]
-#[singleton]
+#[singleton("hello_string")]
 fn this_one() -> Option<&'static str> {
     Some("hello")
 }
@@ -14,6 +13,7 @@ impl Found for One {
 
 impl Found for Four {
 }
+
 
 impl One {
 }

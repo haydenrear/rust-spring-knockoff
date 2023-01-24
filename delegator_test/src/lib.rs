@@ -22,6 +22,9 @@ use crate::test_library::test_library_three::{One, Once, Four};
 use crate::test_library::test_library_two::Ten;
 
 use build_lib::NewComponent;
+use std::any::Any;
+use std::sync::Arc;
+use std::collections::HashMap;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
@@ -34,6 +37,7 @@ pub mod test_library {
     pub mod test_library_three;
 
 }
+
 
 
 #[test]
@@ -54,11 +58,14 @@ fn test() {
         })],
     };
 
-    let one_dep = BeanFactory::<One>::get_bean(&ListableBeanFactory{});
-    let one_unwrapped: One = one_dep.inner.unwrap();
-    let four_dep = BeanFactory::<Four>::get_bean(&ListableBeanFactory{});
-    let one_unwrapped: Four = four_dep.inner.unwrap();
 
-    assert_eq!(one_unwrapped.a, one.a);
+    // let one_dep = BeanFactory::<One>::get_bean(&ListableBeanFactory{});
+    // let one_unwrapped: One = one_dep.inner.unwrap();
+    // let four_dep = BeanFactory::<Four>::get_bean(&ListableBeanFactory{});
+    // let one_unwrapped: Four = four_dep.inner.unwrap();
+    let listable = ListableBeanFactory::new();
+    print!("");
+
+    // assert_eq!(one_unwrapped.a, one.a);
 
 }

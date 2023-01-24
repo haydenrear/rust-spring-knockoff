@@ -18,7 +18,7 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
-use crate::module_macro_lib::app_container::ParseContainer;
+use crate::module_macro_lib::app_container::{FunctionType, ParseContainer};
 
 pub struct DepImpl {
     pub struct_type: Option<Type>,
@@ -49,12 +49,14 @@ pub struct DepType {
 #[derive(Clone)]
 pub enum BeanType {
     // contains the identifier and the qualifier as string
-    Singleton(BeanDefinition), Prototype(BeanDefinition)
+    Singleton(BeanDefinition, Option<FunctionType>),
+    Prototype(BeanDefinition, Option<FunctionType>)
 }
 
 #[derive(Clone)]
 pub struct BeanDefinition {
-    pub qualifier: Option<String>
+    pub qualifier: Option<String>,
+    pub bean_type_type: Option<Type>
 }
 
 #[derive(Clone)]
@@ -113,10 +115,8 @@ impl Default for ParseContainer {
     }
 }
 
-macro_rules! test_field_add {
-    ($tt:tt) => {
-
-    }
+pub enum GetBeanResultError {
+    BeanNotInContext, BeanDependenciesNotSatisfied
 }
 
 pub struct TestFieldAdding;
