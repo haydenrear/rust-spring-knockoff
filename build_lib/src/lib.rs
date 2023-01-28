@@ -90,7 +90,8 @@ fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a m
                     write_to_log(&mut log_file, attr.tokens.to_string().as_str());
                     write_to_log(&mut log_file, "Found with module_attr");
                     make_change_bool = true;
-                } else if attr.to_token_stream().to_string().as_str().contains("cfg"){
+                } else if attr.to_token_stream().to_string().as_str().contains("cfg")
+                    && attr.to_token_stream().to_string().as_str().contains("springknockoff") {
                     cfg_attr = counter;
                 }
                 counter += 1;

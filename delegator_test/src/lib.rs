@@ -25,6 +25,7 @@ use build_lib::NewComponent;
 use std::any::Any;
 use std::sync::Arc;
 use std::collections::HashMap;
+use std::ops::Deref;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
@@ -41,7 +42,7 @@ pub mod test_library {
 
 
 #[test]
-fn test() {
+fn test_module_macro() {
     let ten = Ten {
         a: String::from("hell")
     };
@@ -53,19 +54,16 @@ fn test() {
 
     let mut once = Once {
         a: String::from("hello"),
-        fns: vec![Box::new(|()| {
-            println!()
-        })],
+        // fns: vec![Box::new(|()| {
+        //     println!()
+        // })],
     };
 
 
-    // let one_dep = BeanFactory::<One>::get_bean(&ListableBeanFactory{});
-    // let one_unwrapped: One = one_dep.inner.unwrap();
-    // let four_dep = BeanFactory::<Four>::get_bean(&ListableBeanFactory{});
-    // let one_unwrapped: Four = four_dep.inner.unwrap();
     let listable = ListableBeanFactory::new();
-    print!("");
-
-    // assert_eq!(one_unwrapped.a, one.a);
+    assert_ne!(listable.singleton_bean_definitions.len(), 0);
+    let one_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
+    let two_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
+    assert!(one_found.is_some());
 
 }

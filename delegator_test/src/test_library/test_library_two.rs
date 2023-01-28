@@ -1,3 +1,3 @@
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Ten {}

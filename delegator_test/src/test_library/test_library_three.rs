@@ -18,19 +18,19 @@ impl Found for Four {
 impl One {
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 #[Component]
 pub struct Four {
     two: String
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct One {
     pub two: String
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Once {
-    pub(crate) fns: Vec<Box<dyn FnOnce(())>>
+    // pub(crate) fns: Vec<Box<dyn FnOnce(())>>
 }
 

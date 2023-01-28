@@ -113,7 +113,6 @@ impl ParseContainer {
             .into_iter()
             .collect::<Vec<&DepImpl>>();
 
-
         let listable_bean_factory = ApplicationContextGenerator::new_listable_bean_factory(deps);
 
         token.extend(listable_bean_factory.into_iter());
@@ -125,8 +124,46 @@ impl ParseContainer {
     1. Make sure that there are no cyclic dependencies.
     2. Reorder so that the beans are added to the container in the correct order.
     **/
-    pub fn is_valid_reorder_context(&mut self) -> bool {
+    pub fn is_valid_ordering_create(&self) -> Vec<String> {
+        let mut already_processed = vec![];
+        for i_type in self.injectable_types.iter() {
+            if !self.is_valid_ordering(&mut already_processed, i_type.1) {
+                println!("Was not valid ordering!");
+            }
+        }
+        already_processed
+    }
+
+    pub fn is_valid_ordering(&self, already_processed: &mut Vec<String>, dep: &DepImpl) -> bool {
+        for dep_impl in &dep.deps_map {
+            if already_processed.contains(&ParseContainer::get_identifier(dep_impl)) {
+                continue;
+            }
+            if !self.injectable_types.get(&dep.id)
+                .map(|next| {
+                    if self.is_valid_ordering(already_processed, next) {
+                        already_processed.push(next.id.clone());
+                        return true;
+                    }
+                    false
+                })
+                .or(Some(false))
+                .unwrap() {
+                return false;
+            }
+        }
         true
+    }
+
+    pub fn get_identifier(dep_type: &DepType) -> String {
+        match &dep_type.bean_info.qualifier  {
+            None => {
+                dep_type.bean_info.type_of_field.to_token_stream().to_string().clone()
+            }
+            Some(qual) => {
+                qual.clone()
+            }
+        }
     }
 
     pub fn log_app_container_info(&self) {
@@ -260,6 +297,10 @@ impl ParseContainer {
     ) {
         ParseContainer::get_autowired_field_dep(field.attrs.clone(), field.clone())
             .map(|autowired| {
+                println!("Found field with type {}.", autowired.field.ty.to_token_stream().to_string().clone());
+                if autowired.field.ident.is_some() {
+                    println!("Found field with ident {}.", autowired.field.ident.to_token_stream().to_string().clone());
+                }
                 match field.ty.clone() {
                     Type::Array(arr) => {
                         println!("found array type {}.", arr.to_token_stream().to_string().clone());
@@ -478,7 +519,7 @@ impl ParseContainer {
     }
 
     pub fn get_autowired_field_dep(attrs: Vec<Attribute>, field: Field) -> Option<AutowiredField> {
-        println!("Checking attribuges for field {}.", field.to_token_stream().to_string().clone());
+        println!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
         attrs.iter().map(|attr| {
             println!("Checking attribute: {} for field.", attr.to_token_stream().to_string().clone());
             ParseContainer::get_qualifier_from_autowired(attr.clone())
@@ -490,7 +531,10 @@ impl ParseContainer {
                         type_of_field: field.ty.clone(),
                     }
                 })
-        }).next().unwrap_or(None)
+        }).next().unwrap_or_else(|| {
+            println!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
+            None
+        })
     }
 
     pub fn strip_value(value: String) -> Option<String> {

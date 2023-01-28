@@ -46,19 +46,20 @@ impl ApplicationContextGenerator {
     pub fn create_bean_factory() -> TokenStream {
         let ts = quote! {
 
+            #[derive(Debug)]
             pub struct BeanDefinition<T: ?Sized> {
                 inner: Arc<T>
             }
 
-            impl <T: 'static> BeanDefinition<T> {
-                fn to_any(&self) -> BeanDefinition<dyn Any> {
-                    let inner: Arc<dyn Any> = self.inner.clone() as Arc<dyn Any>;
+            impl <T: 'static + Send + Sync> BeanDefinition<T> {
+                fn to_any(&self) -> BeanDefinition<dyn Any + Send + Sync> {
+                    let inner: Arc<dyn Any + Send + Sync> = self.inner.clone() as Arc<dyn Any + Send + Sync>;
                     BeanDefinition {
                         inner: inner
                     }
                 }
                 fn get_bean_type_id(&self) -> TypeId {
-                    self.type_id().clone()
+                    self.inner.deref().type_id().clone()
                 }
             }
 
@@ -67,12 +68,12 @@ impl ApplicationContextGenerator {
             }
 
             pub trait ContainsBeans {
-                fn contains_bean_type(&self, type_id: TypeId) -> bool;
+                fn contains_bean_type(&self, type_id: &TypeId) -> bool;
                 fn get_bean_types(&self) -> Vec<TypeId>;
-                fn contains_type<T: 'static>(&self) -> bool;
+                fn contains_type<T: 'static + Send + Sync>(&self) -> bool;
             }
 
-            pub trait FactoryBean<T> {
+            pub trait FactoryBean<T: 'static + Send + Sync> {
                 fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<T>;
                 fn get_bean_type_id(&self) -> TypeId;
                 fn is_singleton() -> bool;
@@ -83,15 +84,20 @@ impl ApplicationContextGenerator {
 
             #[derive(Default)]
             pub struct ListableBeanFactory {
-                singleton_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any>>
+                singleton_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any + Send + Sync>>
             }
 
 
             impl ContainsBeans for ListableBeanFactory {
 
-                fn contains_bean_type(&self, type_id: TypeId) -> bool {
-                    self.singleton_bean_definitions.keys()
-                        .any(|t| t.clone() == type_id.clone())
+                fn contains_bean_type(&self, type_id: &TypeId) -> bool {
+                    for bean_def in self.singleton_bean_definitions.iter() {
+                        println!("Checking if {:?}", bean_def.1);
+                        if bean_def.0 == type_id {
+                            return true;
+                        }
+                    }
+                    false
                 }
 
                 fn get_bean_types(&self) -> Vec<TypeId> {
@@ -100,15 +106,15 @@ impl ApplicationContextGenerator {
                         .collect::<Vec<TypeId>>()
                 }
 
-                fn contains_type<T: 'static>(&self) -> bool {
+                fn contains_type<T: 'static + Send + Sync>(&self) -> bool {
                     let type_id_to_search = TypeId::of::<T>();
                     self.singleton_bean_definitions.keys()
                         .any(|t| t.clone() == type_id_to_search.clone())
                 }
             }
 
-            pub trait BeanProvider<T> where T: 'static {
-                fn get_bean_singleton_ref(&self) -> Option<BeanDefinition<T>>;
+            pub trait BeanProvider<T> where T: 'static + Send + Sync {
+                fn get_bean_singleton_ref(&self) -> Arc<T>;
                 // fn create_prototype_bean(&self) -> Option<&'a BeanDefinition<T>>
             }
         };
@@ -127,24 +133,43 @@ impl ApplicationContextGenerator {
             }
         }
         let new_listable_bean_factory = quote! {
+
             impl ListableBeanFactory {
 
-                fn add_bean_definition<T: 'static>(&mut self, bean_defin: BeanDefinition<T>) {
-                    self.singleton_bean_definitions.insert(bean_defin.get_bean_type_id().clone(), bean_defin.to_any());
+                fn add_bean_definition<T: 'static + Send + Sync>(&mut self, bean_defin: BeanDefinition<T>) {
+                    self.singleton_bean_definitions.insert(
+                        bean_defin.get_bean_type_id().clone(),
+                        bean_defin.to_any()
+                    );
                 }
 
                 fn new() -> Self {
-                    let mut singleton_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any>> = HashMap::new();
+                    let mut singleton_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any + Send + Sync>> = HashMap::new();
                     let mut listable_bean_factory = ListableBeanFactory {
                         singleton_bean_definitions
                     };
                     #(
                         let next_bean_definition = <BeanDefinition<#identifiers>>::get_bean(&listable_bean_factory);
+                        println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     listable_bean_factory
                 }
 
+                fn get_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<T>> {
+                    let type_id = TypeId::of::<T>();
+                    if self.contains_bean_type(&type_id) {
+                        println!("Contains bean type!");
+                        let downcast_result = self.singleton_bean_definitions[&type_id]
+                            .inner.clone().downcast::<T>();
+                        if downcast_result.is_ok() {
+                            return Some(downcast_result.unwrap().clone());
+                        }
+                        return None;
+                    }
+                    println!("Does not contain bean type..");
+                    None
+                }
 
             }
         };
@@ -190,7 +215,7 @@ impl ApplicationContextGenerator {
                     }
 
                     fn get_bean_type_id(&self) -> TypeId {
-                        self.inner.type_id().clone()
+                        self.inner.deref().type_id().clone()
                     }
 
                     fn is_singleton() -> bool {
