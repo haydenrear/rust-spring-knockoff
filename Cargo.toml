@@ -9,7 +9,6 @@ members = [
     "data_framework",
     "module_macro",
     "delegator_test",
-    "delegator_macro_rules",
     "hyper",
     "test_app",
     "rust_spring_macro"

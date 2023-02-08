@@ -1,4 +1,5 @@
-use module_macro::{bean, singleton, Component};
+use module_macro::{bean, singleton, autowired};
+use std::sync::Arc;
 
 pub trait Found {
 }
@@ -19,16 +20,20 @@ impl One {
 }
 
 #[derive(Default, Debug)]
-#[Component]
+#[singleton(Four)]
 pub struct Four {
-    two: String
+    #[autowired]
+    four: Arc<One>,
+    two: String,
 }
 
 #[derive(Default, Debug)]
+#[singleton(One)]
 pub struct One {
     pub two: String
 }
 
+#[singleton(Once)]
 #[derive(Default, Debug)]
 pub struct Once {
     // pub(crate) fns: Vec<Box<dyn FnOnce(())>>

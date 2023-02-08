@@ -444,22 +444,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "delegator_macro_rules"
-version = "0.1.0"
-dependencies = [
- "base64",
- "lazy_static",
- "quote",
- "serde",
- "syn",
-]
-
-[[package]]
 name = "delegator_test"
 version = "0.1.0"
 dependencies = [
  "build_lib",
- "delegator_macro_rules",
  "derive-syn-parse",
  "dynpath",
  "module_macro",
@@ -1027,7 +1015,6 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "build_lib",
- "delegator_macro_rules",
  "derive-syn-parse",
  "lazy_static",
  "module_macro_lib",
@@ -1043,6 +1030,7 @@ name = "module_macro_lib"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "build_lib",
  "derive-syn-parse",
  "lazy_static",
  "proc-macro2",

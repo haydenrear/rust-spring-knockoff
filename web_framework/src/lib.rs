@@ -3,6 +3,7 @@ extern crate alloc;
 
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -21,6 +22,15 @@ pub mod web_framework {
 
 pub struct Gen<T: ?Sized>{
     inner: Arc<T>
+
+}
+pub struct Gen2<T: ?Sized>{
+    inner: Arc<T>,
+    phantom: PhantomGuy<T>
+}
+
+pub struct PhantomGuy<T: ?Sized> {
+    phantom: PhantomData<T>
 }
 
 pub struct MapContainer {
@@ -48,6 +58,24 @@ impl <T: 'static + Send + Sync> Gen<T> {
         let found = self.inner.clone() as Arc<dyn Any + Send + Sync>;
         Gen {
             inner: found
+        }
+    }
+
+    pub fn downcast_ref_gen(self) -> Arc<T>{
+        self.to_any().inner.clone().downcast().unwrap()
+    }
+}
+
+impl <T: 'static + Send + Sync> Gen2<T> {
+    fn to_any(self) -> Gen2<dyn Any + Send + Sync> {
+        let found = self.inner.clone() as Arc<dyn Any + Send + Sync>;
+        let phantom = PhantomGuy{
+            phantom: PhantomData::default()
+        };
+
+        Gen2 {
+            inner: found,
+            phantom: phantom as PhantomGuy<dyn Any + Send + Sync>
         }
     }
 
@@ -100,6 +128,12 @@ fn test_downcast() {
         .inner.downcast::<One>();
 
     assert!(f.is_ok());
+
+    let gen_2 = Gen2 {
+        inner: Arc::new((One{})),
+        phantom: PhantomGuy { phantom: Default::default() },
+    };
+    let new_any = gen_2.to_any();
 }
 
 fn add_to<'a>() -> HashMap<TypeId, Gen<dyn Any + Send + Sync>> {

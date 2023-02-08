@@ -1,0 +1,90 @@
+found attr on main module
+
+
+
+Found with module_attr
+
+found inner module
+
+test_library_two
+
+the inner module name is 
+
+test_library
+
+the module module name is 
+
+test_library
+
+parsed inner file and found
+
+use module_macro :: { bean , singleton , autowired } ;
+
+parsed inner file and found
+
+# [derive (Default , Debug)] # [singleton (Once)] pub struct Ten { }
+
+replacing item mod named
+
+test_library_two
+
+found inner module
+
+test_library_three
+
+the inner module name is 
+
+test_library
+
+the module module name is 
+
+test_library
+
+parsed inner file and found
+
+use module_macro :: { bean , singleton , autowired } ;
+
+parsed inner file and found
+
+use std :: sync :: Arc ;
+
+parsed inner file and found
+
+pub trait Found { }
+
+parsed inner file and found
+
+# [singleton ("hello_string")] fn this_one () -> Option < & 'static str > { Some ("hello") }
+
+parsed inner file and found
+
+impl Found for One { }
+
+parsed inner file and found
+
+impl Found for Four { }
+
+parsed inner file and found
+
+impl One { }
+
+parsed inner file and found
+
+# [derive (Default , Debug)] # [singleton (Four)] pub struct Four { # [autowired] four : Arc < One > , two : String , }
+
+parsed inner file and found
+
+# [derive (Default , Debug)] # [singleton (One)] pub struct One { pub two : String }
+
+parsed inner file and found
+
+# [singleton (Once)] # [derive (Default , Debug)] pub struct Once { }
+
+replacing item mod named
+
+test_library_three
+
+here is the finished lib file:
+
+# [module_attr] pub mod test_library { pub mod test_library_two { use module_macro :: { bean , singleton , autowired } ; # [derive (Default , Debug)] # [singleton (Once)] pub struct Ten { } } pub mod test_library_three { use module_macro :: { bean , singleton , autowired } ; use std :: sync :: Arc ; pub trait Found { } # [singleton ("hello_string")] fn this_one () -> Option < & 'static str > { Some ("hello") } impl Found for One { } impl Found for Four { } impl One { } # [derive (Default , Debug)] # [singleton (Four)] pub struct Four { # [autowired] four : Arc < One > , two : String , } # [derive (Default , Debug)] # [singleton (One)] pub struct One { pub two : String } # [singleton (Once)] # [derive (Default , Debug)] pub struct Once { } } }
+

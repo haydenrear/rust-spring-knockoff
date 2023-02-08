@@ -19,7 +19,7 @@ use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStre
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use proc_macro2::TokenStream;
-use crate::module_macro_lib::app_container::ParseContainer;
+use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::module_tree::TestFieldAdding;
 
 pub fn parse_module(mut found: Item) -> TokenStream {
@@ -27,7 +27,7 @@ pub fn parse_module(mut found: Item) -> TokenStream {
         Item::Mod(ref mut module_found) => {
             let mut container = ParseContainer::default();
             parse_item_recursive(module_found, &mut container);
-            let container_tokens = container.to_token_stream();
+            let container_tokens = container.build_to_token_stream();
             quote!(
                 #found
                 #container_tokens
@@ -38,8 +38,6 @@ pub fn parse_module(mut found: Item) -> TokenStream {
         }
     }
 }
-
-
 
 pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer) {
     item_found.content.iter_mut()
@@ -56,14 +54,13 @@ pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
         .or_else(|| None)
 }
 
-
-
 pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
     match i {
         Item::Const(const_val) => {
             println!("Found const val {}.", const_val.to_token_stream().clone());
         }
         Item::Enum(enum_type) => {
+            println!("Found enum val {}.", enum_type.to_token_stream().clone());
             app_container.add_item_enum(enum_type);
         }
         Item::Fn(fn_type) => {

@@ -14,7 +14,6 @@ use syn::{
 };
 use syn::token::Type;
 
-use delegator_macro_rules::{last_thing, types};
 use module_macro::{module_attr};
 
 use crate::test_library::*;
@@ -26,7 +25,7 @@ use std::any::Any;
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::ops::Deref;
-
+use std::marker::PhantomData;
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
 #[module_attr]
@@ -38,8 +37,6 @@ pub mod test_library {
     pub mod test_library_three;
 
 }
-
-
 
 #[test]
 fn test_module_macro() {
@@ -60,7 +57,7 @@ fn test_module_macro() {
     };
 
 
-    let listable = ListableBeanFactory::new();
+    let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
     let one_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
     let two_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();

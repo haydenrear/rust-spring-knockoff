@@ -1,6 +1,5 @@
 extern crate proc_macro;
 
-use delegator_macro_rules::{add, types};
 use lazy_static::lazy_static;
 use proc_macro::{Span, TokenStream};
 use std::any::{Any, TypeId};
@@ -44,31 +43,34 @@ pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn singleton(attr: TokenStream, input: TokenStream) -> TokenStream {
-    input.into()
+    strip_autowired(input)
 }
 
 #[proc_macro_attribute]
 pub fn prototype(attr: TokenStream, input: TokenStream) -> TokenStream {
-    input.into()
+    strip_autowired(input)
 }
 
 #[proc_macro_attribute]
 pub fn bean(attr: TokenStream, input: TokenStream) -> TokenStream {
-    input.into()
+    strip_autowired(input)
 }
 
 #[proc_macro_attribute]
 pub fn autowired(attr: TokenStream, input: TokenStream) -> TokenStream {
+    println!("{} is the autowired....",input.to_string());
     input.into()
 }
 
-#[proc_macro_attribute]
-pub fn Component(attr: TokenStream, input: TokenStream) -> TokenStream {
-    let mut found: ItemStruct = parse_macro_input!(input as ItemStruct);
-    found.fields.iter_mut().for_each(|f| {
-        f.attrs.clear();
-    });
-    found.to_token_stream().into()
+fn strip_autowired(input: TokenStream) -> TokenStream {
+    if input.to_string().as_str().contains("struct") {
+        let mut found: ItemStruct = parse_macro_input!(input as ItemStruct);
+        found.fields.iter_mut().for_each(|f| {
+            f.attrs.clear();
+        });
+        return found.to_token_stream().into();
+    }
+    input.into()
 }
 
 #[derive(Default)]
