@@ -10,11 +10,11 @@
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="knockoff context">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
     </list>
@@ -273,7 +273,9 @@
       <workItem from="1673714151323" duration="35617000" />
       <workItem from="1673822902731" duration="811000" />
       <workItem from="1673959355319" duration="1727000" />
-      <workItem from="1674439958777" duration="24329000" />
+      <workItem from="1674439958777" duration="26764000" />
+      <workItem from="1674940301289" duration="2587000" />
+      <workItem from="1675868087594" duration="8788000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <created>1668363611774</created>
@@ -534,7 +536,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674563448094</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="knockoff context">
+      <created>1674924832686</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1674924832686</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -577,6 +586,27 @@
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
     <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs</url>
+          <line>478</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs</url>
+          <line>609</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs</url>
+          <line>614</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

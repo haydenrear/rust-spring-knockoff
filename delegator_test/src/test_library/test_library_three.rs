@@ -1,4 +1,4 @@
-use module_macro::{bean, singleton, Component};
+use module_macro::{bean, singleton, Component, autowired};
 
 pub trait Found {
 }
@@ -29,6 +29,7 @@ pub struct One {
     pub two: String
 }
 
+#[singleton(Once)]
 #[derive(Default, Debug)]
 pub struct Once {
     // pub(crate) fns: Vec<Box<dyn FnOnce(())>>

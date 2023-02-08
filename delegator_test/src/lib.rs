@@ -26,7 +26,7 @@ use std::any::Any;
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::ops::Deref;
-
+use std::marker::PhantomData;
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
 #[module_attr]
