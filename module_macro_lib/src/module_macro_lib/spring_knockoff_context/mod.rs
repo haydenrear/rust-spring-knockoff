@@ -1,11 +1,10 @@
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::__private::TokenStream2;
 use syn::Type;
-use crate::module_macro_lib::app_container::FunctionType;
-use crate::module_macro_lib::module_tree::{BeanType, DepImpl};
+use crate::module_macro_lib::module_tree::{BeanType, Bean};
 
 
 pub struct ApplicationContextGenerator {
@@ -15,35 +14,35 @@ impl ApplicationContextGenerator {
 
     pub fn create_application_context() -> TokenStream {
         let ts = quote! {
+
             /**
             This is the runtime application context.
              **/
             pub trait ApplicationContext {
-                fn get_bean_by_type_id<T>(type_id: TypeId) -> T;
-                fn get_bean_by_qualifier<T>(qualifier: String) -> T;
+                fn get_bean_by_type_id<T,P>(&self, type_id: TypeId) -> Option<Arc<T>>
+                where P: Profile, T: 'static + Send + Sync;
+                fn get_bean_by_qualifier<T,P>(&self, qualifier: String) -> Option<Arc<T>>
+                where P: Profile, T: 'static + Send + Sync;
+                fn get_bean<T,P>(&self) -> Option<Arc<T>>
+                where P: Profile, T: 'static + Send + Sync;
+                fn get_beans<T>(&self) -> Vec<Arc<T>>
+                where T: 'static + Send + Sync;
+                fn new() -> Self;
             }
+
+            pub trait Profile {
+                fn name() -> String;
+            }
+
+            pub trait AbstractListableFactory<P: Profile> {
+                fn new() -> Self;
+                fn get_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<T>>;
+                // fn get_beans<T: 'static + Send + Sync>(&self) -> Vec<Arc<T>>;
+            }
+
         };
         ts.into()
     }
-
-    // pub fn finish_bean_factory(bean_factory_types: Vec<Type>) -> TokenStream {
-    //     let ts = quote! {
-    //         impl <T> ContainsBean for BeanFactory<T> {
-    //             fn contains_bean_type(type_id: TypeId) -> bool {
-    //
-    //             }
-    //             fn get_bean_types() -> Vec<TypeId> {
-    //                 let mut types = vec![];
-    //                 #(
-    //                     types.push()
-    //                 )*
-    //             }
-    //         }
-    //     };
-    //
-    //     ts.into()
-    // }
-
 
     pub fn create_bean_factory() -> TokenStream {
         let ts = quote! {
@@ -141,7 +140,8 @@ impl ApplicationContextGenerator {
         ts.into()
     }
 
-    pub fn new_listable_bean_factory(beans_to_provide: Vec<&DepImpl>) -> TokenStream {
+    pub fn new_listable_bean_factory(beans_to_provide: Vec<&Bean>, profile_name_str: String) -> TokenStream {
+        let profile_name = Ident::new(profile_name_str.as_str(), Span::call_site());
 
         let mut singleton_idents = vec![];
         let mut singleton_types = vec![];
@@ -168,14 +168,16 @@ impl ApplicationContextGenerator {
 
         let new_listable_bean_factory = quote! {
 
-            impl ListableBeanFactory {
+            pub struct #profile_name {
+            }
 
-                fn add_bean_definition<T: 'static + Send + Sync>(&mut self, bean_defin: BeanDefinition<T>) {
-                    self.singleton_bean_definitions.insert(
-                        bean_defin.get_bean_type_id().clone(),
-                        bean_defin.to_any()
-                    );
+            impl Profile for #profile_name {
+                fn name() -> String {
+                    String::from(#profile_name_str)
                 }
+            }
+
+            impl AbstractListableFactory<#profile_name> for ListableBeanFactory {
 
                 fn new() -> Self {
                     let mut singleton_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any + Send + Sync>> = HashMap::new();
@@ -221,13 +223,24 @@ impl ApplicationContextGenerator {
                     println!("Does not contain bean type..");
                     None
                 }
+            }
+
+            impl ListableBeanFactory {
+
+                fn add_bean_definition<T: 'static + Send + Sync>(&mut self, bean_defin: BeanDefinition<T>) {
+                    self.singleton_bean_definitions.insert(
+                        bean_defin.get_bean_type_id().clone(),
+                        bean_defin.to_any()
+                    );
+                }
+
 
             }
         };
         new_listable_bean_factory.into()
     }
 
-    fn add_to(singleton_idents: &mut Vec<Ident>, singleton_types: &mut Vec<Type>, bean: &&DepImpl) {
+    fn add_to(singleton_idents: &mut Vec<Ident>, singleton_types: &mut Vec<Type>, bean: &&Bean) {
         if bean.ident.is_some() {
             println!("Implementing listable bean factory. Including: {}.", bean.ident.to_token_stream().to_string().clone());
             singleton_idents.push(bean.ident.clone().unwrap());
@@ -236,8 +249,8 @@ impl ApplicationContextGenerator {
         }
     }
 
-    pub fn gen_autowire_code_gen<T: ToTokens>(field_types: Vec<Type>, field_idents: Vec<Ident>, struct_type: T)
-        -> TokenStream2 {
+    pub fn gen_autowire_code_gen_concrete<T: ToTokens>(field_types: Vec<Type>, field_idents: Vec<Ident>, struct_type: T)
+                                                       -> TokenStream2 {
         let injectable_code = quote! {
 
                 impl BeanFactory<#struct_type> for ListableBeanFactory {
@@ -269,6 +282,69 @@ impl ApplicationContextGenerator {
 
                 }
 
+        };
+
+        injectable_code.into()
+    }
+
+    pub fn finish_abstract_factory(profiles_names: Vec<String>) -> TokenStream2 {
+
+        let profiles = profiles_names.iter()
+            .map(|p| Ident::new(p.as_str(), Span::call_site()))
+            .collect::<Vec<Ident>>();
+
+        let injectable_code = quote! {
+
+            pub struct AppCtx {
+                factories: HashMap<String,ListableBeanFactory>,
+                profiles: Vec<String>
+            }
+
+            impl ApplicationContext for AppCtx {
+
+                fn get_bean_by_type_id<T,P>(&self, type_id: TypeId) -> Option<Arc<T>>
+                where P: Profile, T: 'static + Send + Sync
+                {
+                    self.factories.get(&P::name())
+                        .unwrap()
+                        .get_bean_definition::<T>()
+                }
+
+                fn get_bean_by_qualifier<T,P>(&self, qualifier: String) -> Option<Arc<T>>
+                where P: Profile, T: 'static + Send + Sync
+                {
+                    None
+                }
+
+                fn get_bean<T,P>(&self) -> Option<Arc<T>>
+                where P: Profile, T: 'static + Send + Sync
+                {
+                    None
+                }
+
+                fn get_beans<T>(&self) -> Vec<Arc<T>>
+                where T: 'static + Send + Sync
+                {
+                    vec![]
+                }
+
+                fn new() -> Self {
+                    let mut factories = HashMap::new();
+                    #(
+                        let profile = AbstractListableFactory::<#profiles>::new();
+                        factories.insert(String::from(#profiles_names), profile);
+                    )*
+                    let mut profiles = vec![];
+                    #(
+                        profiles.push(String::from(#profiles_names));
+                    )*
+                    Self {
+                        factories,
+                        profiles
+                    }
+                }
+
+            }
         };
 
         injectable_code.into()

@@ -1043,6 +1043,7 @@ name = "module_macro_lib"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "build_lib",
  "derive-syn-parse",
  "lazy_static",
  "proc-macro2",

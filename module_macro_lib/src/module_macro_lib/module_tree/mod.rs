@@ -19,12 +19,13 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
-use crate::module_macro_lib::app_container::{FunctionType, ParseContainer};
+use crate::module_macro_lib::app_container::{ParseContainer};
 
-pub struct DepImpl {
+#[derive(Clone)]
+pub struct Bean {
     pub struct_type: Option<Type>,
     pub struct_found: Option<ItemStruct>,
-    pub traits_impl: Vec<ItemImpl>,
+    pub traits_impl: Vec<AutowireType>,
     pub enum_found: Option<ItemEnum>,
     pub attr: Vec<Attribute>,
     // A reference to another DepImpl - the id is the Type.
@@ -36,6 +37,32 @@ pub struct DepImpl {
     pub bean_type: Option<BeanType>
 }
 
+/**
+Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
+ **/
+pub struct ModulesFunctions {
+    pub fn_found: FunctionType
+}
+
+#[derive(Clone)]
+pub enum FunctionType {
+    Singleton(ItemFn, Option<String>, Option<Type>),
+    Prototype(ItemFn, Option<String>, Option<Type>)
+}
+
+impl Debug for FunctionType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct AutowireType {
+    pub item_impl: ItemImpl,
+    pub profile: Vec<Profile>
+}
+
+#[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub struct Profile {
     profile: Vec<String>,
 }
@@ -90,7 +117,7 @@ pub struct AutowiredField {
     pub type_of_field: Type
 }
 
-impl Default for DepImpl {
+impl Default for Bean {
     fn default() -> Self {
         Self {
             struct_type: None,
@@ -120,21 +147,17 @@ impl Trait {
     }
 }
 
+#[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash)]
+pub struct InjectableTypeKey {
+    pub underlying_type: String,
+    pub impl_type: Option<String>,
+    pub profile: Vec<Profile>
+}
+
 impl Default for Trait {
     fn default() -> Self {
         Self {
             trait_type: None
-        }
-    }
-}
-
-impl Default for ParseContainer {
-    fn default() -> Self {
-        Self {
-            traits: HashMap::new(),
-            injectable_types: HashMap::new(),
-            fns: HashMap::new(),
-            profiles: vec![],
         }
     }
 }

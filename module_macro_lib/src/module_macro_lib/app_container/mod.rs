@@ -2,6 +2,7 @@ use lazy_static::lazy_static;
 use std::any::{Any, TypeId};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
+use std::collections::hash_map::Keys;
 use std::fmt::{Debug, Formatter};
 use std::iter::Filter;
 use std::ops::Deref;
@@ -23,31 +24,14 @@ use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStre
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use crate::module_macro_lib::module_parser::parse_item;
-use crate::module_macro_lib::module_tree::{DepImpl, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField};
+use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType};
 use crate::module_macro_lib::spring_knockoff_context::ApplicationContextGenerator;
 
 
-/**
-Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
- **/
-pub struct ModulesFunctions {
-    pub fn_found: FunctionType
-}
-
-#[derive(Clone)]
-pub enum FunctionType {
-    Singleton(ItemFn, Option<String>, Option<Type>),
-    Prototype(ItemFn, Option<String>, Option<Type>)
-}
-
-impl Debug for FunctionType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Ok(())
-    }
-}
-
+#[derive(Default)]
 pub struct ParseContainer {
-    pub injectable_types: HashMap<String, DepImpl>,
+    pub injectable_types_builder: HashMap<String, Bean>,
+    pub injectable_types_map: HashMap<InjectableTypeKey, Bean>,
     pub traits: HashMap<String, Trait>,
     pub fns: HashMap<TypeId, ModulesFunctions>,
     pub profiles: Vec<Profile>
@@ -64,7 +48,7 @@ impl ParseContainer {
         let mut token = quote! {};
 
 
-        for token_type in &self.injectable_types {
+        for token_type in &self.injectable_types_builder {
             println!("Implementing container for {} if is not none and implements Default.", token_type.1.id.clone());
             if token_type.1.struct_type.is_some() || token_type.1.ident.is_some() {
 
@@ -95,7 +79,7 @@ impl ParseContainer {
 
                     println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
-                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen(
+                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
                         field_types, identifiers, struct_type
                     );
                     token.append_all(this_struct_impl);
@@ -106,7 +90,7 @@ impl ParseContainer {
 
                     println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
-                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen(
+                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
                         field_types, identifiers, struct_type
                     );
 
@@ -114,20 +98,47 @@ impl ParseContainer {
 
                 }
 
-
             }
+
         }
 
-        let deps = self.injectable_types.values()
+        let deps = self.injectable_types_builder.values()
             .into_iter()
-            .collect::<Vec<&DepImpl>>();
+            .collect::<Vec<&Bean>>();
 
-        let listable_bean_factory = ApplicationContextGenerator::new_listable_bean_factory(deps);
+        let listable_bean_factory = ApplicationContextGenerator::new_listable_bean_factory(deps, "DefaultProfile".to_string());
 
         token.extend(listable_bean_factory.into_iter());
 
+        token.append_all(ApplicationContextGenerator::finish_abstract_factory(vec!["DefaultProfile".to_string()]));
+
         token
 
+    }
+
+    pub fn get_bean_profiles(&self) -> HashMap<String, Vec<Bean>> {
+        HashMap::new()
+    }
+
+    pub fn build_injectable_types(map: &HashMap<String, Bean>) -> HashMap<InjectableTypeKey, Bean> {
+        let mut return_map = HashMap::new();
+        for i_type in map.iter() {
+            return_map.insert(InjectableTypeKey { underlying_type: i_type.0.clone(), impl_type: None, profile: i_type.1.profile.clone() }, i_type.1.clone());
+            for id in &i_type.1.traits_impl {
+                let i_key = InjectableTypeKey {
+                    underlying_type: i_type.0.clone(),
+                    impl_type: Some(id.item_impl.self_ty.to_token_stream().to_string().clone()),
+                    profile: id.profile.clone()
+                };
+                return_map.insert(i_key, i_type.1.clone());
+            }
+        }
+        return_map
+    }
+
+    pub fn build_injectable(&mut self) {
+        let injectables = Self::build_injectable_types(&self.injectable_types_builder);
+        self.injectable_types_map = injectables;
     }
 
     /**
@@ -136,26 +147,25 @@ impl ParseContainer {
     **/
     pub fn is_valid_ordering_create(&self) -> Vec<String> {
         let mut already_processed = vec![];
-        for i_type in self.injectable_types.iter() {
+        for i_type in self.injectable_types_map.iter() {
             if !self.is_valid_ordering(&mut already_processed, i_type.1) {
                 println!("Was not valid ordering!");
+                return vec![];
             }
         }
         already_processed
     }
 
-    pub fn is_valid_ordering(&self, already_processed: &mut Vec<String>, dep: &DepImpl) -> bool {
+    pub fn is_valid_ordering(&self, already_processed: &mut Vec<String>, dep: &Bean) -> bool {
+        already_processed.push(dep.id.clone());
         for dep_impl in &dep.deps_map {
-            if already_processed.contains(&ParseContainer::get_identifier(dep_impl)) {
+            let next_id = ParseContainer::get_identifier(dep_impl);
+            if already_processed.contains(&next_id) {
                 continue;
             }
-            if !self.injectable_types.get(&dep.id)
+            if !self.injectable_types_builder.get(&next_id)
                 .map(|next| {
-                    if self.is_valid_ordering(already_processed, next) {
-                        already_processed.push(next.id.clone());
-                        return true;
-                    }
-                    false
+                    return self.is_valid_ordering(already_processed, next);
                 })
                 .or(Some(false))
                 .unwrap() {
@@ -168,7 +178,7 @@ impl ParseContainer {
     pub fn get_identifier(dep_type: &DepType) -> String {
         match &dep_type.bean_info.qualifier  {
             None => {
-                dep_type.bean_info.type_of_field.to_token_stream().to_string().clone()
+                dep_type.bean_info.type_of_field.to_token_stream().to_string()
             }
             Some(qual) => {
                 qual.clone()
@@ -177,7 +187,7 @@ impl ParseContainer {
     }
 
     pub fn log_app_container_info(&self) {
-        self.injectable_types.iter().filter(|&s| s.1.struct_found.is_none())
+        self.injectable_types_builder.iter().filter(|&s| s.1.struct_found.is_none())
             .for_each(|s| {
                 println!("Could not find struct type with ident {}.", s.0.clone());
             })
@@ -188,15 +198,15 @@ impl ParseContainer {
      **/
     pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
-        &mut self.injectable_types.get_mut(&id)
-            .map(|struct_impl: &mut DepImpl| {
-                struct_impl.traits_impl.push(item_impl.clone());
+        &mut self.injectable_types_builder.get_mut(&id)
+            .map(|struct_impl: &mut Bean| {
+                struct_impl.traits_impl.push(AutowireType { item_impl: item_impl.clone(), profile: vec![] });
             })
             .or_else(|| {
-                let impl_found = DepImpl {
+                let mut impl_found = Bean {
                     struct_type: Some(item_impl.self_ty.deref().clone()),
                     struct_found: None,
-                    traits_impl: vec![item_impl.clone()],
+                    traits_impl: vec![AutowireType { item_impl: item_impl.clone(), profile: vec![] }],
                     enum_found: None,
                     attr: vec![],
                     deps_map: vec![],
@@ -206,21 +216,27 @@ impl ParseContainer {
                     fields: vec![],
                     bean_type: None
                 };
-                self.injectable_types.insert(id, impl_found);
+                self.injectable_types_builder.insert(id.clone(), impl_found);
                 None
             });
+
+        self.set_deps_safe(id.as_str());
     }
 
-    pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct) {
+    pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct) -> Option<String> {
         println!("adding type with name {}", item_impl.ident.clone().to_token_stream().to_string());
         println!("adding type with name {}", item_impl.to_token_stream().to_string().clone());
 
-        self.injectable_types.get_mut(&item_impl.ident.to_string().clone())
-            .map(|struct_impl: &mut DepImpl| {
+        self.injectable_types_builder.get_mut(&item_impl.ident.to_string().clone())
+            .map(|struct_impl: &mut Bean| {
                 struct_impl.struct_found = Some(item_impl.clone());
+                struct_impl.ident =  Some(item_impl.ident.clone());
+                struct_impl.fields = vec![item_impl.fields.clone()];
+                struct_impl.bean_type = ParseContainer::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone()));
+                struct_impl.id = item_impl.ident.clone().to_string();
             })
             .or_else(|| {
-                let mut impl_found = DepImpl {
+                let mut impl_found = Bean {
                     struct_type: None,
                     struct_found: Some(item_impl.clone()),
                     traits_impl: vec![],
@@ -233,10 +249,13 @@ impl ParseContainer {
                     fields: vec![item_impl.fields.clone()],
                     bean_type: ParseContainer::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone()))
                 };
-                self.set_deps(&mut impl_found);
-                self.injectable_types.insert(item_impl.ident.to_string().clone(), impl_found);
+                self.injectable_types_builder.insert(item_impl.ident.to_string().clone(), impl_found);
                 None
             });
+
+        self.set_deps_safe(item_impl.ident.to_string().as_str());
+        Some(item_impl.ident.to_string().clone())
+
     }
 
     pub fn get_bean_type(attr: &Vec<Attribute>, bean_type: Option<Type>, bean_type_ident: Option<Ident>) -> Option<BeanType> {
@@ -253,15 +272,15 @@ impl ParseContainer {
 
     pub fn add_item_enum(&mut self, enum_to_add: &mut ItemEnum) {
         println!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
-        &mut self.injectable_types.get_mut(&enum_to_add.ident.to_string().clone())
-            .map(|struct_impl: &mut DepImpl| {
+        &mut self.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())
+            .map(|struct_impl: &mut Bean| {
                 struct_impl.enum_found = Some(enum_to_add.clone());
             })
             .or_else(|| {
                 let enum_fields = enum_to_add.variants.iter()
                     .map(|variant| variant.fields.clone())
                     .collect::<Vec<Fields>>();
-                let mut impl_found = DepImpl {
+                let mut impl_found = Bean {
                     struct_type: None,
                     struct_found: None,
                     traits_impl: vec![],
@@ -274,10 +293,17 @@ impl ParseContainer {
                     fields: enum_fields,
                     bean_type: ParseContainer::get_bean_type(&enum_to_add.attrs, None, Some(enum_to_add.ident.clone()))
                 };
-                self.set_deps(&mut impl_found);
-                self.injectable_types.insert(enum_to_add.ident.to_string().clone(), impl_found);
+                self.injectable_types_builder.insert(enum_to_add.ident.to_string().clone(), impl_found);
                 None
             });
+
+        self.set_deps_safe(enum_to_add.ident.to_string().as_str());
+    }
+
+    fn set_deps_safe(&mut self, id: &str) {
+        let mut removed = self.injectable_types_builder.remove(id).unwrap();
+        let deps_set = self.add_dependencies(removed);
+        self.injectable_types_builder.insert(id.clone().parse().unwrap(), deps_set);
     }
 
     pub fn create_update_trait(&mut self, trait_found: &mut ItemTrait) {
@@ -288,41 +314,46 @@ impl ParseContainer {
         }
     }
 
-    pub fn set_deps(&mut self, dep_impl: &mut DepImpl) {
-        dep_impl.fields.clone().iter().for_each(|fields| {
+    pub fn add_dependencies(&self, mut bean: Bean) -> Bean {
+        for fields in bean.fields.clone().iter() {
             match fields.clone() {
                 Fields::Named(fields_named) => {
-                    fields_named.named.iter().for_each(|field: &Field| {
+                    for field in fields_named.named.iter() {
                         field.clone().ident.map(|ident: Ident| {
                             println!("found field {}.", ident.to_string().clone());
                         });
                         println!("{} is the field type!", field.ty.to_token_stream().clone());
-                        self.match_ty_add_dep(
-                            dep_impl,
+                        bean = self.match_ty_add_dep(
+                            bean,
                             None,
                             None,
                             field.clone()
                         );
-                    });
+                    }
                 }
                 Fields::Unnamed(unnamed_field) => {}
                 _ => {}
             };
-        });
+        }
+        bean
     }
 
     /**
     Adds the field to the to the tree as a dependency. Replace with DepImpl...
     **/
     pub fn match_ty_add_dep(
-        &mut self,
-        dep_impl: &mut DepImpl,
+        &self,
+        mut dep_impl: Bean,
         lifetime: Option<Lifetime>,
         array_type: Option<TypeArray>,
         field: Field,
-    ) {
-        ParseContainer::get_autowired_field_dep(field.attrs.clone(), field.clone())
-            .map(|autowired| {
+    ) -> Bean {
+        let autowired = ParseContainer::get_autowired_field_dep(field.attrs.clone(), field.clone());
+        match autowired {
+            None => {
+                dep_impl
+            }
+            Some(autowired) => {
                 println!("Found field with type {}.", autowired.field.ty.to_token_stream().to_string().clone());
                 if autowired.field.ident.is_some() {
                     println!("Found field with ident {}.", autowired.field.ident.to_token_stream().to_string().clone());
@@ -330,57 +361,32 @@ impl ParseContainer {
                 match field.ty.clone() {
                     Type::Array(arr) => {
                         println!("found array type {}.", arr.to_token_stream().to_string().clone());
-                        self.add_type_dep(dep_impl, autowired, lifetime, Some(arr));
-                    }
-                    Type::Group(grp) => {
-                        println!("found group type {}.", grp.to_token_stream().to_string().clone());
-                    }
-                    Type::Infer(grp) => {
-                        println!("found infer type {}.", grp.to_token_stream().to_string().clone());
-                    }
-                    Type::Macro(grp) => {
-                        println!("found macro type {}.", grp.to_token_stream().to_string().clone());
-                    }
-                    Type::Paren(grp) => {
-                        println!("found paren type {}.", grp.to_token_stream().to_string().clone());
+                        dep_impl = self.add_type_dep(dep_impl, autowired, lifetime, Some(arr));
                     }
                     Type::Path(path) => {
-                        println!("Not adding path: {} yet.", path.path.to_token_stream().to_string().clone());
-                        path.qself.map(|q_self| {
-                            println!("Asserting that {} and {} are the same.", q_self.ty.clone().to_token_stream().clone(), field.clone().to_token_stream().to_string().clone());
-                        });
-                        // self.add_type_dep();
+                        println!("Adding type path.");
+                        //TODO: extension point for lazy
+                        dep_impl = self.add_type_dep(dep_impl, autowired, lifetime, array_type);
                     }
                     Type::Reference(reference_found) => {
                         let ref_type = reference_found.elem.clone();
                         println!("{} is the ref type", ref_type.to_token_stream());
-                        if lifetime.is_some() {
-                            println!("Cannot add nested references - failed to add autowired field {} to container.", autowired.field.to_token_stream().to_string().clone());
-                        } else {
-                            self.add_type_dep(dep_impl, autowired, reference_found.lifetime, array_type);
-                        }
+                        dep_impl = self.add_type_dep(dep_impl, autowired, reference_found.lifetime, array_type);
                     }
-                    Type::Slice(grp) => {
-                        println!("found slice type {}.", grp.to_token_stream().to_string().clone());
-                    }
-                    Type::TraitObject(grp) => {
-                        println!("found trait object type {}.", grp.to_token_stream().to_string().clone());
-                    }
-                    Type::Tuple(grp) => {
-                        println!("found tuple type {}.", grp.to_token_stream().to_string().clone());
-                    }
-                    some_other => {
-                        println!("found type {} but did not add.", some_other.to_token_stream().to_string().clone());
+                    _ => {
+                        dep_impl = self.add_type_dep(dep_impl, autowired, lifetime, array_type)
                     }
                 };
-            });
+                dep_impl
+            }
+        }
     }
 
     pub fn add_fn_to_dep_types(&mut self, item_fn: &mut ItemFn) {
         ParseContainer::get_fn_type(item_fn.clone())
             .map(|fn_found| {
                 self.fns.insert(item_fn.clone().type_id().clone(), ModulesFunctions{ fn_found: fn_found.clone() });
-                for i_type in self.injectable_types.iter_mut() {
+                for i_type in self.injectable_types_builder.iter_mut() {
                     for dep_type in i_type.1.deps_map.iter_mut() {
                         if dep_type.bean_type.is_none() {
                             match &fn_found {
@@ -411,18 +417,21 @@ impl ParseContainer {
                     }
                 }
             });
+
+
     }
 
 
     pub fn add_type_dep(
-        &mut self, dep_impl: &mut DepImpl, field_to_add: AutowiredField, lifetime: Option<Lifetime>, array_type: Option<TypeArray>
-    )
+        &self, mut dep_impl: Bean, field_to_add: AutowiredField, lifetime: Option<Lifetime>, array_type: Option<TypeArray>
+    ) -> Bean
     {
+        println!("Adding dependency for {}.", dep_impl.id.clone());
         let type_dep = &field_to_add.field.clone().ty.to_token_stream().to_string();
-        let contains_key = self.injectable_types.contains_key(type_dep);
-        let struct_exists = self.injectable_types.get_mut(&field_to_add.field.clone().ty.to_token_stream().to_string()).is_some();
-        let autowired_qualifier = field_to_add.qualifier.clone().is_some();
-        if autowired_qualifier && contains_key && struct_exists {
+        let contains_key = self.injectable_types_builder.contains_key(type_dep);
+        let struct_exists = self.injectable_types_builder.get(&field_to_add.field.clone().ty.to_token_stream().to_string()).is_some();
+        let autowired_qualifier = field_to_add.clone().qualifier.or(Some(field_to_add.type_of_field.to_token_stream().to_string().clone()));
+        if autowired_qualifier.is_some() && contains_key && struct_exists {
 
             dep_impl.ident.clone().map(|ident| {
                 println!("Adding dependency with id {} to struct_impl of name {}", dep_impl.id.clone(), ident.to_string().clone());
@@ -432,16 +441,15 @@ impl ParseContainer {
             });
 
             let bean_type = self.get_fn_for_qualifier(
-                field_to_add.qualifier.clone(),
+                autowired_qualifier.clone(),
                 Some(field_to_add.type_of_field.clone())
             ).map(|fn_type| {
-                ParseContainer::get_bean_type_from_qual(field_to_add.qualifier.clone(), None, fn_type)
+                ParseContainer::get_bean_type_from_qual(autowired_qualifier, None, fn_type)
             })
                 .or(None);
 
             if bean_type.is_some() {
-                self.injectable_types.get_mut(dep_impl.id.as_str())
-                    .unwrap()
+                dep_impl
                     .deps_map
                     .push(DepType {
                         bean_info: field_to_add,
@@ -450,8 +458,7 @@ impl ParseContainer {
                         array_type
                     });
             } else {
-                self.injectable_types.get_mut(dep_impl.id.as_str())
-                    .unwrap()
+                dep_impl
                     .deps_map
                     .push(DepType {
                         bean_info: field_to_add,
@@ -470,6 +477,8 @@ impl ParseContainer {
                 println!("Dependency did not exist in module container.")
             }
         }
+
+        dep_impl
     }
 
     fn get_fn_for_qualifier(&self, qualifier: Option<String>, type_of: Option<Type>) -> Option<FunctionType> {
@@ -588,15 +597,17 @@ impl ParseContainer {
         println!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
         attrs.iter().map(|attr| {
             println!("Checking attribute: {} for field.", attr.to_token_stream().to_string().clone());
+            let mut autowired_field = AutowiredField{
+                qualifier: None,
+                lazy: false,
+                field: field.clone(),
+                type_of_field: field.ty.clone(),
+            };
             ParseContainer::get_qualifier_from_autowired(attr.clone())
                 .map(|autowired_value| {
-                    AutowiredField{
-                        qualifier: None,
-                        lazy: false,
-                        field: field.clone(),
-                        type_of_field: field.ty.clone(),
-                    }
-                })
+                    autowired_field.qualifier = Some(autowired_value);
+                });
+            Some(autowired_field)
         }).next().unwrap_or_else(|| {
             println!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
             None

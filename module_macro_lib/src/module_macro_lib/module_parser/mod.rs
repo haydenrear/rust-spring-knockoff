@@ -39,8 +39,6 @@ pub fn parse_module(mut found: Item) -> TokenStream {
     }
 }
 
-
-
 pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer) {
     item_found.content.iter_mut()
         .flat_map(|mut c| c.1.iter_mut())
@@ -56,14 +54,13 @@ pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
         .or_else(|| None)
 }
 
-
-
 pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
     match i {
         Item::Const(const_val) => {
             println!("Found const val {}.", const_val.to_token_stream().clone());
         }
         Item::Enum(enum_type) => {
+            println!("Found enum val {}.", enum_type.to_token_stream().clone());
             app_container.add_item_enum(enum_type);
         }
         Item::Fn(fn_type) => {
