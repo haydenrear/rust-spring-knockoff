@@ -24,10 +24,13 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
+use crate::module_macro_lib::bean_parser::BeanParser;
+use crate::module_macro_lib::fn_parser::FnParser;
 use crate::module_macro_lib::module_parser::parse_item;
 use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType};
 use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::spring_knockoff_context::ApplicationContextGenerator;
+use crate::module_macro_lib::util::ParseUtil;
 
 
 #[derive(Default)]
@@ -43,7 +46,7 @@ impl ParseContainer {
     /**
     Generate the token stream from the created ModuleContainer tree.
      **/
-    pub fn to_token_stream(&mut self) -> proc_macro2::TokenStream {
+    pub fn build_to_token_stream(&mut self) -> TokenStream {
 
         self.log_app_container_info();
 
@@ -283,7 +286,7 @@ impl ParseContainer {
                 struct_impl.struct_found = Some(item_impl.clone());
                 struct_impl.ident =  Some(item_impl.ident.clone());
                 struct_impl.fields = vec![item_impl.fields.clone()];
-                struct_impl.bean_type = ParseContainer::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone()));
+                struct_impl.bean_type = BeanParser::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone()));
                 struct_impl.id = item_impl.ident.clone().to_string();
             })
             .or_else(|| {
@@ -298,7 +301,7 @@ impl ParseContainer {
                     profile: vec![],
                     ident: Some(item_impl.ident.clone()),
                     fields: vec![item_impl.fields.clone()],
-                    bean_type: ParseContainer::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone()))
+                    bean_type: BeanParser::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone()))
                 };
                 self.injectable_types_builder.insert(item_impl.ident.to_string().clone(), impl_found);
                 None
@@ -307,18 +310,6 @@ impl ParseContainer {
         self.set_deps_safe(item_impl.ident.to_string().as_str());
         Some(item_impl.ident.to_string().clone())
 
-    }
-
-    pub fn get_bean_type(attr: &Vec<Attribute>, bean_type: Option<Type>, bean_type_ident: Option<Ident>) -> Option<BeanType> {
-        Self::get_prototype_or_singleton(attr, bean_type, bean_type_ident)
-            .map(|bean_type| {
-                println!("{:?} is the bean type", bean_type);
-                bean_type
-            })
-            .or_else(|| {
-                println!("Could not find bean type");
-                None
-            })
     }
 
     pub fn add_item_enum(&mut self, enum_to_add: &mut ItemEnum) {
@@ -342,7 +333,7 @@ impl ParseContainer {
                     profile: vec![],
                     ident: Some(enum_to_add.ident.clone()),
                     fields: enum_fields,
-                    bean_type: ParseContainer::get_bean_type(&enum_to_add.attrs, None, Some(enum_to_add.ident.clone()))
+                    bean_type: BeanParser::get_bean_type(&enum_to_add.attrs, None, Some(enum_to_add.ident.clone()))
                 };
                 self.injectable_types_builder.insert(enum_to_add.ident.to_string().clone(), impl_found);
                 None
@@ -434,7 +425,7 @@ impl ParseContainer {
     }
 
     pub fn add_fn_to_dep_types(&mut self, item_fn: &mut ItemFn) {
-        ParseContainer::get_fn_type(item_fn.clone())
+        FnParser::to_fn_type(item_fn.clone())
             .map(|fn_found| {
                 self.fns.insert(item_fn.clone().type_id().clone(), ModulesFunctions{ fn_found: fn_found.clone() });
                 for i_type in self.injectable_types_builder.iter_mut() {
@@ -491,11 +482,12 @@ impl ParseContainer {
                 None
             });
 
-            let bean_type = self.get_fn_for_qualifier(
+            let bean_type = FnParser::get_fn_for_qualifier(
+                &self.fns,
                 autowired_qualifier.clone(),
                 Some(field_to_add.type_of_field.clone())
             ).map(|fn_type| {
-                ParseContainer::get_bean_type_from_qual(autowired_qualifier, None, fn_type)
+                BeanParser::get_bean_type_from_qual(autowired_qualifier, None, fn_type)
             })
                 .or(None);
 
@@ -532,120 +524,6 @@ impl ParseContainer {
         dep_impl
     }
 
-    fn get_fn_for_qualifier(&self, qualifier: Option<String>, type_of: Option<Type>) -> Option<FunctionType> {
-        for module_fn_entry in &self.fns {
-            match &module_fn_entry.1.fn_found  {
-                FunctionType::Singleton(_, fn_qualifier, type_of_fn) => {
-                    if type_of.is_some().clone() == type_of_fn.is_some().clone() && type_of.clone().unwrap().to_token_stream().to_string().as_str() == type_of_fn.clone().unwrap().to_token_stream().to_string().as_str() {
-                        return Some(module_fn_entry.1.fn_found.clone())
-                    } else if qualifier.is_some().clone() && fn_qualifier.is_some().clone() && qualifier.clone().unwrap().as_str() == fn_qualifier.clone().unwrap().as_str() {
-                        return Some(module_fn_entry.1.fn_found.clone())
-                    }
-                }
-                FunctionType::Prototype(_, qualifier, _) => {
-                    // if fn_qualifier.filter(|qual| qual == qualifier).is_some() {
-                    //     return Some(module_fn_entry.1.fn_found.clone())
-                    // }
-                    //TODO:
-                    return None;
-                }
-            }
-        }
-        None
-    }
-
-    fn get_fn_type(fn_found: ItemFn) -> Option<FunctionType> {
-        Self::filter_singleton_prototype(&fn_found.attrs)
-            .iter()
-            .flat_map(|attr| {
-                    match fn_found.sig.output.clone() {
-                        ReturnType::Default => {
-                            if attr.to_token_stream().to_string().contains("singleton") {
-                                Some(FunctionType::Singleton(
-                                    fn_found.clone(),
-                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string().as_str())
-                                        .map(|qual| String::from(qual)),
-                                    None
-                                ))
-                            } else if attr.to_token_stream().to_string().contains("prototype") {
-                                Some(FunctionType::Prototype(
-                                    fn_found.clone(),
-                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string().as_str())
-                                        .map(|qual| String::from(qual)),
-                                    None
-                                ))
-                            } else {
-                                None
-                            }
-                        }
-                        ReturnType::Type(_, ty) => {
-                            if attr.to_token_stream().to_string().contains("singleton") {
-                                Some(FunctionType::Singleton(
-                                    fn_found.clone(),
-                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string().as_str())
-                                        .map(|qual| String::from(qual)),
-                                    Some(ty.deref().clone())
-                                ))
-                            } else if attr.to_token_stream().to_string().contains("prototype") {
-                                Some(FunctionType::Prototype(
-                                    fn_found.clone(),
-                                    ParseContainer::strip_value(attr.path.to_token_stream().to_string().as_str())
-                                        .map(|qual| String::from(qual)),
-                                    Some(ty.deref().clone())
-                                ))
-                            } else {
-                                None
-                            }
-                        }
-                    }
-            })
-            .next()
-    }
-
-    fn get_prototype_or_singleton(attr: &Vec<Attribute>, bean_type: Option<Type>, bean_type_ident: Option<Ident>) -> Option<BeanType> {
-        Self::filter_singleton_prototype(attr)
-            .and_then(|s| {
-                let qualifier = Self::strip_value_attr(s);
-
-                qualifier.iter()
-                    .for_each(|qual|
-                        println!("Found bean with qualifier {}.", qual)
-                    );
-
-                println!("Found bean with attr {}.", s.to_token_stream().to_string().as_str());
-                if s.path.to_token_stream().to_string().as_str().contains("singleton") {
-                    return Some(BeanType::Singleton(BeanDefinition{
-                        qualifier: qualifier,
-                        bean_type_type: bean_type,
-                        bean_type_ident
-                    }, None))
-                        .map(|bean_type| {
-                            println!("Found singleton bean: {:?}.", bean_type);
-                            bean_type
-                        })
-                } else if s.path.to_token_stream().to_string().as_str().contains("prototype") {
-                    return Some(BeanType::Prototype(BeanDefinition{
-                        qualifier: qualifier,
-                        bean_type_type: bean_type,
-                        bean_type_ident
-                    }, None))
-                        .map(|bean_type| {
-                            println!("Found singleton bean: {:?}.", bean_type);
-                            bean_type
-                        })
-                }
-                None
-            })
-    }
-
-    fn filter_singleton_prototype(attr: &Vec<Attribute>) -> Option<&Attribute> {
-        attr.into_iter()
-            .filter(|&attr| {
-                let attr_name = attr.to_token_stream().to_string();
-                println!("Checking attribute: {} for fn.", attr_name.clone());
-                attr_name.contains("singleton") || attr_name.contains("prototype")
-            }).next()
-    }
 
     pub fn get_autowired_field_dep(attrs: Vec<Attribute>, field: Field) -> Option<AutowiredField> {
         println!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
@@ -668,93 +546,11 @@ impl ParseContainer {
         })
     }
 
-    pub fn strip_value(value: &str) -> Option<String> {
-        println!("Stripping prefix {}.", value);
-        value.strip_prefix("#[singleton(")
-            .map(|without_singleton| {
-                println!("{} is without singleton", without_singleton);
-                without_singleton.strip_prefix("#[prototype(")
-                    .or(Some(without_singleton)).unwrap()
-            })
-            .map(|without_prefix| {
-                println!("{} is without singleton and prototype", without_prefix);
-                without_prefix.strip_suffix(")]")
-                    .map(|str| String::from(str))
-                    .or(None)
-            }).unwrap_or(None).map(|value_found| {
-                println!("Found bean with qualifier {}.", value_found.as_str());
-                value_found
-            })
-    }
-
-    pub fn strip_value_attr(attr: &Attribute) -> Option<String> {
-        Self::strip_value(attr.to_token_stream().to_string().as_str())
-    }
-
     pub fn get_qualifier_from_autowired(autowired_attr: Attribute) -> Option<String> {
         if autowired_attr.path.to_token_stream().to_string().clone().contains("autowired") {
-            return ParseContainer::strip_value(autowired_attr.path.to_token_stream().to_string().as_str());
+            return ParseUtil::strip_value(autowired_attr.path.to_token_stream().to_string().as_str());
         }
         None
-    }
-
-    pub fn get_bean_type_from_factory_fn(attrs: Vec<Attribute>, module_fn: ModulesFunctions) -> Option<BeanType> {
-        if attrs.iter().any(|attr| {
-            let attr_str = attr.to_token_stream().to_string();
-            attr_str.contains("bean") || attr_str.contains("singleton") || attr_str.contains("prototype")
-        }) {
-            return attrs.iter().flat_map(|attr| {
-                let qualifier = ParseContainer::strip_value(attr.path.to_token_stream().to_string().as_str());
-                if attr.to_token_stream().to_string().contains("singleton") {
-                    return Some(
-                        BeanType::Singleton(
-                            BeanDefinition{
-                                qualifier,
-                                bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn.fn_found),
-                                bean_type_ident: None
-                            },
-                            Some(module_fn.fn_found.clone())
-                        ));
-                } else if attr.to_token_stream().to_string().contains("prototype") {
-                    return Some(BeanType::Prototype(
-                        BeanDefinition{
-                            qualifier,
-                            bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn.fn_found),
-                            bean_type_ident: None
-                        },
-                        Some(module_fn.fn_found.clone())
-                    ));
-                }
-                None
-            }).next()
-        }
-        None
-    }
-
-    pub fn get_bean_type_from_qual(qualifier: Option<String>, type_type: Option<Type>, module_fn: FunctionType) -> Option<BeanType> {
-        match &module_fn {
-            FunctionType::Singleton(_, qualifier_found, _) => {
-                return Some(
-                    BeanType::Singleton(
-                        BeanDefinition{
-                            qualifier: qualifier_found.clone(),
-                            bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn),
-                            bean_type_ident: None
-                        },
-                        Some(module_fn)
-                    ));
-            }
-            FunctionType::Prototype(_, qualifier_found, _) => {
-                return Some(BeanType::Prototype(
-                    BeanDefinition{
-                        qualifier: qualifier_found.clone(),
-                        bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn),
-                        bean_type_ident: None
-                    },
-                    Some(module_fn)
-                ));
-            }
-        }
     }
 
     pub fn get_type_from_fn_type(fn_type: &FunctionType) -> Option<Type> {

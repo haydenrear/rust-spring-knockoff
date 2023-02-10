@@ -27,7 +27,7 @@ pub fn parse_module(mut found: Item) -> TokenStream {
         Item::Mod(ref mut module_found) => {
             let mut container = ParseContainer::default();
             parse_item_recursive(module_found, &mut container);
-            let container_tokens = container.to_token_stream();
+            let container_tokens = container.build_to_token_stream();
             quote!(
                 #found
                 #container_tokens
