@@ -19,7 +19,7 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
-use crate::module_macro_lib::app_container::{ParseContainer};
+use crate::module_macro_lib::parse_container::{ParseContainer};
 
 #[derive(Clone)]
 pub struct Bean {

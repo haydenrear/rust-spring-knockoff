@@ -7,8 +7,7 @@ use syn::Type;
 use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile};
 
 
-pub struct ApplicationContextGenerator {
-}
+pub struct ApplicationContextGenerator;
 
 impl ApplicationContextGenerator {
 

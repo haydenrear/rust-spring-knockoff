@@ -1,6 +1,6 @@
 #![feature(pattern)]
 pub mod module_macro_lib {
-    pub mod app_container;
+    pub mod parse_container;
     pub mod module_parser;
     pub mod module_tree;
     pub mod spring_knockoff_context;
@@ -8,6 +8,7 @@ pub mod module_macro_lib {
     pub mod fn_parser;
     pub mod util;
     pub mod bean_parser;
+    pub mod context_builder;
 }
 
 #[cfg(test)]
@@ -18,8 +19,8 @@ mod tests {
     use base64::decode;
     use quote::ToTokens;
     use syn::{Item, parse_macro_input};
-    use crate::module_macro_lib::app_container::ParseContainer;
     use crate::module_macro_lib::module_parser::{parse_item_recursive, parse_module};
+    use crate::module_macro_lib::parse_container::ParseContainer;
     use super::*;
 
     #[test]

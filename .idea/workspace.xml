@@ -6,16 +6,19 @@
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
     <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="profile tree parsing">
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/fn_parser/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/util/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactor">
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/fn_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/fn_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -277,7 +280,7 @@
       <workItem from="1673959355319" duration="1727000" />
       <workItem from="1674439958777" duration="26764000" />
       <workItem from="1674940301289" duration="2587000" />
-      <workItem from="1675868087594" duration="38589000" />
+      <workItem from="1675868087594" duration="40861000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <created>1668363611774</created>
@@ -573,7 +576,14 @@
       <option name="project" value="LOCAL" />
       <updated>1676045954000</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="refactor">
+      <created>1676051521271</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1676051521271</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -614,7 +624,8 @@
     <MESSAGE value="singleton" />
     <MESSAGE value="Updated" />
     <MESSAGE value="profile tree parsing" />
-    <option name="LAST_COMMIT_MESSAGE" value="profile tree parsing" />
+    <MESSAGE value="refactor" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -624,12 +635,12 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs</url>
+          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
           <line>203</line>
           <option name="timeStamp" value="55" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/app_container/mod.rs</url>
+          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
           <line>48</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>

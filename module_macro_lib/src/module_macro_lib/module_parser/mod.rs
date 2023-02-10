@@ -19,7 +19,7 @@ use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStre
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use proc_macro2::TokenStream;
-use crate::module_macro_lib::app_container::ParseContainer;
+use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::module_tree::TestFieldAdding;
 
 pub fn parse_module(mut found: Item) -> TokenStream {
