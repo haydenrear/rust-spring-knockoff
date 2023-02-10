@@ -60,7 +60,7 @@ fn test_module_macro() {
     };
 
 
-    let listable = ListableBeanFactory::new();
+    let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
     let one_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
     let two_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();

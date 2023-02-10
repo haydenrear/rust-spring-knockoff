@@ -10,6 +10,7 @@ use std::ptr::slice_from_raw_parts;
 use std::slice::Iter;
 use std::str::pattern::Pattern;
 use std::sync::{Arc, Mutex};
+use proc_macro2::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum, ReturnType};
 use syn::__private::str;
 use syn::parse::Parser;
@@ -24,14 +25,15 @@ use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStre
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use crate::module_macro_lib::module_parser::parse_item;
-use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType};
+use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType};
+use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::spring_knockoff_context::ApplicationContextGenerator;
 
 
 #[derive(Default)]
 pub struct ParseContainer {
     pub injectable_types_builder: HashMap<String, Bean>,
-    pub injectable_types_map: HashMap<InjectableTypeKey, Bean>,
+    pub injectable_types_map: ProfileTree,
     pub traits: HashMap<String, Trait>,
     pub fns: HashMap<TypeId, ModulesFunctions>,
     pub profiles: Vec<Profile>
@@ -41,104 +43,153 @@ impl ParseContainer {
     /**
     Generate the token stream from the created ModuleContainer tree.
      **/
-    pub fn to_token_stream(&self) -> proc_macro2::TokenStream {
+    pub fn to_token_stream(&mut self) -> proc_macro2::TokenStream {
 
         self.log_app_container_info();
 
+        self.build_injectable();
+
         let mut token = quote! {};
 
+        let mut profile_map = HashMap::new();
 
-        for token_type in &self.injectable_types_builder {
-            println!("Implementing container for {} if is not none and implements Default.", token_type.1.id.clone());
-            if token_type.1.struct_type.is_some() || token_type.1.ident.is_some() {
-
-
-                let field_types = token_type.1.deps_map
-                    .clone().iter()
-                    .map(|d| d.bean_info.type_of_field.clone())
-                    .collect::<Vec<Type>>();
-
-                let identifiers = token_type.1.deps_map
-                    .clone().iter()
-                    .flat_map(|d| {
-                        match &d.bean_info.field.ident {
-                            None => {
-                                vec![]
-                            }
-                            Some(identifier) => {
-                                vec![identifier.clone()]
-                            }
-                        }
-                    })
-                    .collect::<Vec<Ident>>();
-
-                if token_type.1.struct_type.is_some() {
-
-                    let struct_type =  token_type.1.struct_type.clone()
-                        .unwrap();
-
-                    println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
-
-                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
-                        field_types, identifiers, struct_type
-                    );
-                    token.append_all(this_struct_impl);
-                } else if token_type.1.ident.is_some() {
-
-                    let struct_type =  token_type.1.ident.clone()
-                        .unwrap();
-
-                    println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
-
-                    let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
-                        field_types, identifiers, struct_type
-                    );
-
-                    token.append_all(this_struct_impl);
-
+        self.injectable_types_map.injectable_types.iter()
+            .flat_map(|bean_def_type_profile| bean_def_type_profile.1.iter()
+                .map(move |bean_def_type| (bean_def_type_profile.0, bean_def_type))
+            )
+            .for_each(|bean_def_type_profile| {
+                match bean_def_type_profile.1 {
+                    BeanDefinitionType::Abstract { bean, dep_type } => {
+                        Self::implement_abstract_autowire(&mut token, bean, bean_def_type_profile.0);
+                        Self::insert_into_profile_map(&mut profile_map, bean_def_type_profile, bean);
+                    }
+                    BeanDefinitionType::Concrete { bean } => {
+                        Self::implement_concrete_autowire(&mut token, bean, bean_def_type_profile.0);
+                        Self::insert_into_profile_map(&mut profile_map, bean_def_type_profile, bean);
+                    }
                 }
+            });
 
-            }
-
-        }
-
-        let deps = self.injectable_types_builder.values()
-            .into_iter()
-            .collect::<Vec<&Bean>>();
-
-        let listable_bean_factory = ApplicationContextGenerator::new_listable_bean_factory(deps, "DefaultProfile".to_string());
-
-        token.extend(listable_bean_factory.into_iter());
-
-        token.append_all(ApplicationContextGenerator::finish_abstract_factory(vec!["DefaultProfile".to_string()]));
+        self.finish_writing_factory(&mut token, profile_map);
 
         token
 
     }
 
-    pub fn get_bean_profiles(&self) -> HashMap<String, Vec<Bean>> {
-        HashMap::new()
+    fn insert_into_profile_map(mut profile_map: &mut HashMap<Profile, Vec<Bean>>, bean_def_type_profile: (&Profile, &BeanDefinitionType), bean: &Bean) {
+        if profile_map.contains_key(bean_def_type_profile.0) {
+            profile_map.get_mut(bean_def_type_profile.0)
+                .map(|beans| beans.push(bean.clone()));
+        } else {
+            let bean_vec = vec![bean.clone()];
+            profile_map.insert(bean_def_type_profile.0.clone(), bean_vec);
+        }
     }
 
-    pub fn build_injectable_types(map: &HashMap<String, Bean>) -> HashMap<InjectableTypeKey, Bean> {
+    fn finish_writing_factory(&mut self, token: &mut TokenStream, beans: HashMap<Profile, Vec<Bean>>) {
+
+        beans.iter().for_each(|profile_type| {
+            println!("Creating bean factory for profile type: {}.", profile_type.0.profile.clone());
+            let listable_bean_factory = ApplicationContextGenerator::new_listable_bean_factory(
+                profile_type.1.clone(),
+                profile_type.0.clone()
+            );
+
+            token.extend(listable_bean_factory.into_iter());
+
+            token.append_all(ApplicationContextGenerator::finish_abstract_factory(vec![profile_type.0.profile.clone()]));
+        })
+
+    }
+
+    fn implement_abstract_autowire(mut token: &mut TokenStream, token_type: &Bean, profile: &Profile) {
+
+        let (field_types, identifiers) = Self::get_field_ids(token_type);
+
+        if token_type.struct_type.is_some() {
+            let struct_type = token_type.struct_type.clone()
+                .unwrap();
+            Self::implement_abstract_code(&mut token, &field_types, &identifiers, &struct_type);
+        } else if token_type.ident.is_some() {
+            let struct_type = token_type.ident.clone()
+                .unwrap();
+            Self::implement_abstract_code(&mut token, &field_types, &identifiers, &struct_type);
+        }
+    }
+
+    fn implement_concrete_autowire(mut token: &mut TokenStream, token_type: &Bean, profile: &Profile) {
+
+        let (field_types, identifiers) = Self::get_field_ids(token_type);
+
+        if token_type.struct_type.is_some() {
+            let struct_type = token_type.struct_type.clone()
+                .unwrap();
+            Self::implement_autowire_code(&mut token, &field_types, &identifiers, &struct_type);
+        } else if token_type.ident.is_some() {
+            let struct_type = token_type.ident.clone()
+                .unwrap();
+            Self::implement_autowire_code(&mut token, &field_types, &identifiers, &struct_type);
+        }
+    }
+
+    fn get_field_ids(token_type: &Bean) -> (Vec<Type>, Vec<Ident>) {
+        let field_types = token_type.deps_map
+            .clone().iter()
+            .map(|d| d.bean_info.type_of_field.clone())
+            .collect::<Vec<Type>>();
+
+        let identifiers = token_type.deps_map
+            .clone().iter()
+            .flat_map(|d| {
+                match &d.bean_info.field.ident {
+                    None => {
+                        vec![]
+                    }
+                    Some(identifier) => {
+                        vec![identifier.clone()]
+                    }
+                }
+            })
+            .collect::<Vec<Ident>>();
+        (field_types, identifiers)
+    }
+
+    fn implement_autowire_code<T: ToTokens>(token: &mut TokenStream, field_types: &Vec<Type>, identifiers: &Vec<Ident>, struct_type: &T) {
+        println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+
+        let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
+            &field_types, &identifiers, &struct_type
+        );
+
+        token.append_all(this_struct_impl);
+    }
+
+    fn implement_abstract_code<T: ToTokens>(token: &mut TokenStream, field_types: &Vec<Type>, identifiers: &Vec<Ident>, struct_type: &T) {
+        println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+
+        let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_abstract(
+            &field_types, &identifiers, &struct_type
+        );
+
+        token.append_all(this_struct_impl);
+    }
+
+    pub fn build_concrete_types(map: &HashMap<String, Bean>) -> HashMap<InjectableTypeKey, Bean> {
         let mut return_map = HashMap::new();
         for i_type in map.iter() {
-            return_map.insert(InjectableTypeKey { underlying_type: i_type.0.clone(), impl_type: None, profile: i_type.1.profile.clone() }, i_type.1.clone());
-            for id in &i_type.1.traits_impl {
-                let i_key = InjectableTypeKey {
-                    underlying_type: i_type.0.clone(),
-                    impl_type: Some(id.item_impl.self_ty.to_token_stream().to_string().clone()),
-                    profile: id.profile.clone()
-                };
-                return_map.insert(i_key, i_type.1.clone());
-            }
+            return_map.insert(InjectableTypeKey {
+                underlying_type: i_type.0.clone(),
+                impl_type: None,
+                profile: i_type.1.profile.clone()
+            }, i_type.1.clone());
         }
         return_map
     }
 
     pub fn build_injectable(&mut self) {
-        let injectables = Self::build_injectable_types(&self.injectable_types_builder);
-        self.injectable_types_map = injectables;
+        self.injectable_types_map = ProfileTree::new(&self.injectable_types_builder);
+        println!("{:?} is the debugged tree.", &self.injectable_types_map);
+        println!("{} is the number of injectable types.", &self.injectable_types_builder.len());
     }
 
     /**
@@ -147,7 +198,7 @@ impl ParseContainer {
     **/
     pub fn is_valid_ordering_create(&self) -> Vec<String> {
         let mut already_processed = vec![];
-        for i_type in self.injectable_types_map.iter() {
+        for i_type in self.injectable_types_builder.iter() {
             if !self.is_valid_ordering(&mut already_processed, i_type.1) {
                 println!("Was not valid ordering!");
                 return vec![];
@@ -555,9 +606,12 @@ impl ParseContainer {
         Self::filter_singleton_prototype(attr)
             .and_then(|s| {
                 let qualifier = Self::strip_value_attr(s);
-                qualifier.iter().map(|qual| {
-                    println!("Found bean with qualifier {}.", qual);
-                });
+
+                qualifier.iter()
+                    .for_each(|qual|
+                        println!("Found bean with qualifier {}.", qual)
+                    );
+
                 println!("Found bean with attr {}.", s.to_token_stream().to_string().as_str());
                 if s.path.to_token_stream().to_string().as_str().contains("singleton") {
                     return Some(BeanType::Singleton(BeanDefinition{

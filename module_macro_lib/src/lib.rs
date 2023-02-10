@@ -4,6 +4,7 @@ pub mod module_macro_lib {
     pub mod module_parser;
     pub mod module_tree;
     pub mod spring_knockoff_context;
+    pub mod profile_tree;
 }
 
 #[cfg(test)]

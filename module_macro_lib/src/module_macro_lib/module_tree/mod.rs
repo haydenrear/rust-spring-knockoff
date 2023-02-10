@@ -37,6 +37,16 @@ pub struct Bean {
     pub bean_type: Option<BeanType>
 }
 
+#[derive(Clone)]
+pub enum BeanDefinitionType {
+    Abstract {
+        bean: Bean,
+        dep_type: AutowireType
+    }, Concrete {
+        bean: Bean
+    }
+}
+
 /**
 Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
  **/
@@ -62,9 +72,17 @@ pub struct AutowireType {
     pub profile: Vec<Profile>
 }
 
-#[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash)]
+#[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash, Debug)]
 pub struct Profile {
-    profile: Vec<String>,
+    pub(crate) profile: String,
+}
+
+impl Default for Profile {
+    fn default() -> Self {
+        Self {
+            profile: "DefaultProfile".to_string()
+        }
+    }
 }
 
 #[derive(Clone)]

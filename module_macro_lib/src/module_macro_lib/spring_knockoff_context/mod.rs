@@ -4,7 +4,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::__private::TokenStream2;
 use syn::Type;
-use crate::module_macro_lib::module_tree::{BeanType, Bean};
+use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile};
 
 
 pub struct ApplicationContextGenerator {
@@ -140,7 +140,9 @@ impl ApplicationContextGenerator {
         ts.into()
     }
 
-    pub fn new_listable_bean_factory(beans_to_provide: Vec<&Bean>, profile_name_str: String) -> TokenStream {
+    pub fn new_listable_bean_factory(beans_to_provide: Vec<Bean>, profile: Profile) -> TokenStream {
+        let profile_name_str = profile.profile;
+
         let profile_name = Ident::new(profile_name_str.as_str(), Span::call_site());
 
         let mut singleton_idents = vec![];
@@ -155,11 +157,11 @@ impl ApplicationContextGenerator {
                 match bean_type {
                     BeanType::Singleton(_, _) => {
                         println!("adding bean dep impl with type {} as singleton!", bean.id.clone());
-                        Self::add_to(&mut singleton_idents, &mut singleton_types, bean);
+                        Self::add_to(&mut singleton_idents, &mut singleton_types, &bean);
                     }
                     BeanType::Prototype(_, _) => {
                         println!("adding bean dep impl with type {} as prototype!", bean.id.clone());
-                        Self::add_to(&mut prototype_idents, &mut prototype_types, bean);
+                        Self::add_to(&mut prototype_idents, &mut prototype_types, &bean);
                     }
                 };
                 None::<BeanType>
@@ -249,7 +251,7 @@ impl ApplicationContextGenerator {
         }
     }
 
-    pub fn gen_autowire_code_gen_concrete<T: ToTokens>(field_types: Vec<Type>, field_idents: Vec<Ident>, struct_type: T)
+    pub fn gen_autowire_code_gen_concrete<T: ToTokens>(field_types: &Vec<Type>, field_idents: &Vec<Ident>, struct_type: &T)
                                                        -> TokenStream2 {
         let injectable_code = quote! {
 
@@ -281,6 +283,44 @@ impl ApplicationContextGenerator {
                     }
 
                 }
+
+        };
+
+        injectable_code.into()
+    }
+
+    pub fn gen_autowire_code_gen_abstract<T: ToTokens>(field_types: &Vec<Type>, field_idents: &Vec<Ident>, struct_type: &T)
+                                                       -> TokenStream2 {
+        let injectable_code = quote! {
+
+                // impl BeanFactory<#struct_type> for ListableBeanFactory {
+                //     fn get_bean(&self) -> BeanDefinition<#struct_type> {
+                //         let this_component = <BeanDefinition<#struct_type>>::get_bean(&self);
+                //         this_component
+                //     }
+                // }
+                //
+                // impl FactoryBean<#struct_type> for BeanDefinition<#struct_type> {
+                //
+                //     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<#struct_type> {
+                //         let mut inner = #struct_type::default();
+                //         #(
+                //             inner.#field_idents = ListableBeanFactory::<#field_types>::get_bean(listable_bean_factory);
+                //         )*
+                //         Self {
+                //             inner: Arc::new(inner)
+                //         }
+                //     }
+                //
+                //     fn get_bean_type_id(&self) -> TypeId {
+                //         self.inner.deref().type_id().clone()
+                //     }
+                //
+                //     fn is_singleton() -> bool {
+                //         true
+                //     }
+                //
+                // }
 
         };
 
