@@ -6,23 +6,6 @@ pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
 
-pub struct Types {
-    pub values: Mutex<HashMap<String, String>>,
-}
-
-lazy_static! {
-    pub static ref types: Arc<Types> = Arc::new(Types {
-        values: Mutex::new(HashMap::new())
-    });
-}
-
-#[macro_export]
-macro_rules! last_thing {
-    ($ident:ident) => {
-        let x = types.values.lock().unwrap().get(&String::from("hello"));
-        println!("x");
-    };
-}
 
 
 #[cfg(test)]

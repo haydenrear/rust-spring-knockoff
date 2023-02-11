@@ -14,7 +14,6 @@ use syn::{
 };
 use syn::token::Type;
 
-use delegator_macro_rules::{last_thing, types};
 use module_macro::{module_attr};
 
 use crate::test_library::*;

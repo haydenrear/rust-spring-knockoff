@@ -1,6 +1,6 @@
 extern crate proc_macro;
 
-use delegator_macro_rules::{add, types};
+use delegator_macro_rules::{add};
 use lazy_static::lazy_static;
 use proc_macro::{Span, TokenStream};
 use std::any::{Any, TypeId};
