@@ -5,26 +5,28 @@
   </component>
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
-    <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
-    <cargoProject FILE="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/Cargo.toml" />
-    <cargoProject FILE="$PROJECT_DIR$/knockoff-logging/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactor">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="logging facade">
+      <change afterPath="$PROJECT_DIR$/module_macro_codegen/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_codegen/src/initializer/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_macro_rules/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff-logging/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_macro_rules/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff-logging/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/build.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/log.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,41 +73,44 @@
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
-    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "aspect.path.notification.shown": "true",
+    "go.import.settings.migrated": "true",
+    "jdk.selected.JAVA_MODULE": "openjdk-19",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen_test",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.keymap",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/module_macro_codegen_test" />
       <recent name="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree" />
       <recent name="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/resources" />
       <recent name="$PROJECT_DIR$/module_macro_lib" />
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
       <recent name="$PROJECT_DIR$/delegator_test/src" />
       <recent name="$PROJECT_DIR$/delegator_test" />
       <recent name="$PROJECT_DIR$/web_framework/src/static_registrar" />
@@ -114,7 +119,7 @@
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
     <configuration name="Test test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package delegator_test --lib test -- --exact" />
+      <option name="command" value="test --package module_macro_codegen_test --bin module_macro_codegen_test test -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -130,8 +135,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
+    <configuration name="Test test::test_logging_facade" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_logging_facade -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test::test_logging_macro_concurrent" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_logging_macro_concurrent -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -164,25 +186,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test tests::it_doesnt_work" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib tests::it_doesnt_work -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test tests::it_works (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib tests::it_works -- --exact" />
+    <configuration name="Test tests::it_works" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_shared --lib tests::it_works -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -217,19 +222,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test tests::it_doesnt_work" />
-      <item itemvalue="Cargo.Test tests::it_works (1)" />
-      <item itemvalue="Cargo.Test test_module_macro" />
-      <item itemvalue="Cargo.Test test_downcast" />
       <item itemvalue="Cargo.Test test" />
+      <item itemvalue="Cargo.Test test::test_logging_facade" />
+      <item itemvalue="Cargo.Test test::test_logging_macro_concurrent" />
+      <item itemvalue="Cargo.Test tests::it_works" />
+      <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test tests::it_works (1)" />
-        <item itemvalue="Cargo.Test tests::it_doesnt_work" />
-        <item itemvalue="Cargo.Test test_downcast" />
         <item itemvalue="Cargo.Test test" />
+        <item itemvalue="Cargo.Test tests::it_works" />
+        <item itemvalue="Cargo.Test test::test_logging_macro_concurrent" />
+        <item itemvalue="Cargo.Test test::test_logging_facade" />
       </list>
     </recent_temporary>
   </component>
@@ -287,20 +292,6 @@
       <workItem from="1674439958777" duration="26764000" />
       <workItem from="1674940301289" duration="2587000" />
       <workItem from="1675868087594" duration="40861000" />
-    </task>
-    <task id="LOCAL-00001" summary="add">
-      <created>1668363611774</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1668363611774</updated>
-    </task>
-    <task id="LOCAL-00002" summary="&quot;working&quot;">
-      <created>1668883381873</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1668883381873</updated>
     </task>
     <task id="LOCAL-00003" summary="tests passing">
       <created>1668886232755</created>
@@ -589,7 +580,63 @@
       <option name="project" value="LOCAL" />
       <updated>1676051521271</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="path">
+      <created>1676220350166</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1676220350166</updated>
+    </task>
+    <task id="LOCAL-00045" summary="logging">
+      <created>1676226965208</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1676226965208</updated>
+    </task>
+    <task id="LOCAL-00046" summary="logging macro">
+      <created>1676244149006</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1676244149006</updated>
+    </task>
+    <task id="LOCAL-00047" summary="logging facade">
+      <created>1676305083936</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1676305083936</updated>
+    </task>
+    <task id="LOCAL-00048" summary="logging facade">
+      <created>1676305131266</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1676305131266</updated>
+    </task>
+    <task id="LOCAL-00049" summary="logging facade">
+      <created>1676305184436</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1676305184436</updated>
+    </task>
+    <task id="LOCAL-00050" summary="logging facade">
+      <created>1676320134290</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1676320134290</updated>
+    </task>
+    <task id="LOCAL-00051" summary="logging facade">
+      <created>1676321673533</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1676321673533</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -607,9 +654,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add" />
-    <MESSAGE value="response" />
-    <MESSAGE value="&quot;working&quot;" />
     <MESSAGE value="tests passing" />
     <MESSAGE value="session" />
     <MESSAGE value="ctx" />
@@ -631,7 +675,11 @@
     <MESSAGE value="Updated" />
     <MESSAGE value="profile tree parsing" />
     <MESSAGE value="refactor" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor" />
+    <MESSAGE value="path" />
+    <MESSAGE value="logging" />
+    <MESSAGE value="logging macro" />
+    <MESSAGE value="logging facade" />
+    <option name="LAST_COMMIT_MESSAGE" value="logging facade" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -649,6 +697,11 @@
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
           <line>48</line>
           <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_logging/src/lib.rs</url>
+          <line>111</line>
+          <option name="timeStamp" value="94" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

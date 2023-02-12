@@ -11,5 +11,9 @@ members = [
     "delegator_test",
     "hyper",
     "test_app",
-    "rust_spring_macro"
+    "knockoff_logging",
+    "rust_spring_macro",
+    "wait_for",
+    "module_macro_codegen",
+    "module_macro_shared"
 ]

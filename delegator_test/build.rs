@@ -11,15 +11,22 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
 use build_lib::replace_modules;
+use module_macro_codegen::initializer::{write_initializer};
 
 fn main() {
-    let mut log_file = File::create(
-        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
-                .join("log.txt")
-    ).unwrap();
+    let file = &mut create_log_file();
+    file.write("initializing...".as_bytes()).unwrap();
+    write_initializer(
+        "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs", file);
     replace_modules(
         Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
-        &mut log_file,
-        vec![".git/HEAD"]
-    );
+        file);
+}
+
+fn create_log_file() -> File {
+    let mut log_file = File::create(
+        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
+            .join("log.txt")
+    ).unwrap();
+    log_file
 }

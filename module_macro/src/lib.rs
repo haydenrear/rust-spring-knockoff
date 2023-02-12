@@ -37,6 +37,11 @@ pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
     let mut found: Item = parse_macro_input!(input_found as Item);
     let additional = parse_module(found);
 
+    let ts = TokenStream::default();
+    // let mut initializer: ContextInitializerImpl = parse_macro_input!(ts as ContextInitializerImpl);
+    // println!("Found initializer.");
+    // initializer.do_update();
+
     token_stream_builder.add_to_tokens(additional.into());
     token_stream_builder.build()
 }
@@ -44,6 +49,11 @@ pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn singleton(attr: TokenStream, input: TokenStream) -> TokenStream {
     strip_autowired(input)
+}
+
+#[proc_macro_attribute]
+pub fn initializer(attr: TokenStream, ts: TokenStream) -> TokenStream {
+    ts.into()
 }
 
 #[proc_macro_attribute]
