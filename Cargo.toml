@@ -11,5 +11,6 @@ members = [
     "delegator_test",
     "hyper",
     "test_app",
+    "knockoff_logging",
     "rust_spring_macro"
 ]

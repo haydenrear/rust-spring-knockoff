@@ -5,26 +5,23 @@
   </component>
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
-    <cargoProject FILE="$PROJECT_DIR$/emit/Cargo.toml" />
-    <cargoProject FILE="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/Cargo.toml" />
-    <cargoProject FILE="$PROJECT_DIR$/knockoff-logging/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactor">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="path">
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/aggregate_logging/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/log_format/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/log_level/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logger/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/print_logging/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/standard_formatter/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_macro_rules/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff-logging/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_macro_rules/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff-logging/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/http_macro/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,9 +109,9 @@
       <recent name="$PROJECT_DIR$/delegator_macro" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package delegator_test --lib test -- --exact" />
+  <component name="RunManager" selected="Cargo.Test test::test_text_logging">
+    <configuration name="Test test::test_log_level" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_log_level -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -130,8 +127,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
+    <configuration name="Test test::test_text_logging" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_text_logging -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -217,19 +214,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test test::test_log_level" />
+      <item itemvalue="Cargo.Test test::test_text_logging" />
       <item itemvalue="Cargo.Test tests::it_doesnt_work" />
       <item itemvalue="Cargo.Test tests::it_works (1)" />
       <item itemvalue="Cargo.Test test_module_macro" />
-      <item itemvalue="Cargo.Test test_downcast" />
-      <item itemvalue="Cargo.Test test" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test::test_text_logging" />
+        <item itemvalue="Cargo.Test test::test_log_level" />
         <item itemvalue="Cargo.Test test_module_macro" />
         <item itemvalue="Cargo.Test tests::it_works (1)" />
         <item itemvalue="Cargo.Test tests::it_doesnt_work" />
-        <item itemvalue="Cargo.Test test_downcast" />
-        <item itemvalue="Cargo.Test test" />
       </list>
     </recent_temporary>
   </component>
@@ -589,7 +586,14 @@
       <option name="project" value="LOCAL" />
       <updated>1676051521271</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="path">
+      <created>1676220350166</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1676220350166</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -631,7 +635,8 @@
     <MESSAGE value="Updated" />
     <MESSAGE value="profile tree parsing" />
     <MESSAGE value="refactor" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor" />
+    <MESSAGE value="path" />
+    <option name="LAST_COMMIT_MESSAGE" value="path" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

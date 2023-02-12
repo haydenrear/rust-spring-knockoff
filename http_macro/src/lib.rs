@@ -5,7 +5,7 @@ use std::collections::{HashMap, LinkedList};
 use std::sync::{Arc, Mutex};
 use syn::{parse_macro_input, DeriveInput};
 
-#[proc_macro_derive(Controller)]
-pub fn library(input: TokenStream) -> TokenStream {
-    quote! {}
+#[proc_macro]
+pub fn map(input: TokenStream) -> TokenStream {
+    TokenStream::default()
 }
