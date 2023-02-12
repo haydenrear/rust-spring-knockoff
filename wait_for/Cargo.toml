@@ -1,13 +1,8 @@
 [package]
-name = "knockoff_logging"
+name = "wait_for"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lazy_static = "1.4.0"
-executors = "0.9.0"
-
-[dependencies.wait_for]
-path = "../wait_for"

@@ -5,8 +5,8 @@ use crate::knockoff_logging::log_level::{LogLevel, LogLevels};
 pub struct StandardLogFormatter;
 
 impl <'a> LogData for StandardLogData<'a> {
-}
 
+}
 pub struct StandardLogData<'a> {
     message: &'a str,
     trace_id: &'a str,

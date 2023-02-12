@@ -22,6 +22,8 @@
       <sourceFolder url="file://$MODULE_DIR$/knockoff-logging/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_logging/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_logging/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/wait/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/wait_for/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::fmt::Error;
 use std::fs::{File, OpenOptions};
+use std::future::Future;
 use std::io::{Seek, SeekFrom, Write};
 use std::ops::DerefMut;
 use std::os::fd::AsFd;
@@ -33,4 +34,5 @@ impl <'a> Logger<StandardLogData<'a>> for PrintLogger {
     fn write_log(&self, log_data: &str) {
         println!("{}", log_data);
     }
+
 }

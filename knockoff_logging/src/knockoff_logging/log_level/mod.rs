@@ -17,4 +17,3 @@ lazy_static!(
         (LogLevel::Error, "Error")
     ].into_iter().collect();
 );
-

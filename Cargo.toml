@@ -12,5 +12,6 @@ members = [
     "hyper",
     "test_app",
     "knockoff_logging",
-    "rust_spring_macro"
+    "rust_spring_macro",
+    "wait_for"
 ]

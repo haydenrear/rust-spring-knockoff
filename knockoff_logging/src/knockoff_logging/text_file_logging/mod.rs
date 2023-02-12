@@ -1,20 +1,29 @@
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::env;
-use std::fmt::Error;
+use std::fmt::{Debug, Error, Formatter};
 use std::fs::{File, OpenOptions};
+use std::future::Future;
 use std::io::{Seek, SeekFrom, Write};
 use std::ops::DerefMut;
 use std::os::fd::AsFd;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use executors::Executor;
+use executors::threadpool_executor::ThreadPoolExecutor;
 use crate::knockoff_logging::log_format::LogFormatter;
 use crate::knockoff_logging::log_level::LogLevel;
-use crate::knockoff_logging::logger::{Logger, LoggerArgs};
+use crate::knockoff_logging::logger::{AsyncLogger, Logger, LoggerArgs};
 use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
 
 pub struct TextFileLogger {
-    text_file: Arc<Mutex<File>>
+    pub(crate) text_file: Arc<Mutex<File>>,
+}
+
+impl Debug for TextFileLogger {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("")
+    }
 }
 
 pub struct TextFileLoggerArgs {
@@ -66,7 +75,7 @@ impl <'a> Logger<StandardLogData<'a>> for TextFileLogger {
 
     fn new(log_args: TextFileLoggerArgs) -> Self {
         TextFileLogger {
-            text_file: Arc::new(Mutex::new(log_args.file))
+            text_file: Arc::new(Mutex::new(log_args.file)),
         }
     }
 
@@ -86,4 +95,5 @@ impl <'a> Logger<StandardLogData<'a>> for TextFileLogger {
             Ok(())
         }).unwrap();
     }
+
 }
