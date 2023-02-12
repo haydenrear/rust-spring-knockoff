@@ -47,6 +47,31 @@ pub enum BeanDefinitionType {
     }
 }
 
+#[derive(Clone)]
+pub struct BeanPath {
+    pub(crate) path_segments: Vec<BeanPathParts>
+}
+
+#[derive(Clone)]
+pub enum BeanPathParts {
+    ArcType {
+        arc_inner_types: Type
+    },
+    FnType {
+        input_types: Vec<Type>,
+        return_type: Option<Type>
+    },
+    QSelfType {
+        q_self: Type
+    },
+    BindingType {
+        associated_type: Type
+    },
+    GenType {
+        inner: Type
+    }
+}
+
 /**
 Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
  **/
@@ -90,7 +115,8 @@ pub struct DepType {
     pub bean_info: AutowiredField,
     pub lifetime: Option<Lifetime>,
     pub bean_type: Option<BeanType>,
-    pub array_type: Option<TypeArray>
+    pub array_type: Option<TypeArray>,
+    pub bean_type_path: Option<BeanPath>
 }
 
 #[derive(Clone, Debug)]
@@ -105,7 +131,7 @@ pub enum BeanType {
 pub struct BeanDefinition {
     pub qualifier: Option<String>,
     pub bean_type_type: Option<Type>,
-    pub bean_type_ident: Option<Ident>
+    pub bean_type_ident: Option<Ident>,
 }
 
 impl Debug for BeanDefinition {

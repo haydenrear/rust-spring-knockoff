@@ -1,4 +1,4 @@
-use module_macro::{bean, singleton, Component, autowired};
+use module_macro::{bean, singleton, autowired};
 
 #[derive(Default, Debug)]
 #[singleton(Once)]

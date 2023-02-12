@@ -38,8 +38,6 @@ pub mod test_library {
 
 }
 
-
-
 #[test]
 fn test_module_macro() {
     let ten = Ten {
