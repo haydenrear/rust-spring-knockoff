@@ -7,21 +7,12 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="path">
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/aggregate_logging/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/log_format/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/log_level/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logger/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/print_logging/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/standard_formatter/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="logging">
+      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_macro/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/http_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -109,9 +100,43 @@
       <recent name="$PROJECT_DIR$/delegator_macro" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test::test_text_logging">
+  <component name="RunManager" selected="Cargo.Test test::test_logging_macro">
     <configuration name="Test test::test_log_level" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package knockoff_logging --lib test::test_log_level -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test::test_logging_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_logging_macro -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test::test_set_env" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_set_env -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -161,40 +186,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test tests::it_doesnt_work" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib tests::it_doesnt_work -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test tests::it_works (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib tests::it_works -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="test --package rust-spring-knockoff --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -215,18 +206,18 @@
     <list>
       <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Test test::test_log_level" />
+      <item itemvalue="Cargo.Test test::test_logging_macro" />
+      <item itemvalue="Cargo.Test test::test_set_env" />
       <item itemvalue="Cargo.Test test::test_text_logging" />
-      <item itemvalue="Cargo.Test tests::it_doesnt_work" />
-      <item itemvalue="Cargo.Test tests::it_works (1)" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test::test_logging_macro" />
+        <item itemvalue="Cargo.Test test::test_set_env" />
         <item itemvalue="Cargo.Test test::test_text_logging" />
         <item itemvalue="Cargo.Test test::test_log_level" />
         <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test tests::it_works (1)" />
-        <item itemvalue="Cargo.Test tests::it_doesnt_work" />
       </list>
     </recent_temporary>
   </component>
@@ -593,7 +584,14 @@
       <option name="project" value="LOCAL" />
       <updated>1676220350166</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="logging">
+      <created>1676226965208</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1676226965208</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -611,7 +609,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add" />
     <MESSAGE value="response" />
     <MESSAGE value="&quot;working&quot;" />
     <MESSAGE value="tests passing" />
@@ -636,7 +633,8 @@
     <MESSAGE value="profile tree parsing" />
     <MESSAGE value="refactor" />
     <MESSAGE value="path" />
-    <option name="LAST_COMMIT_MESSAGE" value="path" />
+    <MESSAGE value="logging" />
+    <option name="LAST_COMMIT_MESSAGE" value="logging" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -654,6 +652,11 @@
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
           <line>48</line>
           <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs</url>
+          <line>44</line>
+          <option name="timeStamp" value="71" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

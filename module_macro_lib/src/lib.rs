@@ -42,8 +42,6 @@ mod tests {
         let ordering = p.is_valid_ordering_create();
         println!("{}", ordering.join(",").as_str())
 
-        // let additional = parse_module_into_container(found);
-        // let ordering = additional.is_valid_ordering_create();
     }
 
     fn get_syn_file(path: &str) -> syn::File {
