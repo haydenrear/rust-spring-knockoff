@@ -16,47 +16,90 @@ pub mod knockoff_logging {
 #[cfg(test)]
 mod test {
     use std::any::Any;
-    use std::env;
+    use std::{env, future, task, thread};
     use std::fs::File;
     use std::future::join;
     use std::io::Read;
     use std::ops::Add;
     use std::path::{Path, PathBuf};
-    use executors::Executor;
+    use executors::{Executor, futures_executor, JoinHandle};
     use executors::threadpool_executor::ThreadPoolExecutor;
-    use crate::{initialize_logger, log, log_info};
+    use crate::{initialize_log, initialize_logger};
     use lazy_static::lazy_static;
     use crate::knockoff_logging::log_level::LogLevel;
     use crate::knockoff_logging::logger::Logger;
-    use crate::knockoff_logging::standard_formatter::StandardLogFormatter;
+    use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
     use std::sync::Arc;
     use std::sync::Mutex;
+    use std::thread::spawn;
     use std::time::{Duration, Instant};
     use wait_for::wait_for::wait_async::WaitFor;
     use crate::knockoff_logging::logging_facade::{LoggingFacade};
     use crate::knockoff_logging::text_file_logging::{TextFileLogger, TextFileLoggerArgs};
+    use crate::knockoff_logging::log_format::LogData;
+    use crate::knockoff_logging::logger::LoggerArgs;
+    use crate::knockoff_logging::log_format::LogFormatter;
+
+    initialize_logger!(TextFileLogger, StandardLogData<'a>, 'a);
+    initialize_log!();
 
     #[test]
     fn test_text_logging() {
         let logging_path = create_log_path();
-        log_test_message(&logging_path, "test message");
+        log!(LogLevel::Info, "test message", "1");
         assert_test_message(logging_path, "test message");
     }
 
     #[test]
     fn test_logging_facade() {
-        initialize_logger!();
+        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.txt");
         let facade = StandardLoggingFacade::get_logger();
     }
 
     #[test]
     fn test_logging_macro() {
         env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.txt");
-        initialize_logger!();
         log!(LogLevel::Info, "test message 1", "1");
         assert_test_message(create_log_path(), "test message 1");
         log_info!("test message 2", "1");
         assert_test_message(create_log_path(), "test message 2");
+    }
+
+    #[test]
+    fn test_logging_macro_concurrent() {
+        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.txt");
+        let mut join_handles = vec![];
+
+        let builder = thread::Builder::new();
+        for i in 0..10000 {
+            let builder = thread::Builder::new();
+            let mut task = builder.spawn(|| {
+                log!(LogLevel::Info, "test message 1", "1");
+            }).unwrap();
+            join_handles.push(task);
+        }
+
+        await_tasks(join_handles);
+    }
+
+    fn await_tasks(join_handles: Vec<thread::JoinHandle<()>>) {
+        let mut all_complete = false;
+        while !all_complete {
+            for j in join_handles.iter() {
+                if all_complete {
+                    break;
+                }
+                if !j.is_finished() {
+                    continue;
+                }
+                all_complete = true;
+            }
+            if all_complete {
+                break;
+            }
+
+            thread::sleep(Duration::from_millis(30));
+        }
     }
 
     fn assert_test_message(logging_path: PathBuf, test_message: &str) {
@@ -70,16 +113,6 @@ mod test {
             out_str.as_str().contains(test_message)
         });
         assert!(asserted);
-    }
-
-    fn log_test_message(logging_path: &PathBuf, test_message: &str) {
-        let logger_opt = TextFileLoggerArgs::new(&logging_path)
-            .map(|file_args| TextFileLogger::new(file_args));
-
-        assert!(logger_opt.is_some());
-
-        let logger = logger_opt.unwrap();
-        logger.log(LogLevel::Info, test_message, "1");
     }
 
     fn create_log_path() -> PathBuf {

@@ -27,6 +27,10 @@ impl <'a> Logger<StandardLogData<'a>> for PrintLogger {
         PrintLogger {}
     }
 
+    fn new_from_file() -> Option<Self> where Self: Sized {
+        todo!()
+    }
+
     fn log_data(&self, log_level: LogLevel, to_log_data: StandardLogData<'a>) {
         todo!()
     }

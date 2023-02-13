@@ -7,24 +7,9 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="logging macro">
-      <change afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_facade/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wait_for/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wait_for/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wait_for/src/wait_for/test/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wait_for/src/wait_for/wait_async/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="logging facade">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/log_level/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/log_level/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logger/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logger/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_macro/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_macro/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/print_logging/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/print_logging/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/standard_formatter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/standard_formatter/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,24 +97,7 @@
       <recent name="$PROJECT_DIR$/delegator_macro" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test::test_logging_facade">
-    <configuration name="Test test::test_log_level" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_logging --lib test::test_log_level -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="Cargo.Test test::test_logging_macro_concurrent">
     <configuration name="Test test::test_logging_facade" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package knockoff_logging --lib test::test_logging_facade -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -149,6 +117,23 @@
     </configuration>
     <configuration name="Test test::test_logging_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package knockoff_logging --lib test::test_logging_macro -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test::test_logging_macro_concurrent" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_logging_macro_concurrent -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -218,18 +203,18 @@
     <list>
       <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Test test::test_logging_facade" />
-      <item itemvalue="Cargo.Test test::test_log_level" />
+      <item itemvalue="Cargo.Test test::test_logging_macro_concurrent" />
       <item itemvalue="Cargo.Test test::test_logging_macro" />
       <item itemvalue="Cargo.Test test::test_set_env" />
       <item itemvalue="Cargo.Test test::test_text_logging" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test::test_logging_macro_concurrent" />
         <item itemvalue="Cargo.Test test::test_logging_facade" />
-        <item itemvalue="Cargo.Test test::test_logging_macro" />
         <item itemvalue="Cargo.Test test::test_text_logging" />
+        <item itemvalue="Cargo.Test test::test_logging_macro" />
         <item itemvalue="Cargo.Test test::test_set_env" />
-        <item itemvalue="Cargo.Test test::test_log_level" />
       </list>
     </recent_temporary>
   </component>
@@ -287,13 +272,6 @@
       <workItem from="1674439958777" duration="26764000" />
       <workItem from="1674940301289" duration="2587000" />
       <workItem from="1675868087594" duration="40861000" />
-    </task>
-    <task id="LOCAL-00001" summary="add">
-      <created>1668363611774</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1668363611774</updated>
     </task>
     <task id="LOCAL-00002" summary="&quot;working&quot;">
       <created>1668883381873</created>
@@ -603,7 +581,42 @@
       <option name="project" value="LOCAL" />
       <updated>1676226965208</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="logging macro">
+      <created>1676244149006</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1676244149006</updated>
+    </task>
+    <task id="LOCAL-00047" summary="logging facade">
+      <created>1676305083936</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1676305083936</updated>
+    </task>
+    <task id="LOCAL-00048" summary="logging facade">
+      <created>1676305131266</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1676305131266</updated>
+    </task>
+    <task id="LOCAL-00049" summary="logging facade">
+      <created>1676305184436</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1676305184436</updated>
+    </task>
+    <task id="LOCAL-00050" summary="logging facade">
+      <created>1676320134290</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1676320134290</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -621,8 +634,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="response" />
-    <MESSAGE value="&quot;working&quot;" />
     <MESSAGE value="tests passing" />
     <MESSAGE value="session" />
     <MESSAGE value="ctx" />
@@ -646,7 +657,9 @@
     <MESSAGE value="refactor" />
     <MESSAGE value="path" />
     <MESSAGE value="logging" />
-    <option name="LAST_COMMIT_MESSAGE" value="logging" />
+    <MESSAGE value="logging macro" />
+    <MESSAGE value="logging facade" />
+    <option name="LAST_COMMIT_MESSAGE" value="logging facade" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -664,6 +677,11 @@
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
           <line>48</line>
           <option name="timeStamp" value="56" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_logging/src/lib.rs</url>
+          <line>112</line>
+          <option name="timeStamp" value="94" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

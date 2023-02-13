@@ -47,8 +47,18 @@ impl TextFileLoggerArgs {
 
 impl LoggerArgs for TextFileLoggerArgs {}
 
-impl TextFileLogger {
-    pub fn new_from_file() -> Option<Self> {
+
+impl <'a> Logger<StandardLogData<'a>> for TextFileLogger {
+    type LogFormatterType = StandardLogFormatter;
+    type LoggerArgsType = TextFileLoggerArgs;
+
+    fn new(log_args: TextFileLoggerArgs) -> Self {
+        TextFileLogger {
+            text_file: Arc::new(Mutex::new(log_args.file)),
+        }
+    }
+
+    fn new_from_file() -> Option<Self> {
         let logging_file_result = env::var("LOGGING_DIR").ok();
 
         logging_file_result.and_then(|file_path| {
@@ -66,17 +76,6 @@ impl TextFileLogger {
                 .map(|logger_args| TextFileLogger { text_file: Arc::new(Mutex::new(logger_args.file)) })
         })
 
-    }
-}
-
-impl <'a> Logger<StandardLogData<'a>> for TextFileLogger {
-    type LogFormatterType = StandardLogFormatter;
-    type LoggerArgsType = TextFileLoggerArgs;
-
-    fn new(log_args: TextFileLoggerArgs) -> Self {
-        TextFileLogger {
-            text_file: Arc::new(Mutex::new(log_args.file)),
-        }
     }
 
     fn log_data(&self, log_level: LogLevel, to_log_data: StandardLogData<'a>) {

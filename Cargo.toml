@@ -13,5 +13,5 @@ members = [
     "test_app",
     "knockoff_logging",
     "rust_spring_macro",
-    "wait_for"
+    "wait_for",
 ]
