@@ -526,8 +526,9 @@ dependencies = [
  "derive-syn-parse",
  "dynpath",
  "module_macro",
+ "module_macro_codegen",
+ "module_macro_shared",
  "quote",
- "rust_spring_macro",
  "syn",
 ]
 
@@ -1129,9 +1130,23 @@ dependencies = [
  "derive-syn-parse",
  "lazy_static",
  "module_macro_lib",
+ "module_macro_shared",
  "proc-macro2",
  "quote",
  "rust_spring_macro",
+ "serde",
+ "syn",
+]
+
+[[package]]
+name = "module_macro_codegen"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "derive-syn-parse",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
  "serde",
  "syn",
 ]
@@ -1142,6 +1157,19 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "build_lib",
+ "derive-syn-parse",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn",
+]
+
+[[package]]
+name = "module_macro_shared"
+version = "0.1.0"
+dependencies = [
+ "base64",
  "derive-syn-parse",
  "lazy_static",
  "proc-macro2",

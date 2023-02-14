@@ -19,7 +19,5 @@ fn main() {
     ).unwrap();
     replace_modules(
         Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src"),
-        &mut log_file,
-        vec![".git/HEAD"]
-    );
+        &mut log_file);
 }

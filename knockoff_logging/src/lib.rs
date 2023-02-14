@@ -1,6 +1,5 @@
 #![feature(async_fn_in_trait)]
 #![feature(future_join)]
-
 pub mod knockoff_logging {
     pub mod logger;
     pub mod text_file_logging;
@@ -120,6 +119,9 @@ mod test {
         let logging_file_result = env::var("LOGGING_DIR");
         let logging_file = logging_file_result.or::<String>(Ok("/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources".to_string())).unwrap();
         let mut logging_path = Path::new(&logging_file).join("log.txt");
+        if !logging_path.exists() {
+            File::create(&logging_path);
+        }
         logging_path
     }
 }

@@ -14,7 +14,7 @@ use syn::{
 };
 use syn::token::Type;
 
-use module_macro::{module_attr};
+use module_macro::{initializer, module_attr};
 
 use crate::test_library::*;
 use crate::test_library::test_library_three::{One, Once, Four};
@@ -26,6 +26,8 @@ use std::sync::Arc;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::marker::PhantomData;
+
+include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
 #[module_attr]
@@ -36,6 +38,11 @@ pub mod test_library {
 
     pub mod test_library_three;
 
+}
+
+#[initializer]
+pub fn do_initializer() {
+    println!("hello!");
 }
 
 #[test]
