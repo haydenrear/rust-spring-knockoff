@@ -8,25 +8,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="logging facade">
-      <change afterPath="$PROJECT_DIR$/module_macro_codegen/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_codegen/src/initializer/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.cargo/config.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/resources/default_aug.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/initializer/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/build.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/log.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/log.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/initializer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/initializer/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,7 +85,7 @@
     "aspect.path.notification.shown": "true",
     "go.import.settings.migrated": "true",
     "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen_test",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -103,18 +104,18 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/module_macro_codegen_test" />
-      <recent name="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree" />
-      <recent name="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/resources" />
-      <recent name="$PROJECT_DIR$/module_macro_lib" />
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/delegator_test" />
+      <recent name="$PROJECT_DIR$/module_macro_lib/resources" />
+      <recent name="$PROJECT_DIR$/module_macro_lib" />
+      <recent name="$PROJECT_DIR$/module_macro_codegen_test" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/delegator_test/.cargo" />
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
       <recent name="$PROJECT_DIR$/delegator_test/src" />
       <recent name="$PROJECT_DIR$/delegator_test" />
       <recent name="$PROJECT_DIR$/web_framework/src/static_registrar" />
-      <recent name="$PROJECT_DIR$/delegator_macro" />
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
@@ -292,6 +293,7 @@
       <workItem from="1674439958777" duration="26764000" />
       <workItem from="1674940301289" duration="2587000" />
       <workItem from="1675868087594" duration="40861000" />
+      <workItem from="1676403564482" duration="5312000" />
     </task>
     <task id="LOCAL-00003" summary="tests passing">
       <created>1668886232755</created>
@@ -690,12 +692,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>203</line>
+          <line>206</line>
           <option name="timeStamp" value="55" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>48</line>
+          <line>51</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

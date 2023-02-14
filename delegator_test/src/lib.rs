@@ -27,7 +27,6 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::marker::PhantomData;
 
-include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
 #[module_attr]
@@ -41,7 +40,7 @@ pub mod test_library {
 }
 
 #[initializer]
-pub fn do_initializer() {
+pub fn example_initializer() {
     println!("hello!");
 }
 
@@ -62,7 +61,6 @@ fn test_module_macro() {
         //     println!()
         // })],
     };
-
 
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);

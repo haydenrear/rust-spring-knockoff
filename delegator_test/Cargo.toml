@@ -26,3 +26,6 @@ path = "../module_macro_shared"
 
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}
+
+[env]
+AUG_FILE = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }

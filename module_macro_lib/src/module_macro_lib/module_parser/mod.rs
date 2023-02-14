@@ -5,8 +5,9 @@ use std::collections::{HashMap, LinkedList};
 use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
+use proc_macro2::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf};
-use syn::__private::str;
+use syn::__private::{str, TokenStream2};
 use syn::parse::Parser;
 use syn::spanned::Spanned;
 use syn::{
@@ -15,17 +16,19 @@ use syn::{
     Ident,
     token::Paren,
 };
-use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
+use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
-use proc_macro2::TokenStream;
 use crate::module_macro_lib::parse_container::ParseContainer;
-use crate::module_macro_lib::module_tree::TestFieldAdding;
+use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
+use crate::FieldAugmenterImpl;
+use crate::module_macro_lib::initializer::Initializer;
 
-pub fn parse_module(mut found: Item) -> TokenStream {
+pub fn parse_module(mut found: Item, initializer: Initializer) -> TokenStream {
     match &mut found {
         Item::Mod(ref mut module_found) => {
             let mut container = ParseContainer::default();
+
             parse_item_recursive(module_found, &mut container);
             let container_tokens = container.build_to_token_stream();
             quote!(
@@ -91,8 +94,7 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
             println!("Found static val {}.", static_val.to_token_stream().clone());
         }
         Item::Struct(ref mut item_struct) => {
-            let f = TestFieldAdding {};
-            f.process(item_struct);
+            app_container.initializer.field_augmenter.process(item_struct);
             app_container.add_item_struct(item_struct);
             println!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
         }

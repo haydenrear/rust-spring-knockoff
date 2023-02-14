@@ -12,7 +12,7 @@ use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
 
-pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File) {
+pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File, rerun_files: Vec<&str>) {
 
     let mut file_result = File::open(
         Path::new(base_env.unwrap())
@@ -57,6 +57,10 @@ pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File) {
                 .unwrap();
         }
     }
+
+    rerun_files.iter().for_each(|rerun_file| {
+        print!("cargo:rerun-if-changed={}", rerun_file);
+    })
 
 }
 
