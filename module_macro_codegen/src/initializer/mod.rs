@@ -38,6 +38,40 @@ fn get_impl_codegen(item_fn: ItemFn, log_file: &mut File) -> TokenStream {
 
     log_file.write("writing itemfn".as_bytes()).unwrap();
     quote! {
+            use derive_syn_parse::Parse;
+            use module_macro_shared::module_macro_shared_codegen::{ContextInitializer, FieldAugmenter};
+            use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum};
+            use syn::parse::Parser;
+            use quote::{quote, ToTokens};
+
+            #[derive(Parse, Default, Clone, Debug)]
+            pub struct ContextInitializerImpl;
+            #[derive(Parse, Default, Clone, Debug)]
+            pub struct FieldAugmenterImpl;
+
+            impl ContextInitializer for ContextInitializerImpl {
+                fn do_update(&self) {
+                    #block
+                }
+            }
+
+            // TODO:
+            impl FieldAugmenter for FieldAugmenterImpl {
+                fn process(&self, struct_item: &mut ItemStruct) {
+                    match &mut struct_item.fields {
+                        Fields::Named(ref mut fields_named) => {
+                            fields_named.named.push(
+                                Field::parse_named.parse2(quote!(
+                                    pub a: String
+                                ).into()).unwrap()
+                            )
+                        }
+                        Fields::Unnamed(ref mut fields_unnamed) => {}
+                        _ => {}
+                    }
+                }
+            }
+
     }
 }
 

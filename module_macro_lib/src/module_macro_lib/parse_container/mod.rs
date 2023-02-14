@@ -24,9 +24,11 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
+use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser, BeanParser};
 use crate::module_macro_lib::context_builder::ContextBuilder;
 use crate::module_macro_lib::fn_parser::FnParser;
+use crate::module_macro_lib::initializer::Initializer;
 use crate::module_macro_lib::module_parser::parse_item;
 use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType};
 use crate::module_macro_lib::profile_tree::ProfileTree;
@@ -40,7 +42,8 @@ pub struct ParseContainer {
     pub injectable_types_map: ProfileTree,
     pub traits: HashMap<String, Trait>,
     pub fns: HashMap<TypeId, ModulesFunctions>,
-    pub profiles: Vec<Profile>
+    pub profiles: Vec<Profile>,
+    pub initializer: Initializer
 }
 
 impl ParseContainer {

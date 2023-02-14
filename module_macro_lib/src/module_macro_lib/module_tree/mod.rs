@@ -210,21 +210,4 @@ pub enum GetBeanResultError {
     BeanNotInContext, BeanDependenciesNotSatisfied
 }
 
-pub struct TestFieldAdding;
 
-// A way to edit fields of structs - probably only possible to do through attributes..
-impl TestFieldAdding {
-    pub fn process(&self, struct_item: &mut ItemStruct) {
-        match &mut struct_item.fields {
-            Fields::Named(ref mut fields_named) => {
-                fields_named.named.push(
-                    Field::parse_named.parse2(quote!(
-                        pub a: String
-                    ).into()).unwrap()
-                )
-            }
-            Fields::Unnamed(ref mut fields_unnamed) => {}
-            _ => {}
-        }
-    }
-}

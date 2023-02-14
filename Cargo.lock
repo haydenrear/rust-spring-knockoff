@@ -1159,6 +1159,8 @@ dependencies = [
  "build_lib",
  "derive-syn-parse",
  "lazy_static",
+ "module_macro_codegen",
+ "module_macro_shared",
  "proc-macro2",
  "quote",
  "serde",

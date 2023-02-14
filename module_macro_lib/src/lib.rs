@@ -1,4 +1,7 @@
 #![feature(pattern)]
+
+include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+
 pub mod module_macro_lib {
     pub mod parse_container;
     pub mod module_parser;
@@ -9,6 +12,7 @@ pub mod module_macro_lib {
     pub mod util;
     pub mod bean_parser;
     pub mod context_builder;
+    pub mod initializer;
 }
 
 #[cfg(test)]
