@@ -11,13 +11,10 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
 use build_lib::replace_modules;
-use module_macro_codegen::initializer::{write_initializer};
 
 fn main() {
-    let file = &mut create_log_file();
     replace_modules(
         Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
-        file,
         vec![".git/HEAD"]
     );
     println!()

@@ -7,6 +7,8 @@ pub trait ContextInitializer: Parse {
     fn do_update(&self);
 }
 
-pub trait FieldAugmenter {
+pub trait FieldAugmenter: Parse {
     fn process(&self, struct_item: &mut ItemStruct);
 }
+
+

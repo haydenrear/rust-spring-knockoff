@@ -11,16 +11,25 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
+use knockoff_logging::{initialize_log, initialize_logger};
+use knockoff_logging::knockoff_logging::log_level::{LogLevel, LogLevels};
+use knockoff_logging::knockoff_logging::text_file_logging::{TextFileLogger, TextFileLoggerArgs};
+use knockoff_logging::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
+use knockoff_logging::knockoff_logging::logger::Logger;
 
-pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File, rerun_files: Vec<&str>) {
+initialize_logger!(TextFileLogger, StandardLogData);
+initialize_log!();
+
+pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
 
     let mut file_result = File::open(
         Path::new(base_env.unwrap())
                 .join("lib.rs")
     )
         .or_else(|f| {
-            write_to_log(&mut log_file, "Failed to open lib.rs");
-            write_to_log(&mut log_file, f.to_string().as_str());
+            log_info!("Failed to open lib.rs".to_string(), "1".to_string());
+            let err = f.to_string();
+            log_info!(err, "1".to_string());
             Err(())
         });
 
@@ -43,13 +52,12 @@ pub fn replace_modules(base_env: Option<&str>, mut log_file: &mut File, rerun_fi
     let lib_file = parse_syn_file(&mut file);
 
     for mut x in lib_file.items {
-        let created_mod = parse_macro(&mut log_file, &mut x);
+        let created_mod = parse_macro(&mut x);
         if created_mod.is_some() {
-            let mod_file_tup = created_mod.unwrap();
-            let log_file = mod_file_tup.1;
-            let mod_created = mod_file_tup.0;
-            write_to_log(log_file, "here is the finished lib file:");
-            write_to_log(log_file, mod_created.to_token_stream().to_string().as_str());
+            let mod_created = created_mod.unwrap();
+            log_message!("here is the finished lib file:".to_string());
+            let message = mod_created.to_token_stream().to_string();
+            log_message!(message);
             let mut existing = fs::read_to_string(dest_path.clone())
                 .unwrap();
             existing.push_str(mod_created.to_token_stream().to_string().as_str());
@@ -73,7 +81,7 @@ fn parse_syn_file(file: &mut File) -> syn::File {
     lib_file
 }
 
-fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a mut ItemMod, &'a mut File)> {
+fn parse_macro(x: &mut Item) -> Option<&mut ItemMod> {
     match x {
         Item::Mod(ref mut module) => {
             let found_inner = module.content.clone().unwrap();
@@ -84,9 +92,9 @@ fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a m
 
             for attr in module.attrs.clone().iter() {
                 if attr.to_token_stream().to_string().as_str().contains("module_attr") {
-                    write_to_log(&mut log_file, "found attr on main module");
-                    write_to_log(&mut log_file, attr.tokens.to_string().as_str());
-                    write_to_log(&mut log_file, "Found with module_attr");
+                    write_to_log("found attr on main module");
+                    write_to_log(attr.tokens.to_string().as_str());
+                    write_to_log("Found with module_attr");
                     make_change_bool = true;
                 } else if attr.to_token_stream().to_string().as_str().contains("cfg")
                     && attr.to_token_stream().to_string().as_str().contains("springknockoff") {
@@ -96,11 +104,11 @@ fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a m
             }
 
             if make_change_bool {
-                make_change(&mut log_file, module, &found_inner, module.ident.to_string().as_str());
+                make_change(module, &found_inner, module.ident.to_string().as_str());
                 if cfg_attr != 0 {
                     module.attrs.remove(cfg_attr);
                 }
-                return Some((module, log_file));
+                return Some(module);
             }
             None
         }
@@ -111,35 +119,32 @@ fn parse_macro<'a>(mut log_file: &'a mut File, x: &'a mut Item) -> Option<(&'a m
 }
 
 fn make_change(
-    mut log_file:
-    &mut File,
     module: &mut ItemMod,
     found_inner: &(Brace, Vec<Item>),
     outer_module_name: &str
 ) {
     let mut counter = 0;
     for item in &found_inner.1 {
-        let option = inner_macro(&mut log_file, &item);
+        let option = inner_macro(item);
         let module_span = module.span().clone();
         if option.is_some() {
             match &mut module.content {
                 None => {
-                    write_to_log(log_file, "Did not find inner macro");
+                    write_to_log("Did not find inner macro");
                 }
                 Some(ref mut item) => {
-                    write_to_log(log_file, "the inner module name is ");
-                    write_to_log(log_file, module.ident.to_string().as_str());
-                    write_to_log(log_file, "the module module name is ");
-                    write_to_log(log_file, outer_module_name);
+                    write_to_log("the inner module name is ");
+                    write_to_log(module.ident.to_string().as_str());
+                    write_to_log("the module module name is ");
+                    write_to_log(outer_module_name);
                     let mod_to_replace = get_module_to_replace(
-                        log_file, option.unwrap().as_str(),
-                        outer_module_name, module_span
+                        option.unwrap().as_str(), outer_module_name, module_span
                     );
                     match mod_to_replace {
                         None => {}
                         Some(mod_found) => {
-                            write_to_log(log_file, "replacing item mod named");
-                            write_to_log(log_file, mod_found.ident.to_token_stream().to_string().as_str());
+                            write_to_log("replacing item mod named");
+                            write_to_log(mod_found.ident.to_token_stream().to_string().as_str());
                             let mut mod_to_return = mod_found.clone();
                             mod_to_return.vis = Visibility::Public(VisPublic { pub_token: Default::default() });
                             let mut item_mod_created = Item::Mod(mod_to_return.clone());
@@ -154,7 +159,7 @@ fn make_change(
     }
 }
 
-fn get_module_to_replace(mut log_file: &mut File, module_name: &str, base: &str, span: Span) -> Option<ItemMod> {
+fn get_module_to_replace(module_name: &str, base: &str, span: Span) -> Option<ItemMod> {
     let mut module_rs_file = String::from(module_name);
     module_rs_file.push_str(".rs");
     let inner_module_path = Path::new(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src").deref())
@@ -175,22 +180,22 @@ fn get_module_to_replace(mut log_file: &mut File, module_name: &str, base: &str,
         let syn_found = parse_syn_file(&mut inner_module_file.unwrap());
         for item in syn_found.items {
             items.push(item.clone());
-            write_to_log(log_file, "parsed inner file and found");
-            write_to_log(log_file, item.to_token_stream().to_string().as_str());
+            write_to_log("parsed inner file and found");
+            write_to_log(item.to_token_stream().to_string().as_str());
         }
     } else {
-        write_to_log(log_file, "Did not find");
-        write_to_log(log_file, module_rs_file.as_str());
+        write_to_log("Did not find");
+        write_to_log(module_rs_file.as_str());
     }
     new_mod.content = Some((brace, items));
     Some(new_mod)
 }
 
-fn inner_macro(mut log_file: &mut File, item: &Item) -> Option<String> {
+fn inner_macro(item: &Item) -> Option<String> {
     match &item {
         Item::Mod(module) => {
-            write_to_log(&mut log_file, "found inner module");
-            write_to_log(&mut log_file, module.ident.to_string().as_str());
+            write_to_log("found inner module");
+            write_to_log(module.ident.to_string().as_str());
             Some(module.ident.to_token_stream().to_string())
         }
         _ => {
@@ -201,19 +206,10 @@ fn inner_macro(mut log_file: &mut File, item: &Item) -> Option<String> {
 }
 
 
-fn write_to_log(log_file: &mut File, to_write: &str) {
-    log_file.write(to_write.as_bytes())
-        .unwrap();
-    log_file.write("\n\n".as_bytes())
-        .unwrap();
+fn write_to_log(to_write: &str) {
+    let to_write = to_write.to_string();
+    log_message!(to_write);
 }
-fn write_to_log_ref(log_file: &mut &File, to_write: &str) {
-    log_file.write(to_write.as_bytes())
-        .unwrap();
-    log_file.write("\n\n".as_bytes())
-        .unwrap();
-}
-
 
 pub trait NewComponent<T> {
     fn new() -> T;

@@ -48,7 +48,7 @@ impl TextFileLoggerArgs {
 impl LoggerArgs for TextFileLoggerArgs {}
 
 
-impl <'a> Logger<StandardLogData<'a>> for TextFileLogger {
+impl Logger<StandardLogData> for TextFileLogger {
     type LogFormatterType = StandardLogFormatter;
     type LoggerArgsType = TextFileLoggerArgs;
 
@@ -78,11 +78,11 @@ impl <'a> Logger<StandardLogData<'a>> for TextFileLogger {
 
     }
 
-    fn log_data(&self, log_level: LogLevel, to_log_data: StandardLogData<'a>) {
+    fn log_data(&self, log_level: LogLevel, to_log_data: StandardLogData) {
         todo!()
     }
 
-    fn write_log(&self, log_data: &str) {
+    fn write_log(&self, log_data: String) {
         self.text_file.lock().and_then(|mut file| {
             file.seek(SeekFrom::End(0)).ok().and_then(|seeked| {
                 file.write(log_data.as_bytes()).ok()

@@ -12,8 +12,6 @@ dynpath = "0.1.4"
 
 [dependencies.module_macro]
 path = "../module_macro"
-[dependencies.build_lib]
-path = "../build_lib"
 [dependencies.module_macro_shared]
 path = "../module_macro_shared"
 
