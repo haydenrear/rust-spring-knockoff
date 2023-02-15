@@ -8,15 +8,17 @@ pub trait Logger<T: LogData> {
 
     fn new(log_args: Self::LoggerArgsType) -> Self where Self: Sized;
 
-    fn log(&self, log_level: LogLevel, to_log_message: &str, to_log_trace_id: &str) {
+    fn log(&self, log_level: LogLevel, to_log_message: String, to_log_trace_id: String) {
         let formatted = Self::LogFormatterType::format_log(log_level, to_log_message, to_log_trace_id);
-        self.write_log(formatted.as_str());
+        self.write_log(formatted);
     }
 
     fn new_from_file() -> Option<Self> where Self: Sized;
 
     fn log_data(&self, log_level: LogLevel, to_log_data: T);
-    fn write_log(&self, log_data: &str);
+
+    fn write_log(&self, log_data: String);
+
 }
 
 pub trait AsyncLogger<T: LogData>: Logger<T> {

@@ -4,28 +4,28 @@ use crate::knockoff_logging::log_level::{LogLevel, LogLevels};
 
 pub struct StandardLogFormatter;
 
-impl <'a> LogData for StandardLogData<'a> {
+impl LogData for StandardLogData {
 
 }
-pub struct StandardLogData<'a> {
-    message: &'a str,
-    trace_id: &'a str,
+pub struct StandardLogData {
+    message: String,
+    trace_id: String,
     date: u64,
     log_level: LogLevel
 }
 
-impl <'a> LogFormatter<StandardLogData<'a>> for StandardLogFormatter {
+impl LogFormatter<StandardLogData> for StandardLogFormatter {
 
-    fn format_log<'b>(log_level: LogLevel, text: &'b str, id: &'b str) -> String {
+    fn format_log<'b>(log_level: LogLevel, text: String, id: String) -> String {
         let mut formatted = "".to_string();
         formatted = formatted + "log level: ";
         formatted = formatted + LogLevels[&log_level];
         formatted = formatted + "\n";
         formatted = formatted + "message: ";
-        formatted = formatted + text;
+        formatted = formatted + text.as_str();
         formatted = formatted + "\n";
         formatted = formatted + "id: ";
-        formatted = formatted + id;
+        formatted = formatted + id.as_str();
         formatted = formatted + "\n";
         formatted
     }

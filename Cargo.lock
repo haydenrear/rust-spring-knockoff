@@ -307,6 +307,9 @@ version = "0.1.0"
 dependencies = [
  "derive-syn-parse",
  "dynpath",
+ "executors",
+ "knockoff_logging",
+ "lazy_static",
  "quote",
  "syn",
 ]

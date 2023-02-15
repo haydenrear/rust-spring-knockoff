@@ -11,7 +11,7 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
 use build_lib::replace_modules;
-use module_macro_codegen::initializer::{write_initializer};
+use module_macro_codegen::parser::LibParser;
 
 fn main() {
     let file = &mut create_log_file();
@@ -22,15 +22,14 @@ fn main() {
     file.write("Found aug file: ".as_bytes()).unwrap();
     file.write(aug_file.as_bytes()).unwrap();
     file.write("Found another".as_bytes()).unwrap();
-    write_initializer(
-        &aug_file, file);
+    LibParser::do_codegen(&aug_file, file, false, "codegen.rs");
     print!("cargo:rerun-if-changed=.git/HEAD");
 }
 
 fn create_log_file() -> File {
     let mut log_file = File::create(
         Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
-            .join("module.txt")
+            .join("module.log")
     ).unwrap();
     log_file
 }

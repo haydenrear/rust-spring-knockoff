@@ -18,7 +18,7 @@ pub struct PrintLoggerArgs;
 
 impl LoggerArgs for PrintLoggerArgs {}
 
-impl <'a> Logger<StandardLogData<'a>> for PrintLogger {
+impl Logger<StandardLogData> for PrintLogger {
 
     type LogFormatterType = StandardLogFormatter;
     type LoggerArgsType = PrintLoggerArgs;
@@ -31,11 +31,11 @@ impl <'a> Logger<StandardLogData<'a>> for PrintLogger {
         todo!()
     }
 
-    fn log_data(&self, log_level: LogLevel, to_log_data: StandardLogData<'a>) {
+    fn log_data(&self, log_level: LogLevel, to_log_data: StandardLogData) {
         todo!()
     }
 
-    fn write_log(&self, log_data: &str) {
+    fn write_log(&self, log_data: String) {
         println!("{}", log_data);
     }
 

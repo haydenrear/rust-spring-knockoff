@@ -28,6 +28,8 @@
       <sourceFolder url="file://$MODULE_DIR$/module_macro_shared/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/wait/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/wait_for/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/initializer_lib/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/initializer_macro/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />
