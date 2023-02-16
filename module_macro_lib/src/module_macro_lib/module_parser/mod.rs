@@ -24,6 +24,12 @@ use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::initializer::Initializer;
 
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::{initialize_log, use_logging};
+use_logging!();
+initialize_log!();
+
 pub fn parse_module(mut found: Item, initializer: Initializer) -> TokenStream {
     match &mut found {
         Item::Mod(ref mut module_found) => {
@@ -60,19 +66,19 @@ pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
 pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
     match i {
         Item::Const(const_val) => {
-            println!("Found const val {}.", const_val.to_token_stream().clone());
+            log_message!("Found const val {}.", const_val.to_token_stream().clone());
         }
         Item::Enum(enum_type) => {
-            println!("Found enum val {}.", enum_type.to_token_stream().clone());
+            log_message!("Found enum val {}.", enum_type.to_token_stream().clone());
             app_container.add_item_enum(enum_type);
         }
         Item::Fn(fn_type) => {
-            println!("Found fn type {}.", fn_type.to_token_stream().clone());
+            log_message!("Found fn type {}.", fn_type.to_token_stream().clone());
             app_container.add_fn_to_dep_types(fn_type);
         }
         Item::ForeignMod(_) => {}
         Item::Impl(impl_found) => {
-            println!("Found impl type {}.", impl_found.to_token_stream().clone());
+            log_message!("Found impl type {}.", impl_found.to_token_stream().clone());
             app_container.create_update_impl(impl_found);
         }
         Item::Macro(macro_created) => {
@@ -87,24 +93,24 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
         }
         Item::Macro2(_) => {}
         Item::Mod(ref mut module) => {
-            println!("Found module with name {} !!!", module.ident.to_string().clone());
+            log_message!("Found module with name {} !!!", module.ident.to_string().clone());
             parse_item_recursive(module, app_container);
         }
         Item::Static(static_val) => {
-            println!("Found static val {}.", static_val.to_token_stream().clone());
+            log_message!("Found static val {}.", static_val.to_token_stream().clone());
         }
         Item::Struct(ref mut item_struct) => {
             app_container.initializer.field_augmenter.process(item_struct);
             app_container.add_item_struct(item_struct);
-            println!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
+            log_message!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
         }
         Item::Trait(trait_created) => {
-            println!("Trait created: {}", trait_created.ident.clone().to_string());
+            log_message!("Trait created: {}", trait_created.ident.clone().to_string());
             app_container.create_update_trait(trait_created);
         }
         Item::TraitAlias(_) => {}
         Item::Type(type_found) => {
-            println!("Item type found {}!", type_found.ident.to_token_stream().to_string().clone());
+            log_message!("Item type found {}!", type_found.ident.to_token_stream().to_string().clone());
         }
         Item::Union(_) => {}
         Item::Verbatim(_) => {}

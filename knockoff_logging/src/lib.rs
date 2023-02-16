@@ -21,15 +21,12 @@ mod test {
     use std::io::Read;
     use std::ops::Add;
     use std::path::{Path, PathBuf};
-    use executors::{Executor, futures_executor, JoinHandle};
-    use executors::threadpool_executor::ThreadPoolExecutor;
-    use crate::{initialize_log, initialize_logger};
-    use lazy_static::lazy_static;
+    use executors::{futures_executor, JoinHandle};
+    use crate::{initialize_log, initialize_logger, log_message, use_logging};
     use crate::knockoff_logging::log_level::LogLevel;
     use crate::knockoff_logging::logger::Logger;
     use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
     use std::sync::Arc;
-    use std::sync::Mutex;
     use std::thread::spawn;
     use std::time::{Duration, Instant};
     use wait_for::wait_for::wait_async::WaitFor;
@@ -38,42 +35,51 @@ mod test {
     use crate::knockoff_logging::log_format::LogData;
     use crate::knockoff_logging::logger::LoggerArgs;
     use crate::knockoff_logging::log_format::LogFormatter;
+    use executors::Executor;
 
-    initialize_logger!(TextFileLogger, StandardLogData<'a>, 'a);
+    initialize_logger!(TextFileLogger, StandardLogData);
     initialize_log!();
 
     #[test]
     fn test_text_logging() {
         let logging_path = create_log_path();
-        log!(LogLevel::Info, "test message", "1");
+        let facade = StandardLoggingFacade::get_logger();
+        log!(LogLevel::Info, "test message".to_string(), "1".to_string());
         assert_test_message(logging_path, "test message");
     }
 
     #[test]
     fn test_logging_facade() {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.txt");
+        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
         let facade = StandardLoggingFacade::get_logger();
     }
 
     #[test]
+    fn test_log_message() {
+        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
+        log_message!("test message {}", "this_message");
+        assert_test_message(create_log_path(), "test message this_message");
+    }
+
+    #[test]
     fn test_logging_macro() {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.txt");
-        log!(LogLevel::Info, "test message 1", "1");
+        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
+        log!(LogLevel::Info, "test message 1".to_string(), "1".to_string());
         assert_test_message(create_log_path(), "test message 1");
-        log_info!("test message 2", "1");
+        log_info!("test message 2".to_string(), "1".to_string());
         assert_test_message(create_log_path(), "test message 2");
     }
 
     #[test]
     fn test_logging_macro_concurrent() {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.txt");
+        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
         let mut join_handles = vec![];
 
         let builder = thread::Builder::new();
         for i in 0..10000 {
             let builder = thread::Builder::new();
             let mut task = builder.spawn(|| {
-                log!(LogLevel::Info, "test message 1", "1");
+                log!(LogLevel::Info, "test message 1".to_string(), "1".to_string());
             }).unwrap();
             join_handles.push(task);
         }
@@ -115,13 +121,12 @@ mod test {
     }
 
     fn create_log_path() -> PathBuf {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources");
         let logging_file_result = env::var("LOGGING_DIR");
-        let logging_file = logging_file_result.or::<String>(Ok("/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources".to_string())).unwrap();
-        let mut logging_path = Path::new(&logging_file).join("log.txt");
+        let logging_file = logging_file_result.or::<String>(Ok("/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log".to_string())).unwrap();
+        let mut logging_path = Path::new(&logging_file);
         if !logging_path.exists() {
-            File::create(&logging_path);
+            File::create(&logging_path).unwrap();
         }
-        logging_path
+        logging_path.to_path_buf()
     }
 }

@@ -37,4 +37,11 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="PyNamespacePackagesService">
+    <option name="namespacePackageFolders">
+      <list>
+        <option value="$MODULE_DIR$/module_macro_lib/src/module_macro_lib/default" />
+      </list>
+    </option>
+  </component>
 </module>

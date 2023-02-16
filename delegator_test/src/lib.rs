@@ -34,7 +34,7 @@ pub mod test_library {
 
 #[initializer]
 pub fn example_initializer() {
-    println!("hello...");
+    let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
 }
 
 #[field_aug]

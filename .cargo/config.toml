@@ -1,3 +1,4 @@
 [env]
 AUG_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs"
 LOGGING_DIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/log.log"
+KNOCKOFF_LOGGING_TEST_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log"

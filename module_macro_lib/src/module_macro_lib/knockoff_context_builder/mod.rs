@@ -6,6 +6,11 @@ use syn::__private::TokenStream2;
 use syn::Type;
 use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile};
 
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::{initialize_log, use_logging};
+use_logging!();
+initialize_log!();
 
 pub struct ApplicationContextGenerator;
 
@@ -13,32 +18,7 @@ impl ApplicationContextGenerator {
 
     pub fn create_application_context() -> TokenStream {
         let ts = quote! {
-
-            /**
-            This is the runtime application context.
-             **/
-            pub trait ApplicationContext {
-                fn get_bean_by_type_id<T,P>(&self, type_id: TypeId) -> Option<Arc<T>>
-                where P: Profile, T: 'static + Send + Sync;
-                fn get_bean_by_qualifier<T,P>(&self, qualifier: String) -> Option<Arc<T>>
-                where P: Profile, T: 'static + Send + Sync;
-                fn get_bean<T,P>(&self) -> Option<Arc<T>>
-                where P: Profile, T: 'static + Send + Sync;
-                fn get_beans<T>(&self) -> Vec<Arc<T>>
-                where T: 'static + Send + Sync;
-                fn new() -> Self;
-            }
-
-            pub trait Profile {
-                fn name() -> String;
-            }
-
-            pub trait AbstractListableFactory<P: Profile> {
-                fn new() -> Self;
-                fn get_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<T>>;
-                // fn get_beans<T: 'static + Send + Sync>(&self) -> Vec<Arc<T>>;
-            }
-
+            use module_macro_lib::module_macro_lib::knockoff_context::{AbstractListableFactory, ApplicationContext, Profile, ContainsBeans};
         };
         ts.into()
     }
@@ -89,12 +69,6 @@ impl ApplicationContextGenerator {
                 fn get_bean(&self) -> BeanDefinition<T>;
             }
 
-            pub trait ContainsBeans {
-                fn contains_bean_type(&self, type_id: &TypeId) -> bool;
-                fn get_bean_types(&self) -> Vec<TypeId>;
-                fn contains_type<T: 'static + Send + Sync>(&self) -> bool;
-            }
-
             pub trait FactoryBean<T: 'static + Send + Sync + ?Sized> {
                 fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<T>;
                 fn get_bean_type_id(&self) -> TypeId;
@@ -132,9 +106,6 @@ impl ApplicationContextGenerator {
                 }
             }
 
-            pub trait BeanProvider<T> where T: 'static + Send + Sync {
-                fn get_bean_singleton_ref(&self) -> Arc<T>;
-            }
         };
         ts.into()
     }
@@ -152,14 +123,14 @@ impl ApplicationContextGenerator {
         for bean in beans_to_provide.iter() {
 
             bean.bean_type.as_ref().and_then(|bean_type| {
-                println!("Found bean type {:?}.", bean_type);
+                log_message!("Found bean type {:?}.", bean_type);
                 match bean_type {
                     BeanType::Singleton(_, _) => {
-                        println!("adding bean dep impl with type {} as singleton!", bean.id.clone());
+                        log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
                         Self::add_to(&mut singleton_idents, &mut singleton_types, &bean);
                     }
                     BeanType::Prototype(_, _) => {
-                        println!("adding bean dep impl with type {} as prototype!", bean.id.clone());
+                        log_message!("adding bean dep impl with type {} as prototype!", bean.id.clone());
                         Self::add_to(&mut prototype_idents, &mut prototype_types, &bean);
                     }
                 };
@@ -224,6 +195,10 @@ impl ApplicationContextGenerator {
                     println!("Does not contain bean type..");
                     None
                 }
+
+                fn get_beans<T: 'static + Send + Sync>(&self) -> Vec<Arc<T>> {
+                    vec![]
+                }
             }
 
             impl ListableBeanFactory {
@@ -243,7 +218,7 @@ impl ApplicationContextGenerator {
 
     fn add_to(singleton_idents: &mut Vec<Ident>, singleton_types: &mut Vec<Type>, bean: &&Bean) {
         if bean.ident.is_some() {
-            println!("Implementing listable bean factory. Including: {}.", bean.ident.to_token_stream().to_string().clone());
+            log_message!("Implementing listable bean factory. Including: {}.", bean.ident.to_token_stream().to_string().clone());
             singleton_idents.push(bean.ident.clone().unwrap());
         } else if bean.struct_type.is_some() {
             singleton_types.push(bean.struct_type.clone().unwrap());
