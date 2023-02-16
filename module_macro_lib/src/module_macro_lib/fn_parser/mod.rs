@@ -3,16 +3,22 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use quote::ToTokens;
 use syn::{Attribute, ItemFn, ReturnType, Type};
+use knockoff_logging::{initialize_log, use_logging};
 use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::module_tree::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::util::ParseUtil;
 
 pub struct FnParser;
 
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+use_logging!();
+initialize_log!();
+
 impl FnParser {
 
     pub fn to_fn_type(fn_found: ItemFn) -> Option<FunctionType> {
-        ParseUtil::filter_singleton_prototype(&fn_found.attrs)
+        ParseUtil::filter_att(&fn_found.attrs, vec!["#[singleton(", "#[prototype("])
             .iter()
             .flat_map(|attr| {
                 match fn_found.sig.output.clone() {
@@ -31,14 +37,14 @@ impl FnParser {
         if attr.to_token_stream().to_string().contains("singleton") {
             Some(FunctionType::Singleton(
                 fn_found.clone(),
-                ParseUtil::strip_value(attr.path.to_token_stream().to_string().as_str())
+                ParseUtil::strip_value(attr.path.to_token_stream().to_string().as_str(), vec!["#[singleton(", "#[prototype("])
                     .map(|qual| String::from(qual)),
                 type_ref
             ))
         } else if attr.to_token_stream().to_string().contains("prototype") {
             Some(FunctionType::Prototype(
                 fn_found.clone(),
-                ParseUtil::strip_value(attr.path.to_token_stream().to_string().as_str())
+                ParseUtil::strip_value(attr.path.to_token_stream().to_string().as_str(), vec!["#[singleton(", "#[prototype("])
                     .map(|qual| String::from(qual)),
                 type_ref
             ))

@@ -6,20 +6,20 @@ use std::fmt::{Debug, Formatter, Pointer};
 use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum};
+use syn::{Attribute, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, TraitItem, Type, TypeArray, TypePath};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
 use syn::{
+    Ident,
     LitStr,
     Token,
-    Ident,
     token::Paren,
 };
-use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
+use quote::{format_ident, IdentFragment, quote, quote_token, TokenStreamExt, ToTokens};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
-use crate::module_macro_lib::parse_container::{ParseContainer};
+use crate::module_macro_lib::parse_container::ParseContainer;
 
 #[derive(Clone)]
 pub struct Bean {
@@ -85,12 +85,6 @@ pub enum FunctionType {
     Prototype(ItemFn, Option<String>, Option<Type>)
 }
 
-impl Debug for FunctionType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Ok(())
-    }
-}
-
 #[derive(Clone)]
 pub struct AutowireType {
     pub item_impl: ItemImpl,
@@ -132,25 +126,6 @@ pub struct BeanDefinition {
     pub qualifier: Option<String>,
     pub bean_type_type: Option<Type>,
     pub bean_type_ident: Option<Ident>,
-}
-
-impl Debug for BeanDefinition {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut debug_struct = f.debug_struct("bean_type");
-        self.qualifier.as_ref().and_then(|q| {
-            debug_struct.field("qualifier", &q.as_str());
-            None::<String>
-        });
-        self.bean_type_ident.as_ref().and_then(|q| {
-            debug_struct.field("bean_type_ident", &q.to_token_stream().to_string().as_str());
-            None::<Ident>
-        });
-        self.bean_type_type.as_ref().and_then(|q| {
-            debug_struct.field("bean_type_type", &q.to_token_stream().to_string().as_str());
-            None::<Type>
-        });
-        debug_struct.finish()
-    }
 }
 
 #[derive(Clone)]
@@ -196,14 +171,6 @@ pub struct InjectableTypeKey {
     pub underlying_type: String,
     pub impl_type: Option<String>,
     pub profile: Vec<Profile>
-}
-
-impl Default for Trait {
-    fn default() -> Self {
-        Self {
-            trait_type: None
-        }
-    }
 }
 
 pub enum GetBeanResultError {

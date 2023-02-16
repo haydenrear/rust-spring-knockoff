@@ -4,20 +4,15 @@ use std::hash::Hash;
 use quote::ToTokens;
 use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, DepType, InjectableTypeKey, Profile};
 
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::{initialize_log, use_logging};
+use_logging!();
+initialize_log!();
+
 #[derive(Clone, Default)]
 pub struct ProfileTree {
     pub injectable_types: HashMap<Profile, Vec<BeanDefinitionType>>,
-}
-
-impl Debug for ProfileTree {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut debug_map = f.debug_map();
-        self.injectable_types.iter()
-            .for_each(|p| {
-                debug_map.entry(&"profile", &p.0.clone() as &dyn Debug);
-            });
-        debug_map.finish()
-    }
 }
 
 impl ProfileTree {
@@ -33,9 +28,9 @@ impl ProfileTree {
         let default_profile = Profile::default();
 
         for i_type in beans.iter() {
-            println!("Adding {} to type.", i_type.1.id.clone());
+            log_message!("Adding {} to type.", i_type.1.id.clone());
             if i_type.1.profile.len() == 0 {
-                println!("Adding {} to default.", i_type.1.id.clone());
+                log_message!("Adding {} to default.", i_type.1.id.clone());
                 profile_tree.add_to_profile_concrete(i_type.1, &default_profile);
             }
             i_type.1.profile.iter().for_each(|profile| {
@@ -54,16 +49,16 @@ impl ProfileTree {
                 });
         }
 
-        println!("{:?} is the debugged profile tree.", &profile_tree);
+        log_message!("{:?} is the debugged profile tree.", &profile_tree);
 
         profile_tree
     }
 
     fn add_to_profile_concrete(&mut self, i_type: &Bean, profile: &Profile) {
-        println!("Adding {} to {} profiles.", &i_type.id, profile.profile.as_str());
+        log_message!("Adding {} to {} profiles.", &i_type.id, profile.profile.as_str());
         self.injectable_types.get_mut(profile)
             .map(|beans_to_add| {
-                println!("Adding {} to {} profiles.", &i_type.id, profile.profile.as_str());
+                log_message!("Adding {} to {} profiles.", &i_type.id, profile.profile.as_str());
                 beans_to_add.push(Self::create_bean_definition_concrete(i_type.clone()))
             });
 

@@ -60,12 +60,14 @@ impl Logger<StandardLogData> for TextFileLogger {
 
     fn new_from_file() -> Option<Self> {
         let logging_file_result = env::var("LOGGING_DIR").ok();
+        print!("Creating logger. {}", logging_file_result.clone().unwrap().as_str().clone());
 
         logging_file_result.and_then(|file_path| {
             let file_path = Path::new(&file_path);
             if !file_path.exists() {
                 let created_file = File::create(file_path);
                 if created_file.is_err() {
+                    println!("Could not create file.");
                     return None;
                 }
             }

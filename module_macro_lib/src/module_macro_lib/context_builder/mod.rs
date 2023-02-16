@@ -2,11 +2,18 @@ use std::collections::HashMap;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
+use knockoff_logging::{initialize_log, use_logging};
 use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, InjectableTypeKey, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
-use crate::module_macro_lib::spring_knockoff_context::ApplicationContextGenerator;
+use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 
 pub struct ContextBuilder;
+
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+
+use_logging!();
+initialize_log!();
 
 impl ContextBuilder {
 
@@ -54,7 +61,7 @@ impl ContextBuilder {
     fn finish_writing_factory(token: &mut TokenStream, beans: HashMap<Profile, Vec<Bean>>) {
 
         beans.iter().for_each(|profile_type| {
-            println!("Creating bean factory for profile type: {}.", profile_type.0.profile.clone());
+            log_message!("Creating bean factory for profile type: {}.", profile_type.0.profile.clone());
             let listable_bean_factory = ApplicationContextGenerator::new_listable_bean_factory(
                 profile_type.1.clone(),
                 profile_type.0.clone()
@@ -120,7 +127,7 @@ impl ContextBuilder {
     }
 
     fn implement_autowire_code<T: ToTokens>(token: &mut TokenStream, field_types: &Vec<Type>, identifiers: &Vec<Ident>, struct_type: &T) {
-        println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+        log_message!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
         let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
             &field_types, &identifiers, &struct_type
@@ -130,7 +137,7 @@ impl ContextBuilder {
     }
 
     fn implement_abstract_code<T: ToTokens>(token: &mut TokenStream, field_types: &Vec<Type>, identifiers: &Vec<Ident>, struct_type: &T) {
-        println!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+        log_message!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
         let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_abstract(
             &field_types, &identifiers, &struct_type

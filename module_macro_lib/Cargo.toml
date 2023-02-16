@@ -13,11 +13,14 @@ derive-syn-parse = "0.1.5"
 lazy_static = "1.4.0"
 serde = "1.0.137"
 base64 = "0.13.0"
+executors = "0.9.0"
 
 [build-dependencies.build_lib]
 path = "../build_lib"
 [dependencies.module_macro_shared]
 path = "../module_macro_shared"
+[dependencies.knockoff_logging]
+path = "../knockoff_logging"
 [build-dependencies.module_macro_codegen]
 path = "../module_macro_codegen"
 [build-dependencies.module_macro_shared]

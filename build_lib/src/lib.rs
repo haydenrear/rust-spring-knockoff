@@ -11,12 +11,9 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use knockoff_logging::{initialize_log, initialize_logger};
-use knockoff_logging::knockoff_logging::log_level::{LogLevel, LogLevels};
-use knockoff_logging::knockoff_logging::text_file_logging::{TextFileLogger, TextFileLoggerArgs};
-use knockoff_logging::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
-use knockoff_logging::knockoff_logging::logger::Logger;
+use knockoff_logging::{initialize_log, initialize_logger, use_logging};
 
+use_logging!();
 initialize_logger!(TextFileLogger, StandardLogData);
 initialize_log!();
 
@@ -55,9 +52,9 @@ pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
         let created_mod = parse_macro(&mut x);
         if created_mod.is_some() {
             let mod_created = created_mod.unwrap();
-            log_message!("here is the finished lib file:".to_string());
+            log_message!("{}", "here is the finished lib file:".to_string());
             let message = mod_created.to_token_stream().to_string();
-            log_message!(message);
+            log_message!("{}", message);
             let mut existing = fs::read_to_string(dest_path.clone())
                 .unwrap();
             existing.push_str(mod_created.to_token_stream().to_string().as_str());
@@ -208,7 +205,7 @@ fn inner_macro(item: &Item) -> Option<String> {
 
 fn write_to_log(to_write: &str) {
     let to_write = to_write.to_string();
-    log_message!(to_write);
+    log_message!("{}", to_write);
 }
 
 pub trait NewComponent<T> {

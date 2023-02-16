@@ -1,4 +1,3 @@
-use lazy_static::lazy_static;
 use std::any::{Any, TypeId};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
@@ -9,7 +8,7 @@ use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::slice::Iter;
 use std::str::pattern::Pattern;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use proc_macro2::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum, ReturnType};
 use syn::__private::str;
@@ -32,9 +31,14 @@ use crate::module_macro_lib::initializer::Initializer;
 use crate::module_macro_lib::module_parser::parse_item;
 use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType};
 use crate::module_macro_lib::profile_tree::ProfileTree;
-use crate::module_macro_lib::spring_knockoff_context::ApplicationContextGenerator;
+use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::{initialize_log, use_logging};
+use_logging!();
+initialize_log!();
 
 #[derive(Default)]
 pub struct ParseContainer {
@@ -57,8 +61,8 @@ impl ParseContainer {
 
     pub fn build_injectable(&mut self) {
         self.injectable_types_map = ProfileTree::new(&self.injectable_types_builder);
-        println!("{:?} is the debugged tree.", &self.injectable_types_map);
-        println!("{} is the number of injectable types.", &self.injectable_types_builder.len());
+        log_message!("{:?} is the debugged tree.", &self.injectable_types_map);
+        log_message!("{} is the number of injectable types.", &self.injectable_types_builder.len());
     }
 
     /**
@@ -69,7 +73,7 @@ impl ParseContainer {
         let mut already_processed = vec![];
         for i_type in self.injectable_types_builder.iter() {
             if !self.is_valid_ordering(&mut already_processed, i_type.1) {
-                println!("Was not valid ordering!");
+                log_message!("Was not valid ordering!");
                 return vec![];
             }
         }
@@ -109,7 +113,7 @@ impl ParseContainer {
     pub fn log_app_container_info(&self) {
         self.injectable_types_builder.iter().filter(|&s| s.1.struct_found.is_none())
             .for_each(|s| {
-                println!("Could not find struct type with ident {}.", s.0.clone());
+                log_message!("Could not find struct type with ident {}.", s.0.clone());
             })
     }
 
@@ -144,8 +148,8 @@ impl ParseContainer {
     }
 
     pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct) -> Option<String> {
-        println!("adding type with name {}", item_impl.ident.clone().to_token_stream().to_string());
-        println!("adding type with name {}", item_impl.to_token_stream().to_string().clone());
+        log_message!("adding type with name {}", item_impl.ident.clone().to_token_stream().to_string());
+        log_message!("adding type with name {}", item_impl.to_token_stream().to_string().clone());
 
         self.injectable_types_builder.get_mut(&item_impl.ident.to_string().clone())
             .map(|struct_impl: &mut Bean| {
@@ -179,7 +183,7 @@ impl ParseContainer {
     }
 
     pub fn add_item_enum(&mut self, enum_to_add: &mut ItemEnum) {
-        println!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
+        log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
         &mut self.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())
             .map(|struct_impl: &mut Bean| {
                 struct_impl.enum_found = Some(enum_to_add.clone());
@@ -218,7 +222,7 @@ impl ParseContainer {
         if !self.traits.contains_key(&trait_found.ident.to_string().clone()) {
             self.traits.insert(trait_found.ident.to_string().clone(), Trait::new(trait_found.clone()));
         } else {
-            println!("Contained trait already!");
+            log_message!("Contained trait already!");
         }
     }
 
@@ -261,9 +265,9 @@ impl ParseContainer {
 
 
     pub fn get_autowired_field_dep(attrs: Vec<Attribute>, field: Field) -> Option<AutowiredField> {
-        println!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
+        log_message!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
         attrs.iter().map(|attr| {
-            println!("Checking attribute: {} for field.", attr.to_token_stream().to_string().clone());
+            log_message!("Checking attribute: {} for field.", attr.to_token_stream().to_string().clone());
             let mut autowired_field = AutowiredField{
                 qualifier: None,
                 lazy: false,
@@ -276,14 +280,14 @@ impl ParseContainer {
                 });
             Some(autowired_field)
         }).next().unwrap_or_else(|| {
-            println!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
+            log_message!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
             None
         })
     }
 
     pub fn get_qualifier_from_autowired(autowired_attr: Attribute) -> Option<String> {
         if autowired_attr.path.to_token_stream().to_string().clone().contains("autowired") {
-            return ParseUtil::strip_value(autowired_attr.path.to_token_stream().to_string().as_str());
+            return ParseUtil::strip_value(autowired_attr.path.to_token_stream().to_string().as_str(), vec!["#[singleton(", "#[prototype("]);
         }
         None
     }
