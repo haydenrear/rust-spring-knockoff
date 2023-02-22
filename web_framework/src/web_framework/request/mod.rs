@@ -134,12 +134,6 @@ pub mod request {
         }
     }
 
-    impl <'a> ResponseWriter<&[u8]> for WebRequest {
-        fn write(&mut self, response: &[u8]) {
-            todo!()
-        }
-    }
-
     impl Default for WebRequest {
         fn default() -> Self {
             Self {

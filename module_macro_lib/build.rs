@@ -17,18 +17,18 @@ fn main() {
     let file = &mut create_log_file();
     file.write("initializing...".as_bytes()).unwrap();
     let aug_file = env::var("AUG_FILE").ok()
-        .or(Some(String::from("~/IdeaProject/rust-spring-knockoff/module_macro_lib/resources/default_aug.rs")))
+        .or(Some(String::from("~/IdeaProject/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs")))
         .unwrap();
     file.write("Found aug file: ".as_bytes()).unwrap();
     file.write(aug_file.as_bytes()).unwrap();
     file.write("Found another".as_bytes()).unwrap();
-    LibParser::do_codegen(&aug_file, file, false, "codegen.rs");
+    LibParser::do_codegen(&aug_file, false, "codegen.rs");
     print!("cargo:rerun-if-changed=.git/HEAD");
 }
 
 fn create_log_file() -> File {
     let mut log_file = File::create(
-        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
+        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out")
             .join("module.log")
     ).unwrap();
     log_file

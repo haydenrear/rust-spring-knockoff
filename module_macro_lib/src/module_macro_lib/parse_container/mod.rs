@@ -33,12 +33,11 @@ use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanTy
 use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
-
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
-use knockoff_logging::{initialize_log, use_logging};
+use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
 use_logging!();
 initialize_log!();
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+use crate::module_macro_lib::logging::executor;
 
 #[derive(Default)]
 pub struct ParseContainer {

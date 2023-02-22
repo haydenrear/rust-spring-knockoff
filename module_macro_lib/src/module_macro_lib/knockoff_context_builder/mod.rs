@@ -6,11 +6,11 @@ use syn::__private::TokenStream2;
 use syn::Type;
 use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile};
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 pub struct ApplicationContextGenerator;
 

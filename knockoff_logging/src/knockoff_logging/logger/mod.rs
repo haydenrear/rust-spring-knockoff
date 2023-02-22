@@ -13,7 +13,6 @@ pub trait Logger<T: LogData> {
         self.write_log(formatted);
     }
 
-    fn new_from_file() -> Option<Self> where Self: Sized;
 
     fn log_data(&self, log_level: LogLevel, to_log_data: T);
 

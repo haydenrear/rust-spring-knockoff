@@ -9,11 +9,11 @@ use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerat
 
 pub struct ContextBuilder;
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
-
 use_logging!();
 initialize_log!();
+
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 impl ContextBuilder {
 

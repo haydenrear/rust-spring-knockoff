@@ -1,8 +1,8 @@
 mod test;
 
 use core::borrow::BorrowMut;
-use crate::web_framework::convert::{ConverterRegistry, ConverterRegistryBuilder, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration};
-use crate::web_framework::security::security::{AuthenticationConversionError, AuthenticationConverter, AuthenticationConverterRegistry, AuthenticationConverterRegistryBuilder, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, Converter, DelegatingAuthenticationManager, DelegatingAuthenticationManagerBuilder};
+use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration};
+use crate::web_framework::security::security::{AuthenticationConversionError, AuthenticationConverter, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, Converter, DelegatingAuthenticationManager};
 use crate::web_framework::filter::filter::{FilterChain, RequestResponseActionFilter};
 use std::any::Any;
 use std::cell::RefCell;
@@ -12,9 +12,10 @@ use std::{mem, vec};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
+use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder};
 use crate::web_framework::dispatch::Dispatcher;
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
-use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
+use crate::web_framework::request::request::{EndpointMetadata, ResponseWriter, WebRequest, WebResponse};
 
 #[derive(Clone, Default)]
 pub struct RequestContext<Request, Response>
@@ -24,29 +25,6 @@ pub struct RequestContext<Request, Response>
 {
     pub message_converters: ConverterRegistry<Request, Response>,
     pub authentication_manager: DelegatingAuthenticationManager
-}
-
-#[derive(Clone)]
-pub struct RequestContextBuilder <Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-{
-    pub message_converter_builder: ConverterRegistryBuilder<Request, Response>,
-    pub authentication_manager_builder: DelegatingAuthenticationManagerBuilder
-}
-
-impl <Request, Response> RequestContextBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-{
-    fn build(&mut self) -> RequestContext<Request, Response> {
-        RequestContext {
-            message_converters: self.message_converter_builder.build(),
-            authentication_manager: self.authentication_manager_builder.build(),
-        }
-    }
 }
 
 impl <Request, Response> RequestContext<Request, Response>
@@ -73,26 +51,6 @@ where
     pub auth_type_convert: AuthenticationTypeConverterImpl
 }
 
-impl <Request, Response> ApplicationContextBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    // fn new() -> ApplicationContextBuilder<Request, Response>  {
-    //
-    // }
-}
-
-pub struct ApplicationContextBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    pub filter_registry: Option<Arc<Mutex<FilterRegistrar<Request, Response>>>>,
-    pub request_context_builder: Option<Arc<Mutex<RequestContextBuilder<Request, Response>>>>,
-    pub authentication_converters: Option<Arc<AuthenticationConverterRegistryBuilder>>
-}
-
 impl <Request, Response> FilterRegistrar<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -100,26 +58,6 @@ impl <Request, Response> FilterRegistrar<Request, Response>
 {
     pub fn register(&mut self, converter: RequestResponseActionFilter<Request, Response>) {
         self.filters.lock().unwrap().borrow_mut().push(converter)
-    }
-}
-
-impl <Request, Response> ApplicationContextBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
-{
-    pub fn build(&self) -> ApplicationContext<Request, Response> {
-        let mut filter_registry_found = self.filter_registry.as_ref()
-            .unwrap().lock().unwrap().clone();
-        filter_registry_found.build();
-        let context = self.request_context_builder.as_ref()
-            .unwrap().lock().unwrap().build();
-        ApplicationContext {
-            filter_registry: Arc::new(filter_registry_found),
-            request_context: context,
-            authentication_converters: self.authentication_converters.as_ref().unwrap().build(),
-            auth_type_convert: AuthenticationTypeConverterImpl,
-        }
     }
 }
 
@@ -134,16 +72,8 @@ impl <Request, Response> ApplicationContext<Request, Response>
             filter_registry: Arc::new(FilterRegistrar::new()),
             request_context: RequestContext::new(),
             authentication_converters: AuthenticationConverterRegistry::new(),
-            auth_type_convert: AuthenticationTypeConverterImpl {}
+            auth_type_convert: AuthenticationTypeConverterImpl::new()
         }
-    }
-
-    pub fn convert_authentication(&self, request: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
-        self.auth_type_convert.convert(request)
-    }
-
-    pub fn extract_authentication(&self, request: &WebRequest) -> Result<AuthenticationToken<AuthenticationType>, AuthenticationConversionError> {
-        self.authentication_converters.convert(request)
     }
 
 }
@@ -161,20 +91,6 @@ impl <'a, Request, Response> Clone for ApplicationContext<Request, Response>
                 auth_type_convert: self.auth_type_convert.clone()
             }
         }
-}
-
-impl <'a, Request, Response> Registration<'a, dyn AuthenticationConverter> for ApplicationContextBuilder<Request, Response>
-where
-    'a : 'static,
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
-{
-fn register(&self, converter: &'a dyn AuthenticationConverter) {
-        self.authentication_converters.as_ref()
-            .map(|r| {
-                r.register(converter)
-            });
-    }
 }
 
 pub struct FilterContext<Request, Response>
@@ -236,30 +152,11 @@ impl <Request, Response> FilterRegistrar<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-    fn new() -> FilterRegistrar<Request, Response> {
+    pub(crate) fn new() -> FilterRegistrar<Request, Response> {
         Self {
             filters: Arc::new(Mutex::new(vec![])),
             fiter_chain: Arc::new(FilterChain::default()),
             build: false
-        }
-    }
-}
-
-impl <Request, Response> Default for RequestContextBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
-{
-    fn default() -> Self {
-        let mut registry = ConverterRegistryBuilder {
-            converters: Arc::new(Mutex::new(Some(Box::new(OtherMessageConverter{})))),
-            request_convert:  Arc::new(Mutex::new(Some(Box::new(EndpointRequestExtractor { }))))
-        };
-        Self {
-            message_converter_builder: registry,
-            authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
-                providers: Arc::new(Mutex::new(vec![].into()))
-            },
         }
     }
 }

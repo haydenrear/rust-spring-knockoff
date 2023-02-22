@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod test_security {
     use std::any::Any;
-    use crate::web_framework::filter::filter::{FilterChain};
+    use crate::web_framework::filter::filter::FilterChain;
     use crate::web_framework::request::request::{WebRequest, WebResponse};
-    use crate::web_framework::security::security::{AuthenticationFilter, AuthenticationType, JwtToken, UsernamePassword, UsernamePasswordAuthenticationFilter};
+    use crate::web_framework::security::security::{AuthenticationType, JwtToken, UsernamePassword};
+    use crate::web_framework::security::security_filter::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
 
     #[test]
     fn test_split() {

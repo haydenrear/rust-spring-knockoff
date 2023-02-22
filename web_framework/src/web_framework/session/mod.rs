@@ -6,7 +6,7 @@ pub mod session {
 
     use crate::web_framework::filter::filter::{Action, FilterChain};
     use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-    use crate::web_framework::security::security::{Authentication, AuthenticationToken, AuthenticationType};
+    use crate::web_framework::security::security::{Authentication, AuthenticationToken, AuthenticationType, AuthType};
     use alloc::string::String;
     use async_std::task as async_task;
     use core::borrow::Borrow;
@@ -35,14 +35,14 @@ pub mod session {
     pub struct HttpSession {
         pub ctx: WebApplication,
         pub session_data: SessionData,
-        pub authentication_token: Option<AuthenticationToken<AuthenticationType>>,
+        pub authentication_token: Option<AuthenticationToken>,
         pub id: Option<String>,
     }
 
     impl HttpSession {
         pub fn new(
             id: String,
-            authentication_token: Option<AuthenticationToken<AuthenticationType>>,
+            authentication_token: Option<AuthenticationToken>,
             ctx: WebApplication,
             session_data: SessionData,
         ) -> HttpSession {
@@ -108,7 +108,7 @@ pub mod session {
             None
         }
 
-        fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
+        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
             true
         }
 

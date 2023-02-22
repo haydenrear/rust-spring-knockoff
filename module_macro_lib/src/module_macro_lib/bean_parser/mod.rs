@@ -15,11 +15,11 @@ use crate::module_macro_lib::util::ParseUtil;
 pub struct BeanParser;
 pub struct BeanDependencyParser;
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
-
 use_logging!();
 initialize_log!();
+
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 impl BeanParser {
     pub(crate) fn get_prototype_or_singleton(attr: &Vec<Attribute>, bean_type: Option<Type>, bean_type_ident: Option<Ident>) -> Option<BeanType> {
