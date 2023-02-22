@@ -23,11 +23,11 @@ impl One {
 #[singleton(Four)]
 pub struct Four {
     #[autowired]
-    four: Arc<One>,
-    two: String,
+    pub one: Arc<One>,
+    pub two: String,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Ord, PartialOrd, Eq, PartialEq)]
 #[singleton(One)]
 pub struct One {
     pub two: String

@@ -22,7 +22,7 @@ mod test {
     use std::ops::Add;
     use std::path::{Path, PathBuf};
     use executors::{futures_executor, JoinHandle};
-    use crate::{initialize_log, initialize_logger, log_message, use_logging};
+    use crate::{initialize_log, initialize_logger, log_message, use_logging, create_logger_expr};
     use crate::knockoff_logging::log_level::LogLevel;
     use crate::knockoff_logging::logger::Logger;
     use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
@@ -31,13 +31,15 @@ mod test {
     use std::time::{Duration, Instant};
     use wait_for::wait_for::wait_async::WaitFor;
     use crate::knockoff_logging::logging_facade::{LoggingFacade};
-    use crate::knockoff_logging::text_file_logging::{TextFileLogger, TextFileLoggerArgs};
+    use crate::knockoff_logging::text_file_logging::{TextFileLoggerImpl, TextFileLoggerArgs};
     use crate::knockoff_logging::log_format::LogData;
     use crate::knockoff_logging::logger::LoggerArgs;
     use crate::knockoff_logging::log_format::LogFormatter;
+    use crate::knockoff_logging::text_file_logging::TextFileLogger;
+    use crate::executor;
     use executors::Executor;
 
-    initialize_logger!(TextFileLogger, StandardLogData);
+    initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log");
     initialize_log!();
 
     #[test]
@@ -50,20 +52,17 @@ mod test {
 
     #[test]
     fn test_logging_facade() {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
         let facade = StandardLoggingFacade::get_logger();
     }
 
     #[test]
     fn test_log_message() {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
         log_message!("test message {}", "this_message");
         assert_test_message(create_log_path(), "test message this_message");
     }
 
     #[test]
     fn test_logging_macro() {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
         log!(LogLevel::Info, "test message 1".to_string(), "1".to_string());
         assert_test_message(create_log_path(), "test message 1");
         log_info!("test message 2".to_string(), "1".to_string());
@@ -72,7 +71,6 @@ mod test {
 
     #[test]
     fn test_logging_macro_concurrent() {
-        env::set_var("LOGGING_DIR", "/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log");
         let mut join_handles = vec![];
 
         let builder = thread::Builder::new();
@@ -121,8 +119,10 @@ mod test {
     }
 
     fn create_log_path() -> PathBuf {
-        let logging_file_result = env::var("LOGGING_DIR");
-        let logging_file = logging_file_result.or::<String>(Ok("/Users/hayde/IdeaProjects/rust-spring-knockoff/knockoff_logging/resources/log.log".to_string())).unwrap();
+        let logging_file_result = env::var("KNOCKOFF_LOGGING_TEST_FILE");
+        let logging_file = logging_file_result.or::<String>(Ok(
+            "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log".to_string())
+        ).unwrap();
         let mut logging_path = Path::new(&logging_file);
         if !logging_path.exists() {
             File::create(&logging_path).unwrap();

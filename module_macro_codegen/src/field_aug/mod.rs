@@ -9,8 +9,34 @@ use quote::{quote, ToTokens};
 use syn::{Item, ItemFn, ItemImpl};
 use crate::parser::{CodegenItem, LibParser};
 
+#[derive(Clone)]
+pub struct FieldAug {
+    default: Option<TokenStream>
+}
 
-pub struct FieldAug;
+impl FieldAug {
+    pub(crate) fn new() -> Self {
+        Self {
+            default: None
+        }
+    }
+}
+
+impl FieldAug {
+    fn default_tokens() -> TokenStream {
+        let t = quote! {
+                #[derive(Parse, Default, Clone, Debug)]
+                pub struct FieldAugmenterImpl;
+
+                impl FieldAugmenter for FieldAugmenterImpl {
+                    fn process(&self, struct_item: &mut ItemStruct) {
+                    }
+                }
+            }.into();
+        t
+    }
+}
+
 impl CodegenItem for FieldAug {
     fn supports(&self, impl_item: &Item) -> bool {
         match impl_item {
@@ -47,5 +73,17 @@ impl CodegenItem for FieldAug {
                 None
             }
         }
+    }
+
+    fn get_unique_id(&self) -> String {
+        String::from("FieldAug")
+    }
+
+    fn default_codegen(&self) -> String {
+        FieldAug::default_tokens().to_string()
+    }
+
+    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
+        Box::new(self.clone())
     }
 }

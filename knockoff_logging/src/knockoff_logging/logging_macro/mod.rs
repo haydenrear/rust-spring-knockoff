@@ -1,6 +1,22 @@
 #[macro_export]
 macro_rules! initialize_logger {
     ($logger:ident, $log_data:ty) => {
+        create_logger_expr!($logger, $log_data, $logger::new_from_file(), 2);
+    };
+    ($logger:ident, $log_data:ty, $log_file:literal) => {
+        create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), 2);
+    };
+    ($logger:ident, $log_data:ty, $log_file:literal, $num_cores:literal) => {
+        create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), $num_cores);
+    };
+    ($logger:ident, $log_data:ty, $num_cores:literal) => {
+        create_logger_expr!($logger, $log_data, $logger::new_from_file(), $num_cores);
+    };
+}
+
+#[macro_export]
+macro_rules! create_logger_expr {
+    ($logger:ident, $log_data:ty, $create_logger:expr, $num_cores:literal) => {
         use executors::threadpool_executor::ThreadPoolExecutor;
         use std::sync::Mutex;
         use std::future::Future;
@@ -8,10 +24,10 @@ macro_rules! initialize_logger {
 
         lazy_static! {
             pub static ref logger: $logger = {
-                let text_file_logger_unwrapped = $logger::new_from_file();
+                let text_file_logger_unwrapped = $create_logger;
                 text_file_logger_unwrapped.unwrap()
             };
-            pub static ref executor: Mutex<ThreadPoolExecutor> = Mutex::new(ThreadPoolExecutor::new(2));
+            pub static ref executor: Mutex<ThreadPoolExecutor> = Mutex::new(ThreadPoolExecutor::new($num_cores));
         }
 
         pub struct AsyncLoggingExecutor {
@@ -29,14 +45,14 @@ macro_rules! initialize_logger {
             }
         }
 
-    }
+    };
 }
 
 #[macro_export]
 macro_rules! use_logging {
     () => {
         use knockoff_logging::knockoff_logging::log_level::{LogLevel, LogLevels};
-        use knockoff_logging::knockoff_logging::text_file_logging::{TextFileLogger, TextFileLoggerArgs};
+        use knockoff_logging::knockoff_logging::text_file_logging::{TextFileLogger, TextFileLoggerArgs, TextFileLoggerImpl};
         use knockoff_logging::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
         use knockoff_logging::knockoff_logging::logger::Logger;
         use knockoff_logging::knockoff_logging::logging_facade::LoggingFacade;

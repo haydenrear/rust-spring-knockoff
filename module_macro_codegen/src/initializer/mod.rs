@@ -9,7 +9,34 @@ use quote::{quote, ToTokens};
 use syn::{Item, ItemFn, ItemImpl};
 use crate::parser::{CodegenItem, LibParser};
 
-pub struct Initializer;
+#[derive(Clone)]
+pub struct Initializer {
+    default: Option<TokenStream>
+}
+
+impl Initializer {
+    pub(crate) fn new() -> Self {
+        Self {
+            default: None
+        }
+    }
+}
+
+impl Initializer {
+    fn default_tokens() -> TokenStream {
+        let t = quote! {
+                #[derive(Parse, Default, Clone, Debug)]
+                pub struct ContextInitializerImpl;
+
+                impl ContextInitializer for ContextInitializerImpl {
+                    fn do_update(&self) {
+                    }
+                }
+            }.into();
+        t
+    }
+}
+
 impl CodegenItem for Initializer {
     fn supports(&self, impl_item: &Item) -> bool {
         match impl_item {
@@ -23,6 +50,10 @@ impl CodegenItem for Initializer {
                 false
             }
         }
+    }
+
+    fn default_codegen(&self) -> String {
+        Initializer::default_tokens().to_string()
     }
 
     fn get_codegen(&self, item_fn: &Item) -> Option<String> {
@@ -48,5 +79,13 @@ impl CodegenItem for Initializer {
                 None
             }
         }
+    }
+
+    fn get_unique_id(&self) -> String {
+        String::from("Initializer")
+    }
+
+    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
+        Box::new(self.clone())
     }
 }

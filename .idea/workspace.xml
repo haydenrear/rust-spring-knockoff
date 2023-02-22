@@ -7,32 +7,58 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Added way to dynamically change the DI">
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/debug/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/logging/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="towar">
+      <change afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/security_filter_chain/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web_framework/build.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.cargo/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.cargo/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/resources/log.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logger/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logger/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_facade/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_facade/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_macro/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/logging_macro/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/print_logging/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/print_logging/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/knockoff_logging/text_file_logging/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/field_aug/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/field_aug/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/initializer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/initializer/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/resources/default_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/resources/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/test_library_three.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/fn_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/fn_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/logging/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/logging/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/spring_knockoff_context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/util/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/util/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/request/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +129,7 @@
     &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/initializer_macro&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -122,21 +148,38 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/web_framework" />
       <recent name="$PROJECT_DIR$/initializer_macro" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/delegator_test" />
       <recent name="$PROJECT_DIR$/module_macro_lib/resources" />
-      <recent name="$PROJECT_DIR$/module_macro_lib" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/codegen_resources" />
       <recent name="$PROJECT_DIR$/initializer_lib" />
       <recent name="$PROJECT_DIR$/delegator_test/.cargo" />
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
       <recent name="$PROJECT_DIR$/delegator_test/src" />
-      <recent name="$PROJECT_DIR$/delegator_test" />
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
+    <configuration name="Test lib::test (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib test" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test lib::test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package knockoff_logging --lib test" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -171,25 +214,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::test_logging_facade" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_logging --lib test::test_logging_facade -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test test::test_text_logging" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_logging --lib test::test_text_logging -- --exact" />
+    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -242,18 +268,18 @@
     <list>
       <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Test lib::test" />
+      <item itemvalue="Cargo.Test lib::test (1)" />
       <item itemvalue="Cargo.Test test::test_log_message" />
-      <item itemvalue="Cargo.Test test::test_logging_facade" />
-      <item itemvalue="Cargo.Test test::test_text_logging" />
+      <item itemvalue="Cargo.Test test_downcast" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test lib::test" />
+        <item itemvalue="Cargo.Test test_downcast" />
+        <item itemvalue="Cargo.Test lib::test (1)" />
         <item itemvalue="Cargo.Test test_module_macro" />
         <item itemvalue="Cargo.Test test::test_log_message" />
-        <item itemvalue="Cargo.Test lib::test" />
-        <item itemvalue="Cargo.Test test::test_text_logging" />
-        <item itemvalue="Cargo.Test test::test_logging_facade" />
       </list>
     </recent_temporary>
   </component>
@@ -312,13 +338,8 @@
       <workItem from="1674940301289" duration="2587000" />
       <workItem from="1675868087594" duration="40861000" />
       <workItem from="1676403564482" duration="16055000" />
-    </task>
-    <task id="LOCAL-00004" summary="session">
-      <created>1669308229667</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1669308229667</updated>
+      <workItem from="1676723809901" duration="565000" />
+      <workItem from="1677095156549" duration="2667000" />
     </task>
     <task id="LOCAL-00005" summary="session">
       <created>1669313026722</created>
@@ -656,7 +677,14 @@
       <option name="project" value="LOCAL" />
       <updated>1676416881840</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="Updated logging">
+      <created>1676562905323</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1676562905323</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -674,7 +702,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="session" />
     <MESSAGE value="ctx" />
     <MESSAGE value="compiled with ctx" />
     <MESSAGE value="security" />
@@ -699,7 +726,8 @@
     <MESSAGE value="logging macro" />
     <MESSAGE value="logging facade" />
     <MESSAGE value="Added way to dynamically change the DI" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added way to dynamically change the DI" />
+    <MESSAGE value="Updated logging" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated logging" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -710,38 +738,18 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>210</line>
+          <line>209</line>
           <option name="timeStamp" value="55" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>55</line>
+          <line>54</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/knockoff_logging/src/lib.rs</url>
-          <line>124</line>
-          <option name="timeStamp" value="99" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/knockoff_logging/src/lib.rs</url>
-          <line>47</line>
-          <option name="timeStamp" value="100" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/knockoff_logging/src/lib.rs</url>
-          <line>69</line>
-          <option name="timeStamp" value="101" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/knockoff_logging/src/lib.rs</url>
-          <line>105</line>
-          <option name="timeStamp" value="103" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/knockoff_logging/src/lib.rs</url>
-          <line>117</line>
-          <option name="timeStamp" value="104" />
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs</url>
+          <line>4</line>
+          <option name="timeStamp" value="106" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

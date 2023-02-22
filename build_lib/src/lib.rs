@@ -1,9 +1,10 @@
 use std::{env, fs};
 use std::ffi::{OsStr, OsString};
+use std::fmt::Error;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::ops::Deref;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::ptr::write;
 use syn::__private::{Span, ToTokens};
 use syn::{braced, Fields, Ident, Item, ItemMod, ItemStruct, Token, token, Visibility, VisPublic};
@@ -11,10 +12,10 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use knockoff_logging::{initialize_log, initialize_logger, use_logging};
+use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
 
 use_logging!();
-initialize_logger!(TextFileLogger, StandardLogData);
+initialize_logger!(TextFileLoggerImpl, StandardLogData);
 initialize_log!();
 
 pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
@@ -49,7 +50,11 @@ pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
     let lib_file = parse_syn_file(&mut file);
 
     for mut x in lib_file.items {
-        let created_mod = parse_macro(&mut x);
+        let created_mod = parse_macro(&mut x,
+                                      base_env
+                                          .or(Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"))
+                                          .unwrap()
+        );
         if created_mod.is_some() {
             let mod_created = created_mod.unwrap();
             log_message!("{}", "here is the finished lib file:".to_string());
@@ -78,7 +83,7 @@ fn parse_syn_file(file: &mut File) -> syn::File {
     lib_file
 }
 
-fn parse_macro(x: &mut Item) -> Option<&mut ItemMod> {
+fn parse_macro<'a>(x: &'a mut Item, project_source_path: &'a str) -> Option<&'a mut ItemMod> {
     match x {
         Item::Mod(ref mut module) => {
             let found_inner = module.content.clone().unwrap();
@@ -101,12 +106,13 @@ fn parse_macro(x: &mut Item) -> Option<&mut ItemMod> {
             }
 
             if make_change_bool {
-                make_change(module, &found_inner, module.ident.to_string().as_str());
+                make_change(module, &found_inner, module.ident.to_string().as_str(), project_source_path);
                 if cfg_attr != 0 {
                     module.attrs.remove(cfg_attr);
                 }
                 return Some(module);
             }
+
             None
         }
         _ => {
@@ -118,7 +124,7 @@ fn parse_macro(x: &mut Item) -> Option<&mut ItemMod> {
 fn make_change(
     module: &mut ItemMod,
     found_inner: &(Brace, Vec<Item>),
-    outer_module_name: &str
+    outer_module_name: &str, project_source_path: &str
 ) {
     let mut counter = 0;
     for item in &found_inner.1 {
@@ -135,7 +141,7 @@ fn make_change(
                     write_to_log("the module module name is ");
                     write_to_log(outer_module_name);
                     let mod_to_replace = get_module_to_replace(
-                        option.unwrap().as_str(), outer_module_name, module_span
+                        option.unwrap().as_str(), outer_module_name, module_span, project_source_path
                     );
                     match mod_to_replace {
                         None => {}
@@ -156,13 +162,10 @@ fn make_change(
     }
 }
 
-fn get_module_to_replace(module_name: &str, base: &str, span: Span) -> Option<ItemMod> {
+fn get_module_to_replace(module_name: &str, base: &str, span: Span, project_src_path: &str) -> Option<ItemMod> {
     let mut module_rs_file = String::from(module_name);
     module_rs_file.push_str(".rs");
-    let inner_module_path = Path::new(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src").deref())
-        .join(base)
-        .join(module_rs_file.clone());
-    let mut inner_module_file = File::open(inner_module_path);
+    let mut inner_module_file = get_inner_module_path(base, project_src_path, &mut module_rs_file);
     let mut new_mod = ItemMod {
         attrs: vec![],
         vis: Visibility::Inherited,
@@ -186,6 +189,25 @@ fn get_module_to_replace(module_name: &str, base: &str, span: Span) -> Option<It
     }
     new_mod.content = Some((brace, items));
     Some(new_mod)
+}
+
+fn get_inner_module_path(base: &str, project_src_path: &str, mut module_rs_file: &mut String) -> Result<File, std::io::Error> {
+    let mut inner_module_path = Path::new(
+        OsString::from(project_src_path).deref()
+    )
+        .join(base)
+        .join(module_rs_file.clone());
+    if !inner_module_path.exists() {
+        inner_module_path = Path::new(
+            OsString::from(project_src_path).deref()
+        )
+            .join(base)
+            .join(project_src_path)
+            .join("mod.rs");
+    }
+
+    let mut inner_module_file = File::open(inner_module_path);
+    inner_module_file
 }
 
 fn inner_macro(item: &Item) -> Option<String> {

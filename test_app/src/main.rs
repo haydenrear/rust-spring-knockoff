@@ -4,13 +4,14 @@ use hyper::{HyperRequestConverter, HyperRequestStream};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use web_framework::{create_message_converter, default_message_converters};
-use web_framework::web_framework::convert::{ConverterRegistryBuilder, EndpointRequestExtractor, MessageConverter, Registration};
+use web_framework::web_framework::convert::{EndpointRequestExtractor, MessageConverter, Registration};
 use web_framework::web_framework::dispatch::Dispatcher;
 use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-use web_framework::web_framework::security::security::{AuthenticationConverterRegistryBuilder, AuthenticationProvider, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, DelegatingAuthenticationManagerBuilder, UsernamePasswordAuthenticationProvider};
-use web_framework::web_framework::http::{RequestExecutorImpl};
-use web_framework::web_framework::context::{ApplicationContext, ApplicationContextBuilder, FilterRegistrar, RequestContext, RequestContextBuilder};
+use web_framework::web_framework::security::security::{AuthenticationProvider, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, UsernamePasswordAuthenticationProvider};
+use web_framework::web_framework::http::RequestExecutorImpl;
+use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
+use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, RequestContextBuilder};
 use web_framework::web_framework::message::MessageType;
 
 #[tokio::main]
@@ -51,7 +52,7 @@ async fn main() {
         }))),
         authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
             converters: Arc::new(Mutex::new(vec![])),
-            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
+            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl {}))
         })),
     };
     let mut r: HyperRequestStream<Example, Example> = HyperRequestStream::new(
@@ -84,7 +85,7 @@ async fn main() {
         }))),
         authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
             converters: Arc::new(Mutex::new(vec![])),
-            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl{}))
+            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl {}))
         })),
     };
 

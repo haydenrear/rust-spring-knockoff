@@ -1,11 +1,11 @@
 use quote::ToTokens;
 use syn::Attribute;
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 pub struct ParseUtil;
 

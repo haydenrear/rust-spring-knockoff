@@ -1022,6 +1022,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "knockoff_security"
+version = "0.1.0"
+
+[[package]]
 name = "kv-log-macro"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1149,6 +1153,9 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "derive-syn-parse",
+ "executors",
+ "knockoff_logging",
+ "knockoff_security",
  "lazy_static",
  "proc-macro2",
  "quote",
@@ -1712,6 +1719,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
+name = "spring_knockoff_boot"
+version = "0.1.0"
+
+[[package]]
 name = "stringprep"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2208,15 +2219,25 @@ dependencies = [
  "async-std",
  "async-trait",
  "base64",
+ "build_lib",
  "circular",
  "data_framework",
+ "derive-syn-parse",
+ "dynpath",
  "futures",
+ "knockoff_security",
  "lazy_static",
+ "module_macro",
+ "module_macro_codegen",
+ "module_macro_lib",
+ "module_macro_shared",
  "mongo_repo",
  "paste",
+ "quote",
  "security_model",
  "serde",
  "serde_json",
+ "syn",
  "tokio-test",
 ]
 

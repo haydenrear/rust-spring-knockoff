@@ -1,6 +1,8 @@
+use module_macro::{field_aug, initializer, module_attr};
+
 #[initializer]
 pub fn example_initializer() {
-    println!("hello!");
+    let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
 }
 
 #[field_aug]

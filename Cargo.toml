@@ -16,4 +16,6 @@ members = [
     "wait_for",
     "module_macro_codegen",
     "module_macro_shared",
+    "spring_knockoff_boot",
+    "knockoff_security"
 ]

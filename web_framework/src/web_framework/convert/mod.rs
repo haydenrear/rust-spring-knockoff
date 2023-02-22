@@ -10,6 +10,7 @@ use std::collections::LinkedList;
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
 use std::vec;
+use crate::web_framework::security::security::{AuthenticationAware, AuthenticationConversionError, AuthenticationConverter, AuthenticationToken, AuthenticationType, AuthenticationTypeConverter, AuthType, Converter, Unauthenticated};
 
 #[macro_export]
 macro_rules! default_message_converters {
@@ -179,24 +180,6 @@ macro_rules! create_message_converter {
     }
 }
 
-pub struct MessageConverterBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    builders: Vec<(Box<dyn MessageConverter<Request, Response>>, String)>
-}
-
-impl <Request, Response> MessageConverterBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    pub fn add(&mut self, tuple: (Box<dyn MessageConverter<Request,Response>>, String)) {
-        self.builders.push(tuple)
-    }
-}
-
 pub trait MessageConverter<Request, Response>: Send + Sync
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -283,34 +266,6 @@ pub struct ConverterRegistry<Request, Response>
     pub request_convert: Arc<Option<Box<dyn RequestExtractor<EndpointMetadata>>>>
 }
 
-
-#[derive(Clone)]
-pub struct ConverterRegistryBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    pub converters: Arc<Mutex<Option<Box<dyn MessageConverter<Request, Response>>>>>,
-    pub request_convert: Arc<Mutex<Option<Box<dyn RequestExtractor<EndpointMetadata>>>>>
-}
-
-impl <Request, Response> ConverterRegistryBuilder<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    pub fn build(&mut self) -> ConverterRegistry<Request, Response> {
-        let mut to_switch: Option<Box<dyn MessageConverter<Request, Response>>> = None;
-        std::mem::swap(&mut to_switch, &mut self.converters.lock().unwrap().take());
-        let mut request_extractor_found: Option<Box<dyn RequestExtractor<EndpointMetadata>>> = None;
-        std::mem::swap(&mut request_extractor_found, &mut self.request_convert.lock().unwrap().take());
-        ConverterRegistry {
-            converters: Arc::new(to_switch),
-            request_convert: Arc::new(request_extractor_found)
-        }
-    }
-}
-
 impl <Request, Response> ConverterRegistry<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -322,9 +277,16 @@ impl <Request, Response> ConverterRegistry<Request, Response>
             request_convert: Arc::new(request_extractor),
         }
     }
+
 }
 
 pub struct EndpointRequestExtractor {
+}
+
+impl EndpointRequestExtractor {
+    pub(crate) fn new() -> Self {
+        Self {}
+    }
 }
 
 impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
@@ -359,18 +321,23 @@ impl <Request, Response> ConverterRegistryContainer<Request, Response> for Conve
     fn convert_from_converters(
         &self,
         media_type: String,
-    ) -> Arc<Option<Box<dyn MessageConverter<Request, Response>>>> {
+        response: &Response,
+        request: &WebRequest
+    ) -> Option<String> {
         match self.converters.as_ref() {
             None => {
-                Arc::new(None)
+                None
             }
             Some(converter) => {
                 if converter.message_type()
                     .iter()
                     .any(|message_type| message_type.clone() == media_type) {
-                    return self.converters.clone();
+                    return self.converters.as_ref().as_ref()
+                        .map(|c| c.convert_from(response, request))
+                        .flatten()
+                } else {
+                    None
                 }
-                Arc::new(None)
             }
         }
     }
@@ -408,10 +375,12 @@ impl <Request, Response> Converters<Request, Response> for RequestContext<Reques
         &self,
         request: &WebRequest,
     ) -> Option<MessageType<Request>> {
-        // self.message_converters.converters(request)
-            // .map(|c| (&c).convert_to(request).or(None))
-            // .unwrap()
-        None
+        self.message_converters.converters
+            .as_ref()
+            .as_ref()
+            .filter(|converter| converter.do_convert(request))
+            .map(|converter| converter.convert_to(request))
+            .flatten()
     }
 
     fn convert_from(
@@ -420,18 +389,38 @@ impl <Request, Response> Converters<Request, Response> for RequestContext<Reques
         web_request: &WebRequest,
         media_type: Option<String>
     ) -> Option<String> {
-        match self.message_converters
-            .convert_from_converters(media_type
-                .or(Some("application/json".to_string())).unwrap()
+        self.message_converters.convert_from_converters(
+            media_type.or(Some("application/json".to_string())).unwrap(),
+            request,
+            web_request
+        )
+    }
+}
+
+
+#[derive(Clone)]
+pub struct AuthenticationConverterRegistry {
+    pub converters: Arc<Vec<&'static dyn AuthenticationConverter>>,
+    pub authentication_type_converter: Arc<&'static dyn AuthenticationTypeConverter>
+}
+
+impl Converter<WebRequest, Result<AuthenticationToken, AuthenticationConversionError>> for AuthenticationConverterRegistry {
+    fn convert(&self, from: &WebRequest) -> Result<AuthenticationToken, AuthenticationConversionError> {
+        self.authentication_type_converter.deref().convert(from)
+            .map(|auth_type| auth_type.get_principal()
+                .map(|principal| (auth_type, principal))
             )
-            .as_ref() {
-            None => {
-                None
-            }
-            Some(message) => {
-                None
-            }
-        }
+            .map(|auth_type| {
+                auth_type.map(|auth_type| {
+                    AuthenticationToken {
+                        name: auth_type.1,
+                        auth: auth_type.0
+                    }
+                })
+                    .or(Some(AuthenticationToken { name: "".to_string(), auth: AuthenticationType::Unauthenticated}))
+                    .unwrap()
+            })
+            .or(Err(AuthenticationConversionError{ message: "Error processing authentication token.".to_string() }))
     }
 }
 
@@ -464,5 +453,7 @@ pub trait  ConverterRegistryContainer<Request, Response>
     fn convert_from_converters(
         &self,
         media_type: String,
-    ) -> Arc<Option<Box<dyn MessageConverter<Request, Response>>>>;
+        response: &Response,
+        request: &WebRequest
+    ) -> Option<String>;
 }

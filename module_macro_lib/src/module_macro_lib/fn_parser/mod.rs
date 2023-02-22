@@ -10,8 +10,6 @@ use crate::module_macro_lib::util::ParseUtil;
 
 pub struct FnParser;
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use_logging!();
 initialize_log!();
 

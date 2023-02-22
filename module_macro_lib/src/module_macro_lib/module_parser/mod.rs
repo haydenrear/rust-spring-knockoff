@@ -24,11 +24,11 @@ use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::initializer::Initializer;
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 pub fn parse_module(mut found: Item, initializer: Initializer) -> TokenStream {
     match &mut found {

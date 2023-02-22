@@ -16,9 +16,29 @@ tokio-test = "*"
 futures = "0.3.25"
 paste = "1.0.6"
 circular = "0.3.0"
+derive-syn-parse = "0.1.5"
+syn = {version = "1.0", features = ["full"]}
+quote = "1.0"
+dynpath = "0.1.4"
 [dependencies.data_framework]
 path = "../data_framework"
 [dependencies.mongo_repo]
 path = '../mongo_repo'
 [dependencies.security_model]
 path = '../security_model'
+[dependencies.module_macro]
+path = "../module_macro"
+[dependencies.module_macro_lib]
+path = "../module_macro_lib"
+[dependencies.module_macro_shared]
+path = "../module_macro_shared"
+[dependencies.knockoff_security]
+path = "../knockoff_security"
+[build-dependencies]
+syn = {version = "1.0", features = ["full"]}
+[build-dependencies.build_lib]
+path = "../build_lib"
+[build-dependencies.module_macro_codegen]
+path = "../module_macro_codegen"
+[build-dependencies.module_macro_shared]
+path = "../module_macro_shared"

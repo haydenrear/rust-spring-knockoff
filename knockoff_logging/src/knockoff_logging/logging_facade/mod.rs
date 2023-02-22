@@ -4,7 +4,7 @@ use crate::knockoff_logging::logger::{Logger, LoggerArgs};
 use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
 use crate::knockoff_logging::text_file_logging::TextFileLoggerArgs;
 use lazy_static::lazy_static;
-use crate::knockoff_logging::text_file_logging::TextFileLogger;
+use crate::knockoff_logging::text_file_logging::TextFileLoggerImpl;
 use std::sync::Arc;
 use std::sync::Mutex;
 use executors::threadpool_executor::ThreadPoolExecutor;

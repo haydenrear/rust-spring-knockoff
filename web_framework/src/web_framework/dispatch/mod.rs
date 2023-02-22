@@ -1,23 +1,16 @@
-use crate::web_framework::context::{ApplicationContext, RequestContext, RequestContextBuilder};
+use crate::web_framework::context::{ApplicationContext, RequestContext};
 use crate::web_framework::convert::{Converters, RequestExtractor};
 use crate::web_framework::filter::filter::{Action, MediaType};
 use crate::web_framework::message::MessageType;
 use crate::web_framework::request::request::{
-    EndpointMetadata, WebRequest, WebResponse, ResponseWriter,
+    EndpointMetadata, ResponseWriter, WebRequest, WebResponse,
 };
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
+use crate::web_framework::context_builder::RequestContextBuilder;
 
 #[derive(Clone)]
 pub struct Dispatcher {
-}
-
-#[deny(Clone)]
-pub struct DispatcherBuilder <Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
-    pub context: RequestContextBuilder<Request, Response>
 }
 
 /**

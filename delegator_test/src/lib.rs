@@ -32,25 +32,6 @@ pub mod test_library {
 
 }
 
-#[initializer]
-pub fn example_initializer() {
-    let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
-}
-
-#[field_aug]
-pub fn field_aug(struct_item: &mut ItemStruct) {
-    match &mut struct_item.fields {
-        Fields::Named(ref mut fields_named) => {
-            fields_named.named.push(
-                Field::parse_named.parse2(quote!(
-                                    pub a: String
-                                ).into()).unwrap()
-            )
-        }
-        Fields::Unnamed(ref mut fields_unnamed) => {}
-        _ => {}
-    }
-}
 
 #[test]
 fn test_module_macro() {
@@ -72,9 +53,16 @@ fn test_module_macro() {
 
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
+
     let one_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
     let two_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
+    assert!(two_found.is_some());
     assert!(one_found.is_some());
-    let app_ctx = AppCtx::new();
 
+    let two_found: Option<Arc<Four>> = listable.get_bean_definition::<Four>();
+    let one_found_again: Option<Arc<One>> = listable.get_bean_definition::<One>();
+    assert!(two_found.is_some());
+    assert_eq!(two_found.unwrap().one.deref(), one_found_again.unwrap().deref());
+
+    let app_ctx = AppCtx::new();
 }

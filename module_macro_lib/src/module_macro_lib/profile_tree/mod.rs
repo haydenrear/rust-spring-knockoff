@@ -4,11 +4,11 @@ use std::hash::Hash;
 use quote::ToTokens;
 use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, DepType, InjectableTypeKey, Profile};
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 #[derive(Clone, Default)]
 pub struct ProfileTree {

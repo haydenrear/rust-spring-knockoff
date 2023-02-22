@@ -8,7 +8,7 @@ pub mod security {
 
     extern crate core;
 
-    use crate::web_framework::convert::{Registration};
+    use crate::web_framework::convert::{AuthenticationConverterRegistry, Registration};
     use crate::web_framework::filter::filter::{Action, FilterChain};
     use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
     use crate::web_framework::session::session::HttpSession;
@@ -19,29 +19,17 @@ pub mod security {
     use std::any::{Any, TypeId};
     use std::cell::RefCell;
     use std::collections::{HashMap, LinkedList};
+    use std::marker::PhantomData;
     use std::ops::{Deref, DerefMut};
-    use std::ptr::null;
     use std::sync::{Arc, Mutex};
     use std::vec;
     use security_model::UserAccount;
     use crate::web_framework::context::{ApplicationContext, RequestContext};
-
-    #[derive(Clone)]
-    pub struct DelegatingAuthenticationManagerBuilder {
-        pub providers: Arc<Mutex<Arc<Vec<Box<dyn AuthenticationProvider<AuthenticationType>>>>>>,
-    }
-
-    impl DelegatingAuthenticationManagerBuilder {
-        pub(crate) fn build(&self) -> DelegatingAuthenticationManager {
-            DelegatingAuthenticationManager{
-                providers: self.providers.lock().unwrap().clone(),
-            }
-        }
-    }
+    use crate::web_framework::context_builder::AuthenticationConverterRegistryBuilder;
 
     #[derive(Clone, Default)]
     pub struct DelegatingAuthenticationManager {
-        pub(crate) providers: Arc<Vec<Box<dyn AuthenticationProvider<AuthenticationType>>>>,
+        pub(crate) providers: Arc<Vec<Box<dyn AuthenticationProvider>>>,
     }
 
     impl DelegatingAuthenticationManager {
@@ -54,90 +42,13 @@ pub mod security {
 
     }
 
-    //TODO: replace filter with action
-    pub trait AuthenticationFilter{
-        fn try_convert_to_authentication(
-            &self,
-            request: &WebRequest,
-        ) -> Result<Option<Authentication>, AuthenticationConversionError>;
-    }
-
-    pub struct UsernamePasswordAuthenticationFilter {
-        converter: Arc<Box<dyn AuthenticationTypeConverter>>
-    }
-
-    impl Default for UsernamePasswordAuthenticationFilter {
-        fn default() -> Self {
-            Self {
-                converter: Arc::new(Box::new(AuthenticationTypeConverterImpl{}))
-            }
-        }
-    }
-
-    impl <Request, Response> Action<Request, Response> for UsernamePasswordAuthenticationFilter
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-    {
-        fn do_action(
-                &self,
-                metadata: EndpointMetadata,
-                request: &Option<Request>,
-                web_request: &WebRequest,
-                response: &mut WebResponse,
-                context: &RequestContext<Request, Response>,
-                application_context: &ApplicationContext<Request, Response>
-            ) -> Option<Response> {
-
-            self.converter.convert(web_request)
-                .ok().map(|auth_type| {
-                    application_context
-                        .authentication_converters
-                        .converters
-                        .iter()
-                        .filter(|c| c.supports(&auth_type))
-                        .map(|c| c.convert(&auth_type))
-                        .for_each(|mut auth_token| {
-                            application_context
-                                .request_context
-                                .authentication_manager
-                                .authenticate(&mut auth_token)
-                        })
-                })
-                .map(|f| None)
-                .unwrap()
-
-        }
-
-        fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
-            todo!()
-        }
-
-        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
-            todo!()
-        }
-
-        fn clone(&self) -> Box<dyn Action<Request, Response>> {
-            todo!()
-        }
-    }
-
     pub struct AuthenticationConversionError {
-        message: String,
+        pub(crate) message: String,
     }
 
     impl AuthenticationConversionError {
         fn new(message: String) -> Self {
             Self { message: message }
-        }
-    }
-
-    impl AuthenticationFilter for UsernamePasswordAuthenticationFilter {
-        fn try_convert_to_authentication(
-            &self,
-            request: &WebRequest,
-        ) -> Result<Option<Authentication>, AuthenticationConversionError> {
-            Ok(None)
         }
     }
 
@@ -153,36 +64,36 @@ pub mod security {
         authority: String,
     }
 
-    pub trait AuthenticationProvider<A: AuthType> : Send + Sync {
+    pub trait AuthenticationProvider : Send + Sync {
         fn supports(&self, authentication_token: TypeId) -> bool;
-        fn authenticate(&self, auth_token: &AuthenticationToken<A>);
+        fn authenticate(&self, auth_token: &AuthenticationToken);
     }
 
     #[derive(Clone)]
     pub struct UsernamePasswordAuthenticationProvider {}
 
-    impl AuthenticationProvider<AuthenticationType> for UsernamePasswordAuthenticationProvider {
+    impl AuthenticationProvider for UsernamePasswordAuthenticationProvider {
         fn supports(&self, authentication_token: TypeId) -> bool {
             // authentication_token == UsernamePasswordAuthenticationToken::get_type(String::from("UsernamePasswordAuthenticationToken"))
             todo!()
         }
 
-        fn authenticate(&self, auth_token: &AuthenticationToken<AuthenticationType>){
+        fn authenticate(&self, auth_token: &AuthenticationToken){
             todo!()
         }
 
     }
 
     impl DelegatingAuthenticationManager {
-        fn authenticate(&self, auth_token: &mut AuthenticationToken<AuthenticationType>) {
+        pub fn authenticate(&self, auth_token: &mut AuthenticationToken) {
             for provider in self.providers.iter() {
                 provider.authenticate(&auth_token);
             }
         }
     }
 
-    impl <T: AuthType> AuthenticationToken<T> {
-        fn auth(&self) -> T {
+    impl AuthenticationToken {
+        fn auth(&self) -> AuthenticationType {
             todo!()
         }
         fn name(&self) -> &'static str {
@@ -193,22 +104,22 @@ pub mod security {
     impl Default for Authentication {
         fn default() -> Self {
             Self {
-                authentication_type: AuthenticationType::default(),
+                authentication_type: AuthenticationType::Unauthenticated,
             }
         }
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
-    pub struct AuthenticationToken<T: AuthType> {
-        name: String,
-        auth: T
+    pub struct AuthenticationToken {
+        pub name: String,
+        pub auth: AuthenticationType
     }
 
-    impl <T: AuthType> Default for AuthenticationToken<T> {
+    impl Default for AuthenticationToken {
         fn default() -> Self {
             Self {
                 name: String::default(),
-                auth: T::default()
+                auth: AuthenticationType::default()
             }
         }
     }
@@ -218,73 +129,9 @@ pub mod security {
         authentication_type: AuthenticationType
     }
 
-    pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken<AuthenticationType>> + Send + Sync {
-        fn supports(&self, auth_type: &AuthenticationType) -> bool;
-    }
-
-    pub trait JwtAuthenticationConverter: AuthenticationConverter {}
-    pub trait UsernamePasswordAuthenticationConverter: AuthenticationConverter {}
-    pub trait OpenSamlAuthenticationConverter: AuthenticationConverter {}
-
-    #[derive(Clone)]
-    pub struct AuthenticationConverterRegistry {
-        converters: Arc<Vec<&'static dyn AuthenticationConverter>>,
-        authentication_type_converter: Arc<&'static dyn AuthenticationTypeConverter>
-    }
-
-    #[derive(Clone)]
-    pub struct AuthenticationConverterRegistryBuilder {
-        pub converters: Arc<Mutex<Vec<&'static dyn AuthenticationConverter>>>,
-        pub authentication_type_converter: Arc<Mutex<&'static dyn AuthenticationTypeConverter>>
-    }
-
-    impl AuthenticationConverterRegistryBuilder {
-        pub(crate) fn build(&self) -> AuthenticationConverterRegistry {
-            AuthenticationConverterRegistry {
-                converters: Arc::new(self.converters.lock().unwrap().clone()),
-                authentication_type_converter: Arc::new(self.authentication_type_converter.lock().unwrap().clone()),
-            }
-        }
-    }
-
-    impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for AuthenticationConverterRegistry{
-        fn convert(&self, from: &WebRequest) -> Result<AuthenticationType,AuthenticationConversionError> {
-            self.authentication_type_converter.convert(from)
-        }
-    }
-
-    impl Converter<WebRequest, Result<AuthenticationToken<AuthenticationType>, AuthenticationConversionError>> for AuthenticationConverterRegistry{
-        fn convert(&self, from: &WebRequest) -> Result<AuthenticationToken<AuthenticationType>, AuthenticationConversionError>{
-            self.authentication_type_converter.convert(from)
-                .map(|auth| {
-                    let name = auth.get_principal()
-                        .or(Some(String::default()))
-                        .unwrap();
-                    AuthenticationToken {
-                        name,
-                        auth
-                    }
-                })
-        }
-    }
-
-    impl <'a> Registration<'a, dyn AuthenticationConverter> for AuthenticationConverterRegistryBuilder
-    where
-        'a: 'static
+    pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken> + Send + Sync
     {
-        fn register(&self, converter: &'a dyn AuthenticationConverter) {
-            let x = converter.clone();
-            self.converters.lock().unwrap().push(x)
-        }
-    }
-
-    impl AuthenticationConverterRegistry {
-        pub fn new() -> Self {
-            Self {
-                converters: Arc::new(vec![]),
-                authentication_type_converter: Arc::new(&AuthenticationTypeConverterImpl {})
-            }
-        }
+        fn supports(&self, auth_type: &AuthenticationType) -> bool;
     }
 
     pub trait Converter<From, To> {
@@ -316,39 +163,21 @@ pub mod security {
     }
 
     #[derive(Clone)]
-    pub struct AuthenticationTypeConverterImpl;
+    pub struct AuthenticationTypeConverterImpl {
+    }
 
     impl AuthenticationTypeConverterImpl {
-       fn convert_to(&self, request: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
-           if request.headers.contains_key("Authorization") {
+        pub fn new() -> Self {
+            Self {
+            }
+        }
 
-               let auth_string = request.headers["Authorization"].clone();
+    }
 
-               let mut auth_header = auth_string.as_str();
-
-               let found = auth_header.split(":").collect::<Vec<&str>>();
-
-               let username64 = found[0];
-               let password64 = found[1];
-
-               let username_result = base64::decode(username64);
-               let password_result = base64::decode(password64);
-
-               if username_result.is_err() {
-                   return Err(AuthenticationConversionError::new(String::from("Username could not be decoded")));
-               }
-               if password_result.is_err(){
-                   return Err(AuthenticationConversionError::new(String::from("Password could not be decoded")));
-               }
-               let username = String::from_utf8(username_result.unwrap())
-                   .unwrap();
-               let password = String::from_utf8(password_result.unwrap())
-                   .unwrap();
-               return Ok(AuthenticationType::Password(UsernamePassword{username, password}));
-           } else {
-               return Err(AuthenticationConversionError::new(String::from(String::from("Failed to find auth header"))));
-           }
-       }
+    impl AuthType for AuthenticationType {
+        fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+            Err(AuthenticationConversionError::new(String::from("Authentication type was empty.")))
+        }
     }
 
     impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for AuthenticationTypeConverterImpl {
@@ -361,19 +190,17 @@ pub mod security {
             }
             match first_split[0] {
                 "Basic" => {
-                    self.convert_to(from)
+                    UsernamePassword::parse_credentials_inner(from)
+                        .map(|auth| AuthenticationType::Password (auth))
                 }
                 "Bearer" => {
-                    Ok(AuthenticationType::Jwt(JwtToken { token: "".to_string() }))
+                    JwtToken::parse_credentials_jwt(from)
+                        .map(|auth| AuthenticationType::Jwt(auth))
                 }
                 _ => Ok(AuthenticationType::Unauthenticated)
             }
         }
 
-    }
-
-
-    impl AuthenticationTypeConverter for AuthenticationTypeConverterImpl {
     }
 
     //TODO: each authentication provider is of generic type AuthType, allowing for generalization
@@ -388,7 +215,10 @@ pub mod security {
         Unauthenticated
     }
 
-    impl AuthenticationAware for AuthenticationType {
+    impl AuthenticationTypeConverter for AuthenticationTypeConverterImpl {
+    }
+
+    impl  AuthenticationAware for AuthenticationType {
         fn get_authorities(&self) -> LinkedList<Authority> {
             todo!()
         }
@@ -410,21 +240,119 @@ pub mod security {
         }
     }
 
-    impl AuthType for AuthenticationType {
-
-    }
-
     pub trait AuthType: AuthenticationAware + Send + Sync + Default {
 
-        fn get_type() -> TypeId where Self: Sized {
-            Self::get_type()
+        fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError>;
+
+        fn get_authorization_header_split(request: &WebRequest, auth_header_name: Option<String>) -> Option<String> {
+            if request.headers.contains_key("Authorization") {
+                let auth_string = request.headers["Authorization"].clone();
+                let auth_header = auth_string.split("Authorization").collect::<Vec<_>>();
+                return auth_header_name.map(|auth_header_name| {
+                    let bearer = auth_header[1].split(&auth_header_name).collect::<Vec<&str>>();
+                    if bearer.len() > 1 {
+                        return Some(String::from(bearer[1].trim_end_matches(" ").trim_start_matches(" ")))
+                    }
+                    None
+                }).or(Some(Some(auth_string))).flatten();
+            }
+            None
         }
 
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct JwtToken {
-        pub(crate) token: String,
+        pub token: String,
+    }
+
+    impl AuthenticationAware for JwtToken {
+        fn get_authorities(&self) -> LinkedList<Authority> {
+            todo!()
+        }
+
+        fn get_credentials(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn get_principal(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn set_credentials(&mut self, credential: String) {
+            todo!()
+        }
+
+        fn set_principal(&mut self, principal: String) {
+            todo!()
+        }
+    }
+
+    impl Default for JwtToken {
+        fn default() -> Self {
+            todo!()
+        }
+    }
+
+    impl AuthType for JwtToken {
+        fn parse_credentials(&self, request: &WebRequest) -> Result<JwtToken, AuthenticationConversionError> {
+            JwtToken::parse_credentials_jwt(request)
+        }
+    }
+
+    impl JwtToken {
+        fn parse_credentials_jwt(request: &WebRequest) -> Result<JwtToken, AuthenticationConversionError> {
+            AuthenticationType::get_authorization_header_split(request, Some(String::from("Bearer")))
+                .map(|bearer_token| {
+                    return Ok(JwtToken{ token: bearer_token})
+                })
+                .or(Some(Err(AuthenticationConversionError::new(String::from("Bearer token did not exist.")))))
+                .unwrap()
+        }
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct Unauthenticated {
+    }
+
+    impl AuthenticationAware for Unauthenticated {
+        fn get_authorities(&self) -> LinkedList<Authority> {
+            todo!()
+        }
+
+        fn get_credentials(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn get_principal(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn set_credentials(&mut self, credential: String) {
+            todo!()
+        }
+
+        fn set_principal(&mut self, principal: String) {
+            todo!()
+        }
+    }
+
+    impl Default for Unauthenticated {
+        fn default() -> Self {
+            todo!()
+        }
+    }
+
+    impl AuthType for Unauthenticated {
+        fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+            Unauthenticated::parse_credentials_unauthenticated(request)
+        }
+    }
+
+    impl Unauthenticated {
+        fn parse_credentials_unauthenticated(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+            Ok(Self{})
+        }
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -432,18 +360,125 @@ pub mod security {
         assertion: String,
     }
 
-    #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub struct UsernamePassword {
-        pub(crate) username: String,
-        pub(crate) password: String,
+    impl AuthenticationAware for OpenSamlAssertion {
+        fn get_authorities(&self) -> LinkedList<Authority> {
+            todo!()
+        }
+
+        fn get_credentials(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn get_principal(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn set_credentials(&mut self, credential: String) {
+            todo!()
+        }
+
+        fn set_principal(&mut self, principal: String) {
+            todo!()
+        }
     }
 
-    impl Default for AuthenticationType {
+    impl Default for OpenSamlAssertion {
         fn default() -> Self {
-            AuthenticationType::Password(UsernamePassword {
-                username: String::default(),
-                password: String::default(),
-            })
+            todo!()
+        }
+    }
+
+    impl AuthType for OpenSamlAssertion {
+        fn parse_credentials(&self, request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
+            OpenSamlAssertion::parse_credentials_opensaml(request)
+        }
+    }
+
+    impl OpenSamlAssertion {
+        fn parse_credentials_opensaml(request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
+            todo!()
+        }
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct UsernamePassword {
+        pub username: String,
+        pub password: String,
+    }
+
+    impl AuthenticationAware for UsernamePassword {
+        fn get_authorities(&self) -> LinkedList<Authority> {
+            todo!()
+        }
+
+        fn get_credentials(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn get_principal(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn set_credentials(&mut self, credential: String) {
+            todo!()
+        }
+
+        fn set_principal(&mut self, principal: String) {
+            todo!()
+        }
+    }
+
+    impl Default for UsernamePassword {
+        fn default() -> Self {
+            todo!()
+        }
+    }
+
+    impl AuthType for UsernamePassword {
+        fn parse_credentials(&self, request: &WebRequest) -> Result<UsernamePassword, AuthenticationConversionError> {
+            Self::parse_credentials_inner(request)
+        }
+    }
+
+    impl UsernamePassword {
+
+        fn parse_credentials_inner(request: &WebRequest) -> Result<UsernamePassword, AuthenticationConversionError> {
+            AuthenticationType::get_authorization_header_split(request, Some(String::from("Basic")))
+                .map(|basic_auth_header| {
+                    Self::parse_username_password(basic_auth_header)
+                })
+                .or(Some(Err(AuthenticationConversionError::new(String::from(String::from("Failed to find auth header"))))))
+                .unwrap()
+        }
+
+        fn parse_username_password(auth_string: String) -> Result<UsernamePassword, AuthenticationConversionError> {
+            let mut auth_header = auth_string.as_str();
+
+            let found = auth_header.split(":").collect::<Vec<&str>>();
+
+            let username64 = found[0];
+            let password64 = found[1];
+
+            let username_result = base64::decode(username64);
+            let password_result = base64::decode(password64);
+
+            if username_result.is_err() {
+                return Err(AuthenticationConversionError::new(String::from("Username could not be decoded")));
+            }
+            if password_result.is_err() {
+                return Err(AuthenticationConversionError::new(String::from("Password could not be decoded")));
+            }
+            let username = String::from_utf8(username_result.unwrap())
+                .unwrap();
+            let password = String::from_utf8(password_result.unwrap())
+                .unwrap();
+            return Ok(UsernamePassword { username, password });
+        }
+    }
+
+    impl  Default for AuthenticationType {
+        fn default() -> Self {
+            AuthenticationType::Unauthenticated
         }
     }
 }
