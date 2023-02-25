@@ -3,14 +3,18 @@ use core::borrow::BorrowMut;
 use crate::web_framework::context::RequestContext;
 use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
-use crate::web_framework::request::request::{EndpointMetadata, WebRequest};
 use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::collections::LinkedList;
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
 use std::vec;
-use crate::web_framework::security::security::{AuthenticationAware, AuthenticationConversionError, AuthenticationConverter, AuthenticationToken, AuthenticationType, AuthenticationTypeConverter, AuthType, Converter, Unauthenticated};
+use knockoff_security::knockoff_security::authentication_type::{AuthenticationConversionError, Unauthenticated};
+use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
+use web_framework_shared::convert::Converter;
+use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationToken};
+use web_framework_shared::request::{EndpointMetadata, WebRequest};
+use knockoff_security::knockoff_security::authentication_type::AuthenticationAware;
 
 #[macro_export]
 macro_rules! default_message_converters {
@@ -373,7 +377,7 @@ impl <Request, Response> Converters<Request, Response> for RequestContext<Reques
 {
     fn convert_to(
         &self,
-        request: &WebRequest,
+        request: &WebRequest
     ) -> Option<MessageType<Request>> {
         self.message_converters.converters
             .as_ref()

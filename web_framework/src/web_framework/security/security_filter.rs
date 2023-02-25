@@ -1,14 +1,20 @@
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
+use knockoff_security::knockoff_security::authentication_type::{AuthenticationConversionError};
+use module_macro_lib::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
+use web_framework_shared::convert::Converter;
 use crate::web_framework::context::{ApplicationContext, RequestContext};
 use crate::web_framework::filter::filter::Action;
-use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-use crate::web_framework::security::security::{Authentication, AuthenticationConversionError, AuthenticationConverter, AuthenticationToken, AuthenticationTypeConverter, AuthenticationTypeConverterImpl, Converter};
+use crate::web_framework::request::request::WebResponse;
+use crate::web_framework::security::security::{Authentication, AuthenticationConverter, AuthenticationToken};
+use web_framework_shared::request::{EndpointMetadata, WebRequest};
 
 pub mod security_filter {
+    use web_framework_shared::request::{EndpointMetadata, WebRequest};
     use crate::web_framework::context::ApplicationContext;
     use crate::web_framework::filter::filter::FilterChain;
-    use crate::web_framework::request::request::{WebRequest, WebResponse};
+    use crate::web_framework::request::request::WebResponse;
+
 
     pub struct SecurityFilter;
 

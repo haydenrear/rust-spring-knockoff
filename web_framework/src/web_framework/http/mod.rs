@@ -11,17 +11,12 @@ use async_std::stream::{Stream};
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
 use crate::web_framework::context::{ApplicationContext, RequestContext};
-use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
 use serde::{Deserialize, Serialize};
 use crate::web_framework::convert::Registration;
 use crate::web_framework::dispatch::{Dispatcher};
 use crate::web_framework::filter::filter::{Action};
-
-#[derive(Serialize, Deserialize)]
-pub enum HttpMethod {
-    Post,
-    Get,
-}
+use crate::web_framework::request::request::WebResponse;
+use web_framework_shared::request::WebRequest;
 
 pub trait Adapter<T,U> {
     fn from(&self, t: T) -> U;

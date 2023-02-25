@@ -2,12 +2,11 @@ use crate::web_framework::context::{ApplicationContext, RequestContext};
 use crate::web_framework::convert::{Converters, RequestExtractor};
 use crate::web_framework::filter::filter::{Action, MediaType};
 use crate::web_framework::message::MessageType;
-use crate::web_framework::request::request::{
-    EndpointMetadata, ResponseWriter, WebRequest, WebResponse,
-};
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
 use crate::web_framework::context_builder::RequestContextBuilder;
+use crate::web_framework::request::request::{ResponseWriter, WebResponse};
+use web_framework_shared::request::WebRequest;
 
 #[derive(Clone)]
 pub struct Dispatcher {

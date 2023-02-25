@@ -13,8 +13,10 @@ use crate::initializer::Initializer;
 use crate::field_aug::FieldAug;
 
 use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/module_macro_codegen.log");
 initialize_log!();
+
+use crate::logger::executor;
+use crate::logger::StandardLoggingFacade;
 
 pub struct LibParser;
 

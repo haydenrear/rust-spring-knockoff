@@ -5,14 +5,14 @@ pub mod session {
     extern crate core;
 
     use crate::web_framework::filter::filter::{Action, FilterChain};
-    use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-    use crate::web_framework::security::security::{Authentication, AuthenticationToken, AuthenticationType, AuthType};
+    use web_framework_shared::request::{EndpointMetadata, WebRequest};
+    use crate::web_framework::security::security::{Authentication, AuthenticationToken};
     use alloc::string::String;
     use async_std::task as async_task;
     use core::borrow::Borrow;
     use data_framework::{Entity, HDatabase, Repo, RepoDelegate};
     use futures::executor;
-    use security_model::SessionData;
+    use knockoff_security::knockoff_security::user_request_account::SessionData;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
     use std::any::Any;
     use std::cell::RefCell;
@@ -21,6 +21,7 @@ pub mod session {
     use std::ops::Deref;
     use std::pin::Pin;
     use crate::web_framework::context::{ApplicationContext, RequestContext};
+    use crate::web_framework::request::request::WebResponse;
 
     impl Default for WebApplication {
         fn default() -> Self {

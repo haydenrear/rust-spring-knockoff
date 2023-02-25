@@ -21,10 +21,19 @@ path = "../build_lib"
 path = "../module_macro_shared"
 [dependencies.knockoff_logging]
 path = "../knockoff_logging"
+[dependencies.web_framework_shared]
+path = "../web_framework_shared"
+[dependencies.knockoff_security]
+path = "../knockoff_security"
+
+[build-dependencies.knockoff_security]
+path = "../knockoff_security"
 [build-dependencies.module_macro_codegen]
 path = "../module_macro_codegen"
 [build-dependencies.module_macro_shared]
 path = "../module_macro_shared"
+[build-dependencies.web_framework_shared]
+path = "../web_framework_shared"
 
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}

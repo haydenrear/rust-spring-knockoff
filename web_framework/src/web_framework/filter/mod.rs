@@ -5,11 +5,9 @@ pub mod filter {
     extern crate core;
 
     use crate::web_framework::context::{ApplicationContext, RequestContext};
-    use crate::web_framework::dispatch::{Dispatcher};
+    use crate::web_framework::dispatch::Dispatcher;
     use crate::web_framework::convert::Registration;
-    use crate::web_framework::http::{Connection, HttpMethod};
-    use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse, ResponseWriter};
-    use crate::web_framework::security::security::{AuthenticationToken, AuthenticationType, AuthType};
+    use crate::web_framework::security::security::AuthenticationToken;
     use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
@@ -22,7 +20,11 @@ pub mod filter {
     use std::ops::{Deref, DerefMut, Index};
     use std::path::Iter;
     use std::sync::{Arc, Mutex};
+    use module_macro_lib::{AuthenticationType};
     use crate::web_framework::filter;
+    use crate::web_framework::request::request::WebResponse;
+    use web_framework_shared::request::{EndpointMetadata, WebRequest};
+    use web_framework_shared::http_method::HttpMethod;
 
     impl <Request, Response> Default for FilterChain<Request, Response>
         where

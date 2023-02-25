@@ -2,7 +2,7 @@ mod test;
 
 use core::borrow::BorrowMut;
 use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration};
-use crate::web_framework::security::security::{AuthenticationConversionError, AuthenticationConverter, AuthenticationToken, AuthenticationType, AuthenticationTypeConverterImpl, Converter, DelegatingAuthenticationManager};
+use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationToken, DelegatingAuthenticationManager};
 use crate::web_framework::filter::filter::{FilterChain, RequestResponseActionFilter};
 use std::any::Any;
 use std::cell::RefCell;
@@ -12,10 +12,11 @@ use std::{mem, vec};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
+use module_macro_lib::{AuthenticationType, AuthenticationTypeConverterImpl};
+use web_framework_shared::convert::Converter;
 use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder};
 use crate::web_framework::dispatch::Dispatcher;
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
-use crate::web_framework::request::request::{EndpointMetadata, ResponseWriter, WebRequest, WebResponse};
 
 #[derive(Clone, Default)]
 pub struct RequestContext<Request, Response>

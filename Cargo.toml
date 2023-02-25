@@ -5,7 +5,6 @@ members = [
     "http_macro",
     "mongo_repo",
     "module_macro_lib",
-    "security_model",
     "data_framework",
     "module_macro",
     "delegator_test",
@@ -17,5 +16,6 @@ members = [
     "module_macro_codegen",
     "module_macro_shared",
     "spring_knockoff_boot",
-    "knockoff_security"
+    "knockoff_security",
+    "web_framework_shared"
 ]
