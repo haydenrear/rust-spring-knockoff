@@ -8,7 +8,7 @@ use std::path::Path;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Item, ItemFn};
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
-use crate::authentication_type::AuthenticationType;
+use crate::authentication_type::AuthenticationTypeCodegen;
 use crate::initializer::Initializer;
 use crate::field_aug::FieldAug;
 
@@ -88,11 +88,11 @@ impl LibParser {
     pub fn gen_codegen_items(initializer: bool) -> Codegen {
         if initializer {
             return Codegen {
-                codegen: vec![Box::new(Initializer::new()), Box::new(FieldAug::new()), Box::new(AuthenticationType::new())]
+                codegen: vec![Box::new(Initializer::new()), Box::new(FieldAug::new()), Box::new(AuthenticationTypeCodegen::new())]
             };
         } else {
             return Codegen {
-                codegen: vec![Box::new(FieldAug::new()), Box::new(AuthenticationType::new())]
+                codegen: vec![Box::new(FieldAug::new()), Box::new(AuthenticationTypeCodegen::new())]
             };
         }
     }

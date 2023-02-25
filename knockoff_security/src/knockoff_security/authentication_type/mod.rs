@@ -26,46 +26,6 @@ pub struct Authority {
     authority: String,
 }
 
-// impl AuthType for AuthenticationType {
-//     fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
-//         Err(AuthenticationConversionError::new(String::from("Authentication type was empty.")))
-//     }
-// }
-//
-// //TODO: each authentication provider is of generic type AuthType, allowing for generalization
-// // then when user provides authentication provider overriding getAuthType with own, macro adds
-// // the authentication provider to the map of auth providers in the authentication filter
-// #[derive(Clone, Debug, Serialize, Deserialize)]
-// pub enum AuthenticationType
-// {
-//     Jwt(JwtToken),
-//     SAML(OpenSamlAssertion),
-//     Password(UsernamePassword),
-//     Unauthenticated
-// }
-//
-// impl AuthenticationAware for AuthenticationType {
-//     fn get_authorities(&self) -> LinkedList<Authority> {
-//         todo!()
-//     }
-//
-//     fn get_credentials(&self) -> Option<String> {
-//         todo!()
-//     }
-//
-//     fn get_principal(&self) -> Option<String> {
-//         todo!()
-//     }
-//
-//     fn set_credentials(&mut self, credential: String) {
-//         todo!()
-//     }
-//
-//     fn set_principal(&mut self, principal: String) {
-//         todo!()
-//     }
-// }
-
 pub struct AuthHelper;
 
 impl AuthHelper {
@@ -89,9 +49,16 @@ pub trait AuthType: AuthenticationAware + Send + Sync + Default {
 
     fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError>;
 
+    fn authorization_matcher(match_this: &str) -> bool;
+
+    fn match_this(match_this: &str, matching: &str) -> bool {
+        match_this.to_lowercase().contains(matching)
+        || matching.to_lowercase().contains(match_this)
+    }
+
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct JwtToken {
     pub token: String,
 }
@@ -118,15 +85,13 @@ impl AuthenticationAware for JwtToken {
     }
 }
 
-impl Default for JwtToken {
-    fn default() -> Self {
-        todo!()
-    }
-}
-
 impl AuthType for JwtToken {
     fn parse_credentials(&self, request: &WebRequest) -> Result<JwtToken, AuthenticationConversionError> {
         JwtToken::parse_credentials_jwt(request)
+    }
+
+    fn authorization_matcher(match_this: &str) -> bool {
+        Self::match_this(match_this, "bearer")
     }
 }
 
@@ -177,6 +142,10 @@ impl AuthType for Unauthenticated {
     fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
         Unauthenticated::parse_credentials_unauthenticated(request)
     }
+
+    fn authorization_matcher(match_this: &str) -> bool {
+        true
+    }
 }
 
 impl Unauthenticated {
@@ -221,6 +190,11 @@ impl Default for OpenSamlAssertion {
 impl AuthType for OpenSamlAssertion {
     fn parse_credentials(&self, request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
         OpenSamlAssertion::parse_credentials_opensaml(request)
+    }
+
+    fn authorization_matcher(match_this: &str) -> bool {
+        // TODO:
+        Self::match_this(match_this, "research")
     }
 }
 
@@ -267,6 +241,10 @@ impl Default for UsernamePassword {
 impl AuthType for UsernamePassword {
     fn parse_credentials(&self, request: &WebRequest) -> Result<UsernamePassword, AuthenticationConversionError> {
         Self::parse_credentials_inner(request)
+    }
+
+    fn authorization_matcher(match_this: &str) -> bool {
+        Self::match_this(match_this, "basic")
     }
 }
 
