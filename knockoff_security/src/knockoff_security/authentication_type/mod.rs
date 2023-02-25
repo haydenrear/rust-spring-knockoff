@@ -47,9 +47,13 @@ impl AuthHelper {
 
 pub trait AuthType: AuthenticationAware + Send + Sync + Default {
 
-    fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError>;
+    const AUTH_TYPE: &'static str;
 
-    fn authorization_matcher(match_this: &str) -> bool;
+    fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError>;
+
+    fn authorization_matcher(match_this: &str) -> bool {
+        Self::match_this(match_this, Self::AUTH_TYPE)
+    }
 
     fn match_this(match_this: &str, matching: &str) -> bool {
         match_this.to_lowercase().contains(matching)
@@ -86,12 +90,10 @@ impl AuthenticationAware for JwtToken {
 }
 
 impl AuthType for JwtToken {
-    fn parse_credentials(&self, request: &WebRequest) -> Result<JwtToken, AuthenticationConversionError> {
-        JwtToken::parse_credentials_jwt(request)
-    }
+    const AUTH_TYPE: &'static str = "bearer";
 
-    fn authorization_matcher(match_this: &str) -> bool {
-        Self::match_this(match_this, "bearer")
+    fn parse_credentials(request: &WebRequest) -> Result<JwtToken, AuthenticationConversionError> {
+        JwtToken::parse_credentials_jwt(request)
     }
 }
 
@@ -139,7 +141,9 @@ impl Default for Unauthenticated {
 }
 
 impl AuthType for Unauthenticated {
-    fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+    const AUTH_TYPE: &'static str = "";
+
+    fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
         Unauthenticated::parse_credentials_unauthenticated(request)
     }
 
@@ -188,7 +192,9 @@ impl Default for OpenSamlAssertion {
 }
 
 impl AuthType for OpenSamlAssertion {
-    fn parse_credentials(&self, request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
+    const AUTH_TYPE: &'static str = "research";
+
+    fn parse_credentials(request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
         OpenSamlAssertion::parse_credentials_opensaml(request)
     }
 
@@ -196,6 +202,7 @@ impl AuthType for OpenSamlAssertion {
         // TODO:
         Self::match_this(match_this, "research")
     }
+
 }
 
 impl OpenSamlAssertion {
@@ -239,13 +246,16 @@ impl Default for UsernamePassword {
 }
 
 impl AuthType for UsernamePassword {
-    fn parse_credentials(&self, request: &WebRequest) -> Result<UsernamePassword, AuthenticationConversionError> {
+    const AUTH_TYPE: &'static str = "basic";
+
+    fn parse_credentials(request: &WebRequest) -> Result<UsernamePassword, AuthenticationConversionError> {
         Self::parse_credentials_inner(request)
     }
 
     fn authorization_matcher(match_this: &str) -> bool {
-        Self::match_this(match_this, "basic")
+        Self::match_this(match_this, Self::AUTH_TYPE)
     }
+
 }
 
 impl UsernamePassword {

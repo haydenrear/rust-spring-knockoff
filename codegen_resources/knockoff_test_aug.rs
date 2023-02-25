@@ -24,14 +24,38 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
 #[cfg(authentication_type)]
 pub mod authentication_type {
 
-    #[derive(Default, Clone, Serialize, Deserialize)]
+    #[derive(Default, Clone, Debug, Serialize, Deserialize)]
     pub struct TestAuthType {
         some_token: String
     }
 
     impl AuthType for TestAuthType {
-        fn parse_credentials(&self, request: &WebRequest) -> Result<TestAuthType, AuthenticationConversionError> {
+        const AUTH_TYPE: &'static str = "test_auth_type";
+
+        fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
             Ok(TestAuthType::default())
+        }
+    }
+
+    impl AuthenticationAware for TestAuthType {
+        fn get_authorities(&self) -> LinkedList<Authority> {
+            todo!()
+        }
+
+        fn get_credentials(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn get_principal(&self) -> Option<String> {
+            todo!()
+        }
+
+        fn set_credentials(&mut self, credential: String) {
+            todo!()
+        }
+
+        fn set_principal(&mut self, principal: String) {
+            todo!()
         }
     }
 
