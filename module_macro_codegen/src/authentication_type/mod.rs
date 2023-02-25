@@ -10,11 +10,11 @@ use syn::{Item, ItemFn, ItemImpl};
 use crate::parser::{CodegenItem, LibParser};
 
 #[derive(Clone)]
-pub struct AuthenticationType {
+pub struct AuthenticationTypeCodegen {
     default: Option<TokenStream>
 }
 
-impl AuthenticationType {
+impl AuthenticationTypeCodegen {
     pub(crate) fn new() -> Self {
         Self {
             default: None
@@ -23,7 +23,7 @@ impl AuthenticationType {
 }
 
 
-impl AuthenticationType {
+impl AuthenticationTypeCodegen {
     fn default_tokens() -> TokenStream {
         let t = quote! {
 
@@ -54,7 +54,6 @@ impl AuthenticationType {
                         Self {
                         }
                     }
-
                 }
 
                 impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for AuthenticationTypeConverterImpl {
@@ -127,7 +126,7 @@ impl AuthenticationType {
     }
 }
 
-impl CodegenItem for AuthenticationType {
+impl CodegenItem for AuthenticationTypeCodegen {
     fn supports(&self, impl_item: &Item) -> bool {
         match impl_item {
             Item::Enum(impl_item) => {
@@ -157,7 +156,7 @@ impl CodegenItem for AuthenticationType {
     }
 
     fn default_codegen(&self) -> String {
-        AuthenticationType::default_tokens().to_string()
+        AuthenticationTypeCodegen::default_tokens().to_string()
     }
 
     fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {

@@ -19,3 +19,23 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
         _ => {}
     }
 }
+
+#[authentication_type]
+#[cfg(authentication_type)]
+pub mod authentication_type {
+
+    #[derive(Default, Clone, Serialize, Deserialize)]
+    pub struct TestAuthType {
+        some_token: String
+    }
+
+    impl AuthType for TestAuthType {
+        fn parse_credentials(&self, request: &WebRequest) -> Result<TestAuthType, AuthenticationConversionError> {
+            Ok(TestAuthType::default())
+        }
+    }
+
+}
+
+pub fn get_authentication_type() {
+}
