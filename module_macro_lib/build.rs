@@ -13,23 +13,25 @@ use syn::token::Brace;
 use build_lib::replace_modules;
 use module_macro_codegen::parser::LibParser;
 
+use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
+
+use_logging!();
+initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/module_macro_lib.log");
+initialize_log!();
+
 fn main() {
-    let file = &mut create_log_file();
-    file.write("initializing...".as_bytes()).unwrap();
+    log_message!("Initializing module macro lib.");
+    let aug_file = get_aug_file();
+    log_message!("Found augmented file: {}.", aug_file.as_str());
+    LibParser::do_codegen(&aug_file, "codegen.rs");
+    let mut cargo_change = "cargo:rerun-if-changed=".to_string();
+    cargo_change += aug_file.as_str();
+    println!("{}", cargo_change);
+}
+
+fn get_aug_file() -> String {
     let aug_file = env::var("AUG_FILE").ok()
         .or(Some(String::from("~/IdeaProject/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs")))
         .unwrap();
-    file.write("Found aug file: ".as_bytes()).unwrap();
-    file.write(aug_file.as_bytes()).unwrap();
-    file.write("Found another".as_bytes()).unwrap();
-    LibParser::do_codegen(&aug_file, false, "codegen.rs");
-    print!("cargo:rerun-if-changed=.git/HEAD");
-}
-
-fn create_log_file() -> File {
-    let mut log_file = File::create(
-        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out")
-            .join("module.log")
-    ).unwrap();
-    log_file
+    aug_file
 }

@@ -84,7 +84,7 @@ impl<'a, T: Entity<String> + Serialize + for<'de> Deserialize<'de> + Send + Sync
         self.find_next(to_return, f).await
     }
 
-    async fn find_by_id(&self, id: String) -> Option<T> {
+    async fn find_by_id(&self, id: &String) -> Option<T> {
         let found = self
             .0
             .get_connection_from()

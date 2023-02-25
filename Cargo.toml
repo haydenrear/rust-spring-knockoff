@@ -17,5 +17,6 @@ members = [
     "module_macro_shared",
     "spring_knockoff_boot",
     "knockoff_security",
-    "web_framework_shared"
+    "web_framework_shared",
+    "spring_knockoff_boot_macro"
 ]

@@ -46,8 +46,8 @@ mod test {
     fn test_text_logging() {
         let logging_path = create_log_path();
         let facade = StandardLoggingFacade::get_logger();
-        log!(LogLevel::Info, "test message".to_string(), "1".to_string());
-        assert_test_message(logging_path, "test message");
+        log!(LogLevel::Info, "test_mod message".to_string(), "1".to_string());
+        assert_test_message(logging_path, "test_mod message");
     }
 
     #[test]
@@ -57,16 +57,16 @@ mod test {
 
     #[test]
     fn test_log_message() {
-        log_message!("test message {}", "this_message");
-        assert_test_message(create_log_path(), "test message this_message");
+        log_message!("test_mod message {}", "this_message");
+        assert_test_message(create_log_path(), "test_mod message this_message");
     }
 
     #[test]
     fn test_logging_macro() {
-        log!(LogLevel::Info, "test message 1".to_string(), "1".to_string());
-        assert_test_message(create_log_path(), "test message 1");
-        log_info!("test message 2".to_string(), "1".to_string());
-        assert_test_message(create_log_path(), "test message 2");
+        log!(LogLevel::Info, "test_mod message 1".to_string(), "1".to_string());
+        assert_test_message(create_log_path(), "test_mod message 1");
+        log_info!("test_mod message 2".to_string(), "1".to_string());
+        assert_test_message(create_log_path(), "test_mod message 2");
     }
 
     #[test]
@@ -77,7 +77,7 @@ mod test {
         for i in 0..10000 {
             let builder = thread::Builder::new();
             let mut task = builder.spawn(|| {
-                log!(LogLevel::Info, "test message 1".to_string(), "1".to_string());
+                log!(LogLevel::Info, "test_mod message 1".to_string(), "1".to_string());
             }).unwrap();
             join_handles.push(task);
         }

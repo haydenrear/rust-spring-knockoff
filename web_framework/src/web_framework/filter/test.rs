@@ -3,9 +3,9 @@ mod test_filter {
     use crate::web_framework::context::{ApplicationContext, RequestContext};
     use crate::web_framework::dispatch::Dispatcher;
     use crate::web_framework::convert::{ConverterRegistry, Registry};
-    use crate::web_framework::filter::filter::{Action, FilterChain, MediaType, RequestResponseActionFilter};
+    use crate::web_framework::filter::filter::{Action, DelegatingFilterProxy, MediaType, Filter};
     use crate::web_framework::message::MessageType;
-    use crate::web_framework::security::security::AuthenticationToken;
+    use crate::web_framework::security::authentication::AuthenticationToken;
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
     use std::any::Any;
@@ -82,23 +82,23 @@ mod test_filter {
 
     #[test]
     fn test_filter() {
-        let one = RequestResponseActionFilter {
+        let one = Filter {
             actions: Box::new((TestAction {})),
             dispatcher: Default::default(),
             order: 0,
         };
-        let mut fc = FilterChain::new(vec![one]);
+        let mut fc = DelegatingFilterProxy::new(vec![one]);
         fc.do_filter(&WebRequest::default(), &mut WebResponse::default(), &ApplicationContext::new());
     }
 
     #[test]
     fn test_get_in_filter() {
-        let one = RequestResponseActionFilter {
+        let one = Filter {
             actions: Box::new((TestAction {})),
             dispatcher: Default::default(),
             order: 0,
         };
-        let mut fc = FilterChain::new(vec![one]);
+        let mut fc = DelegatingFilterProxy::new(vec![one]);
         let mut request = WebRequest::default();
         request
             .headers
@@ -114,17 +114,17 @@ mod test_filter {
 
     #[test]
     fn filter_application_builder() {
-        let mut vec: Vec<RequestResponseActionFilter<Example, Example>> = vec![];
-        vec.push(RequestResponseActionFilter {
+        let mut vec: Vec<Filter<Example, Example>> = vec![];
+        vec.push(Filter {
             actions: Box::new(TestAction {}),
             dispatcher: Default::default(),
             order: 0,
         });
     }
 
-    // #[test]
+    // #[test_mod]
     // fn test_registry() {
-    //     let ctx = RequestContext::default();
+    //     let ctx = RequestContext::default_impls();
     //     let registrations = ctx.message_converters.read_only_registrations();
     //     assert_eq!(registrations.len(), 2);
     // }

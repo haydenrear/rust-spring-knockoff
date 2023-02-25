@@ -17,7 +17,6 @@ fn main() {
         Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
         vec![".git/HEAD"]
     );
-    println!()
 }
 
 fn create_log_file() -> File {

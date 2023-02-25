@@ -8,7 +8,7 @@ pub trait Repo<'a, T: Entity<ID>, ID> : Send + Sync{
     async fn find_all(&self) -> LinkedList<T>
     where
         Self: Sized;
-    async fn find_by_id(&self, id: ID) -> Option<T>
+    async fn find_by_id(&self, id: &ID) -> Option<T>
     where
         Self: Sized;
     async fn save(&self, to_save: &'a T) -> ID
@@ -25,7 +25,7 @@ pub trait RepoDelegate<'a, T: Entity<ID>, ID> {
     type ID;
     fn identifier() -> Self::ID;
     async fn find_all() -> LinkedList<T>;
-    async fn find_by_id(id: ID) -> Option<T>;
+    async fn find_by_id(id: &ID) -> Option<T>;
     async fn save(to_save: &'a T) -> ID;
 }
 

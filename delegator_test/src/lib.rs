@@ -7,10 +7,10 @@ use quote::{format_ident, IdentFragment, quote, ToTokens};
 use syn::{DeriveInput, Field, Fields, Ident, ItemStruct, LitStr, parse_macro_input, Token, token::Paren};
 use syn::token::Type;
 
-use module_macro::{field_aug, initializer, module_attr};
+use module_macro::{module_attr};
 
 use crate::test_library::*;
-use crate::test_library::test_library_three::{One, Once, Four};
+use crate::test_library::test_library_three::{Four, Once, One};
 use crate::test_library::test_library_two::Ten;
 
 use std::any::Any;
@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::marker::PhantomData;
 use syn::parse::Parser;
+use spring_knockoff_boot_macro::initializer;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
@@ -35,21 +36,7 @@ pub mod test_library {
 
 #[test]
 fn test_module_macro() {
-    let ten = Ten {
-        a: String::from("hell")
-    };
-
-    let one: One = One{
-        a: String::default(),
-        two: String::default()
-    };
-
-    let mut once = Once {
-        a: String::from("hello"),
-        // fns: vec![Box::new(|()| {
-        //     println!()
-        // })],
-    };
+    create_with_extra_field();
 
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
@@ -65,4 +52,19 @@ fn test_module_macro() {
     assert_eq!(two_found.unwrap().one.deref(), one_found_again.unwrap().deref());
 
     let app_ctx = AppCtx::new();
+}
+
+fn create_with_extra_field() {
+    let ten = Ten {
+        a: String::from("hell")
+    };
+
+    let one: One = One {
+        a: String::default(),
+        two: String::default()
+    };
+
+    let mut once = Once {
+        a: String::from("hello"),
+    };
 }

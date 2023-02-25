@@ -78,18 +78,25 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
         }
         Item::ForeignMod(_) => {}
         Item::Impl(impl_found) => {
+            // TODO: add decorator for methods. The attribute will specify knockoff SpEL expression
+            //  and from this SpEL expression the authorization manager will be used.
+            //  More generally, the ability to add aspects to methods can be added somewhat trivially.
+            // impl_found.items.iter().map(|i| {
+            //     match i {
+            //         ImplItem::Const(_) => {}
+            //         ImplItem::Method(method) => {
+            //             method.block
+            //         }
+            //         ImplItem::Type(_) => {}
+            //         ImplItem::Macro(_) => {}
+            //         ImplItem::Verbatim(_) => {}
+            //         ImplItem::__NonExhaustive => {}
+            //     }
+            // })
             log_message!("Found impl type {}.", impl_found.to_token_stream().clone());
             app_container.create_update_impl(impl_found);
         }
         Item::Macro(macro_created) => {
-            // to add behavior to module macro,
-            // have another macro impl Parse for a struct that
-            // has a vec of Fn, and in the impl Parse
-            // the behavior as a function that is added to the struct
-            // to be called, and that function is passed as a closure
-            // to the macro that creates the impl Parse - this will have to be
-            // handled in the build.rs file - to relocate
-            // macro_created.mac.parse_body()
         }
         Item::Macro2(_) => {}
         Item::Mod(ref mut module) => {

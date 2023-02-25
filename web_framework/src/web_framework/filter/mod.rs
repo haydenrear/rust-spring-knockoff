@@ -7,7 +7,7 @@ pub mod filter {
     use crate::web_framework::context::{ApplicationContext, RequestContext};
     use crate::web_framework::dispatch::Dispatcher;
     use crate::web_framework::convert::Registration;
-    use crate::web_framework::security::security::AuthenticationToken;
+    use crate::web_framework::security::authentication::AuthenticationToken;
     use crate::web_framework::session::session::HttpSession;
     use alloc::string::String;
     use core::borrow::{Borrow, BorrowMut};
@@ -20,13 +20,14 @@ pub mod filter {
     use std::ops::{Deref, DerefMut, Index};
     use std::path::Iter;
     use std::sync::{Arc, Mutex};
-    use module_macro_lib::{AuthenticationType};
+    use module_macro_lib::AuthenticationType;
     use crate::web_framework::filter;
     use crate::web_framework::request::request::WebResponse;
     use web_framework_shared::request::{EndpointMetadata, WebRequest};
     use web_framework_shared::http_method::HttpMethod;
+    use crate::web_framework::security::authorization::AuthorizationManager;
 
-    impl <Request, Response> Default for FilterChain<Request, Response>
+    impl <Request, Response> Default for DelegatingFilterProxy<Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
@@ -38,15 +39,15 @@ pub mod filter {
         }
     }
 
-    pub struct FilterChain< Request, Response>
+    pub struct DelegatingFilterProxy< Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
     {
-        pub(crate) filters: Arc<Vec<RequestResponseActionFilter<Request, Response>>>,
+        pub(crate) filters: Arc<Vec<Filter<Request, Response>>>,
     }
 
-    impl <Request, Response> Clone for FilterChain<Request, Response>
+    impl <Request, Response> Clone for DelegatingFilterProxy<Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -62,7 +63,7 @@ pub mod filter {
 
     // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
     // resulting in new filter
-    impl <Request, Response> FilterChain<Request, Response>
+    impl <Request, Response> DelegatingFilterProxy<Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -72,7 +73,7 @@ pub mod filter {
                 .for_each(|f| f.filter(request, response, ctx));
         }
 
-        pub fn new(filters: Vec<RequestResponseActionFilter<Request, Response>>) -> Self {
+        pub fn new(filters: Vec<Filter<Request, Response>>) -> Self {
             Self {
                 filters: Arc::new(filters)
             }
@@ -119,10 +120,7 @@ pub mod filter {
 
     }
 
-    /***
-    Every "controller endpoint" will create one of these.
-     */
-    pub struct RequestResponseActionFilter<Request, Response>
+    pub struct Filter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -132,12 +130,12 @@ pub mod filter {
         pub order: u8
     }
 
-    impl<Request, Response> Eq for RequestResponseActionFilter<Request, Response>
+    impl<Request, Response> Eq for Filter<Request, Response>
         where
             Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
             Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {}
 
-    impl<Request, Response> PartialEq<Self> for RequestResponseActionFilter<Request, Response>
+    impl<Request, Response> PartialEq<Self> for Filter<Request, Response>
         where
             Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
             Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b> {
@@ -146,7 +144,7 @@ pub mod filter {
         }
     }
 
-    impl<Request, Response> PartialOrd<Self> for RequestResponseActionFilter<Request, Response>
+    impl<Request, Response> PartialOrd<Self> for Filter<Request, Response>
         where
             Request: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>,
             Response: Clone + Default + Send + Serialize + Sync + for<'b> Deserialize<'b>
@@ -156,7 +154,7 @@ pub mod filter {
         }
     }
 
-    impl <Request, Response> Ord for RequestResponseActionFilter<Request, Response>
+    impl <Request, Response> Ord for Filter<Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -166,7 +164,7 @@ pub mod filter {
         }
     }
 
-    impl <Request, Response> Clone for RequestResponseActionFilter<Request, Response>
+    impl <Request, Response> Clone for Filter<Request, Response>
         where
               Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
               Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -181,7 +179,7 @@ pub mod filter {
         }
     }
 
-    impl <Request, Response> RequestResponseActionFilter<Request, Response>
+    impl <Request, Response> Filter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -195,7 +193,7 @@ pub mod filter {
         }
     }
 
-    impl<Request, Response> RequestResponseActionFilter<Request, Response>
+    impl<Request, Response> Filter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,

@@ -30,7 +30,7 @@ impl ProfileTree {
         for i_type in beans.iter() {
             log_message!("Adding {} to type.", i_type.1.id.clone());
             if i_type.1.profile.len() == 0 {
-                log_message!("Adding {} to default.", i_type.1.id.clone());
+                log_message!("Adding {} to default_impls.", i_type.1.id.clone());
                 profile_tree.add_to_profile_concrete(i_type.1, &default_profile);
             }
             i_type.1.profile.iter().for_each(|profile| {

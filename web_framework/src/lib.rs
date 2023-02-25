@@ -1,6 +1,8 @@
 #![feature(str_split_remainder)]
+#![feature(async_fn_in_trait)]
 #[macro_use]
 extern crate alloc;
+extern crate core;
 
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
@@ -32,6 +34,7 @@ pub struct Gen2<T: ?Sized>{
     inner: Arc<T>,
     phantom: PhantomGuy<T>
 }
+
 
 pub struct PhantomGuy<T: ?Sized> {
     phantom: PhantomData<T>
@@ -92,24 +95,6 @@ fn contains<T: 'static>(type_id: TypeId) -> bool {
     TypeId::of::<T>() == type_id
 }
 
-#[test]
-fn test_match() {
-    assert!(match_this("okay", "okay").is_some());
-}
-
-fn match_this(to_match: &str, matching: &str) -> Option<String> {
-    match to_match {
-        "one" => {
-            None
-        }
-        "two" => {
-           None
-        }
-        matching => {
-            Some(matching.to_string())
-        }
-    }
-}
 
 #[test]
 fn test_downcast() {

@@ -1,5 +1,5 @@
-use module_macro::{bean, singleton, autowired};
 use std::sync::Arc;
+use spring_knockoff_boot_macro::{autowired, bean, singleton};
 
 pub trait Found {
 }

@@ -21,3 +21,5 @@ hyper = {version = "0.14.20", features = ["server", "http2", "http1", "tcp", "ru
 
 [dependencies.web_framework]
 path = "../web_framework"
+[dependencies.web_framework_shared]
+path = "../web_framework_shared"

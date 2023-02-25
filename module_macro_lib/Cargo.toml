@@ -25,7 +25,13 @@ path = "../knockoff_logging"
 path = "../web_framework_shared"
 [dependencies.knockoff_security]
 path = "../knockoff_security"
+[dependencies.spring_knockoff_boot_macro]
+path = "../spring_knockoff_boot_macro"
 
+[build-dependencies.knockoff_logging]
+path = "../knockoff_logging"
+[build-dependencies.spring_knockoff_boot_macro]
+path = "../spring_knockoff_boot_macro"
 [build-dependencies.knockoff_security]
 path = "../knockoff_security"
 [build-dependencies.module_macro_codegen]
@@ -37,3 +43,5 @@ path = "../web_framework_shared"
 
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}
+executors = "0.9.0"
+lazy_static = "1.4.0"

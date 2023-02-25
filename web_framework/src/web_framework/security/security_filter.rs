@@ -1,51 +1,83 @@
+use std::ptr::write_bytes;
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
-use knockoff_security::knockoff_security::authentication_type::{AuthenticationConversionError};
+use knockoff_security::knockoff_security::authentication_type::AuthenticationConversionError;
 use module_macro_lib::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
 use web_framework_shared::convert::Converter;
 use crate::web_framework::context::{ApplicationContext, RequestContext};
-use crate::web_framework::filter::filter::Action;
+use crate::web_framework::filter::filter::{Action, DelegatingFilterProxy, Filter};
 use crate::web_framework::request::request::WebResponse;
-use crate::web_framework::security::security::{Authentication, AuthenticationConverter, AuthenticationToken};
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
+use crate::web_framework::convert::AuthenticationConverterRegistry;
+use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
 
-pub mod security_filter {
-    use web_framework_shared::request::{EndpointMetadata, WebRequest};
-    use crate::web_framework::context::ApplicationContext;
-    use crate::web_framework::filter::filter::FilterChain;
-    use crate::web_framework::request::request::WebResponse;
-
-
-    pub struct SecurityFilter;
-
-    //TODO: replace with Action
-
-    // impl SecurityFilter {
-    //     fn filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext) {
-    //         todo!()
-    //     }
-    //
-    // }
-
+pub struct SecurityFilterChain<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
+    pub(crate) filters: Arc<DelegatingFilterProxy<Request, Response>>,
 }
 
+impl <Request, Response> SecurityFilterChain<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
+    pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext<Request, Response>) {
+        self.filters.do_filter(request, response, ctx);
+    }
+}
+
+
 //TODO: replace filter with action
-pub trait AuthenticationFilter{
+pub trait AuthenticationFilter
+{
     fn try_convert_to_authentication(
         &self,
         request: &WebRequest,
-    ) -> Result<Option<Authentication>, AuthenticationConversionError>;
+    ) -> Result<AuthenticationToken, AuthenticationConversionError>;
 }
 
-pub struct UsernamePasswordAuthenticationFilter {
-    converter: Arc<Box<dyn AuthenticationTypeConverter>>
+pub struct UsernamePasswordAuthenticationFilter
+{
+    converter: Arc<AuthenticationConverterRegistry>,
+    authentication_manager: Arc<DelegatingAuthenticationManager>
 }
 
-impl Default for UsernamePasswordAuthenticationFilter {
+impl Default for UsernamePasswordAuthenticationFilter
+{
     fn default() -> Self {
         Self {
-            converter: Arc::new(Box::new(AuthenticationTypeConverterImpl::new()))
+            converter: Arc::new(AuthenticationConverterRegistry::new()),
+            authentication_manager: Arc::new(DelegatingAuthenticationManager::new()),
         }
+    }
+}
+
+impl AuthenticationFilter for UsernamePasswordAuthenticationFilter {
+    fn try_convert_to_authentication(&self, request: &WebRequest) -> Result<AuthenticationToken, AuthenticationConversionError> {
+        self.converter
+            .convert(request)
+            .map(|mut auth_token|  self.authentication_manager.authenticate(&mut auth_token.credentials) )
+    }
+}
+
+impl UsernamePasswordAuthenticationFilter
+{
+    pub fn username_password_filter<Request, Response>(
+        converter: Arc<AuthenticationConverterRegistry>,
+        authentication_manager: Arc<DelegatingAuthenticationManager>,
+        order: Option<u8>
+    ) -> Filter<Request, Response>
+        where
+            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    {
+        Filter::new(
+            Box::new(
+                Self { converter, authentication_manager }
+            ),
+            order
+        )
     }
 }
 
@@ -64,28 +96,18 @@ where
             application_context: &ApplicationContext<Request, Response>
         ) -> Option<Response> {
 
-        self.converter.convert(web_request)
-            .ok().map(|auth_type| {
-                application_context
-                    .authentication_converters
-                    .converters
-                    .iter()
-                    .filter(|c| c.supports(&auth_type))
-                    .map(|c| c.convert(&auth_type))
-                    .for_each(|mut auth_token| {
-                        application_context
-                            .request_context
-                            .authentication_manager
-                            .authenticate(&mut auth_token)
-                    })
+        self.try_convert_to_authentication(web_request)
+            .map(|auth| {
+                response.session.security_context_holder.auth_token = Some(auth.to_owned());
+                auth
             })
-            .map(|f| None)
-            .unwrap()
+            .expect("Panic experienced while authenticating user.");
 
+        None
     }
 
     fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
-        todo!()
+        true
     }
 
     fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
@@ -93,15 +115,9 @@ where
     }
 
     fn clone(&self) -> Box<dyn Action<Request, Response>> {
-        todo!()
-    }
-}
-
-impl AuthenticationFilter for UsernamePasswordAuthenticationFilter {
-    fn try_convert_to_authentication(
-        &self,
-        request: &WebRequest,
-    ) -> Result<Option<Authentication>, AuthenticationConversionError> {
-        Ok(None)
+        Box::new(Self {
+            converter: self.converter.clone(),
+            authentication_manager: self.authentication_manager.clone()
+        })
     }
 }

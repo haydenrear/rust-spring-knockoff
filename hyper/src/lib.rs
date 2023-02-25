@@ -22,17 +22,13 @@ use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use web_framework::web_framework::context::ApplicationContext;
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::http::{
-    HttpMethod, ProtocolToAdaptFrom, RequestConversionError,
+    ProtocolToAdaptFrom, RequestConversionError,
     RequestConverter, RequestExecutor, RequestExecutorImpl,
     RequestStream, ResponseType
 };
-use web_framework::web_framework::request::request::{WebRequest, WebResponse};
-use crate::web_framework::convert::Converter;
-
-pub struct HyperHandlerAdapter<'a>
-{
-    request_stream: &'a dyn RequestStream<'a, WebRequest, &'a [u8]>
-}
+use web_framework::web_framework::request::request::{WebResponse};
+use web_framework_shared::http_method::HttpMethod;
+use web_framework_shared::request::WebRequest;
 
 pub struct HyperRequestStream<Request, Response>
     where
@@ -52,18 +48,11 @@ where
 {
     pub fn new(request_executor: RequestExecutorImpl<Request, Response>) -> Self {
         HyperRequestStream {
-            request_executor: request_executor,
+            request_executor,
             converter: HyperRequestConverter::new()
         }
     }
 }
-
-// impl <'a> Registration<'a, dyn Filter> for HyperRequestStream<'a>
-// {
-//     fn register(&mut self, converter: &'a dyn Filter) {
-//         self.request_executor.ctx.filter_registry.register(converter);
-//     }
-// }
 
 pub struct Addr<'a> {
     addr: &'a AddrStream
@@ -167,6 +156,7 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
                         body: s,
                         metadata: Default::default(),
                         method: HttpMethod::Post,
+                        uri: "".to_string(),
                     }
                 })
             })

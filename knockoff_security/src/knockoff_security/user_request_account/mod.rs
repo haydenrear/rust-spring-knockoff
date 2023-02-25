@@ -1,42 +1,27 @@
 use serde::{Deserialize, Serialize};
 use std::collections::linked_list::LinkedList;
 use std::collections::HashMap;
+use data_framework::Entity;
 
-pub trait User: Send + Sync + Copy {}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct UserSession {
-    data: SessionData,
-    id: u64,
+    pub data: SessionData,
+    pub id: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct SessionData {
     session_data: HashMap<String, String>,
 }
 
-impl Default for SessionData {
-    fn default() -> Self {
-        Self {
-            session_data: HashMap::new(),
-        }
-    }
-}
-
-pub trait UserAccount {
-    fn get_user_session(&self) -> Box<UserSession>;
+pub trait UserAccount: Entity<String> + Clone {
+    fn get_account_data(&self) -> AccountData;
     fn login(&self);
+    fn get_password(&self) -> String;
 }
 
-pub trait AccountData {
-    fn get_user_sessions(&self) -> LinkedList<Box<UserSession>>;
-    fn get_id(&self) -> u16;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {}
+#[derive(Clone, Default, Serialize, Deserialize, Debug)]
+pub struct AccountData {
+    pub user_sessions: Vec<UserSession>,
+    pub id: String
 }

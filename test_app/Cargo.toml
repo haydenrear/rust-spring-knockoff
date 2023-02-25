@@ -13,5 +13,18 @@ paste = "1.0.6"
 serde = "1.0.137"
 [dependencies.web_framework]
 path = "../web_framework"
+[dependencies.web_framework_shared]
+path = "../web_framework_shared"
+[dependencies.knockoff_security]
+path = "../knockoff_security"
+[dependencies.module_macro_lib]
+path = "../module_macro_lib"
+[dependencies.module_macro_shared]
+path = "../module_macro_shared"
+[dependencies.data_framework]
+path = "../data_framework"
+[dependencies.mongo_repo]
+path = "../mongo_repo"
+
 [dependencies.hyper]
 path = "../hyper"

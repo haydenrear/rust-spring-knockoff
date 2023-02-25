@@ -34,7 +34,6 @@ path = "../module_macro_shared"
 path = "../knockoff_security"
 [dependencies.web_framework_shared]
 path = "../web_framework_shared"
-
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}
 [build-dependencies.build_lib]
@@ -45,3 +44,5 @@ path = "../module_macro_codegen"
 path = "../module_macro_shared"
 [build-dependencies.web_framework_shared]
 path = "../web_framework_shared"
+[build-dependencies.module_macro_lib]
+path = "../module_macro_lib"

@@ -1,4 +1,4 @@
-use module_macro::{bean, singleton, autowired};
+use spring_knockoff_boot_macro::{autowired, bean, singleton};
 
 #[derive(Default, Debug)]
 #[singleton(Once)]

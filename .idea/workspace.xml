@@ -7,17 +7,14 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactored to make AuthenticationType dynamically provided.">
-      <change afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="authentication">
       <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,16 +111,16 @@
       <recent name="$PROJECT_DIR$/module_macro_lib/resources" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type" />
       <recent name="$PROJECT_DIR$/codegen_resources" />
       <recent name="$PROJECT_DIR$/initializer_lib" />
       <recent name="$PROJECT_DIR$/delegator_test/.cargo" />
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
-      <recent name="$PROJECT_DIR$/delegator_test/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test matcher::test::test_ant_path_request_matcher">
-    <configuration name="Build web_framework_shared" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="build --package web_framework_shared --lib" />
+  <component name="RunManager" selected="Cargo.Test web_framework::security::test::test_security::test_authentication_converter_builder">
+    <configuration name="Run test_app" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package test_app --bin test_app" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -139,8 +136,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test lib::test (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test" />
+    <configuration name="Test web_framework::security::test::test_security::test_authentication_converter_builder" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_authentication_converter_builder -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -156,8 +153,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test matcher::test::test_ant_path_request_matcher" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework_shared --lib matcher::test::test_ant_path_request_matcher -- --exact" />
+    <configuration name="Test web_framework::security::test::test_security::test_authority" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_authority -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -173,8 +170,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
+    <configuration name="Test web_framework::security::test::test_security::test_delegating_authentication_manager" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_delegating_authentication_manager -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -190,8 +187,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_match" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_match -- --exact" />
+    <configuration name="Test web_framework::security::test::test_security::test_http_security" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_http_security -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -226,19 +223,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Build web_framework_shared" />
-      <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
-      <item itemvalue="Cargo.Test test_match" />
-      <item itemvalue="Cargo.Test lib::test (1)" />
-      <item itemvalue="Cargo.Test test_downcast" />
+      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authentication_converter_builder" />
+      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_delegating_authentication_manager" />
+      <item itemvalue="Cargo.Run test_app" />
+      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authority" />
+      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_http_security" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
-        <item itemvalue="Cargo.Test test_match" />
-        <item itemvalue="Cargo.Test test_downcast" />
-        <item itemvalue="Cargo.Build web_framework_shared" />
-        <item itemvalue="Cargo.Build web_framework_shared" />
+        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authentication_converter_builder" />
+        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_delegating_authentication_manager" />
+        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_http_security" />
+        <item itemvalue="Cargo.Run test_app" />
+        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authority" />
       </list>
     </recent_temporary>
   </component>
@@ -298,105 +295,9 @@
       <workItem from="1675868087594" duration="40861000" />
       <workItem from="1676403564482" duration="16055000" />
       <workItem from="1676723809901" duration="565000" />
-      <workItem from="1677095156549" duration="11853000" />
-    </task>
-    <task id="LOCAL-00008" summary="ctx">
-      <created>1669712363467</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1669712363467</updated>
-    </task>
-    <task id="LOCAL-00009" summary="ctx">
-      <created>1669854227477</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1669854227477</updated>
-    </task>
-    <task id="LOCAL-00010" summary="ctx">
-      <created>1670100985611</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1670100985611</updated>
-    </task>
-    <task id="LOCAL-00011" summary="compiled with ctx">
-      <created>1670104614422</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1670104614422</updated>
-    </task>
-    <task id="LOCAL-00012" summary="compiled with ctx">
-      <created>1670107195183</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1670107195183</updated>
-    </task>
-    <task id="LOCAL-00013" summary="compiled with ctx">
-      <created>1670182994294</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1670182994294</updated>
-    </task>
-    <task id="LOCAL-00014" summary="security">
-      <created>1670292170077</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1670292170077</updated>
-    </task>
-    <task id="LOCAL-00015" summary="security">
-      <created>1670593553118</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1670593553118</updated>
-    </task>
-    <task id="LOCAL-00016" summary="compiling">
-      <created>1670647174702</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1670647174702</updated>
-    </task>
-    <task id="LOCAL-00017" summary="test app">
-      <created>1670687124429</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1670687124429</updated>
-    </task>
-    <task id="LOCAL-00018" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
-      <created>1670895711418</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1670895711419</updated>
-    </task>
-    <task id="LOCAL-00019" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
-      <created>1671910380687</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1671910380687</updated>
-    </task>
-    <task id="LOCAL-00020" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
-      <created>1673099330513</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1673099330513</updated>
-    </task>
-    <task id="LOCAL-00021" summary="back to &amp;'a filter">
-      <created>1673103870310</created>
-      <option name="number" value="00021" />
-      <option name="presentableId" value="LOCAL-00021" />
-      <option name="project" value="LOCAL" />
-      <updated>1673103870310</updated>
+      <workItem from="1677095156549" duration="18356000" />
+      <workItem from="1677421523187" duration="35786000" />
+      <workItem from="1677594170028" duration="15367000" />
     </task>
     <task id="LOCAL-00022" summary="back to &amp;'a filter">
       <created>1673112067671</created>
@@ -643,7 +544,105 @@
       <option name="project" value="LOCAL" />
       <updated>1677346320625</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="req. matcher">
+      <created>1677348733541</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1677348733541</updated>
+    </task>
+    <task id="LOCAL-00058" summary="req. matcher">
+      <created>1677348873640</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1677348873640</updated>
+    </task>
+    <task id="LOCAL-00059" summary="req. matcher">
+      <created>1677349031900</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1677349031900</updated>
+    </task>
+    <task id="LOCAL-00060" summary="add auth type">
+      <created>1677356111040</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1677356111040</updated>
+    </task>
+    <task id="LOCAL-00061" summary="add auth type">
+      <created>1677437793571</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1677437793572</updated>
+    </task>
+    <task id="LOCAL-00062" summary="configuration mod">
+      <created>1677455175676</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1677455175676</updated>
+    </task>
+    <task id="LOCAL-00063" summary="configuration mod">
+      <created>1677467233552</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1677467233552</updated>
+    </task>
+    <task id="LOCAL-00064" summary="configuration mod">
+      <created>1677467302093</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1677467302093</updated>
+    </task>
+    <task id="LOCAL-00065" summary="configuration mod">
+      <created>1677467712746</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1677467712746</updated>
+    </task>
+    <task id="LOCAL-00066" summary="sec">
+      <created>1677515641875</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1677515641875</updated>
+    </task>
+    <task id="LOCAL-00067" summary="dao auth provider">
+      <created>1677525130657</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1677525130657</updated>
+    </task>
+    <task id="LOCAL-00068" summary="security">
+      <created>1677539579678</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1677539579678</updated>
+    </task>
+    <task id="LOCAL-00069" summary="authentication">
+      <created>1677597155626</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1677597155626</updated>
+    </task>
+    <task id="LOCAL-00070" summary="authentication">
+      <created>1677617328787</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1677617328787</updated>
+    </task>
+    <option name="localTasksCounter" value="71" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -661,13 +660,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="security" />
-    <MESSAGE value="compiling" />
-    <MESSAGE value="test app" />
-    <MESSAGE value="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register..." />
-    <MESSAGE value="working" />
-    <MESSAGE value="back to &amp;'a filter" />
-    <MESSAGE value="fixed tests" />
     <MESSAGE value="Builder" />
     <MESSAGE value="message converter 2" />
     <MESSAGE value="many message converter" />
@@ -686,7 +678,14 @@
     <MESSAGE value="Updated logging" />
     <MESSAGE value="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication." />
     <MESSAGE value="refactored to make AuthenticationType dynamically provided." />
-    <option name="LAST_COMMIT_MESSAGE" value="refactored to make AuthenticationType dynamically provided." />
+    <MESSAGE value="req. matcher" />
+    <MESSAGE value="add auth type" />
+    <MESSAGE value="configuration mod" />
+    <MESSAGE value="sec" />
+    <MESSAGE value="dao auth provider" />
+    <MESSAGE value="security" />
+    <MESSAGE value="authentication" />
+    <option name="LAST_COMMIT_MESSAGE" value="authentication" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -709,6 +708,46 @@
           <url>file://$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs</url>
           <line>4</line>
           <option name="timeStamp" value="106" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>314</line>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>326</line>
+          <option name="timeStamp" value="112" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>328</line>
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>331</line>
+          <option name="timeStamp" value="114" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>303</line>
+          <option name="timeStamp" value="117" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs</url>
+          <line>396</line>
+          <option name="timeStamp" value="119" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs</url>
+          <line>395</line>
+          <option name="timeStamp" value="120" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs</url>
+          <line>176</line>
+          <option name="timeStamp" value="122" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
