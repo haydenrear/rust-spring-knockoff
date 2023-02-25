@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod test_security {
     use std::any::Any;
+    use knockoff_security::knockoff_security::authentication_type::{JwtToken, UsernamePassword};
+    use module_macro_lib::AuthenticationType;
     use crate::web_framework::filter::filter::FilterChain;
-    use crate::web_framework::request::request::{WebRequest, WebResponse};
-    use crate::web_framework::security::security::{AuthenticationType, JwtToken, UsernamePassword};
+    use crate::web_framework::request::request::WebResponse;
     use crate::web_framework::security::security_filter::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
+    use web_framework_shared::request::WebRequest;
 
     #[test]
     fn test_split() {

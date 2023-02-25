@@ -1,10 +1,13 @@
 use std::ops::Deref;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
+use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, AuthenticationConversionError};
+use module_macro_lib::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
+use web_framework_shared::convert::Converter;
 use crate::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
+use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, EndpointRequestExtractor, MessageConverter, OtherMessageConverter, Registration, RequestExtractor};
-use crate::web_framework::request::request::{EndpointMetadata, WebRequest};
-use crate::web_framework::security::security::{Authentication, AuthenticationAware, AuthenticationConversionError, AuthenticationConverter, AuthenticationProvider, AuthenticationToken, AuthenticationType, AuthenticationTypeConverter, AuthenticationTypeConverterImpl, Converter, DelegatingAuthenticationManager, AuthType};
+use crate::web_framework::security::security::{Authentication, AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
 
 impl<Request, Response> ApplicationContextBuilder<Request, Response>
     where

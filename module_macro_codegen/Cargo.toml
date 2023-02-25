@@ -19,3 +19,10 @@ executors = "0.9.0"
 path = "../knockoff_security"
 [dependencies.knockoff_logging]
 path = "../knockoff_logging"
+[dependencies.web_framework_shared]
+path = "../web_framework_shared"
+
+[build-dependencies.knockoff_security]
+path = "../knockoff_security"
+[build-dependencies.web_framework_shared]
+path = "../web_framework_shared"

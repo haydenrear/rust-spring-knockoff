@@ -1024,6 +1024,11 @@ dependencies = [
 [[package]]
 name = "knockoff_security"
 version = "0.1.0"
+dependencies = [
+ "base64",
+ "serde",
+ "web_framework_shared",
+]
 
 [[package]]
 name = "kv-log-macro"
@@ -1161,6 +1166,7 @@ dependencies = [
  "quote",
  "serde",
  "syn",
+ "web_framework_shared",
 ]
 
 [[package]]
@@ -1172,6 +1178,7 @@ dependencies = [
  "derive-syn-parse",
  "executors",
  "knockoff_logging",
+ "knockoff_security",
  "lazy_static",
  "module_macro_codegen",
  "module_macro_shared",
@@ -1179,6 +1186,7 @@ dependencies = [
  "quote",
  "serde",
  "syn",
+ "web_framework_shared",
 ]
 
 [[package]]
@@ -1559,13 +1567,6 @@ checksum = "d53dcdb7c9f8158937a7981b48accfd39a43af418591a5d008c7b22b5e1b7ca4"
 dependencies = [
  "ring",
  "untrusted",
-]
-
-[[package]]
-name = "security_model"
-version = "0.1.0"
-dependencies = [
- "serde",
 ]
 
 [[package]]
@@ -2234,11 +2235,21 @@ dependencies = [
  "mongo_repo",
  "paste",
  "quote",
- "security_model",
  "serde",
  "serde_json",
  "syn",
  "tokio-test",
+ "web_framework_shared",
+]
+
+[[package]]
+name = "web_framework_shared"
+version = "0.1.0"
+dependencies = [
+ "async-std",
+ "serde",
+ "serde_json",
+ "syn",
 ]
 
 [[package]]

@@ -22,40 +22,106 @@ impl AuthenticationType {
     }
 }
 
+
 impl AuthenticationType {
     fn default_tokens() -> TokenStream {
         let t = quote! {
 
-                extern crate core;
+                use std::collections::LinkedList;
+                use serde::{Deserialize, Serialize};
+                use web_framework_shared::request::WebRequest;
+                use web_framework_shared::convert::Converter;
+                use knockoff_security::knockoff_security::authentication_type::{
+                    UsernamePassword, AuthenticationConversionError, JwtToken, AuthType,
+                    OpenSamlAssertion , AuthenticationAware, Authority
+                };
 
-                // use crate::web_framework::convert::{AuthenticationConverterRegistry, Registration};
-                // use crate::web_framework::filter::filter::{Action, FilterChain};
-                // use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-                // use crate::web_framework::session::session::HttpSession;
-                // use alloc::string::String;
-                // use core::borrow::Borrow;
-                // use core::fmt::{Error, Formatter};
-                // use serde::{Deserialize, Serialize, Serializer};
-                // use std::any::{Any, TypeId};
-                // use std::cell::RefCell;
-                // use std::collections::{HashMap, LinkedList};
-                // use std::marker::PhantomData;
-                // use std::ops::{Deref, DerefMut};
-                // use std::ptr::null;
-                // use std::sync::{Arc, Mutex};
-                // use std::vec;
-                // use security_model::UserAccount;
-                // use crate::web_framework::context::{ApplicationContext, RequestContext};
-                // use crate::web_framework::context_builder::AuthenticationConverterRegistryBuilder;
+                impl  Default for AuthenticationType {
+                    fn default() -> Self {
+                        AuthenticationType::Unauthenticated
+                    }
+                }
 
-                // #[derive(Clone, Debug, Serialize, Deserialize)]
-                // pub enum AuthenticationType
-                // {
-                //     Jwt(JwtToken),
-                //     SAML(OpenSamlAssertion),
-                //     Password(UsernamePassword),
-                //     Unauthenticated
-                // }
+                pub trait AuthenticationTypeConverter: Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> + Send + Sync {
+                }
+
+                #[derive(Clone)]
+                pub struct AuthenticationTypeConverterImpl {
+                }
+
+                impl AuthenticationTypeConverterImpl {
+                    pub fn new() -> Self {
+                        Self {
+                        }
+                    }
+
+                }
+
+                impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for AuthenticationTypeConverterImpl {
+
+                    fn convert(&self, from: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
+                        let auth_header = from.headers["Authorization"].as_str();
+                        let first_split: Vec<&str> = auth_header.split_whitespace().collect();
+                        if first_split.len() < 2 {
+                            return Ok(AuthenticationType::Unauthenticated);
+                        }
+                        match first_split[0] {
+                            "Basic" => {
+                                UsernamePassword::parse_credentials_inner(from)
+                                    .map(|auth| AuthenticationType::Password (auth))
+                            }
+                            "Bearer" => {
+                                JwtToken::parse_credentials_jwt(from)
+                                    .map(|auth| AuthenticationType::Jwt(auth))
+                            }
+                            _ => Ok(AuthenticationType::Unauthenticated)
+                        }
+                    }
+
+                }
+
+                impl AuthenticationTypeConverter for AuthenticationTypeConverterImpl {
+                }
+
+                impl AuthType for AuthenticationType {
+                    fn parse_credentials(&self, request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+                        Err(AuthenticationConversionError::new(String::from("Authentication type was empty.")))
+                    }
+                }
+
+                //TODO: each authentication provider is of generic type AuthType, allowing for generalization
+                // then when user provides authentication provider overriding getAuthType with own, macro adds
+                // the authentication provider to the map of auth providers in the authentication filter
+                #[derive(Clone, Debug, Serialize, Deserialize)]
+                pub enum AuthenticationType
+                {
+                    Jwt(JwtToken),
+                    SAML(OpenSamlAssertion),
+                    Password(UsernamePassword),
+                    Unauthenticated
+                }
+
+                impl AuthenticationAware for AuthenticationType {
+                    fn get_authorities(&self) -> LinkedList<Authority> {
+                        todo!()
+                    }
+
+                    fn get_credentials(&self) -> Option<String> {
+                        todo!()
+                    }
+
+                    fn get_principal(&self) -> Option<String> {
+                        todo!()
+                    }
+
+                    fn set_credentials(&mut self, credential: String) {
+                        todo!()
+                    }
+
+                    fn set_principal(&mut self, principal: String) {
+                        todo!()
+                    }
+                }
             }.into();
         t
     }

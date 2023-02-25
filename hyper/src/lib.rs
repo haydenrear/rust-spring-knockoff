@@ -27,7 +27,7 @@ use web_framework::web_framework::http::{
     RequestStream, ResponseType
 };
 use web_framework::web_framework::request::request::{WebRequest, WebResponse};
-use web_framework::web_framework::security::security::Converter;
+use crate::web_framework::convert::Converter;
 
 pub struct HyperHandlerAdapter<'a>
 {

@@ -1,7 +1,7 @@
 pub mod request {
 
     use crate::web_framework::context::RequestContext;
-    use crate::web_framework::http::{Connection, HttpMethod};
+    use crate::web_framework::http::{Connection};
     use crate::web_framework::session::session::HttpSession;
     use std::collections::{HashMap, LinkedList};
     use std::fs::Metadata;
@@ -13,53 +13,8 @@ pub mod request {
     use serde::{Deserialize, Serialize};
     use circular::Buffer;
 
-    #[derive(Clone, Serialize, Deserialize)]
-    pub struct EndpointMetadata {
-        pub path_variables: String,
-        pub query_params: String,
-        pub http_method: HttpMethod
-    }
-
-    impl Default for EndpointMetadata {
-        fn default() -> Self {
-            Self {
-                path_variables: String::default(),
-                query_params: String::default(),
-                http_method: HttpMethod::Get
-            }
-        }
-    }
 
     trait HttpEntity {}
-
-
-    #[derive(Serialize, Deserialize)]
-    pub struct WebRequest {
-        pub headers: HashMap<String, String>,
-        pub body: String,
-        pub metadata: EndpointMetadata,
-        pub method: HttpMethod,
-    }
-
-    impl Clone for WebRequest {
-        fn clone(&self) -> Self {
-            Self {
-                headers: self.headers.clone(),
-                body: self.body.clone(),
-                metadata: self.metadata.clone(),
-                method: HttpMethod::Get,
-            }
-        }
-    }
-
-    impl Clone for HttpMethod {
-        fn clone(&self) -> Self {
-            match self {
-                HttpMethod::Post => HttpMethod::Post,
-                HttpMethod::Get => HttpMethod::Get,
-            }
-        }
-    }
 
     #[derive(Clone, Serialize, Deserialize)]
     pub struct WebResponse {
@@ -131,17 +86,6 @@ pub mod request {
                 .map(|response_str| self.response.clone() + response_str.as_str())
                 .unwrap_or(self.response.clone());
             self.response_bytes.write(response);
-        }
-    }
-
-    impl Default for WebRequest {
-        fn default() -> Self {
-            Self {
-                headers: HashMap::new(),
-                body: String::default(),
-                metadata: EndpointMetadata::default(),
-                method: HttpMethod::Get,
-            }
         }
     }
 

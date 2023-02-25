@@ -3,11 +3,9 @@ mod test_filter {
     use crate::web_framework::context::{ApplicationContext, RequestContext};
     use crate::web_framework::dispatch::Dispatcher;
     use crate::web_framework::convert::{ConverterRegistry, Registry};
-    use crate::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter, MediaType};
+    use crate::web_framework::filter::filter::{Action, FilterChain, MediaType, RequestResponseActionFilter};
     use crate::web_framework::message::MessageType;
-    use crate::web_framework::request::request::{EndpointMetadata, ResponseBytesBuffer, ResponseWriter};
-    use crate::web_framework::request::request::{WebRequest, WebResponse};
-    use crate::web_framework::security::security::{AuthenticationToken, AuthenticationType, AuthType};
+    use crate::web_framework::security::security::AuthenticationToken;
     use lazy_static::lazy_static;
     use serde::{Deserialize, Serialize};
     use std::any::Any;
@@ -18,6 +16,10 @@ mod test_filter {
     use std::ops::Deref;
     use futures::SinkExt;
     use circular::Buffer;
+    use module_macro_lib::{AuthenticationType};
+    use web_framework_shared::request::{EndpointMetadata, WebRequest};
+    use crate::web_framework::request::request::WebResponse;
+
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct Example {

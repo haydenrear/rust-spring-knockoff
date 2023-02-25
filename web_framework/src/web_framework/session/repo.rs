@@ -3,7 +3,7 @@ use data_framework::{Entity, Repo, RepoDelegate};
 use lazy_static::lazy_static;
 use mongo_repo::Db;
 use mongo_repo::MongoRepo;
-use security_model::SessionData;
+use knockoff_security::knockoff_security::user_request_account::SessionData;
 use std::collections::LinkedList;
 use std::sync::{Arc, Mutex};
 

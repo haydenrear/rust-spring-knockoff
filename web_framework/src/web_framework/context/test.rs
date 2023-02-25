@@ -6,9 +6,10 @@ mod test {
     use crate::web_framework::filter::filter::{Action, RequestResponseActionFilter};
     use crate::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
     use crate::web_framework::convert::{JsonMessageConverter, MessageConverter, Registration};
-    use crate::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-    use crate::web_framework::security::security::{AuthenticationAware, AuthenticationConverter, AuthenticationToken, Authority, AuthType, Converter, UsernamePassword};
+    use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationToken};
     use serde::{Deserialize, Serialize};
+    use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, Authority, AuthType, UsernamePassword};
+    use web_framework_shared::convert::Converter;
     use crate::web_framework::context_builder::{ApplicationContextBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, RequestContextBuilder};
 
     pub struct TestUsernamePasswordAuthenticationConverter;

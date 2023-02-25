@@ -14,6 +14,8 @@ macro_rules! initialize_logger {
     };
 }
 
+
+
 #[macro_export]
 macro_rules! create_logger_expr {
     ($logger:ident, $log_data:ty, $create_logger:expr, $num_cores:literal) => {
