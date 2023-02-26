@@ -16,7 +16,11 @@ path = "../module_macro"
 path = "../module_macro_lib"
 [dependencies.module_macro_shared]
 path = "../module_macro_shared"
+[dependencies.spring_knockoff_boot_macro]
+path = "../spring_knockoff_boot_macro"
 
+[build-dependencies.spring_knockoff_boot_macro]
+path = "../spring_knockoff_boot_macro"
 [build-dependencies.build_lib]
 path = "../build_lib"
 [build-dependencies.module_macro_codegen]

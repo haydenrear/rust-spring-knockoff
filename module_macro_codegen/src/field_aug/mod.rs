@@ -11,13 +11,23 @@ use crate::parser::{CodegenItem, LibParser};
 
 #[derive(Clone)]
 pub struct FieldAug {
-    default: Option<TokenStream>
+    default: Option<TokenStream>,
+    item: Option<Item>
 }
 
 impl FieldAug {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        if FieldAug::supports_item(item) {
+            return Some(Box::new(FieldAug { default: None, item: Some(item.clone()) }));
+        }
+        None
+    }
+}
+
+impl Default for FieldAug {
+    fn default() -> Self {
         Self {
-            default: None
+            default: None, item: None
         }
     }
 }
@@ -38,7 +48,8 @@ impl FieldAug {
 }
 
 impl CodegenItem for FieldAug {
-    fn supports(&self, impl_item: &Item) -> bool {
+
+    fn supports_item(impl_item: &Item) -> bool where Self: Sized {
         match impl_item {
             Item::Fn(impl_item) => {
                 impl_item.attrs.iter()
@@ -52,12 +63,17 @@ impl CodegenItem for FieldAug {
         }
     }
 
-    fn get_codegen(&self, item_fn: &Item) -> Option<String> {
-        match item_fn {
-            Item::Fn(item_fn) => {
-                let block = item_fn.block.deref().clone();
+    fn supports(&self, item: &Item) -> bool {
+        Self::supports_item(item)
+    }
 
-                let q = quote! {
+    fn get_codegen(&self) -> Option<String> {
+        self.item.clone().map(|item| {
+            match item {
+                Item::Fn(item_fn) => {
+                    let block = item_fn.block.deref().clone();
+
+                    let q = quote! {
                     #[derive(Parse, Default, Clone, Debug)]
                     pub struct FieldAugmenterImpl;
 
@@ -67,16 +83,15 @@ impl CodegenItem for FieldAug {
                         }
                     }
                 };
-                Some(q.to_string())
+                    Some(q.to_string())
+                }
+                _ => {
+                    None
+                }
             }
-            _ => {
-                None
-            }
-        }
-    }
-
-    fn get_unique_id(&self) -> String {
-        String::from("FieldAug")
+        })
+            .flatten()
+            .or(None)
     }
 
     fn default_codegen(&self) -> String {
@@ -85,5 +100,9 @@ impl CodegenItem for FieldAug {
 
     fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
         Box::new(self.clone())
+    }
+
+    fn get_unique_id(&self) -> String {
+        String::from("FieldAug")
     }
 }

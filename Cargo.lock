@@ -533,6 +533,7 @@ dependencies = [
  "module_macro_lib",
  "module_macro_shared",
  "quote",
+ "spring_knockoff_boot_macro",
  "syn",
 ]
 
@@ -1165,6 +1166,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "serde",
+ "spring_knockoff_boot_macro",
  "syn",
  "web_framework_shared",
 ]
@@ -1185,6 +1187,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "serde",
+ "spring_knockoff_boot_macro",
  "syn",
  "web_framework_shared",
 ]
@@ -1722,6 +1725,30 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 [[package]]
 name = "spring_knockoff_boot"
 version = "0.1.0"
+dependencies = [
+ "base64",
+ "derive-syn-parse",
+ "executors",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn",
+]
+
+[[package]]
+name = "spring_knockoff_boot_macro"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "derive-syn-parse",
+ "executors",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn",
+]
 
 [[package]]
 name = "stringprep"

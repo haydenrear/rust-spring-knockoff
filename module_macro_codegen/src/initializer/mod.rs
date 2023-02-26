@@ -9,22 +9,23 @@ use quote::{quote, ToTokens};
 use syn::{Item, ItemFn, ItemImpl};
 use crate::parser::{CodegenItem, LibParser};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Initializer {
-    default: Option<TokenStream>
+    default: Option<TokenStream>,
+    item: Option<Item>
 }
 
 impl Initializer {
-    pub(crate) fn new() -> Self {
-        Self {
-            default: None
+    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        if Initializer::supports_item(item) {
+            return Some(Box::new(Initializer { default: None, item: Some(item.clone()) }));
         }
+        None
     }
-}
 
-impl Initializer {
     fn default_tokens() -> TokenStream {
         let t = quote! {
+
                 #[derive(Parse, Default, Clone, Debug)]
                 pub struct ContextInitializerImpl;
 
@@ -38,7 +39,8 @@ impl Initializer {
 }
 
 impl CodegenItem for Initializer {
-    fn supports(&self, impl_item: &Item) -> bool {
+
+    fn supports_item(impl_item: &Item) -> bool where Self: Sized {
         match impl_item {
             Item::Fn(impl_item) => {
                 impl_item.attrs.iter()
@@ -52,17 +54,18 @@ impl CodegenItem for Initializer {
         }
     }
 
-    fn default_codegen(&self) -> String {
-        Initializer::default_tokens().to_string()
+    fn supports(&self, item: &Item) -> bool {
+        Self::supports_item(item)
     }
 
-    fn get_codegen(&self, item_fn: &Item) -> Option<String> {
-        match item_fn {
-            Item::Fn(item_fn) => {
+    fn get_codegen(&self) -> Option<String> {
+        self.item.clone().map(|item| {
+            match item {
+                Item::Fn(item_fn) => {
 
-                let block = item_fn.block.deref().clone();
+                    let block = item_fn.block.deref().clone();
 
-                let q = quote! {
+                    let q = quote! {
 
                     #[derive(Parse, Default, Clone, Debug)]
                     pub struct ContextInitializerImpl;
@@ -73,19 +76,26 @@ impl CodegenItem for Initializer {
                         }
                     }
                 };
-                Some(q.to_string())
+                    Some(q.to_string())
+                }
+                _ => {
+                    None
+                }
             }
-            _ => {
-                None
-            }
-        }
+        })
+            .flatten()
+            .or(None)
     }
 
-    fn get_unique_id(&self) -> String {
-        String::from("Initializer")
+    fn default_codegen(&self) -> String {
+        Initializer::default_tokens().to_string()
     }
 
     fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
         Box::new(self.clone())
+    }
+
+    fn get_unique_id(&self) -> String {
+        String::from("Initializer")
     }
 }

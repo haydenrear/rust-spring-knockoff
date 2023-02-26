@@ -92,24 +92,6 @@ fn contains<T: 'static>(type_id: TypeId) -> bool {
     TypeId::of::<T>() == type_id
 }
 
-#[test]
-fn test_match() {
-    assert!(match_this("okay", "okay").is_some());
-}
-
-fn match_this(to_match: &str, matching: &str) -> Option<String> {
-    match to_match {
-        "one" => {
-            None
-        }
-        "two" => {
-           None
-        }
-        matching => {
-            Some(matching.to_string())
-        }
-    }
-}
 
 #[test]
 fn test_downcast() {

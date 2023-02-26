@@ -8,21 +8,38 @@ use std::path::Path;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use quote::__private::ext::RepToTokensExt;
-use syn::{Item, ItemFn, ItemImpl, ItemStruct, Type};
+use syn::{Attribute, Item, ItemFn, ItemImpl, ItemStruct, Type};
 use syn::__private::str;
 use syn::token::Token;
+use knockoff_logging::use_logging;
 use crate::parser::{CodegenItem, LibParser};
+
+use_logging!();
+
+use crate::logger::executor;
+use crate::logger::StandardLoggingFacade;
 
 #[derive(Clone)]
 pub struct AuthenticationTypeCodegen {
     default: Option<TokenStream>,
+    item: Option<Item>
+}
+
+impl Default for AuthenticationTypeCodegen {
+    fn default() -> Self {
+        Self {
+            default: None,
+            item: None
+        }
+    }
 }
 
 impl AuthenticationTypeCodegen {
-    pub(crate) fn new() -> Self {
-        Self {
-            default: None
+    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        if AuthenticationTypeCodegen::supports_item(item) {
+            return Some(Box::new(AuthenticationTypeCodegen { default: None, item: Some(item.clone()) }));
         }
+        None
     }
 
     fn add_item_impl(mut to_add_map: &mut HashMap<String, NextAuthType>, id: &String, impl_found: &ItemImpl) {
@@ -40,6 +57,53 @@ impl AuthenticationTypeCodegen {
             to_add_map.get_mut(id).map(|f| f.auth_aware_impl = Some(impl_found.clone()));
         }
     }
+
+    fn add_item_struct(mut to_add_map: &mut HashMap<String, NextAuthType>, struct_found: &ItemStruct) {
+        struct_found.attrs.iter().for_each(|attr| {
+            log_message!("{} is the path.", attr.path.to_token_stream().to_string().as_str());
+            log_message!("{} is the other.", attr.tokens.to_token_stream().to_string().as_str());
+        });
+        let id = struct_found.ident.to_token_stream().to_string().clone();
+        let struct_opt_to_add = Some(struct_found.clone());
+        if to_add_map.contains_key(&id) {
+            to_add_map.get_mut(&id).map(|f| {
+                f.auth_type_to_add = struct_opt_to_add
+            });
+        } else {
+            let next = NextAuthType {
+                auth_type_to_add: struct_opt_to_add,
+                auth_type_impl: None,
+                auth_aware_impl: None
+            };
+            to_add_map.insert(id, next);
+        }
+    }
+
+    fn insert_item_impl(mut to_add_map: &mut HashMap<String, NextAuthType>, impl_found: &&ItemImpl) {
+        let id = impl_found.self_ty.clone().to_token_stream().to_string();
+        if to_add_map.contains_key(&id) {
+            Self::add_item_impl(&mut to_add_map, &id, &impl_found)
+        } else {
+            to_add_map.insert(id.clone(), NextAuthType {
+                auth_type_to_add: None,
+                auth_type_impl: None,
+                auth_aware_impl: None,
+            });
+            Self::add_item_impl(&mut to_add_map, &id, &impl_found)
+        }
+    }
+
+    fn add_item_to_map(mut to_add_map: &mut HashMap<String, NextAuthType>, item_to_create: &Item) {
+        match item_to_create {
+            Item::Struct(struct_found) => {
+                Self::add_item_struct(&mut to_add_map, struct_found);
+            }
+            Item::Impl(impl_found) => {
+                Self::insert_item_impl(&mut to_add_map, &impl_found);
+            }
+            _ => {}
+        }
+    }
 }
 
 
@@ -54,26 +118,14 @@ impl AuthenticationTypeCodegen {
                     UsernamePassword, AuthenticationConversionError, JwtToken, AuthType,
                     OpenSamlAssertion , AuthenticationAware, Authority
                 };
+                use spring_knockoff_boot_macro::{auth_type_aware, auth_type_impl, auth_type_struct};
         };
         t.into()
     }
 
     fn get_authentication_types(types_next: &Vec<&NextAuthType>) -> TokenStream {
-        let enum_names = types_next.iter()
-            .map(|next| next.auth_type_to_add.clone().unwrap().ident.clone())
-            .collect::<Vec<Ident>>();
-        let types = types_next.iter()
-            .map(|next| next.auth_type_impl.clone().unwrap().self_ty.deref().clone())
-            .collect::<Vec<Type>>();
-        let types_tokens = types_next.iter()
-            .map(|next| next.auth_type_to_add.clone().unwrap().to_token_stream().clone())
-            .collect::<Vec<TokenStream>>();
-        let impl_tokens = types_next.iter()
-            .map(|next| next.auth_type_impl.clone().unwrap().to_token_stream().clone())
-            .collect::<Vec<TokenStream>>();
-        let auth_aware = types_next.iter()
-            .map(|next| next.auth_aware_impl.clone().unwrap().to_token_stream().clone())
-            .collect::<Vec<TokenStream>>();
+        let (enum_names, types, types_tokens, impl_tokens, auth_aware) =
+            Self::create_prepare_auth_type_ts(types_next);
 
         let t = quote! {
 
@@ -96,9 +148,6 @@ impl AuthenticationTypeCodegen {
                     }
                 }
 
-                //TODO: each authentication provider is of generic type AuthType, allowing for generalization
-                // then when user provides authentication provider overriding getAuthType with own, macro adds
-                // the authentication provider to the map of auth providers in the authentication filter
                 #[derive(Clone, Debug, Serialize, Deserialize)]
                 pub enum AuthenticationType
                 {
@@ -133,6 +182,36 @@ impl AuthenticationTypeCodegen {
 
          };
         t.into()
+    }
+
+    fn create_prepare_auth_type_ts(types_next: &Vec<&NextAuthType>) -> (Vec<Ident>, Vec<Type>, Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) {
+        let enum_names = Self::get_collect_ts_type(
+            types_next,
+            &|next| next.auth_type_to_add.clone().unwrap().ident.clone()
+        );
+        let types = Self::get_collect_ts_type(
+            types_next,
+            &|next| next.auth_type_impl.clone().unwrap().self_ty.deref().clone()
+        );
+        let types_tokens = Self::get_collect_ts_type(
+            types_next,
+            &|next| next.auth_type_to_add.clone().unwrap().to_token_stream().clone()
+        );
+        let impl_tokens = Self::get_collect_ts_type(
+            types_next,
+            &|next| next.auth_type_impl.clone().unwrap().to_token_stream().clone()
+            );
+        let auth_aware = Self::get_collect_ts_type(
+            types_next,
+            &|next| next.auth_aware_impl.clone().unwrap().to_token_stream().clone()
+        );
+        (enum_names, types, types_tokens, impl_tokens, auth_aware)
+    }
+
+    fn get_collect_ts_type<T: ToTokens>(types_next: &Vec<&NextAuthType>, ts_getter: &dyn Fn(&&NextAuthType) -> T) -> Vec<T> {
+        types_next.iter()
+            .map(|next| ts_getter(next))
+            .collect::<Vec<T>>()
     }
 
     fn get_converter(additional_auth_types: &Vec<&NextAuthType>) -> TokenStream {
@@ -214,7 +293,8 @@ struct NextAuthType {
 }
 
 impl CodegenItem for AuthenticationTypeCodegen {
-    fn supports(&self, impl_item: &Item) -> bool {
+
+    fn supports_item(impl_item: &Item) -> bool where Self: Sized{
         match impl_item {
             Item::Mod(item_mod) => {
                 item_mod.attrs.iter()
@@ -228,55 +308,40 @@ impl CodegenItem for AuthenticationTypeCodegen {
         }
     }
 
-    fn get_codegen(&self, mod_item_to_match: &Item) -> Option<String> {
-        match mod_item_to_match {
-            Item::Mod(item_mod) => {
-                let mut to_add_map: HashMap<String, NextAuthType> = HashMap::new();
-                item_mod.content.iter().flat_map(|cnt| cnt.1.iter())
-                    .for_each(|item_to_create| {
-                        match item_to_create {
-                            Item::Struct(struct_found) => {
-                                let id = struct_found.ident.to_token_stream().to_string();
-                                let mut struct_found = struct_found.clone();
-                                if to_add_map.contains_key(&id) {
-                                    to_add_map.get_mut(&id).map(|f| f.auth_type_to_add = Some(struct_found));
-                                } else {
-                                    let next = NextAuthType { auth_type_to_add: Some(struct_found), auth_type_impl: None, auth_aware_impl: None };
-                                    to_add_map.insert(id, next);
-                                }
-                            }
-                            Item::Impl(impl_found) => {
-                                let id = impl_found.self_ty.clone().to_token_stream().to_string();
-                                let impl_found = impl_found.clone();
-                                if to_add_map.contains_key(&id) {
-                                    Self::add_item_impl(&mut to_add_map, &id, &impl_found)
-                                } else {
-                                    to_add_map.insert(id.clone(), NextAuthType{
-                                        auth_type_to_add: None,
-                                        auth_type_impl: None,
-                                        auth_aware_impl: None,
-                                    });
-                                    Self::add_item_impl(&mut to_add_map, &id, &impl_found)
-                                }
-                            }
-                            _ => {}
-                        }
-                    });
+    fn supports(&self, item: &Item) -> bool {
+        Self::supports_item(item)
+    }
 
-                let auth_types = to_add_map.values()
-                    .into_iter()
-                    .collect::<Vec<&NextAuthType>>();
+    fn get_codegen(&self) -> Option<String> {
+        self.item.clone().map(|item| {
+            match item {
+                Item::Mod(item_mod) => {
+                    let mut to_add_map: HashMap<String, NextAuthType> = HashMap::new();
 
-                let tokens = Self::get_codegen_items(auth_types);
-                let q = quote! {
-                    #tokens
-                };
-                Some(q.to_string())
+                    item_mod.content.iter().flat_map(|cnt| cnt.1.iter())
+                        .for_each(|item_to_create|
+                            Self::add_item_to_map(&mut to_add_map, item_to_create)
+                        );
+
+                    let auth_types = to_add_map.values()
+                        .into_iter()
+                        .collect::<Vec<&NextAuthType>>();
+
+                    let tokens = Self::get_codegen_items(auth_types);
+
+                    let q = quote! {
+                        #tokens
+                    };
+
+                    Some(q.to_string())
+                }
+                _ => {
+                    None
+                }
             }
-            _ => {
-                None
-            }
-        }
+        })
+            .flatten()
+            .or(None)
     }
 
     fn default_codegen(&self) -> String {

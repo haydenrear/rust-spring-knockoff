@@ -6,24 +6,24 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
-use std::sync::{Arc};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf};
+use std::sync::Arc;
+use syn::{Attribute, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, TraitItem, Type, TypePath};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
 use rust_spring_macro::module_post_processor::{ModuleFieldPostProcessor, ModuleStructPostProcessor};
 use syn::{
+    Ident,
     LitStr,
     Token,
-    Ident,
     token::Paren,
 };
-use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
+use quote::{format_ident, IdentFragment, quote, quote_token, TokenStreamExt, ToTokens};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use module_macro_lib::module_macro_lib::module_parser::parse_module;
 use module_macro_lib::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
-use module_macro_lib::{FieldAugmenterImpl};
+use module_macro_lib::FieldAugmenterImpl;
 use module_macro_lib::module_macro_lib::initializer::Initializer;
 use module_macro_shared::module_macro_shared_codegen::ContextInitializer;
 
@@ -49,52 +49,6 @@ pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     token_stream_builder.add_to_tokens(additional.into());
     token_stream_builder.build()
-}
-
-#[proc_macro_attribute]
-pub fn singleton(attr: TokenStream, input: TokenStream) -> TokenStream {
-    strip_autowired(input)
-}
-
-#[proc_macro_attribute]
-pub fn initializer(attr: TokenStream, ts: TokenStream) -> TokenStream {
-    ts.into()
-}
-
-#[proc_macro_attribute]
-pub fn field_aug(attr: TokenStream, ts: TokenStream) -> TokenStream {
-    ts.into()
-}
-
-#[proc_macro_attribute]
-pub fn prototype(attr: TokenStream, input: TokenStream) -> TokenStream {
-    strip_autowired(input)
-}
-
-#[proc_macro_attribute]
-pub fn bean(attr: TokenStream, input: TokenStream) -> TokenStream {
-    strip_autowired(input)
-}
-
-#[proc_macro_attribute]
-pub fn autowired(attr: TokenStream, input: TokenStream) -> TokenStream {
-    input.into()
-}
-
-#[proc_macro_attribute]
-pub fn authentication_type(attr: TokenStream, input: TokenStream) -> TokenStream {
-    input.into()
-}
-
-fn strip_autowired(input: TokenStream) -> TokenStream {
-    if input.to_string().as_str().contains("struct") {
-        let mut found: ItemStruct = parse_macro_input!(input as ItemStruct);
-        found.fields.iter_mut().for_each(|f| {
-            f.attrs.clear();
-        });
-        return found.to_token_stream().into();
-    }
-    input.into()
 }
 
 #[derive(Default)]
