@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::web_framework::security::security::AuthenticationToken;
+use crate::web_framework::security::authentication::AuthenticationToken;
 
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]

@@ -2,8 +2,7 @@ mod test;
 
 use core::borrow::BorrowMut;
 use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, EndpointRequestExtractor, JsonMessageConverter, MessageConverter, OtherMessageConverter, Registration};
-use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationToken, DelegatingAuthenticationManager};
-use crate::web_framework::filter::filter::{FilterChain, RequestResponseActionFilter};
+use crate::web_framework::filter::filter::{DelegatingFilterProxy, Filter};
 use std::any::Any;
 use std::cell::RefCell;
 use std::collections::LinkedList;
@@ -17,6 +16,7 @@ use web_framework_shared::convert::Converter;
 use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder};
 use crate::web_framework::dispatch::Dispatcher;
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
+use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken, DelegatingAuthenticationManager};
 
 #[derive(Clone, Default)]
 pub struct RequestContext<Request, Response>
@@ -56,7 +56,7 @@ impl <Request, Response> FilterRegistrar<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-    pub fn register(&mut self, converter: RequestResponseActionFilter<Request, Response>) {
+    pub fn register(&mut self, converter: Filter<Request, Response>) {
         self.filters.lock().unwrap().borrow_mut().push(converter)
     }
 }
@@ -104,8 +104,8 @@ pub struct FilterRegistrar<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
-    pub filters: Arc<Mutex<Vec<RequestResponseActionFilter<Request, Response>>>>,
-    pub fiter_chain: Arc<FilterChain<Request, Response>>,
+    pub filters: Arc<Mutex<Vec<Filter<Request, Response>>>>,
+    pub fiter_chain: Arc<DelegatingFilterProxy<Request, Response>>,
     pub build: bool,
 }
 
@@ -116,14 +116,14 @@ where
 {
 
     // Sets the filter_build for later - so you don't have to do it every time.
-    pub fn build(&mut self) -> Arc<FilterChain<Request, Response>> {
+    pub fn build(&mut self) -> Arc<DelegatingFilterProxy<Request, Response>> {
         if self.build {
             return self.fiter_chain.clone();
         }
         let result = self.filters.lock().unwrap();
-        let mut filters_found: Vec<RequestResponseActionFilter<Request, Response>> = result.clone();
+        let mut filters_found: Vec<Filter<Request, Response>> = result.clone();
         filters_found.sort();
-        self.fiter_chain = Arc::new(FilterChain {
+        self.fiter_chain = Arc::new(DelegatingFilterProxy {
             filters: Arc::new(filters_found)
         });
         self.fiter_chain.clone()
@@ -153,7 +153,7 @@ impl <Request, Response> FilterRegistrar<Request, Response>
     pub(crate) fn new() -> FilterRegistrar<Request, Response> {
         Self {
             filters: Arc::new(Mutex::new(vec![])),
-            fiter_chain: Arc::new(FilterChain::default()),
+            fiter_chain: Arc::new(DelegatingFilterProxy::default()),
             build: false
         }
     }

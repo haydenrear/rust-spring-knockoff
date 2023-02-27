@@ -3,27 +3,57 @@ use lazy_static::lazy_static;
 use hyper::{HyperRequestConverter, HyperRequestStream};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
-use knockoff_security::knockoff_security::authentication_type::{AuthenticationType, AuthenticationTypeConverterImpl};
+use data_framework::Entity;
+use knockoff_security::knockoff_security::user_request_account::{UserAccount, UserSession};
 use web_framework::{create_message_converter, default_message_converters};
 use web_framework::web_framework::convert::{EndpointRequestExtractor, MessageConverter, Registration};
 use web_framework::web_framework::dispatch::Dispatcher;
-use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
-use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-use web_framework::web_framework::security::security::{AuthenticationProvider, AuthenticationToken, DaoAuthenticationProvider};
+use web_framework::web_framework::filter::filter::{Action, DelegatingFilterProxy, Filter};
+use web_framework::web_framework::request::request::WebResponse;
+use web_framework::web_framework::security::security::{NoOpPasswordEncoder, PersistenceUserDetailsService};
 use web_framework::web_framework::http::RequestExecutorImpl;
 use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
 use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, RequestContextBuilder};
 use web_framework::web_framework::message::MessageType;
+use web_framework_shared::request::{EndpointMetadata, WebRequest};
+use module_macro_lib::AuthenticationTypeConverterImpl;
+use mongo_repo::{Db, MongoRepo};
+use web_framework::web_framework::security::authentication::{AuthenticationProvider, AuthenticationToken, DaoAuthenticationProvider};
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct TestUserAccount;
+
+impl Entity<String> for TestUserAccount {
+    fn get_id(&self) -> Option<String> {
+        Some("test".to_string())
+    }
+
+    fn set_id(&mut self, id: String) {
+    }
+}
+
+impl UserAccount for TestUserAccount {
+    fn get_user_session(&self) -> Box<UserSession> {
+        Box::new(UserSession{ data: Default::default(), id: 0 })
+    }
+
+    fn login(&self) {
+    }
+
+    fn get_password(&self) -> String {
+        "test".to_string()
+    }
+}
 
 #[tokio::main]
 async fn main() {
-    let filter: RequestResponseActionFilter<Example, Example> = RequestResponseActionFilter::new(
+    let filter: Filter<Example, Example> = Filter::new(
         Box::new(TestAction::default()), None
     );
     let mut filter_registrar = FilterRegistrar {
         filters: Arc::new(Mutex::new(vec![])),
         build: false,
-        fiter_chain: Arc::new(FilterChain::default())
+        fiter_chain: Arc::new(DelegatingFilterProxy::default())
     };
 
     default_message_converters!();
@@ -64,13 +94,13 @@ async fn main() {
 
     r.do_run();
 
-    let filter1: RequestResponseActionFilter<Example1, Example1> = RequestResponseActionFilter::new(
+    let filter1: Filter<Example1, Example1> = Filter::new(
         Box::new(TestAction::default()), None
     );
     let mut filter_registrar1 = FilterRegistrar {
         filters: Arc::new(Mutex::new(vec![])),
         build: false,
-        fiter_chain: Arc::new(FilterChain::default())
+        fiter_chain: Arc::new(DelegatingFilterProxy::default())
     };
     filter_registrar1.register(filter1);
     let ctx_builder1 = ApplicationContextBuilder::<Example1, Example1> {
@@ -81,7 +111,15 @@ async fn main() {
                 request_convert: Arc::new(Mutex::new(Some(Box::new(EndpointRequestExtractor{}))))
             },
             authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
-                providers: Arc::new(Mutex::new(Arc::new(vec![Box::new(DaoAuthenticationProvider {})]))),
+                providers: Arc::new(Mutex::new(Arc::new(vec![Box::new(DaoAuthenticationProvider {
+                    user_details_service: PersistenceUserDetailsService::<MongoRepo, TestUserAccount> {
+                        p: Default::default(),
+                        u: Default::default(),
+                        repo: MongoRepo::new("user_details", "user_details"),
+                    },
+                    password_encoder: Box::new(NoOpPasswordEncoder{}),
+                    phantom_user: Default::default(),
+                })]))),
             },
         }))),
         authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
@@ -139,7 +177,7 @@ impl Action<Example1, Example1> for TestAction {
         Some(Example1::default())
     }
 
-    fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
+    fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
         true
     }
 
@@ -167,7 +205,7 @@ impl Action<Example, Example> for TestAction {
         Some(Example::default())
     }
 
-    fn authentication_granted(&self, token: &Option<AuthenticationToken<AuthenticationType>>) -> bool {
+    fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
         true
     }
 

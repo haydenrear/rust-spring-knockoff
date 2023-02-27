@@ -911,6 +911,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "web_framework",
+ "web_framework_shared",
 ]
 
 [[package]]
@@ -1809,13 +1810,19 @@ checksum = "f764005d11ee5f36500a149ace24e00e3da98b0158b3e2d53a7495660d3f4d60"
 name = "test_app"
 version = "0.1.0"
 dependencies = [
+ "data_framework",
  "hyper 0.1.0",
+ "knockoff_security",
  "lazy_static",
+ "module_macro_lib",
+ "module_macro_shared",
+ "mongo_repo",
  "paste",
  "serde",
  "serde_json",
  "tokio",
  "web_framework",
+ "web_framework_shared",
 ]
 
 [[package]]

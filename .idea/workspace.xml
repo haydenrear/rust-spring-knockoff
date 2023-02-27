@@ -7,23 +7,30 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="sec">
-      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/test.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="dao auth provider">
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/authentication.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/authorization.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/http_security.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_security/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hyper/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/user_request_account/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/user_request_account/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/request/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_context_holder.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_context_holder.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/repo.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/repo.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,26 +134,9 @@
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_security">
-    <configuration name="Test knockoff_security::authentication_type::test::test_authorization_header_split" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_security --lib knockoff_security::authentication_type::test::test_authorization_header_split -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test knockoff_security::authentication_type::test::test_decode_encode" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_security --lib knockoff_security::authentication_type::test::test_decode_encode -- --exact" />
+  <component name="RunManager" selected="Cargo.Test web_framework::security::test::test_security::test_http_security">
+    <configuration name="Run test_app" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="run --package test_app --bin test_app" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -196,8 +186,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test web_framework::security::test::test_security::test_split" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_split -- --exact" />
+    <configuration name="Test web_framework::security::test::test_security::test_authority" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_authority -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test web_framework::security::test::test_security::test_http_security" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_http_security -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -232,19 +239,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_authorization_header_split" />
-      <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_decode_encode" />
+      <item itemvalue="Cargo.Run test_app" />
       <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_username_password_parse_creds" />
       <item itemvalue="Cargo.Test test_security" />
-      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_split" />
+      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authority" />
+      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_http_security" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_http_security" />
+        <item itemvalue="Cargo.Run test_app" />
+        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authority" />
         <item itemvalue="Cargo.Test test_security" />
         <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_username_password_parse_creds" />
-        <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_decode_encode" />
-        <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_authorization_header_split" />
-        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_split" />
       </list>
     </recent_temporary>
   </component>
@@ -305,14 +312,7 @@
       <workItem from="1676403564482" duration="16055000" />
       <workItem from="1676723809901" duration="565000" />
       <workItem from="1677095156549" duration="18356000" />
-      <workItem from="1677421523187" duration="25149000" />
-    </task>
-    <task id="LOCAL-00018" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
-      <created>1670895711418</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1670895711419</updated>
+      <workItem from="1677421523187" duration="33643000" />
     </task>
     <task id="LOCAL-00019" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
       <created>1671910380687</created>
@@ -650,7 +650,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677515641875</updated>
     </task>
-    <option name="localTasksCounter" value="67" />
+    <task id="LOCAL-00067" summary="dao auth provider">
+      <created>1677525130657</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1677525130657</updated>
+    </task>
+    <option name="localTasksCounter" value="68" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -668,7 +675,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="working" />
     <MESSAGE value="back to &amp;'a filter" />
     <MESSAGE value="fixed tests" />
     <MESSAGE value="Builder" />
@@ -693,7 +699,8 @@
     <MESSAGE value="add auth type" />
     <MESSAGE value="configuration mod" />
     <MESSAGE value="sec" />
-    <option name="LAST_COMMIT_MESSAGE" value="sec" />
+    <MESSAGE value="dao auth provider" />
+    <option name="LAST_COMMIT_MESSAGE" value="dao auth provider" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

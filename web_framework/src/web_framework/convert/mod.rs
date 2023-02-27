@@ -12,9 +12,9 @@ use std::vec;
 use knockoff_security::knockoff_security::authentication_type::{AuthenticationConversionError, Unauthenticated};
 use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
 use web_framework_shared::convert::Converter;
-use crate::web_framework::security::security::{AuthenticationConverter, AuthenticationToken};
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use knockoff_security::knockoff_security::authentication_type::AuthenticationAware;
+use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken};
 
 #[macro_export]
 macro_rules! default_message_converters {
@@ -420,6 +420,7 @@ impl Converter<WebRequest, Result<AuthenticationToken, AuthenticationConversionE
                         name: auth_type.1,
                         auth: auth_type.0,
                         authenticated: false,
+                        authorities: vec![],
                     }
                 })
                 .or(Some(AuthenticationToken::default()))

@@ -7,7 +7,7 @@ use web_framework_shared::convert::Converter;
 use crate::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, EndpointRequestExtractor, MessageConverter, OtherMessageConverter, Registration, RequestExtractor};
-use crate::web_framework::security::security::{Authentication, AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
+use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
 
 impl<Request, Response> ApplicationContextBuilder<Request, Response>
     where

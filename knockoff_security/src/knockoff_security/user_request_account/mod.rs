@@ -7,8 +7,8 @@ pub trait User: Send + Sync + Copy {}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserSession {
-    data: SessionData,
-    id: u64,
+    pub data: SessionData,
+    pub id: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
