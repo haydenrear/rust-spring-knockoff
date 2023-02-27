@@ -122,7 +122,7 @@ mod test_filter {
         });
     }
 
-    // #[test]
+    // #[test_mod]
     // fn test_registry() {
     //     let ctx = RequestContext::default();
     //     let registrations = ctx.message_converters.read_only_registrations();

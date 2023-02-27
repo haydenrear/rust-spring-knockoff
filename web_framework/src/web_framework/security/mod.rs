@@ -4,6 +4,8 @@ use std::collections::LinkedList;
 
 pub mod test;
 pub mod security_filter;
+pub mod security_context_holder;
+
 pub mod security {
 
     extern crate core;
@@ -59,30 +61,38 @@ pub mod security {
     }
 
     pub trait AuthenticationProvider : Send + Sync {
-        fn supports(&self, authentication_token: TypeId) -> bool;
-        fn authenticate(&self, auth_token: &AuthenticationToken);
+        fn supports(&self, authentication_token: &AuthenticationType) -> bool;
+        fn authenticate(&self, auth_token: &mut AuthenticationToken) -> AuthenticationToken;
     }
 
     #[derive(Clone)]
     pub struct UsernamePasswordAuthenticationProvider {}
 
     impl AuthenticationProvider for UsernamePasswordAuthenticationProvider {
-        fn supports(&self, authentication_token: TypeId) -> bool {
+        fn supports(&self, authentication_token: &AuthenticationType) -> bool {
             // authentication_token == UsernamePasswordAuthenticationToken::get_type(String::from("UsernamePasswordAuthenticationToken"))
             todo!()
         }
 
-        fn authenticate(&self, auth_token: &AuthenticationToken){
+        fn authenticate(&self, auth_token: &mut AuthenticationToken) -> AuthenticationToken {
             todo!()
         }
 
     }
 
-    impl DelegatingAuthenticationManager {
-        pub fn authenticate(&self, auth_token: &mut AuthenticationToken) {
+    impl AuthenticationProvider for DelegatingAuthenticationManager {
+
+        fn supports(&self, authentication_token: &AuthenticationType) -> bool {
+            self.providers.iter().any(|auth| auth.supports(authentication_token))
+        }
+
+        fn authenticate(&self, auth_token: &mut AuthenticationToken) -> AuthenticationToken {
             for provider in self.providers.iter() {
-                provider.authenticate(&auth_token);
+                if provider.supports(&auth_token.auth) {
+                    return provider.authenticate(auth_token).to_owned();
+                }
             }
+            auth_token.to_owned()
         }
     }
 
@@ -93,6 +103,7 @@ pub mod security {
         fn name(&self) -> &'static str {
             todo!()
         }
+
     }
 
     impl Default for Authentication {
@@ -103,24 +114,16 @@ pub mod security {
         }
     }
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(Serialize, Deserialize, Debug, Clone, Default)]
     pub struct AuthenticationToken {
         pub name: String,
-        pub auth: AuthenticationType
-    }
-
-    impl Default for AuthenticationToken {
-        fn default() -> Self {
-            Self {
-                name: String::default(),
-                auth: AuthenticationType::default()
-            }
-        }
+        pub auth: AuthenticationType,
+        pub authenticated: bool
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct Authentication {
-        authentication_type: AuthenticationType
+        pub authentication_type: AuthenticationType
     }
 
     pub trait AuthenticationConverter: Converter<AuthenticationType, AuthenticationToken> + Send + Sync

@@ -57,7 +57,7 @@ mod test {
     //     }
     // }
     //
-    // #[test]
+    // #[test_mod]
     // fn test_building_context() {
     //     let mut ctx = ApplicationContextBuilder{
     //         filter_registry: Some(Arc::new(Mutex::new(FilterRegistrar::new()))),

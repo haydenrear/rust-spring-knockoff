@@ -8,9 +8,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="configuration mod">
-      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/test.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_context_holder.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_security/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,16 +124,16 @@
       <recent name="$PROJECT_DIR$/module_macro_lib/resources" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type" />
       <recent name="$PROJECT_DIR$/codegen_resources" />
       <recent name="$PROJECT_DIR$/initializer_lib" />
       <recent name="$PROJECT_DIR$/delegator_test/.cargo" />
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
-      <recent name="$PROJECT_DIR$/delegator_test/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test matcher::test::test_ant_path_request_matcher" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework_shared --lib matcher::test::test_ant_path_request_matcher -- --exact" />
+  <component name="RunManager" selected="Cargo.Test test_security">
+    <configuration name="Test knockoff_security::authentication_type::test::test_authorization_header_split" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_security --lib knockoff_security::authentication_type::test::test_authorization_header_split -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -132,8 +149,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
+    <configuration name="Test knockoff_security::authentication_type::test::test_decode_encode" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_security --lib knockoff_security::authentication_type::test::test_decode_encode -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -149,8 +166,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_dyn_impl" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_dyn_impl -- --exact" />
+    <configuration name="Test knockoff_security::authentication_type::test::test_username_password_parse_creds" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_security --lib knockoff_security::authentication_type::test::test_username_password_parse_creds -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -166,8 +183,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_match" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_match -- --exact" />
+    <configuration name="Test test_security" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -183,8 +200,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
+    <configuration name="Test web_framework::security::test::test_security::test_split" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_split -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -219,19 +236,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test test_dyn_impl" />
-      <item itemvalue="Cargo.Test test_module_macro" />
-      <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
-      <item itemvalue="Cargo.Test test_match" />
-      <item itemvalue="Cargo.Test test_downcast" />
+      <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_authorization_header_split" />
+      <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_decode_encode" />
+      <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_username_password_parse_creds" />
+      <item itemvalue="Cargo.Test test_security" />
+      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_split" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test test_dyn_impl" />
-        <item itemvalue="Cargo.Test test_match" />
-        <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
-        <item itemvalue="Cargo.Test test_downcast" />
+        <item itemvalue="Cargo.Test test_security" />
+        <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_username_password_parse_creds" />
+        <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_decode_encode" />
+        <item itemvalue="Cargo.Test knockoff_security::authentication_type::test::test_authorization_header_split" />
+        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_split" />
       </list>
     </recent_temporary>
   </component>
@@ -292,14 +309,7 @@
       <workItem from="1676403564482" duration="16055000" />
       <workItem from="1676723809901" duration="565000" />
       <workItem from="1677095156549" duration="18356000" />
-      <workItem from="1677421523187" duration="12789000" />
-    </task>
-    <task id="LOCAL-00016" summary="compiling">
-      <created>1670647174702</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1670647174702</updated>
+      <workItem from="1677421523187" duration="21800000" />
     </task>
     <task id="LOCAL-00017" summary="test app">
       <created>1670687124429</created>
@@ -637,7 +647,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677467302093</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="configuration mod">
+      <created>1677467712746</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1677467712746</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -703,6 +720,31 @@
           <url>file://$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs</url>
           <line>4</line>
           <option name="timeStamp" value="106" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>326</line>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>338</line>
+          <option name="timeStamp" value="112" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>340</line>
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>343</line>
+          <option name="timeStamp" value="114" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
+          <line>315</line>
+          <option name="timeStamp" value="117" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

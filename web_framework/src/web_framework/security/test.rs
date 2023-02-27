@@ -11,12 +11,27 @@ mod test_security {
     #[test]
     fn test_split() {
         let username_password_auth_filter = UsernamePasswordAuthenticationFilter::default();
+
         let mut request = WebRequest::default();
+
         request.headers.insert(
             String::from("Authorization"),
-            String::from("faslkjaf:as;dljfkas"),
+            String::from("Basic faslkjaf:as;dljfkas"),
         );
-        username_password_auth_filter.try_convert_to_authentication(&request);
+
+        let converted = username_password_auth_filter.try_convert_to_authentication(&request);
+        assert!(converted.is_ok());
+
+        converted.iter()
+            .for_each(|c| {
+                match c.auth {
+                    AuthenticationType::Password(_)  => {
+                    }
+                    _ => {
+                        assert!(false);
+                    }
+                }
+            })
     }
 
     #[test]
@@ -25,7 +40,7 @@ mod test_security {
         let password = "".to_string();
         let username_type_id = AuthenticationType::Password(UsernamePassword{username, password})
             .type_id();
-        let jwt_type_id = AuthenticationType::Jwt(JwtToken{ token: "".to_string() })
+        let jwt_type_id = AuthenticationType::Jwt( JwtToken{ token: "".to_string() } )
             .type_id();
         assert_ne!(username_type_id, jwt_type_id)
     }

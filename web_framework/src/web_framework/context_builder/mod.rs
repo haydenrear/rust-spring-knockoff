@@ -48,7 +48,6 @@ impl<Request, Response> ApplicationContextBuilder<Request, Response>
             filter_registry: Arc::new(filter_registry_found),
             request_context: context,
             authentication_converters: self.authentication_converters.as_ref().unwrap().build(),
-            auth_type_convert: AuthenticationTypeConverterImpl::new(),
         }
     }
 }

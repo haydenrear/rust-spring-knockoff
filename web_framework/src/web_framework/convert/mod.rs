@@ -418,11 +418,12 @@ impl Converter<WebRequest, Result<AuthenticationToken, AuthenticationConversionE
                 auth_type.map(|auth_type| {
                     AuthenticationToken {
                         name: auth_type.1,
-                        auth: auth_type.0
+                        auth: auth_type.0,
+                        authenticated: false,
                     }
                 })
-                    .or(Some(AuthenticationToken { name: "".to_string(), auth: AuthenticationType::Unauthenticated}))
-                    .unwrap()
+                .or(Some(AuthenticationToken::default()))
+                .unwrap()
             })
             .or(Err(AuthenticationConversionError{ message: "Error processing authentication token.".to_string() }))
     }

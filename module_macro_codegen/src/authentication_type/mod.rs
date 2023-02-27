@@ -135,7 +135,7 @@ impl AuthenticationTypeCodegen {
 
                 #(#auth_aware)*
 
-                impl  Default for AuthenticationType {
+                impl Default for AuthenticationType {
                     fn default() -> Self {
                         AuthenticationType::Unauthenticated
                     }

@@ -26,7 +26,7 @@ impl Dispatcher {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        if action.authentication_granted(&response.session.authentication_token) {
+        if action.authentication_granted(&response.session.security_context_holder.auth_token) {
             application_context
                 .request_context
                 .convert_to(&request)

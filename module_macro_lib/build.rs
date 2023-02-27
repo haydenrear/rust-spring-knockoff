@@ -35,11 +35,3 @@ fn get_aug_file() -> String {
         .unwrap();
     aug_file
 }
-
-fn create_log_file() -> File {
-    let mut log_file = File::create(
-        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out")
-            .join("module.log")
-    ).unwrap();
-    log_file
-}

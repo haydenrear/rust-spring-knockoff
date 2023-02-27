@@ -49,7 +49,6 @@ where
     pub filter_registry: Arc<FilterRegistrar<Request, Response>>,
     pub request_context: RequestContext<Request, Response>,
     pub authentication_converters: AuthenticationConverterRegistry,
-    pub auth_type_convert: AuthenticationTypeConverterImpl
 }
 
 impl <Request, Response> FilterRegistrar<Request, Response>
@@ -73,7 +72,6 @@ impl <Request, Response> ApplicationContext<Request, Response>
             filter_registry: Arc::new(FilterRegistrar::new()),
             request_context: RequestContext::new(),
             authentication_converters: AuthenticationConverterRegistry::new(),
-            auth_type_convert: AuthenticationTypeConverterImpl::new()
         }
     }
 
@@ -89,7 +87,6 @@ impl <'a, Request, Response> Clone for ApplicationContext<Request, Response>
                 filter_registry: self.filter_registry.clone(),
                 request_context: self.request_context.clone(),
                 authentication_converters: self.authentication_converters.clone(),
-                auth_type_convert: self.auth_type_convert.clone()
             }
         }
 }

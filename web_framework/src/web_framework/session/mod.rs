@@ -22,21 +22,17 @@ pub mod session {
     use std::pin::Pin;
     use crate::web_framework::context::{ApplicationContext, RequestContext};
     use crate::web_framework::request::request::WebResponse;
+    use crate::web_framework::security::security_context_holder::SecurityContextHolder;
 
-    impl Default for WebApplication {
-        fn default() -> Self {
-            Self {}
-        }
-    }
 
-    #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
+    #[derive(Serialize, Deserialize, Debug, Copy, Clone, Default)]
     pub struct WebApplication {}
 
-    #[derive(Serialize, Deserialize, Debug, Clone)]
+    #[derive(Serialize, Deserialize, Debug, Clone, Default)]
     pub struct HttpSession {
         pub ctx: WebApplication,
         pub session_data: SessionData,
-        pub authentication_token: Option<AuthenticationToken>,
+        pub security_context_holder: SecurityContextHolder,
         pub id: Option<String>,
     }
 
@@ -50,19 +46,8 @@ pub mod session {
             Self {
                 ctx: ctx,
                 session_data: session_data,
-                authentication_token: authentication_token,
+                security_context_holder: SecurityContextHolder::default(),
                 id: Some(id),
-            }
-        }
-    }
-
-    impl Default for HttpSession {
-        fn default() -> Self {
-            Self {
-                ctx: WebApplication::default(),
-                session_data: SessionData::default(),
-                authentication_token: Some(AuthenticationToken::default()),
-                id: Some(String::from("1")),
             }
         }
     }
