@@ -1,4 +1,6 @@
 pub mod repo;
+#[cfg(test)]
+pub mod test;
 pub mod session {
 
     extern crate alloc;

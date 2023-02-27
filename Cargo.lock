@@ -1033,6 +1033,7 @@ name = "knockoff_security"
 version = "0.1.0"
 dependencies = [
  "base64 0.21.0",
+ "data_framework",
  "serde",
  "web_framework_shared",
 ]

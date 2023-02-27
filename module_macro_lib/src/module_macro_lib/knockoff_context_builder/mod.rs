@@ -277,7 +277,7 @@ impl ApplicationContextGenerator {
                 // impl FactoryBean<#struct_type> for BeanDefinition<#struct_type> {
                 //
                 //     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<#struct_type> {
-                //         let mut inner = #struct_type::default();
+                //         let mut inner = #struct_type::default_impls();
                 //         #(
                 //             inner.#field_idents = ListableBeanFactory::<#field_types>::get_bean(listable_bean_factory);
                 //         )*

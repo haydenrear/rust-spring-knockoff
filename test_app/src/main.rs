@@ -9,7 +9,7 @@ use web_framework::web_framework::convert::{EndpointRequestExtractor, MessageCon
 use web_framework::web_framework::dispatch::Dispatcher;
 use web_framework::web_framework::filter::filter::{Action, FilterChain, RequestResponseActionFilter};
 use web_framework::web_framework::request::request::{EndpointMetadata, WebRequest, WebResponse};
-use web_framework::web_framework::security::security::{AuthenticationProvider, AuthenticationToken, UsernamePasswordAuthenticationProvider};
+use web_framework::web_framework::security::security::{AuthenticationProvider, AuthenticationToken, DaoAuthenticationProvider};
 use web_framework::web_framework::http::RequestExecutorImpl;
 use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
 use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, RequestContextBuilder};
@@ -81,7 +81,7 @@ async fn main() {
                 request_convert: Arc::new(Mutex::new(Some(Box::new(EndpointRequestExtractor{}))))
             },
             authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
-                providers: Arc::new(Mutex::new(Arc::new(vec![Box::new(UsernamePasswordAuthenticationProvider{})]))),
+                providers: Arc::new(Mutex::new(Arc::new(vec![Box::new(DaoAuthenticationProvider {})]))),
             },
         }))),
         authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {

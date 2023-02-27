@@ -21,31 +21,3 @@ lazy_static! {
         client_uri: "mongodb://admin:admin@localhost:27017/?authSource=admin"
     });
 }
-
-#[test]
-fn test_http_session_repo() {
-    tokio_test::block_on(test_insert_save())
-}
-
-async fn test_insert_save() {
-    let http_session_repo = MongoRepo::new("http_session", "http_session");
-    let to_save = HttpSession::new(
-        String::from("10"),
-        None,
-        WebApplication::default(),
-        SessionData::default(),
-    );
-    let saved_id = http_session_repo.save(&to_save).await;
-    println!("{} is to save", to_save.get_id().unwrap().clone());
-    println!("{} is id", saved_id.clone());
-    let found: HttpSession = http_session_repo
-        .find_by_id(String::from("10"))
-        .await
-        .unwrap();
-    assert_eq!(found.get_id().unwrap(), String::from("10"));
-}
-
-#[test]
-fn test_repo_delegate() {
-    println!("hello")
-}

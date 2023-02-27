@@ -7,27 +7,23 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="configuration mod">
-      <change afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/test.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_context_holder.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="sec">
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_security/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/user_request_account/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/user_request_account/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/repo.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/repo.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -309,14 +305,7 @@
       <workItem from="1676403564482" duration="16055000" />
       <workItem from="1676723809901" duration="565000" />
       <workItem from="1677095156549" duration="18356000" />
-      <workItem from="1677421523187" duration="21800000" />
-    </task>
-    <task id="LOCAL-00017" summary="test app">
-      <created>1670687124429</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1670687124429</updated>
+      <workItem from="1677421523187" duration="25149000" />
     </task>
     <task id="LOCAL-00018" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
       <created>1670895711418</created>
@@ -654,7 +643,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677467712746</updated>
     </task>
-    <option name="localTasksCounter" value="66" />
+    <task id="LOCAL-00066" summary="sec">
+      <created>1677515641875</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1677515641875</updated>
+    </task>
+    <option name="localTasksCounter" value="67" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -672,7 +668,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register..." />
     <MESSAGE value="working" />
     <MESSAGE value="back to &amp;'a filter" />
     <MESSAGE value="fixed tests" />
@@ -697,7 +692,8 @@
     <MESSAGE value="req. matcher" />
     <MESSAGE value="add auth type" />
     <MESSAGE value="configuration mod" />
-    <option name="LAST_COMMIT_MESSAGE" value="configuration mod" />
+    <MESSAGE value="sec" />
+    <option name="LAST_COMMIT_MESSAGE" value="sec" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

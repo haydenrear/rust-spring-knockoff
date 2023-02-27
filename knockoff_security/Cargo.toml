@@ -11,3 +11,5 @@ base64 = "0.21.0"
 
 [dependencies.web_framework_shared]
 path = "../web_framework_shared"
+[dependencies.data_framework]
+path = "../data_framework"

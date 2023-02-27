@@ -124,7 +124,7 @@ mod test_filter {
 
     // #[test_mod]
     // fn test_registry() {
-    //     let ctx = RequestContext::default();
+    //     let ctx = RequestContext::default_impls();
     //     let registrations = ctx.message_converters.read_only_registrations();
     //     assert_eq!(registrations.len(), 2);
     // }

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::linked_list::LinkedList;
 use std::collections::HashMap;
+use data_framework::Entity;
 
 pub trait User: Send + Sync + Copy {}
 
@@ -23,9 +24,10 @@ impl Default for SessionData {
     }
 }
 
-pub trait UserAccount {
+pub trait UserAccount: Entity<String> {
     fn get_user_session(&self) -> Box<UserSession>;
     fn login(&self);
+    fn get_password(&self) -> String;
 }
 
 pub trait AccountData {

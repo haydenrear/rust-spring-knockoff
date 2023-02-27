@@ -15,7 +15,7 @@ pub mod module_macro_lib {
     pub mod initializer;
     pub mod knockoff_context;
     pub mod debug;
-    pub mod default;
+    pub mod default_impls;
     pub mod logging;
 }
 
