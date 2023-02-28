@@ -2,13 +2,13 @@
 mod test_security {
     use std::any::Any;
     use serde::{Deserialize, Serialize};
-    use knockoff_security::knockoff_security::authentication_type::{JwtToken, UsernamePassword};
+    use knockoff_security::knockoff_security::authentication_type::{GrantedAuthority, JwtToken, UsernamePassword};
     use module_macro_lib::AuthenticationType;
     use crate::web_framework::filter::filter::DelegatingFilterProxy;
     use crate::web_framework::request::request::WebResponse;
     use crate::web_framework::security::security_filter::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
     use web_framework_shared::request::WebRequest;
-    use crate::web_framework::security::authentication::{DelegatingAuthenticationManager, GrantedAuthority};
+    use crate::web_framework::security::authentication::DelegatingAuthenticationManager;
     use crate::web_framework::security::http_security::HttpSecurity;
 
     #[test]

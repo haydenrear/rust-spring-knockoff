@@ -10,7 +10,7 @@ use web_framework::web_framework::convert::{EndpointRequestExtractor, MessageCon
 use web_framework::web_framework::dispatch::Dispatcher;
 use web_framework::web_framework::filter::filter::{Action, DelegatingFilterProxy, Filter};
 use web_framework::web_framework::request::request::WebResponse;
-use web_framework::web_framework::security::security::{NoOpPasswordEncoder, PersistenceUserDetailsService};
+use web_framework::web_framework::security::user_details::PersistenceUserDetailsService;
 use web_framework::web_framework::http::RequestExecutorImpl;
 use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
 use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, RequestContextBuilder};
@@ -19,6 +19,7 @@ use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use module_macro_lib::AuthenticationTypeConverterImpl;
 use mongo_repo::{Db, MongoRepo};
 use web_framework::web_framework::security::authentication::{AuthenticationProvider, AuthenticationToken, DaoAuthenticationProvider};
+use web_framework::web_framework::security::password::NoOpPasswordEncoder;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TestUserAccount;

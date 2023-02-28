@@ -57,7 +57,7 @@ impl AuthenticationFilter for UsernamePasswordAuthenticationFilter {
     fn try_convert_to_authentication(&self, request: &WebRequest) -> Result<AuthenticationToken, AuthenticationConversionError> {
         self.converter
             .convert(request)
-            .map(|mut auth_token|  self.authentication_manager.authenticate(&mut auth_token) )
+            .map(|mut auth_token|  self.authentication_manager.authenticate(&mut auth_token.credentials) )
     }
 }
 

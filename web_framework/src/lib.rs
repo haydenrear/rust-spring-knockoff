@@ -2,6 +2,7 @@
 #![feature(async_fn_in_trait)]
 #[macro_use]
 extern crate alloc;
+extern crate core;
 
 use std::any::{Any, TypeId};
 use std::collections::HashMap;

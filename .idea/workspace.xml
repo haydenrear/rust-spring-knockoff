@@ -7,30 +7,26 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="dao auth provider">
-      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/authentication.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/authorization.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/http_security.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="security">
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/password.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/user_details.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hyper/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/data_framework/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/user_request_account/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/knockoff_security/user_request_account/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_app/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mongo_repo/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/mongo_repo/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/request/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/authentication.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/authentication.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_context_holder.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_context_holder.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/test.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -312,14 +308,8 @@
       <workItem from="1676403564482" duration="16055000" />
       <workItem from="1676723809901" duration="565000" />
       <workItem from="1677095156549" duration="18356000" />
-      <workItem from="1677421523187" duration="33643000" />
-    </task>
-    <task id="LOCAL-00019" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
-      <created>1671910380687</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1671910380687</updated>
+      <workItem from="1677421523187" duration="35786000" />
+      <workItem from="1677594170028" duration="2836000" />
     </task>
     <task id="LOCAL-00020" summary="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register...">
       <created>1673099330513</created>
@@ -657,7 +647,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677525130657</updated>
     </task>
-    <option name="localTasksCounter" value="68" />
+    <task id="LOCAL-00068" summary="security">
+      <created>1677539579678</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1677539579678</updated>
+    </task>
+    <option name="localTasksCounter" value="69" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -675,7 +672,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="back to &amp;'a filter" />
     <MESSAGE value="fixed tests" />
     <MESSAGE value="Builder" />
     <MESSAGE value="message converter 2" />
@@ -700,7 +696,8 @@
     <MESSAGE value="configuration mod" />
     <MESSAGE value="sec" />
     <MESSAGE value="dao auth provider" />
-    <option name="LAST_COMMIT_MESSAGE" value="dao auth provider" />
+    <MESSAGE value="security" />
+    <option name="LAST_COMMIT_MESSAGE" value="security" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -726,27 +723,27 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
-          <line>326</line>
+          <line>321</line>
           <option name="timeStamp" value="111" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
-          <line>338</line>
+          <line>333</line>
           <option name="timeStamp" value="112" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
-          <line>340</line>
+          <line>335</line>
           <option name="timeStamp" value="113" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
-          <line>343</line>
+          <line>338</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type/mod.rs</url>
-          <line>315</line>
+          <line>310</line>
           <option name="timeStamp" value="117" />
         </line-breakpoint>
       </breakpoints>

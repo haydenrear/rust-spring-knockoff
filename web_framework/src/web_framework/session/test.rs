@@ -28,7 +28,7 @@ async fn test_insert_save() {
     println!("{} is to save", to_save.get_id().unwrap().clone());
     println!("{} is id", saved_id.clone());
     let found: HttpSession = http_session_repo
-        .find_by_id(String::from("10"))
+        .find_by_id(&String::from("10"))
         .await
         .unwrap();
     assert_eq!(found.get_id().unwrap(), String::from("10"));

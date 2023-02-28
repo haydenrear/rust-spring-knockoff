@@ -48,7 +48,7 @@ where
 {
     pub fn new(request_executor: RequestExecutorImpl<Request, Response>) -> Self {
         HyperRequestStream {
-            request_executor: request_executor,
+            request_executor,
             converter: HyperRequestConverter::new()
         }
     }

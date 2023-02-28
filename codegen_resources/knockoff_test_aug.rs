@@ -46,7 +46,7 @@ pub mod authentication_type {
 
     #[auth_type_aware(TestAuthType)]
     impl AuthenticationAware for TestAuthType {
-        fn get_authorities(&self) -> LinkedList<Authority> {
+        fn get_authorities(&self) -> Vec<GrantedAuthority> {
             todo!()
         }
 

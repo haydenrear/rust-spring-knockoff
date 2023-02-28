@@ -46,8 +46,8 @@ pub mod session {
             session_data: SessionData,
         ) -> HttpSession {
             Self {
-                ctx: ctx,
-                session_data: session_data,
+                ctx,
+                session_data,
                 security_context_holder: SecurityContextHolder::default(),
                 id: Some(id),
             }
@@ -90,7 +90,7 @@ pub mod session {
             if let Some(session) = web_request
                 .headers
                 .get("R_SESSION_ID")
-                .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id.clone()))) {
+                .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id))) {
                 response.session = session;
             }
             None

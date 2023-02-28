@@ -9,7 +9,7 @@ use web_framework_shared::convert::Converter;
 #[cfg(test)]
 pub mod test;
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct AuthenticationConversionError {
     pub message: String,
 }
@@ -27,16 +27,11 @@ impl AuthenticationConversionError {
 }
 
 pub trait AuthenticationAware {
-    fn get_authorities(&self) -> LinkedList<Authority>;
+    fn get_authorities(&self) -> Vec<GrantedAuthority>;
     fn get_credentials(&self) -> Option<String>;
     fn get_principal(&self) -> Option<String>;
     fn set_credentials(&mut self, credential: String);
     fn set_principal(&mut self, principal: String);
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Authority {
-    authority: String,
 }
 
 pub struct AuthHelper;
@@ -100,7 +95,7 @@ pub struct JwtToken {
 }
 
 impl AuthenticationAware for JwtToken {
-    fn get_authorities(&self) -> LinkedList<Authority> {
+    fn get_authorities(&self) -> Vec<GrantedAuthority> {
         todo!()
     }
 
@@ -145,7 +140,7 @@ pub struct Unauthenticated {
 }
 
 impl AuthenticationAware for Unauthenticated {
-    fn get_authorities(&self) -> LinkedList<Authority> {
+    fn get_authorities(&self) -> Vec<GrantedAuthority> {
         todo!()
     }
 
@@ -196,7 +191,7 @@ pub struct OpenSamlAssertion {
 }
 
 impl AuthenticationAware for OpenSamlAssertion {
-    fn get_authorities(&self) -> LinkedList<Authority> {
+    fn get_authorities(&self) -> Vec<GrantedAuthority> {
         todo!()
     }
 
@@ -250,7 +245,7 @@ pub struct UsernamePassword {
 }
 
 impl AuthenticationAware for UsernamePassword {
-    fn get_authorities(&self) -> LinkedList<Authority> {
+    fn get_authorities(&self) -> Vec<GrantedAuthority> {
         todo!()
     }
 
@@ -363,5 +358,16 @@ impl UsernamePassword {
     }
 
 
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct GrantedAuthority {
+    pub authority: String,
+}
+
+impl GrantedAuthority {
+    pub fn get_authority<'a>(&'a self) -> &'a str {
+        &self.authority
+    }
 }
 

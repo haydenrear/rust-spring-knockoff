@@ -116,7 +116,7 @@ impl AuthenticationTypeCodegen {
                 use web_framework_shared::convert::Converter;
                 use knockoff_security::knockoff_security::authentication_type::{
                     UsernamePassword, AuthenticationConversionError, JwtToken, AuthType,
-                    OpenSamlAssertion , AuthenticationAware, Authority
+                    OpenSamlAssertion , AuthenticationAware, GrantedAuthority
                 };
                 use spring_knockoff_boot_macro::{auth_type_aware, auth_type_impl, auth_type_struct};
         };
@@ -159,7 +159,7 @@ impl AuthenticationTypeCodegen {
                 }
 
                 impl AuthenticationAware for AuthenticationType {
-                    fn get_authorities(&self) -> LinkedList<Authority> {
+                    fn get_authorities(&self) -> Vec<GrantedAuthority> {
                         todo!()
                     }
 

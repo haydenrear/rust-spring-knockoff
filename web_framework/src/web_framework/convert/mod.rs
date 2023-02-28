@@ -14,7 +14,7 @@ use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
 use web_framework_shared::convert::Converter;
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use knockoff_security::knockoff_security::authentication_type::AuthenticationAware;
-use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken};
+use crate::web_framework::security::authentication::{Authentication, AuthenticationConverter, AuthenticationDetails, AuthenticationToken};
 
 #[macro_export]
 macro_rules! default_message_converters {
@@ -408,25 +408,27 @@ pub struct AuthenticationConverterRegistry {
     pub authentication_type_converter: Arc<&'static dyn AuthenticationTypeConverter>
 }
 
-impl Converter<WebRequest, Result<AuthenticationToken, AuthenticationConversionError>> for AuthenticationConverterRegistry {
-    fn convert(&self, from: &WebRequest) -> Result<AuthenticationToken, AuthenticationConversionError> {
+impl Converter<WebRequest, Result<Authentication, AuthenticationConversionError>> for AuthenticationConverterRegistry {
+    fn convert(&self, from: &WebRequest) -> Result<Authentication, AuthenticationConversionError> {
         self.authentication_type_converter.deref().convert(from)
-            .map(|auth_type| auth_type.get_principal()
-                .map(|principal| (auth_type, principal))
-            )
             .map(|auth_type| {
-                auth_type.map(|auth_type| {
+                let authorities = auth_type.get_authorities().clone();
+                auth_type.get_principal().map(|principal| {
                     AuthenticationToken {
-                        name: auth_type.1,
-                        auth: auth_type.0,
+                        name: principal,
+                        auth: auth_type,
                         authenticated: false,
-                        authorities: vec![],
+                        authorities,
                     }
                 })
-                .or(Some(AuthenticationToken::default()))
+                .map(|auth_token| {
+                    self.convert(&(&auth_token, from))
+                })
+                .or(Some(Err(AuthenticationConversionError{ message: "Error processing authentication token.".to_string() })))
                 .unwrap()
             })
             .or(Err(AuthenticationConversionError{ message: "Error processing authentication token.".to_string() }))
+            .unwrap()
     }
 }
 
