@@ -135,43 +135,36 @@ impl JwtToken {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Unauthenticated {
+/// TODO: extract this to codegen to define default authorities or anonymous auth filter.
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct Anonymous {
 }
 
-impl AuthenticationAware for Unauthenticated {
+impl AuthenticationAware for Anonymous {
     fn get_authorities(&self) -> Vec<GrantedAuthority> {
-        todo!()
+        vec![]
     }
 
     fn get_credentials(&self) -> Option<String> {
-        todo!()
+        Some(String::default())
     }
 
     fn get_principal(&self) -> Option<String> {
-        todo!()
+        Some(String::default())
     }
 
     fn set_credentials(&mut self, credential: String) {
-        todo!()
     }
 
     fn set_principal(&mut self, principal: String) {
-        todo!()
     }
 }
 
-impl Default for Unauthenticated {
-    fn default() -> Self {
-        todo!()
-    }
-}
-
-impl AuthType for Unauthenticated {
+impl AuthType for Anonymous {
     const AUTH_TYPE: &'static str = "";
 
     fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
-        Unauthenticated::parse_credentials_unauthenticated(request)
+        Anonymous::parse_credentials_unauthenticated(request)
     }
 
     fn authorization_matcher(match_this: &str) -> bool {
@@ -179,7 +172,7 @@ impl AuthType for Unauthenticated {
     }
 }
 
-impl Unauthenticated {
+impl Anonymous {
     fn parse_credentials_unauthenticated(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
         Ok(Self{})
     }

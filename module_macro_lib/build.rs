@@ -26,7 +26,7 @@ fn main() {
     LibParser::do_codegen(&aug_file, "codegen.rs");
     let mut cargo_change = "cargo:rerun-if-changed=".to_string();
     cargo_change += aug_file.as_str();
-    print!("{}", cargo_change);
+    println!("{}", cargo_change);
 }
 
 fn get_aug_file() -> String {

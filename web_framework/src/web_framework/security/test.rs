@@ -1,14 +1,20 @@
+use std::ops::DerefMut;
+
 #[cfg(test)]
 mod test_security {
     use std::any::Any;
+    use std::ops::DerefMut;
+    use std::sync::{Arc, Mutex};
     use serde::{Deserialize, Serialize};
-    use knockoff_security::knockoff_security::authentication_type::{GrantedAuthority, JwtToken, UsernamePassword};
-    use module_macro_lib::AuthenticationType;
+    use knockoff_security::knockoff_security::authentication_type::{Anonymous, AuthenticationConversionError, GrantedAuthority, JwtToken, UsernamePassword};
+    use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
+    use web_framework_shared::convert::Converter;
     use crate::web_framework::filter::filter::DelegatingFilterProxy;
     use crate::web_framework::request::request::WebResponse;
     use crate::web_framework::security::security_filter::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
     use web_framework_shared::request::WebRequest;
-    use crate::web_framework::security::authentication::DelegatingAuthenticationManager;
+    use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder};
+    use crate::web_framework::security::authentication::{Authentication, AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
     use crate::web_framework::security::http_security::HttpSecurity;
 
     #[test]
@@ -66,4 +72,55 @@ mod test_security {
         http.authorization_manager(DelegatingAuthenticationManager::new());
         assert!(http.authentication_manager.lock().unwrap().is_some());
     }
+
+    #[test]
+    fn test_delegating_authentication_manager() {
+
+        pub struct TestAuthProvider;
+        impl AuthenticationProvider for TestAuthProvider {
+            fn supports(&self, authentication_token: &AuthenticationType) -> bool {
+                true
+            }
+
+            fn authenticate(&self, auth_token: &mut AuthenticationToken) -> AuthenticationToken {
+                auth_token.authenticated = true;
+                auth_token.to_owned()
+            }
+        }
+
+        let mut d = DelegatingAuthenticationManagerBuilder::new();
+        d.add_provider(Box::new(TestAuthProvider{}));
+        let d = d.build();
+        let out = d.authenticate(&mut AuthenticationToken::default());
+        assert!(out.authenticated);
+    }
+
+    #[test]
+    fn test_authentication_converter_builder() {
+        pub struct TestAuthConverter;
+        impl Converter<WebRequest, Result<Authentication, AuthenticationConversionError>> for TestAuthConverter {
+            fn convert(&self, from: &WebRequest) -> Result<Authentication, AuthenticationConversionError> {
+                Ok(Authentication::default())
+            }
+        }
+        impl AuthenticationConverter for TestAuthConverter {
+        }
+        pub struct TestAuthTypeConverter;
+        impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for TestAuthTypeConverter {
+            fn convert(&self, from: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
+                Ok(AuthenticationType::Unauthenticated(Anonymous::default()))
+            }
+        }
+        impl AuthenticationTypeConverter for TestAuthTypeConverter {
+        }
+        let auth_registry = AuthenticationConverterRegistryBuilder::new();
+        auth_registry.add_converter(Box::new(TestAuthConverter{}));
+        auth_registry.add_type_converter(Box::new(TestAuthTypeConverter{}));
+        let auth_registry_built = auth_registry.build();
+        let auth = auth_registry_built.convert(&WebRequest::default());
+        assert!(auth.is_ok());
+    }
+
+
 }
+

@@ -3,12 +3,13 @@ use knockoff_security::knockoff_security::user_request_account::UserAccount;
 use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use futures::executor;
 use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, AuthenticationConversionError, GrantedAuthority};
 use web_framework_shared::convert::Converter;
 use web_framework_shared::request::WebRequest;
-use crate::web_framework::convert::AuthenticationConverterRegistry;
+use crate::web_framework::convert::{AuthenticationConverterRegistry, Registration};
 use crate::web_framework::security::password::PasswordEncoder;
 use crate::web_framework::security::user_details::UserDetailsService;
 
@@ -24,6 +25,7 @@ impl DelegatingAuthenticationManager {
         }
     }
 }
+
 
 pub trait AuthenticationProvider: Send + Sync {
     fn supports(&self, authentication_token: &AuthenticationType) -> bool;

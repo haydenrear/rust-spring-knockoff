@@ -22,14 +22,14 @@ use crate::logger::StandardLoggingFacade;
 #[derive(Clone)]
 pub struct AuthenticationTypeCodegen {
     default: Option<TokenStream>,
-    item: Option<Item>
+    item: Option<Item>,
 }
 
 impl Default for AuthenticationTypeCodegen {
     fn default() -> Self {
         Self {
             default: None,
-            item: None
+            item: None,
         }
     }
 }
@@ -73,7 +73,7 @@ impl AuthenticationTypeCodegen {
             let next = NextAuthType {
                 auth_type_to_add: struct_opt_to_add,
                 auth_type_impl: None,
-                auth_aware_impl: None
+                auth_aware_impl: None,
             };
             to_add_map.insert(id, next);
         }
@@ -116,7 +116,7 @@ impl AuthenticationTypeCodegen {
                 use web_framework_shared::convert::Converter;
                 use knockoff_security::knockoff_security::authentication_type::{
                     UsernamePassword, AuthenticationConversionError, JwtToken, AuthType,
-                    OpenSamlAssertion , AuthenticationAware, GrantedAuthority
+                    OpenSamlAssertion , AuthenticationAware, GrantedAuthority, Anonymous
                 };
                 use spring_knockoff_boot_macro::{auth_type_aware, auth_type_impl, auth_type_struct};
         };
@@ -137,7 +137,7 @@ impl AuthenticationTypeCodegen {
 
                 impl Default for AuthenticationType {
                     fn default() -> Self {
-                        AuthenticationType::Unauthenticated
+                        AuthenticationType::Unauthenticated(Anonymous::default())
                     }
                 }
 
@@ -154,29 +154,75 @@ impl AuthenticationTypeCodegen {
                     Jwt(JwtToken),
                     SAML(OpenSamlAssertion),
                     Password(UsernamePassword),
-                    #(#enum_names(#types)),*,
-                    Unauthenticated
+                    Unauthenticated(Anonymous),
+                    #(#enum_names(#types)),*
+                }
+
+                impl AuthenticationType {
+                    fn auth_type_action<T>(&self, action: &dyn Fn(&dyn AuthenticationAware) -> T, default: T) -> T {
+                        match self {
+                            #(AuthenticationType::#types(auth_type) => {
+                                action(auth_type as &dyn AuthenticationAware)
+                            })*
+                            AuthenticationType::Jwt(jwt) => {
+                                action(jwt as &dyn AuthenticationAware)
+                            }
+                            AuthenticationType::SAML(saml) => {
+                                action(saml as &dyn AuthenticationAware)
+                            }
+                            AuthenticationType::Password(password) => {
+                                action(password as &dyn AuthenticationAware)
+                            }
+                            AuthenticationType::Unauthenticated(anon) => {
+                                action(anon as &dyn AuthenticationAware)
+                            }
+                            _ => {
+                                default
+                            }
+                        }
+                    }
+
+                    fn auth_type_action_no_return(&mut self, action: Box<dyn FnOnce(&mut dyn AuthenticationAware)>) {
+                        match self {
+                            #(AuthenticationType::#types(auth_type) => {
+                                action(auth_type as &mut dyn AuthenticationAware);
+                            })*
+                            AuthenticationType::Jwt(jwt) => {
+                                action(jwt as &mut dyn AuthenticationAware);
+                            }
+                            AuthenticationType::SAML(saml) => {
+                                action(saml as &mut dyn AuthenticationAware);
+                            }
+                            AuthenticationType::Password(password) => {
+                                action(password as &mut dyn AuthenticationAware);
+                            }
+                            AuthenticationType::Unauthenticated(anon) => {
+                                action(anon as &mut dyn AuthenticationAware);
+                            }
+                        };
+                    }
                 }
 
                 impl AuthenticationAware for AuthenticationType {
                     fn get_authorities(&self) -> Vec<GrantedAuthority> {
-                        todo!()
+                        self.auth_type_action(&|auth: &dyn AuthenticationAware| auth.get_authorities().clone(), vec![])
                     }
 
                     fn get_credentials(&self) -> Option<String> {
-                        todo!()
+                        self.auth_type_action(&|auth: &dyn AuthenticationAware| auth.get_credentials(), None)
                     }
 
+
                     fn get_principal(&self) -> Option<String> {
-                        todo!()
+                        self.auth_type_action(&|auth: &dyn AuthenticationAware| auth.get_principal(), None)
                     }
 
                     fn set_credentials(&mut self, credential: String) {
-                        todo!()
+                        self.auth_type_action_no_return(Box::new(|auth: &mut dyn AuthenticationAware| auth.set_credentials(credential)));
                     }
 
                     fn set_principal(&mut self, principal: String) {
-                        todo!()
+                        self.auth_type_action_no_return(Box::new(|auth: &mut dyn AuthenticationAware| auth.set_principal(principal)));
                     }
                 }
 
@@ -187,23 +233,23 @@ impl AuthenticationTypeCodegen {
     fn create_prepare_auth_type_ts(types_next: &Vec<&NextAuthType>) -> (Vec<Ident>, Vec<Type>, Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) {
         let enum_names = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_to_add.clone().unwrap().ident.clone()
+            &|next| next.auth_type_to_add.clone().unwrap().ident.clone(),
         );
         let types = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_impl.clone().unwrap().self_ty.deref().clone()
+            &|next| next.auth_type_impl.clone().unwrap().self_ty.deref().clone(),
         );
         let types_tokens = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_to_add.clone().unwrap().to_token_stream().clone()
+            &|next| next.auth_type_to_add.clone().unwrap().to_token_stream().clone(),
         );
         let impl_tokens = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_impl.clone().unwrap().to_token_stream().clone()
-            );
+            &|next| next.auth_type_impl.clone().unwrap().to_token_stream().clone(),
+        );
         let auth_aware = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_aware_impl.clone().unwrap().to_token_stream().clone()
+            &|next| next.auth_aware_impl.clone().unwrap().to_token_stream().clone(),
         );
         (enum_names, types, types_tokens, impl_tokens, auth_aware)
     }
@@ -240,14 +286,14 @@ impl AuthenticationTypeCodegen {
                         let auth_header = from.headers["Authorization"].as_str();
                         let first_split: Vec<&str> = auth_header.split_whitespace().collect();
                         if first_split.len() < 2 {
-                            return Ok(AuthenticationType::Unauthenticated);
+                            return Ok(AuthenticationType::Unauthenticated(Anonymous::default()));
                         }
                         match first_split[0] {
-                            "Basic" => {
+                            UsernamePassword::AUTH_TYPE => {
                                 UsernamePassword::parse_credentials(from)
                                     .map(|auth| AuthenticationType::Password(auth))
                             }
-                            "Bearer" => {
+                            JwtToken::AUTH_TYPE => {
                                 JwtToken::parse_credentials(from)
                                     .map(|auth| AuthenticationType::Jwt(auth))
                             }
@@ -255,7 +301,7 @@ impl AuthenticationTypeCodegen {
                                 #additional_auth_types::parse_credentials(from)
                                     .map(|auth| AuthenticationType::#additional_auth_types(auth))
                             })*
-                            _ => Ok(AuthenticationType::Unauthenticated)
+                            _ => Ok(AuthenticationType::Unauthenticated(Anonymous::default()))
                         }
                     }
 
@@ -289,12 +335,11 @@ impl AuthenticationTypeCodegen {
 struct NextAuthType {
     auth_type_to_add: Option<ItemStruct>,
     auth_type_impl: Option<ItemImpl>,
-    auth_aware_impl: Option<ItemImpl>
+    auth_aware_impl: Option<ItemImpl>,
 }
 
 impl CodegenItem for AuthenticationTypeCodegen {
-
-    fn supports_item(impl_item: &Item) -> bool where Self: Sized{
+    fn supports_item(impl_item: &Item) -> bool where Self: Sized {
         match impl_item {
             Item::Mod(item_mod) => {
                 item_mod.attrs.iter()

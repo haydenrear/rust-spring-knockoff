@@ -35,7 +35,7 @@ impl <Request, Response> RequestContext<Request, Response>
 {
     pub fn new() -> RequestContext<Request, Response> {
         Self {
-            message_converters: ConverterRegistry::new(None),
+            message_converters: ConverterRegistry::new(None, None),
             authentication_manager: DelegatingAuthenticationManager {providers: Arc::new(vec![])}
         }
     }

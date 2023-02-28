@@ -35,6 +35,7 @@ pub struct Gen2<T: ?Sized>{
     phantom: PhantomGuy<T>
 }
 
+
 pub struct PhantomGuy<T: ?Sized> {
     phantom: PhantomData<T>
 }
