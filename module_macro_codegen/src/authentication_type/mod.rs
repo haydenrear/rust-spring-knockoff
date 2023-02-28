@@ -203,6 +203,7 @@ impl AuthenticationTypeCodegen {
                     }
                 }
 
+                ///TODO: macro..
                 impl AuthenticationAware for AuthenticationType {
                     fn get_authorities(&self) -> Vec<GrantedAuthority> {
                         self.auth_type_action(&|auth: &dyn AuthenticationAware| auth.get_authorities().clone(), vec![])

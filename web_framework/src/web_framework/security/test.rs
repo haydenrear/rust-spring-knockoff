@@ -14,6 +14,7 @@ mod test_security {
     use crate::web_framework::security::security_filter::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
     use web_framework_shared::request::WebRequest;
     use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder};
+    use crate::web_framework::convert::Registration;
     use crate::web_framework::security::authentication::{Authentication, AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
     use crate::web_framework::security::http_security::HttpSecurity;
 
@@ -89,7 +90,7 @@ mod test_security {
         }
 
         let mut d = DelegatingAuthenticationManagerBuilder::new();
-        d.add_provider(Box::new(TestAuthProvider{}));
+        d.register(Box::new(TestAuthProvider{}));
         let d = d.build();
         let out = d.authenticate(&mut AuthenticationToken::default());
         assert!(out.authenticated);
@@ -105,6 +106,7 @@ mod test_security {
         }
         impl AuthenticationConverter for TestAuthConverter {
         }
+
         pub struct TestAuthTypeConverter;
         impl Converter<WebRequest, Result<AuthenticationType, AuthenticationConversionError>> for TestAuthTypeConverter {
             fn convert(&self, from: &WebRequest) -> Result<AuthenticationType, AuthenticationConversionError> {
@@ -113,11 +115,14 @@ mod test_security {
         }
         impl AuthenticationTypeConverter for TestAuthTypeConverter {
         }
+
         let auth_registry = AuthenticationConverterRegistryBuilder::new();
-        auth_registry.add_converter(Box::new(TestAuthConverter{}));
-        auth_registry.add_type_converter(Box::new(TestAuthTypeConverter{}));
+        auth_registry.register_authentication_converter(TestAuthConverter{});
+        auth_registry.register_authentication_type_converter(TestAuthTypeConverter{});
         let auth_registry_built = auth_registry.build();
+
         let auth = auth_registry_built.convert(&WebRequest::default());
+
         assert!(auth.is_ok());
     }
 

@@ -4,12 +4,12 @@ mod test {
     use std::ops::Deref;
     use std::sync::{Arc, Mutex};
     use crate::web_framework::filter::filter::{Action, Filter};
-    use crate::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
-    use crate::web_framework::convert::{JsonMessageConverter, MessageConverter, Registration};
+    use crate::web_framework::context::{ApplicationContext, RequestContext};
+    use crate::web_framework::convert::{MessageConverter, Registration};
     use serde::{Deserialize, Serialize};
     use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, AuthType, UsernamePassword};
     use web_framework_shared::convert::Converter;
-    use crate::web_framework::context_builder::{ApplicationContextBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, RequestContextBuilder};
+    use crate::web_framework::context_builder::{ApplicationContextBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder, RequestContextBuilder};
     use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken};
 
     pub struct TestUsernamePasswordAuthenticationConverter;

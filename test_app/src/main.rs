@@ -4,7 +4,7 @@ use hyper::{HyperRequestConverter, HyperRequestStream};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use data_framework::Entity;
-use knockoff_security::knockoff_security::user_request_account::{UserAccount, UserSession};
+use knockoff_security::knockoff_security::user_request_account::{AccountData, UserAccount, UserSession};
 use web_framework::{create_message_converter, default_message_converters};
 use web_framework::web_framework::convert::{EndpointRequestExtractor, MessageConverter, Registration};
 use web_framework::web_framework::dispatch::Dispatcher;
@@ -12,8 +12,8 @@ use web_framework::web_framework::filter::filter::{Action, DelegatingFilterProxy
 use web_framework::web_framework::request::request::WebResponse;
 use web_framework::web_framework::security::user_details::PersistenceUserDetailsService;
 use web_framework::web_framework::http::RequestExecutorImpl;
-use web_framework::web_framework::context::{ApplicationContext, FilterRegistrar, RequestContext};
-use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, RequestContextBuilder};
+use web_framework::web_framework::context::{ApplicationContext, RequestContext};
+use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder, RequestContextBuilder};
 use web_framework::web_framework::message::MessageType;
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use module_macro_lib::AuthenticationTypeConverterImpl;
@@ -34,8 +34,8 @@ impl Entity<String> for TestUserAccount {
 }
 
 impl UserAccount for TestUserAccount {
-    fn get_user_session(&self) -> Box<UserSession> {
-        Box::new(UserSession{ data: Default::default(), id: 0 })
+    fn get_account_data(&self) -> AccountData {
+        todo!()
     }
 
     fn login(&self) {
@@ -51,9 +51,9 @@ async fn main() {
     let filter: Filter<Example, Example> = Filter::new(
         Box::new(TestAction::default()), None
     );
-    let mut filter_registrar = FilterRegistrar {
+    let mut filter_registrar = FilterRegistrarBuilder {
         filters: Arc::new(Mutex::new(vec![])),
-        build: false,
+        already_built: false,
         fiter_chain: Arc::new(DelegatingFilterProxy::default())
     };
 
@@ -84,7 +84,7 @@ async fn main() {
         }))),
         authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
             converters: Arc::new(Mutex::new(vec![])),
-            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl {}))
+            authentication_type_converter: Arc::new(Mutex::new(Some(Box::new(AuthenticationTypeConverterImpl {}))))
         })),
     };
     let mut r: HyperRequestStream<Example, Example> = HyperRequestStream::new(
@@ -98,9 +98,9 @@ async fn main() {
     let filter1: Filter<Example1, Example1> = Filter::new(
         Box::new(TestAction::default()), None
     );
-    let mut filter_registrar1 = FilterRegistrar {
+    let mut filter_registrar1 = FilterRegistrarBuilder {
         filters: Arc::new(Mutex::new(vec![])),
-        build: false,
+        already_built: false,
         fiter_chain: Arc::new(DelegatingFilterProxy::default())
     };
     filter_registrar1.register(filter1);
@@ -112,7 +112,7 @@ async fn main() {
                 request_convert: Arc::new(Mutex::new(Some(Box::new(EndpointRequestExtractor{}))))
             },
             authentication_manager_builder: DelegatingAuthenticationManagerBuilder {
-                providers: Arc::new(Mutex::new(Arc::new(vec![Box::new(DaoAuthenticationProvider {
+                providers: Arc::new(Mutex::new(vec![Box::new(DaoAuthenticationProvider {
                     user_details_service: PersistenceUserDetailsService::<MongoRepo, TestUserAccount> {
                         p: Default::default(),
                         u: Default::default(),
@@ -120,12 +120,12 @@ async fn main() {
                     },
                     password_encoder: Box::new(NoOpPasswordEncoder{}),
                     phantom_user: Default::default(),
-                })]))),
+                })])),
             },
         }))),
         authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
             converters: Arc::new(Mutex::new(vec![])),
-            authentication_type_converter: Arc::new(Mutex::new(&AuthenticationTypeConverterImpl {}))
+            authentication_type_converter: Arc::new(Mutex::new(Some(Box::new(&AuthenticationTypeConverterImpl {}))))
         })),
     };
 

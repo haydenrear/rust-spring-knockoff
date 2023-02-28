@@ -203,18 +203,10 @@ pub trait MessageConverter<Request, Response>: Send + Sync
 }
 
 
-pub trait JsonMessageConverter<Request, Response>: MessageConverter<Request,Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
-}
+#[derive(Default)]
+pub struct DefaultMessageConverter;
 
-
-
-#[derive(Copy, Clone)]
-pub struct OtherMessageConverter;
-
-impl<Request, Response> MessageConverter<Request, Response> for OtherMessageConverter
+impl<Request, Response> MessageConverter<Request, Response> for DefaultMessageConverter
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
@@ -277,34 +269,6 @@ impl <Request, Response> Default for ConverterRegistry<Request, Response>
             converters: Arc::new(Box::new(DefaultMessageConverter::default())),
             request_convert: Arc::new(Box::new(EndpointRequestExtractor::default()))
         }
-    }
-}
-
-#[derive(Default)]
-pub struct DefaultMessageConverter;
-
-impl <Request, Response> MessageConverter<Request, Response> for DefaultMessageConverter
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
-    fn new() -> Self where Self: Sized {
-        Self {}
-    }
-
-    fn convert_to(&self, request: &WebRequest) -> Option<MessageType<Request>> {
-        Some(MessageType{ message: Some(Request::default()) })
-    }
-
-    fn convert_from(&self, request_body: &Response, request: &WebRequest) -> Option<String> {
-        Some(String::default())
-    }
-
-    fn do_convert(&self, request: &WebRequest) -> bool {
-        false
-    }
-
-    fn message_type(&self) -> Vec<String> {
-        vec![]
     }
 }
 
