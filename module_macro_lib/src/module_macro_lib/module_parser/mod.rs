@@ -93,6 +93,7 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
             //         ImplItem::__NonExhaustive => {}
             //     }
             // })
+            // }
             log_message!("Found impl type {}.", impl_found.to_token_stream().clone());
             app_container.create_update_impl(impl_found);
         }

@@ -7,4 +7,4 @@ pub mod authentication_type;
 pub mod logger;
 pub mod module_extractor;
 pub mod codegen_item_macros;
-
+pub mod aspect;
