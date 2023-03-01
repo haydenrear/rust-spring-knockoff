@@ -19,19 +19,10 @@ use_logging!();
 use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct AuthenticationTypeCodegen {
     default: Option<TokenStream>,
     item: Option<Item>,
-}
-
-impl Default for AuthenticationTypeCodegen {
-    fn default() -> Self {
-        Self {
-            default: None,
-            item: None,
-        }
-    }
 }
 
 impl AuthenticationTypeCodegen {

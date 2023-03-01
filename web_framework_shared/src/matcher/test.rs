@@ -4,9 +4,9 @@ use crate::request::WebRequest;
 
 #[test]
 fn test_ant_path_request_matcher() {
-    let first = create_request_matcher("/v1/test_one/**".to_string());
-    let second = create_request_matcher("/v1/test_two/*".to_string());
-    let third = create_request_matcher("/v1/test_three".to_string());
+    let first = create_request_matcher("/v1/test_one/**".to_string(), "/".to_string());
+    let second = create_request_matcher("/v1/test_two/*".to_string(), "/".to_string());
+    let third = create_request_matcher("/v1/test_three".to_string(), "/".to_string());
 
     let mut request_matchers = LinkedList::new();
 
@@ -27,8 +27,14 @@ fn test_ant_path_request_matcher() {
 
 }
 
-fn create_request_matcher(to_match: String) -> AntStringRequestMatcher {
-    return AntStringRequestMatcher::new(to_match)
+#[test]
+fn test_request_matcher() {
+    let first = create_request_matcher("o*e".to_string(), "".to_string());
+    assert!(first.matches("one"));
+}
+
+fn create_request_matcher(to_match: String, splitter: String) -> AntStringRequestMatcher {
+    return AntStringRequestMatcher::new(to_match, splitter)
 }
 
 fn create_request_matchers(request_matchers: LinkedList<AntStringRequestMatcher>) -> AntPathRequestMatcher {

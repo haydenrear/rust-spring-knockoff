@@ -8,6 +8,7 @@ use std::path::Path;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Item, ItemFn};
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
+use crate::aspect::{AspectMatcher, MethodAdviceAspect};
 use crate::authentication_type::AuthenticationTypeCodegen;
 use crate::codegen_items;
 use crate::initializer::Initializer;
@@ -20,11 +21,20 @@ use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 use crate::module_extractor::ModuleParser;
 
-codegen_items!(AuthenticationTypeCodegen, FieldAug, Initializer, ModuleParser);
+codegen_items!(AuthenticationTypeCodegen, FieldAug, Initializer, ModuleParser, MethodAdviceAspect);
 
 pub struct LibParser;
 
 impl LibParser {
+
+    pub fn parse_aspects() -> Vec<Box<dyn CodegenItem>> {
+        env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
+            LibParser::parse_codegen_items(&aug_file)
+                .iter().filter(|c| c.get_unique_id().as_str().contains("MethodAdviceAspect"))
+                .map(|b| b.clone_dyn_codegen())
+                .collect::<Vec<Box<dyn CodegenItem>>>()
+        }).or(Ok::<Vec<Box<dyn CodegenItem>>, Error>(vec![])).unwrap()
+    }
 
     pub fn do_codegen(in_dir_file: &str, out_file: &str) {
 
@@ -57,16 +67,9 @@ impl LibParser {
     }
 
     fn parse_codegen(in_dir_file: &str) -> HashMap<String, String> {
-        let mut to_write_codegen: HashMap<String, String> = Self::parse_syn(in_dir_file)
+        let flatten = Self::parse_codegen_items(in_dir_file);
+        let mut to_write_codegen: HashMap<String, String> = flatten
             .iter()
-            .flat_map(|syn_file| {
-                syn_file.items.iter()
-            })
-            .flat_map(|item| get_codegen_item(item)
-                .map(|codegen_item| vec![codegen_item])
-                .or(Some(vec![]))
-            )
-            .flatten()
             .flat_map(|item| {
                 item.get_codegen()
                     .map(|codegen| {
@@ -76,6 +79,21 @@ impl LibParser {
             .collect();
 
         to_write_codegen
+    }
+
+    pub fn parse_codegen_items(in_dir_file: &str) -> Vec<Box<dyn CodegenItem>> {
+        let flatten = Self::parse_syn(in_dir_file)
+            .iter()
+            .flat_map(|syn_file| {
+                syn_file.items.iter()
+            })
+            .flat_map(|item| get_codegen_item(item)
+                .map(|codegen_item| vec![codegen_item])
+                .or(Some(vec![]))
+            )
+            .flatten()
+            .collect::<Vec<Box<dyn CodegenItem>>>();
+        flatten
     }
 
 

@@ -17,6 +17,7 @@ pub mod module_macro_lib {
     pub mod debug;
     pub mod default_impls;
     pub mod logging;
+    pub mod aspect;
 }
 
 #[cfg(test)]
@@ -40,7 +41,7 @@ mod tests {
         for mut item in items {
             match &mut item {
                 Item::Mod(ref mut module_found) => {
-                    parse_item_recursive(module_found, &mut p)
+                    parse_item_recursive(module_found, &mut p, &mut vec![])
                 }
                 _ => {}
             }

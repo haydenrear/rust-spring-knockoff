@@ -1,6 +1,7 @@
-use crate::{FieldAugmenterImpl};
+use crate::{FieldAugmenterImpl, ContextInitializerImpl};
 
 #[derive(Default, Clone, Debug)]
-pub struct Initializer {
-    pub field_augmenter: FieldAugmenterImpl
+pub struct ModuleMacroInitializer {
+    pub field_augmenter: FieldAugmenterImpl,
+    pub initialize: ContextInitializerImpl
 }

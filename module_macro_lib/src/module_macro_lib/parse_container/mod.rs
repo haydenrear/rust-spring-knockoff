@@ -23,17 +23,19 @@ use syn::{
 use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
+use codegen_utils::syn_helper::SynHelper;
 use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser, BeanParser};
 use crate::module_macro_lib::context_builder::ContextBuilder;
 use crate::module_macro_lib::fn_parser::FnParser;
-use crate::module_macro_lib::initializer::Initializer;
+use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 use crate::module_macro_lib::module_parser::parse_item;
 use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType};
 use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
+use crate::module_macro_lib::aspect::AspectParser;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
@@ -46,7 +48,8 @@ pub struct ParseContainer {
     pub traits: HashMap<String, Trait>,
     pub fns: HashMap<TypeId, ModulesFunctions>,
     pub profiles: Vec<Profile>,
-    pub initializer: Initializer
+    pub initializer: ModuleMacroInitializer,
+    pub aspects: AspectParser
 }
 
 impl ParseContainer {
@@ -59,7 +62,7 @@ impl ParseContainer {
     }
 
     pub fn build_injectable(&mut self) {
-        self.injectable_types_map = ProfileTree::new(&self.injectable_types_builder);
+        self.injectable_types_map = ProfileTree::new(&mut self.injectable_types_builder);
         log_message!("{:?} is the debugged tree.", &self.injectable_types_map);
         log_message!("{} is the number of injectable types.", &self.injectable_types_builder.len());
     }
@@ -119,25 +122,41 @@ impl ParseContainer {
     /**
     Add the struct and the impl from the ItemImpl
      **/
-    pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl) {
+    pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl, path_depth: Vec<String>) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
         &mut self.injectable_types_builder.get_mut(&id)
-            .map(|struct_impl: &mut Bean| {
-                struct_impl.traits_impl.push(AutowireType { item_impl: item_impl.clone(), profile: vec![] });
+            .map(|bean: &mut Bean| {
+                bean.traits_impl.push(
+                    AutowireType {
+                        item_impl: item_impl.clone(),
+                        profile: vec![],
+                        path_depth: path_depth.clone()
+                    }
+                );
             })
             .or_else(|| {
                 let mut impl_found = Bean {
                     struct_type: Some(item_impl.self_ty.deref().clone()),
                     struct_found: None,
-                    traits_impl: vec![AutowireType { item_impl: item_impl.clone(), profile: vec![] }],
+                    traits_impl: vec![
+                        AutowireType {
+                            item_impl: item_impl.clone(),
+                            profile: vec![],
+                            path_depth
+                        }
+                    ],
                     enum_found: None,
                     attr: vec![],
                     deps_map: vec![],
                     id: id.clone(),
+                    path_depth: vec![],
                     profile: vec![],
                     ident: None,
                     fields: vec![],
-                    bean_type: None
+                    bean_type: None,
+                    mutable: Self::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
+                        .map(|_| true)
+                        .or(Some(false)).unwrap(),
                 };
                 self.injectable_types_builder.insert(id.clone(), impl_found);
                 None
@@ -146,7 +165,7 @@ impl ParseContainer {
         self.set_deps_safe(id.as_str());
     }
 
-    pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct) -> Option<String> {
+    pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct, path_depth: Vec<String>) -> Option<String> {
         log_message!("adding type with name {}", item_impl.ident.clone().to_token_stream().to_string());
         log_message!("adding type with name {}", item_impl.to_token_stream().to_string().clone());
 
@@ -164,13 +183,17 @@ impl ParseContainer {
                     struct_found: Some(item_impl.clone()),
                     traits_impl: vec![],
                     enum_found: None,
+                    path_depth: path_depth.clone(),
                     attr: vec![],
                     deps_map: vec![],
                     id: item_impl.ident.clone().to_string(),
                     profile: vec![],
                     ident: Some(item_impl.ident.clone()),
                     fields: vec![item_impl.fields.clone()],
-                    bean_type: BeanParser::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone()))
+                    bean_type: BeanParser::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone())),
+                    mutable: Self::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
+                        .map(|_| true)
+                        .or(Some(false)).unwrap(),
                 };
                 self.injectable_types_builder.insert(item_impl.ident.to_string().clone(), impl_found);
                 None
@@ -181,7 +204,7 @@ impl ParseContainer {
 
     }
 
-    pub fn add_item_enum(&mut self, enum_to_add: &mut ItemEnum) {
+    pub fn add_item_enum(&mut self, enum_to_add: &mut ItemEnum, path_depth: Vec<String>) {
         log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
         &mut self.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())
             .map(|struct_impl: &mut Bean| {
@@ -193,6 +216,7 @@ impl ParseContainer {
                     .collect::<Vec<Fields>>();
                 let mut impl_found = Bean {
                     struct_type: None,
+                    path_depth,
                     struct_found: None,
                     traits_impl: vec![],
                     enum_found: Some(enum_to_add.clone()),
@@ -202,7 +226,10 @@ impl ParseContainer {
                     profile: vec![],
                     ident: Some(enum_to_add.ident.clone()),
                     fields: enum_fields,
-                    bean_type: BeanParser::get_bean_type(&enum_to_add.attrs, None, Some(enum_to_add.ident.clone()))
+                    bean_type: BeanParser::get_bean_type(&enum_to_add.attrs, None, Some(enum_to_add.ident.clone())),
+                    mutable: Self::get_attr_from_vec(&enum_to_add.attrs, vec!["mutable_bean"])
+                        .map(|_| true)
+                        .or(Some(false)).unwrap(),
                 };
                 self.injectable_types_builder.insert(enum_to_add.ident.to_string().clone(), impl_found);
                 None
@@ -265,30 +292,39 @@ impl ParseContainer {
 
     pub fn get_autowired_field_dep(attrs: Vec<Attribute>, field: Field) -> Option<AutowiredField> {
         log_message!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
-        attrs.iter().map(|attr| {
-            log_message!("Checking attribute: {} for field.", attr.to_token_stream().to_string().clone());
-            let mut autowired_field = AutowiredField{
-                qualifier: None,
-                lazy: false,
-                field: field.clone(),
-                type_of_field: field.ty.clone(),
-            };
-            ParseContainer::get_qualifier_from_autowired(attr.clone())
-                .map(|autowired_value| {
-                    autowired_field.qualifier = Some(autowired_value);
-                });
-            Some(autowired_field)
-        }).next().unwrap_or_else(|| {
-            log_message!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
-            None
-        })
+        ParseContainer::get_attr_from_vec(&attrs, vec!["autowired"])
+            .map(|autowired_field| {
+                ParseContainer::get_attr_from_vec(&attrs, vec!["mutable_field"])
+                    .map(|mutable_field| {
+                        AutowiredField{
+                            qualifier: Some(autowired_field),
+                            lazy: false,
+                            field: field.clone(),
+                            type_of_field: field.ty.clone(),
+                            mutable: true,
+                        }
+                    })
+                    .or(Some(AutowiredField{
+                        qualifier: None,
+                        lazy: false,
+                        field: field.clone(),
+                        type_of_field: field.ty.clone(),
+                        mutable: false,
+                    }))
+            }).unwrap_or_else(|| {
+                log_message!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
+                None
+            })
     }
 
-    pub fn get_qualifier_from_autowired(autowired_attr: Attribute) -> Option<String> {
-        if autowired_attr.path.to_token_stream().to_string().clone().contains("autowired") {
-            return ParseUtil::strip_value(autowired_attr.path.to_token_stream().to_string().as_str(), vec!["#[singleton(", "#[prototype("]);
-        }
-        None
+    pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: Vec<&str>) -> Option<String> {
+        autowired_attr.iter()
+            .filter(|m| matcher_str.iter()
+                .any(|matcher_str| m.to_token_stream().to_string().as_str().contains(matcher_str))
+            )
+            .map(|m| SynHelper::parse_attr_path_single(m))
+            .flatten()
+            .next()
     }
 
     pub fn get_type_from_fn_type(fn_type: &FunctionType) -> Option<Type> {

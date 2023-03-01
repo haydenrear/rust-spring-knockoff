@@ -3,6 +3,8 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_codegen::aspect::{MethodAdviceAspect, PointCut};
+use crate::module_macro_lib::aspect::AspectParser;
 use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, InjectableTypeKey, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
@@ -37,7 +39,7 @@ impl ContextBuilder {
                         Self::insert_into_profile_map(&mut profile_map, bean_def_type_profile, bean);
                     }
                     BeanDefinitionType::Concrete { bean } => {
-                        Self::implement_concrete_autowire(&mut token, bean, bean_def_type_profile.0);
+                        Self::implement_concrete_autowire(&mut token, bean, bean_def_type_profile.0, &parse_container.aspects);
                         Self::insert_into_profile_map(&mut profile_map, bean_def_type_profile, bean);
                     }
                 }
@@ -46,6 +48,33 @@ impl ContextBuilder {
         Self::finish_writing_factory(&mut token, profile_map);
 
         token
+    }
+
+    fn implement_aspects(parse_container: &mut ParseContainer) -> Vec<(MethodAdviceAspect, Bean)> {
+        let aspects = parse_container.aspects.clone();
+        let bean_aspect = parse_container.injectable_types_map.injectable_types.iter()
+            .flat_map(|i_type| {
+                i_type.1.iter().flat_map(|bean_def| {
+                    match bean_def {
+                        BeanDefinitionType::Abstract { bean, dep_type} => {
+                            vec![]
+                        }
+                        BeanDefinitionType::Concrete { bean } => {
+                            aspects.aspects.iter()
+                                .flat_map(|a| {
+                                    if MethodAdviceAspect::aspect_matches(&bean.path_depth, &a.pointcut, &bean.id) {
+                                        return vec![(a.clone(), bean.clone())]
+                                    }
+                                    vec![]
+                                }).collect::<Vec<(MethodAdviceAspect, Bean)>>()
+                        }
+                    }
+                })
+            }).collect::<Vec<(MethodAdviceAspect, Bean)>>();
+
+
+
+        bean_aspect
     }
 
     fn insert_into_profile_map(mut profile_map: &mut HashMap<Profile, Vec<Bean>>, bean_def_type_profile: (&Profile, &BeanDefinitionType), bean: &Bean) {
@@ -89,7 +118,7 @@ impl ContextBuilder {
         }
     }
 
-    fn implement_concrete_autowire(mut token: &mut TokenStream, token_type: &Bean, profile: &Profile) {
+    fn implement_concrete_autowire(mut token: &mut TokenStream, token_type: &Bean, profile: &Profile, aspects: &AspectParser) {
 
         let (field_types, identifiers) = Self::get_field_ids(token_type);
 
@@ -126,12 +155,15 @@ impl ContextBuilder {
         (field_types, identifiers)
     }
 
-    fn implement_autowire_code<T: ToTokens>(token: &mut TokenStream, field_types: &Vec<Type>, identifiers: &Vec<Ident>, struct_type: &T) {
+    fn implement_autowire_code<T: ToTokens>(
+        token: &mut TokenStream,
+        field_types: &Vec<Type>,
+        identifiers: &Vec<Ident>,
+        struct_type: &T) {
         log_message!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
         let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
-            &field_types, &identifiers, &struct_type
-        );
+            &field_types, &identifiers, &struct_type);
 
         token.append_all(this_struct_impl);
     }

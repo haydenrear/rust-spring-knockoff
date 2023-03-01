@@ -267,7 +267,7 @@ impl AuthenticationConverterRegistry {
     pub fn new() -> Self {
         Self {
             converters: Arc::new(vec![]),
-            authentication_type_converter: Arc::new(Box::new(AuthenticationTypeConverterImpl { })),
+            authentication_type_converter: Arc::new(Box::new(AuthenticationTypeConverterImpl::new())),
         }
     }
 }
@@ -280,7 +280,6 @@ impl <Request, Response> FilterRegistrarBuilder<Request, Response>
     pub fn register(&mut self, converter: Filter<Request, Response>) {
         self.filters.lock().unwrap().borrow_mut().push(converter)
     }
-
 }
 
 pub struct FilterRegistrarBuilder<Request, Response>

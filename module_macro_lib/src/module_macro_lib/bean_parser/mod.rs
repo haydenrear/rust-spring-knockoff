@@ -226,7 +226,7 @@ impl BeanDependencyParser {
         if autowired_qualifier.is_some() && contains_key && struct_exists {
 
             dep_impl.ident.clone().map(|ident| {
-                log_message!("Adding dependency with id {} to struct_impl of name {}", dep_impl.id.clone(), ident.to_string().clone());
+                log_message!("Adding dependency to struct with id {} to struct_impl of name {}", ident.to_string().clone(), dep_impl.id.clone());
             }).or_else(|| {
                 log_message!("Could not find ident for {}.", dep_impl.id.clone());
                 None
@@ -303,8 +303,8 @@ impl BeanDependencyPathParser {
                 PathArguments::AngleBracketed(angle) => {
                     Self::parse_angle_bracketed(angle)
                 }
-                PathArguments::Parenthesized(parenthasized) => {
-                    Self::parse_parenthasized(parenthasized)
+                PathArguments::Parenthesized(parenthesized) => {
+                    Self::parse_parenthasized(parenthesized)
                 }
             }
         }).collect()
@@ -335,11 +335,7 @@ impl BeanDependencyPathParser {
         angle.args.iter().flat_map(|arg| {
             match arg {
                 GenericArgument::Type(t) => {
-                    log_message!("Found type of generic arg: {}", t.to_token_stream().to_string().as_str());
-                    if t.to_token_stream().to_string().as_str().contains("Arc") {
-                        return vec![BeanPathParts::ArcType { arc_inner_types: t.clone() }]
-                    }
-                    vec![BeanPathParts::GenType {inner: t.clone()}]
+                    vec![BeanPathParts::create_bean_path_parts(t)]
                 }
                 GenericArgument::Lifetime(_) => {
                     log_message!("Ignored lifetime of generic arg.");

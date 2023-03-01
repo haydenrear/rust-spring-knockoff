@@ -14,27 +14,31 @@ pub trait StringMatcher<'a>: Matcher<&'a str> {
 pub trait RequestMatcher: Matcher<WebRequest> {
 }
 
+#[derive(Clone, Default)]
 pub struct AntStringRequestMatcher {
-    to_match: String
+    to_match: String,
+    splitter: String
 }
 
 impl AntStringRequestMatcher {
-    pub fn new(to_match: String) -> Self {
+    pub fn new(to_match: String, splitter: String) -> Self {
         Self {
-            to_match
+            to_match, splitter
         }
     }
 
-    fn split_for_match(to_match: &str) -> Vec<&str> {
-        let split_self_match = to_match.split("/").collect::<Vec<&str>>();
+    fn split_for_match<'a>(&'a self, to_match: &'a str) -> Vec<&str> {
+        let split_self_match = to_match.split(self.splitter.as_str())
+            .filter(|split| split.len() != 0)
+            .collect::<Vec<&str>>();
         split_self_match
     }
 }
 
 impl Matcher<&str> for AntStringRequestMatcher {
     fn matches(&self, to_match: &str) -> bool {
-        let split_self_match = Self::split_for_match(&self.to_match);
-        let split_match = Self::split_for_match(to_match);
+        let split_self_match = self.split_for_match(&self.to_match);
+        let split_match = self.split_for_match(to_match);
         for i in 0..split_match.len() {
             let self_to_match = split_self_match.get(i);
             if self_to_match == split_match.get(i) {
@@ -46,7 +50,7 @@ impl Matcher<&str> for AntStringRequestMatcher {
                     }
                     Some(&"*") => {
                         if split_match.len() - i > 1 {
-                            return false;
+                            continue;
                         }
                         true
                     }

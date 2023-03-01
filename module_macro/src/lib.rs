@@ -24,7 +24,7 @@ use syn::token::{Bang, For, Token};
 use module_macro_lib::module_macro_lib::module_parser::parse_module;
 use module_macro_lib::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use module_macro_lib::FieldAugmenterImpl;
-use module_macro_lib::module_macro_lib::initializer::Initializer;
+use module_macro_lib::module_macro_lib::initializer::ModuleMacroInitializer;
 use module_macro_shared::module_macro_shared_codegen::ContextInitializer;
 
 #[proc_macro_attribute]
@@ -38,14 +38,7 @@ pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let mut found: Item = parse_macro_input!(input_found as Item);
 
-    let ts = TokenStream::default();
-    let field_augmenter: FieldAugmenterImpl = parse_macro_input!(ts as FieldAugmenterImpl);
-
-    let init = Initializer {
-        field_augmenter
-    };
-
-    let additional = parse_module(found, init);
+    let additional = parse_module(found);
 
     token_stream_builder.add_to_tokens(additional.into());
     token_stream_builder.build()

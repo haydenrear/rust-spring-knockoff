@@ -7,6 +7,7 @@ use syn::Type;
 use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile};
 
 use knockoff_logging::{initialize_log, use_logging};
+use crate::module_macro_lib::aspect::AspectParser;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
@@ -225,8 +226,9 @@ impl ApplicationContextGenerator {
         }
     }
 
-    pub fn gen_autowire_code_gen_concrete<T: ToTokens>(field_types: &Vec<Type>, field_idents: &Vec<Ident>, struct_type: &T)
-                                                       -> TokenStream2 {
+    pub fn gen_autowire_code_gen_concrete<T: ToTokens>(
+        field_types: &Vec<Type>, field_idents: &Vec<Ident>,
+        struct_type: &T) -> TokenStream2 {
         let injectable_code = quote! {
 
                 impl BeanFactory<#struct_type> for ListableBeanFactory {

@@ -22,7 +22,7 @@ use syn::token::{Bang, For, Token};
 use crate::module_macro_lib::parse_container::ParseContainer;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::FieldAugmenterImpl;
-use crate::module_macro_lib::initializer::Initializer;
+use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
@@ -30,17 +30,24 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
-pub fn parse_module(mut found: Item, initializer: Initializer) -> TokenStream {
+pub fn parse_module(mut found: Item) -> TokenStream {
     match &mut found {
         Item::Mod(ref mut module_found) => {
             let mut container = ParseContainer::default();
 
-            parse_item_recursive(module_found, &mut container);
+            parse_item_recursive(
+                module_found,
+                &mut container,
+                &mut vec![module_found.ident.to_string().clone()]
+            );
+
             let container_tokens = container.build_to_token_stream();
+
             quote!(
                 #found
                 #container_tokens
             ).into()
+
         }
         _ => {
             return quote!(#found).into();
@@ -48,10 +55,10 @@ pub fn parse_module(mut found: Item, initializer: Initializer) -> TokenStream {
     }
 }
 
-pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer) {
+pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
     item_found.content.iter_mut()
         .flat_map(|mut c| c.1.iter_mut())
-        .for_each(|i: &mut Item| parse_item(i, module_container));
+        .for_each(|i: &mut Item| parse_item(i, module_container, path_depth));
 }
 
 
@@ -63,14 +70,14 @@ pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
         .or_else(|| None)
 }
 
-pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
+pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
     match i {
         Item::Const(const_val) => {
             log_message!("Found const val {}.", const_val.to_token_stream().clone());
         }
         Item::Enum(enum_type) => {
             log_message!("Found enum val {}.", enum_type.to_token_stream().clone());
-            app_container.add_item_enum(enum_type);
+            app_container.add_item_enum(enum_type, path_depth.clone());
         }
         Item::Fn(fn_type) => {
             log_message!("Found fn type {}.", fn_type.to_token_stream().clone());
@@ -81,6 +88,12 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
             // TODO: add decorator for methods. The attribute will specify knockoff SpEL expression
             //  and from this SpEL expression the authorization manager will be used.
             //  More generally, the ability to add aspects to methods can be added somewhat trivially.
+            //  -- Unfortunately, it will be difficult (impossible?) to add "this" to the aspect? I
+            //  suppose you cauld try just calling self but that won't work because of hygiene /
+            //  it wouldn't really compile...? might compile actually... bc it's in the aug file
+            //  --- the best way will be to add the aspect as a field of the struct if the this param...
+            /// is required, and implement the Aspect interface for the struct if not. Then, you can
+            /// have access to self or just call the type beforehand..
             // impl_found.items.iter().map(|i| {
             //     match i {
             //         ImplItem::Const(_) => {}
@@ -93,22 +106,24 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer) {
             //         ImplItem::__NonExhaustive => {}
             //     }
             // })
+            // }
             log_message!("Found impl type {}.", impl_found.to_token_stream().clone());
-            app_container.create_update_impl(impl_found);
+            app_container.create_update_impl(impl_found, path_depth.clone());
         }
         Item::Macro(macro_created) => {
         }
         Item::Macro2(_) => {}
         Item::Mod(ref mut module) => {
             log_message!("Found module with name {} !!!", module.ident.to_string().clone());
-            parse_item_recursive(module, app_container);
+            path_depth.push(module.ident.to_string().clone());
+            parse_item_recursive(module, app_container, path_depth);
         }
         Item::Static(static_val) => {
             log_message!("Found static val {}.", static_val.to_token_stream().clone());
         }
         Item::Struct(ref mut item_struct) => {
             app_container.initializer.field_augmenter.process(item_struct);
-            app_container.add_item_struct(item_struct);
+            app_container.add_item_struct(item_struct, path_depth.clone());
             log_message!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
         }
         Item::Trait(trait_created) => {
