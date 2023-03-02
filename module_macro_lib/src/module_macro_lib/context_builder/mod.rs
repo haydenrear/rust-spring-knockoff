@@ -50,7 +50,7 @@ impl ContextBuilder {
         token
     }
 
-    fn implement_aspects(parse_container: &mut ParseContainer) {
+    fn implement_aspects(parse_container: &mut ParseContainer) -> Vec<(MethodAdviceAspect, Bean)> {
         let aspects = parse_container.aspects.clone();
         let bean_aspect = parse_container.injectable_types_map.injectable_types.iter()
             .flat_map(|i_type| {
@@ -73,9 +73,28 @@ impl ContextBuilder {
             }).collect::<Vec<(MethodAdviceAspect, Bean)>>();
 
         fn aspect_matches(bean_path: &Vec<String>, aspect_matcher_string: &Vec<String>, bean_id: &String) -> bool {
+            if aspect_matcher_string.len() == 1 {
+                return &aspect_matcher_string[0] == bean_id.as_str()
+            } else if aspect_matcher_string.len() == 0 {
+                return false;
+            }
 
+            for i in 0..aspect_matcher_string.len()-1 {
+                let next_aspect_matcher = aspect_matcher_string[i].as_str();
+                if bean_path[i].as_str() != next_aspect_matcher || next_aspect_matcher != "*" {
+                    return false;
+                }
+            }
+
+            let bean_id_matcher = &aspect_matcher_string[aspect_matcher_string.len() - 2];
+
+            if bean_id_matcher != bean_id || bean_id_matcher != "*" {
+                return false;
+            }
             true
         }
+
+        bean_aspect
     }
 
     fn insert_into_profile_map(mut profile_map: &mut HashMap<Profile, Vec<Bean>>, bean_def_type_profile: (&Profile, &BeanDefinitionType), bean: &Bean) {
