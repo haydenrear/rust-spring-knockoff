@@ -34,6 +34,7 @@ use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
+use crate::module_macro_lib::aspect::AspectParser;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
@@ -46,7 +47,8 @@ pub struct ParseContainer {
     pub traits: HashMap<String, Trait>,
     pub fns: HashMap<TypeId, ModulesFunctions>,
     pub profiles: Vec<Profile>,
-    pub initializer: Initializer
+    pub initializer: Initializer,
+    pub aspects: AspectParser
 }
 
 impl ParseContainer {
@@ -119,21 +121,34 @@ impl ParseContainer {
     /**
     Add the struct and the impl from the ItemImpl
      **/
-    pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl) {
+    pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl, path_depth: Vec<String>) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
         &mut self.injectable_types_builder.get_mut(&id)
             .map(|struct_impl: &mut Bean| {
-                struct_impl.traits_impl.push(AutowireType { item_impl: item_impl.clone(), profile: vec![] });
+                struct_impl.traits_impl.push(
+                    AutowireType {
+                        item_impl: item_impl.clone(),
+                        profile: vec![],
+                        path_depth: path_depth.clone()
+                    }
+                );
             })
             .or_else(|| {
                 let mut impl_found = Bean {
                     struct_type: Some(item_impl.self_ty.deref().clone()),
                     struct_found: None,
-                    traits_impl: vec![AutowireType { item_impl: item_impl.clone(), profile: vec![] }],
+                    traits_impl: vec![
+                        AutowireType {
+                            item_impl: item_impl.clone(),
+                            profile: vec![],
+                            path_depth
+                        }
+                    ],
                     enum_found: None,
                     attr: vec![],
                     deps_map: vec![],
                     id: id.clone(),
+                    path_depth: vec![],
                     profile: vec![],
                     ident: None,
                     fields: vec![],
@@ -146,7 +161,7 @@ impl ParseContainer {
         self.set_deps_safe(id.as_str());
     }
 
-    pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct) -> Option<String> {
+    pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct, path_depth: Vec<String>) -> Option<String> {
         log_message!("adding type with name {}", item_impl.ident.clone().to_token_stream().to_string());
         log_message!("adding type with name {}", item_impl.to_token_stream().to_string().clone());
 
@@ -164,6 +179,7 @@ impl ParseContainer {
                     struct_found: Some(item_impl.clone()),
                     traits_impl: vec![],
                     enum_found: None,
+                    path_depth: path_depth.clone(),
                     attr: vec![],
                     deps_map: vec![],
                     id: item_impl.ident.clone().to_string(),
@@ -181,7 +197,7 @@ impl ParseContainer {
 
     }
 
-    pub fn add_item_enum(&mut self, enum_to_add: &mut ItemEnum) {
+    pub fn add_item_enum(&mut self, enum_to_add: &mut ItemEnum, path_depth: Vec<String>) {
         log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
         &mut self.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())
             .map(|struct_impl: &mut Bean| {
@@ -193,6 +209,7 @@ impl ParseContainer {
                     .collect::<Vec<Fields>>();
                 let mut impl_found = Bean {
                     struct_type: None,
+                    path_depth,
                     struct_found: None,
                     traits_impl: vec![],
                     enum_found: Some(enum_to_add.clone()),

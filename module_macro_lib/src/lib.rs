@@ -41,7 +41,7 @@ mod tests {
         for mut item in items {
             match &mut item {
                 Item::Mod(ref mut module_found) => {
-                    parse_item_recursive(module_found, &mut p)
+                    parse_item_recursive(module_found, &mut p, &mut vec![])
                 }
                 _ => {}
             }

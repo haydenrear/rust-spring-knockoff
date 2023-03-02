@@ -7,17 +7,33 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="registration">
-      <change afterPath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/aspect/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/aspect/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="aspect started">
+      <change afterPath="$PROJECT_DIR$/codegen_utils/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/codegen_utils/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/codegen_utils/src/parse/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/aspect/test.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/aspect/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/aspect/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/aspect/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/aspect/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/aspect/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_knockoff_boot_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/spring_knockoff_boot_macro/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -121,9 +137,9 @@
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test aspect::test::test_match">
-    <configuration name="Run test_app" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="run --package test_app --bin test_app" />
+  <component name="RunManager" selected="Cargo.Test module_macro_lib::aspect::test::get_aspect">
+    <configuration name="Test aspect::test::test_create_aspect_aware_package" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_shared --lib aspect::test::test_create_aspect_aware_package -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -156,42 +172,42 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test module_macro_lib::aspect::test::get_aspect" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::aspect::test::get_aspect -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test web_framework::security::test::test_security::test_authentication_converter_builder" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_authentication_converter_builder -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test web_framework::security::test::test_security::test_delegating_authentication_manager" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_delegating_authentication_manager -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test web_framework::security::test::test_security::test_http_security" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib web_framework::security::test::test_security::test_http_security -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -226,19 +242,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test aspect::test::test_create_aspect_aware_package" />
       <item itemvalue="Cargo.Test aspect::test::test_match" />
+      <item itemvalue="Cargo.Test module_macro_lib::aspect::test::get_aspect" />
+      <item itemvalue="Cargo.Test test_module_macro" />
       <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authentication_converter_builder" />
-      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_delegating_authentication_manager" />
-      <item itemvalue="Cargo.Run test_app" />
-      <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_http_security" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test module_macro_lib::aspect::test::get_aspect" />
+        <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test aspect::test::test_create_aspect_aware_package" />
         <item itemvalue="Cargo.Test aspect::test::test_match" />
         <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_authentication_converter_builder" />
-        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_delegating_authentication_manager" />
-        <item itemvalue="Cargo.Test web_framework::security::test::test_security::test_http_security" />
-        <item itemvalue="Cargo.Run test_app" />
       </list>
     </recent_temporary>
   </component>
@@ -300,14 +316,7 @@
       <workItem from="1676723809901" duration="565000" />
       <workItem from="1677095156549" duration="18356000" />
       <workItem from="1677421523187" duration="35786000" />
-      <workItem from="1677594170028" duration="21329000" />
-    </task>
-    <task id="LOCAL-00023" summary="back to &amp;'a filter">
-      <created>1673113206855</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1673113206855</updated>
+      <workItem from="1677594170028" duration="33612000" />
     </task>
     <task id="LOCAL-00024" summary="back to &amp;'a filter">
       <created>1673124337115</created>
@@ -645,7 +654,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677624566442</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="aspect started">
+      <created>1677641248896</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1677641248896</updated>
+    </task>
+    <option name="localTasksCounter" value="73" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -663,7 +679,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="message converter 2" />
     <MESSAGE value="many message converter" />
     <MESSAGE value="Build script prototype created" />
     <MESSAGE value="di" />
@@ -688,7 +703,8 @@
     <MESSAGE value="security" />
     <MESSAGE value="authentication" />
     <MESSAGE value="registration" />
-    <option name="LAST_COMMIT_MESSAGE" value="registration" />
+    <MESSAGE value="aspect started" />
+    <option name="LAST_COMMIT_MESSAGE" value="aspect started" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -699,12 +715,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>209</line>
+          <line>226</line>
           <option name="timeStamp" value="55" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>54</line>
+          <line>56</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -753,9 +769,9 @@
           <option name="timeStamp" value="122" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs</url>
-          <line>26</line>
-          <option name="timeStamp" value="123" />
+          <url>file://$PROJECT_DIR$/module_macro_shared/src/aspect/mod.rs</url>
+          <line>45</line>
+          <option name="timeStamp" value="134" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

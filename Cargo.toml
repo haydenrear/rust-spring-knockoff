@@ -18,5 +18,6 @@ members = [
     "spring_knockoff_boot",
     "knockoff_security",
     "web_framework_shared",
-    "spring_knockoff_boot_macro"
+    "spring_knockoff_boot_macro",
+    "codegen_utils"
 ]

@@ -12,31 +12,32 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
+use codegen_utils::parse;
+use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
 
 use_logging!();
 initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/build_lib.log");
 initialize_log!();
 
 pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
-
-    let mut file_result = File::open(
-        Path::new(base_env.unwrap())
-                .join("lib.rs")
-    )
-        .or_else(|f| {
-            log_info!("Failed to open lib.rs".to_string(), "1".to_string());
-            let err = f.to_string();
-            log_info!(err, "1".to_string());
-            Err(())
-        });
-
-    if file_result.is_err() {
+    if base_env.is_none() {
         return;
     }
+    parse::open_file(base_env.unwrap(), "lib.rs")
+        .map(|mut file| parse::parse_syn_file(&mut file))
+        .map_err(|err| {
+            log_message!("Error opening lib.rs file: {}.", err.to_string());
+            err
+        })
+        .ok()
+        .flatten()
+        .map(|lib_file| do_parse(base_env, rerun_files, lib_file));
 
-    let mut file = file_result.unwrap();
 
+
+}
+
+fn do_parse(base_env: Option<&str>, rerun_files: Vec<&str>, lib_file: syn::File) {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
     if File::open(dest_path.clone()).is_ok() {
@@ -47,7 +48,6 @@ pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
     File::create(&dest_path)
         .unwrap();
 
-    let lib_file = parse_syn_file(&mut file);
 
     for mut x in lib_file.items {
         let created_mod = parse_macro(&mut x,
@@ -71,16 +71,6 @@ pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
     rerun_files.iter().for_each(|rerun_file| {
         print!("cargo:rerun-if-changed={}", rerun_file);
     })
-
-}
-
-fn parse_syn_file(file: &mut File) -> syn::File {
-    let mut src = String::new();
-    file.read_to_string(&mut src)
-        .unwrap();
-    let mut lib_file = syn::parse_file(&src)
-        .unwrap();
-    lib_file
 }
 
 fn parse_macro<'a>(x: &'a mut Item, project_source_path: &'a str) -> Option<&'a mut ItemMod> {
@@ -177,12 +167,14 @@ fn get_module_to_replace(module_name: &str, base: &str, span: Span, project_src_
     let brace = token::Brace { span: span.clone() };
     let mut items = vec![];
     if inner_module_file.is_ok() {
-        let syn_found = parse_syn_file(&mut inner_module_file.unwrap());
-        for item in syn_found.items {
-            items.push(item.clone());
-            write_to_log("parsed inner file and found");
-            write_to_log(item.to_token_stream().to_string().as_str());
-        }
+        parse::parse_syn_file(&mut inner_module_file.unwrap())
+            .map(|syn_found| {
+                for item in syn_found.items {
+                    items.push(item.clone());
+                    write_to_log("parsed inner file and found");
+                    write_to_log(item.to_token_stream().to_string().as_str());
+                }
+            });
     } else {
         write_to_log("Did not find");
         write_to_log(module_rs_file.as_str());

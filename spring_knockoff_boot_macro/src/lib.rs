@@ -75,6 +75,11 @@ pub fn autowired(attr: TokenStream, input: TokenStream) -> TokenStream {
     input.into()
 }
 
+#[proc_macro_attribute]
+pub fn aspect(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
 fn strip_autowired(input: TokenStream) -> TokenStream {
     if input.to_string().as_str().contains("struct") {
         let mut found: ItemStruct = parse_macro_input!(input as ItemStruct);

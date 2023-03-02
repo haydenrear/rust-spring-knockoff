@@ -31,6 +31,7 @@ pub struct Bean {
     // A reference to another DepImpl - the id is the Type.
     pub deps_map: Vec<DepType>,
     pub id: String,
+    pub path_depth: Vec<String>,
     pub profile: Vec<Profile>,
     pub ident: Option<Ident>,
     pub fields: Vec<Fields>,
@@ -88,7 +89,8 @@ pub enum FunctionType {
 #[derive(Clone)]
 pub struct AutowireType {
     pub item_impl: ItemImpl,
-    pub profile: Vec<Profile>
+    pub profile: Vec<Profile>,
+    pub path_depth: Vec<String>
 }
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash, Debug)]
@@ -146,6 +148,7 @@ impl Default for Bean {
             enum_found: None,
             deps_map: vec![],
             id: String::default(),
+            path_depth: vec![],
             profile: vec![],
             ident: None,
             fields: vec![],

@@ -27,6 +27,8 @@ path = "../web_framework_shared"
 path = "../knockoff_security"
 [dependencies.spring_knockoff_boot_macro]
 path = "../spring_knockoff_boot_macro"
+[dependencies.module_macro_codegen]
+path = "../module_macro_codegen"
 
 [build-dependencies.knockoff_logging]
 path = "../knockoff_logging"
