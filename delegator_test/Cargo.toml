@@ -32,4 +32,4 @@ path = "../module_macro_shared"
 syn = {version = "1.0", features = ["full"]}
 
 [env]
-AUG_FILE = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }
+KNOCKOFF_FACTORIES = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }

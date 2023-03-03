@@ -30,7 +30,7 @@ fn main() {
 }
 
 fn get_aug_file() -> String {
-    let aug_file = env::var("AUG_FILE").ok()
+    let aug_file = env::var("KNOCKOFF_FACTORIES").ok()
         .or(Some(String::from("~/IdeaProject/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs")))
         .unwrap();
     aug_file

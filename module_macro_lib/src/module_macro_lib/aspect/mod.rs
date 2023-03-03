@@ -22,17 +22,17 @@ pub struct AspectParser {
 
 impl AspectParser {
     pub(crate) fn parse_aspects() -> Option<CodegenItems> {
-        let codegen = env::var("AUG_FILE").map(|aug_file| {
-                LibParser::parse_codegen_items(&aug_file)
-                    .iter().filter(|c| c.get_unique_id().as_str().contains("MethodAdviceAspect"))
-                    .map(|b| b.clone_dyn_codegen())
-                    .collect::<Vec<Box<dyn CodegenItem>>>()
-            }).or(Ok::<Vec<Box<dyn CodegenItem>>, Error>(vec![])).unwrap();
         Some(
             CodegenItems{
-                codegen,
+                codegen: LibParser::parse_aspects(),
             }
         )
+    }
+
+    pub(crate) fn write_aspect(&self, type_for_aspect: Type) -> TokenStream {
+        quote! {
+
+        }
     }
 }
 

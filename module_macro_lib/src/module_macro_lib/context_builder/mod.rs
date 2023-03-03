@@ -3,7 +3,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_codegen::aspect::MethodAdviceAspect;
+use module_macro_codegen::aspect::{MethodAdviceAspect, PointCut};
 use crate::module_macro_lib::aspect::AspectParser;
 use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, InjectableTypeKey, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
@@ -62,7 +62,7 @@ impl ContextBuilder {
                         BeanDefinitionType::Concrete { bean } => {
                             aspects.aspects.iter()
                                 .flat_map(|a| {
-                                    if aspect_matches(&bean.path_depth, &a.aspect_matcher_string, &bean.id) {
+                                    if MethodAdviceAspect::aspect_matches(&bean.path_depth, &a.pointcut, &bean.id) {
                                         return vec![(a.clone(), bean.clone())]
                                     }
                                     vec![]
@@ -72,27 +72,7 @@ impl ContextBuilder {
                 })
             }).collect::<Vec<(MethodAdviceAspect, Bean)>>();
 
-        fn aspect_matches(bean_path: &Vec<String>, aspect_matcher_string: &Vec<String>, bean_id: &String) -> bool {
-            if aspect_matcher_string.len() == 1 {
-                return &aspect_matcher_string[0] == bean_id.as_str()
-            } else if aspect_matcher_string.len() == 0 {
-                return false;
-            }
 
-            for i in 0..aspect_matcher_string.len()-1 {
-                let next_aspect_matcher = aspect_matcher_string[i].as_str();
-                if bean_path[i].as_str() != next_aspect_matcher || next_aspect_matcher != "*" {
-                    return false;
-                }
-            }
-
-            let bean_id_matcher = &aspect_matcher_string[aspect_matcher_string.len() - 2];
-
-            if bean_id_matcher != bean_id || bean_id_matcher != "*" {
-                return false;
-            }
-            true
-        }
 
         bean_aspect
     }

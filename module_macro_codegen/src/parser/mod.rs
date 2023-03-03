@@ -27,6 +27,15 @@ pub struct LibParser;
 
 impl LibParser {
 
+    pub fn parse_aspects() -> Vec<Box<dyn CodegenItem>> {
+        env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
+            LibParser::parse_codegen_items(&aug_file)
+                .iter().filter(|c| c.get_unique_id().as_str().contains("MethodAdviceAspect"))
+                .map(|b| b.clone_dyn_codegen())
+                .collect::<Vec<Box<dyn CodegenItem>>>()
+        }).or(Ok::<Vec<Box<dyn CodegenItem>>, Error>(vec![])).unwrap()
+    }
+
     pub fn do_codegen(in_dir_file: &str, out_file: &str) {
 
         let mut codegen_items = Self::gen_codegen_items().codegen;

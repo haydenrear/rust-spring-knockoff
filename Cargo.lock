@@ -1174,6 +1174,7 @@ name = "module_macro_codegen"
 version = "0.1.0"
 dependencies = [
  "base64 0.13.0",
+ "codegen_utils",
  "derive-syn-parse",
  "executors",
  "knockoff_logging",

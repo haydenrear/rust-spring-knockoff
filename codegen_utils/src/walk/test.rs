@@ -9,6 +9,6 @@ fn test_directory_walker() {
 
 fn test_walk(name: &str, dir: &str) {
     let item = DirectoryWalker::walk_directory(name, dir);
-    assert!(item.is_some());
-    assert!(item.unwrap().to_str().unwrap().contains(name))
+    assert_ne!(item.len(), 0);
+    assert!(item[0].to_str().unwrap().contains(name))
 }

@@ -20,8 +20,8 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
     }
 }
 
-#[aspect]
-pub fn do_aspect(&self, join_point: ProceedingJoinPoint, type_found: One) -> String {
+#[aspect(*)]
+pub fn do_aspect(&self, join_point: ProceedingJoinPoint, arg: One) -> String {
     println!("hello");
     join_point.proceed();
     "".to_string()
