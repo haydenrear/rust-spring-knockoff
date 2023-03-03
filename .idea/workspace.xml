@@ -7,16 +7,14 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="aspect started">
-      <change afterPath="$PROJECT_DIR$/codegen_utils/src/walk/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/codegen_utils/src/walk/test.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three/test_library_five/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three/test_library_four/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactored">
+      <change afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two/test_library_six/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three/test_library_five/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three/test_library_five/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three/test_library_four/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three/test_library_four/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -121,8 +119,25 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test aspect::test::test_create_aspect_aware_package" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_shared --lib aspect::test::test_create_aspect_aware_package -- --exact" />
+    <configuration name="Expand delegator_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="expand --lib --color=always --theme=Dracula --tests" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$/delegator_test" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test do_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package build_lib --lib do_test -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -138,25 +153,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test aspect::test::test_match" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_codegen --lib aspect::test::test_match -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test module_macro_lib::aspect::test::get_aspect" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::aspect::test::get_aspect -- --exact" />
+    <configuration name="Test test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package test_app_2 --bin test_app_2 test -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -225,19 +223,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test aspect::test::test_create_aspect_aware_package" />
-      <item itemvalue="Cargo.Test aspect::test::test_match" />
-      <item itemvalue="Cargo.Test module_macro_lib::aspect::test::get_aspect" />
+      <item itemvalue="Cargo.Expand delegator_test" />
+      <item itemvalue="Cargo.Test do_test" />
+      <item itemvalue="Cargo.Test test" />
       <item itemvalue="Cargo.Test test_module_macro" />
       <item itemvalue="Cargo.Test walk::test::test_directory_walker" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test test" />
+        <item itemvalue="Cargo.Expand delegator_test" />
+        <item itemvalue="Cargo.Test do_test" />
         <item itemvalue="Cargo.Test walk::test::test_directory_walker" />
-        <item itemvalue="Cargo.Test module_macro_lib::aspect::test::get_aspect" />
-        <item itemvalue="Cargo.Test aspect::test::test_create_aspect_aware_package" />
-        <item itemvalue="Cargo.Test aspect::test::test_match" />
       </list>
     </recent_temporary>
   </component>
@@ -299,21 +297,7 @@
       <workItem from="1676723809901" duration="565000" />
       <workItem from="1677095156549" duration="18356000" />
       <workItem from="1677421523187" duration="35786000" />
-      <workItem from="1677594170028" duration="56500000" />
-    </task>
-    <task id="LOCAL-00025" summary="fixed tests">
-      <created>1673146693967</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1673146693967</updated>
-    </task>
-    <task id="LOCAL-00026" summary="Builder">
-      <created>1673198558511</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1673198558511</updated>
+      <workItem from="1677594170028" duration="82713000" />
     </task>
     <task id="LOCAL-00027" summary="message converter 2">
       <created>1673268684654</created>
@@ -644,7 +628,21 @@
       <option name="project" value="LOCAL" />
       <updated>1677722197810</updated>
     </task>
-    <option name="localTasksCounter" value="74" />
+    <task id="LOCAL-00074" summary="refactored">
+      <created>1677861748360</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1677861748360</updated>
+    </task>
+    <task id="LOCAL-00075" summary="refactored">
+      <created>1677865900231</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1677865900231</updated>
+    </task>
+    <option name="localTasksCounter" value="76" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -662,8 +660,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="many message converter" />
-    <MESSAGE value="Build script prototype created" />
     <MESSAGE value="di" />
     <MESSAGE value="knockoff context" />
     <MESSAGE value="singleton" />
@@ -687,7 +683,9 @@
     <MESSAGE value="authentication" />
     <MESSAGE value="registration" />
     <MESSAGE value="aspect started" />
-    <option name="LAST_COMMIT_MESSAGE" value="aspect started" />
+    <MESSAGE value="refactored to add ability to have same name modules and recursive modules" />
+    <MESSAGE value="refactored" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactored" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -755,16 +753,6 @@
           <url>file://$PROJECT_DIR$/module_macro_shared/src/aspect/mod.rs</url>
           <line>45</line>
           <option name="timeStamp" value="134" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/codegen_utils/src/walk/mod.rs</url>
-          <line>35</line>
-          <option name="timeStamp" value="138" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/codegen_utils/src/walk/mod.rs</url>
-          <line>45</line>
-          <option name="timeStamp" value="139" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

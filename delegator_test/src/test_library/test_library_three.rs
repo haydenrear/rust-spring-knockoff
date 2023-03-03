@@ -2,6 +2,7 @@ use std::sync::Arc;
 use spring_knockoff_boot_macro::{autowired, bean, singleton};
 
 pub mod test_library_four;
+
 pub mod test_library_five;
 
 pub trait Found {

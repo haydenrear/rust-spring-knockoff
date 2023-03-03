@@ -2,8 +2,10 @@
 
 use std::{env, fs};
 use std::borrow::Borrow;
-use std::ffi::{OsStr, OsString};
-use std::fmt::Error;
+use std::cmp::Ordering;
+use std::convert::identity;
+use std::ffi::{c_long, OsStr, OsString};
+use std::fmt::{Debug, Error, Formatter};
 use std::fs::{DirEntry, File, ReadDir};
 use std::io::{ErrorKind, Read, Write};
 use std::ops::Deref;
@@ -25,6 +27,13 @@ use_logging!();
 initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/build_lib.log");
 initialize_log!();
 
+#[test]
+fn do_test() {
+    replace_modules(Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
+        vec![".git/HEAD"]
+    );
+}
+
 pub struct ModuleReplacer {
     modules: Vec<Module>,
 }
@@ -32,123 +41,139 @@ pub struct ModuleReplacer {
 #[derive(Default, Clone)]
 pub struct Module {
     pub modules: Vec<Module>,
-    pub mod_item: Vec<ItemMod>,
-    pub other_items: Vec<Item>,
-    pub path: PathBuf,
-    pub is_head: bool
+    pub mod_items: Vec<Item>,
+    pub is_head: bool,
+    pub identifier: Option<Ident>,
+    pub mod_item: Option<ItemMod>
+}
+
+impl Module {
+    fn debug_module(&self) {
+        self.identifier.clone().map(|id| {
+            log_message!("Debugging module with name {} and {} modules and {} mod items with head {}.", id, self.modules.len(), self.mod_items.len(), self.is_head);
+        }).or_else(|| {
+            log_message!("Debugging module with no name and {} modules and {} mod items with head {}.", self.modules.len(), self.mod_items.len(), self.is_head);
+            None
+        });
+        self.modules.iter().for_each(|module| {
+            log_message!("Here is other module: ");
+            module.debug_module();
+        })
+    }
 }
 
 pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
+    log_message!("Starting to replace modules.");
     if base_env.is_none() {
         return;
     }
+    log_message!("Continuing to replace modules.");
     Module::parse_syn(base_env)
-        .map(|lib_file| Module::do_parse(rerun_files, Module::parse_modules(base_env.unwrap())));
+        .map(|lib_file|
+            Module::do_parse(
+                rerun_files,
+                Module::parse_modules(base_env.unwrap())
+            )
+        );
 }
 
 impl Module {
 
-    fn new(item_mod: ItemMod, base_project: &str) -> Self {
-        Self {
-            modules: vec![],
-            mod_item: vec![item_mod],
-            other_items: vec![],
-            path: DirectoryWalker::walk_directory(item_mod.ident.to_string().as_str(), base_project).unwrap_or_else(|| {
-                log_message!("Failed to open directory for module {}.", item_mod.ident.to_string().as_str());
-                PathBuf::default()
-            }),
-            is_head: false,
-        }
-    }
-
     fn parse_modules(base_env: &str) -> Module {
-
-        let modules = Self::parse_syn(Some(base_env))
-            .map(|syn_file| Self::parse_module_from_syn_file(syn_file, base_env))
-            .or(Some(vec![]))
+        let buf = Self::get_lib_file_path(base_env);
+        let string = OsString::from("main.rs");
+        let path = buf.file_name()
+            .or(Some(&string))
+            .unwrap()
+            .to_str().or(Some("main.rs"))
             .unwrap();
 
-        let mut path = Path::new(base_env).join("lib.rs");
-        if !path.exists() {
-            path =  Path::new(base_env).join("main.rs");
-        }
-
         Self::parse_syn(Some(base_env))
-            .map(|syn_file| Self::parse_single_layer_module(syn_file, base_env))
-            .map(|head_items| {
-                Module {
-                    modules,
-                    mod_item: head_items.1,
-                    other_items: head_items.0,
-                    path,
-                    is_head: true
-                }
-            })
+            .map(|syn_file| Self::parse_module_from_syn_file(&syn_file, base_env, path, None, &buf))
+            .or(None)
             .unwrap()
+
     }
 
-    fn parse_module_from_file(file_to_parse: &mut File, base_dir: &str) -> Vec<Module> {
+    fn parse_module_from_file(file_to_parse: &mut File, base_dir: &str, module_file: &str, id: Option<Ident>, syn_file_buf: &PathBuf) -> Module {
         parse::parse_syn_file(file_to_parse)
             .map(|syn_file| {
-                Self::parse_module_from_syn_file(syn, base_dir)
+                log_message!("Successfully parsed module syn file.");
+                Self::parse_module_from_syn_file(&syn_file, base_dir, module_file, id, syn_file_buf)
             })
-            .or(Some(vec![]))
+            .or(None)
             .unwrap()
     }
 
-    fn parse_single_layer_module(syn_file: syn::File, base_dir: &str) -> (Vec<Item>, Vec<ItemMod>) {
-        let item_mods = Self::parse_single_layer_item_mod(syn_file, base_dir);
+    fn is_main_or_lib(module_file_name: &str) -> bool {
+        module_file_name == "main.rs" || module_file_name == "main.rs"
+    }
 
-        let item_mod = item_mods.iter().flat_map(|item| {
-            match item{
-                Item::Mod(item_mod) => {
-                    vec![item_mod.clone()]
-                }
-                _ => {
-                    vec![]
-                }
-            }
-        }).collect::<Vec<ItemMod>>();
+    fn parse_module_from_syn_file(syn_file: &syn::File, base_dir: &str, module_file_name: &str, id: Option<Ident>, buf: &PathBuf) -> Module {
 
-        let other_items = item_mods.iter().flat_map(|item| {
-            match item{
-                Item::Mod(_) => {
-                    vec![]
-                }
-                other => {
-                    vec![other]
-                }
-            }
-        }).collect::<Vec<Item>>();
+        let mod_items = Self::parse_items(&syn_file);
+        let mut modules = Self::parse_submodules(&syn_file, base_dir, module_file_name, buf);
 
-        (other_items, item_mod)
+        let mut module = Module {
+            modules: vec![],
+            mod_items,
+            identifier: id,
+            is_head: if Self::is_main_or_lib(module_file_name) { true } else { false },
+            mod_item: None,
+        };
+
+        if Self::is_main_or_lib(module_file_name) && module.modules.len() > 1 {
+            panic!("Only one main module allowed with module macro");
+        } else if Self::is_main_or_lib(module_file_name) {
+            let first_mod = modules.remove(0);
+            module.identifier = first_mod.identifier;
+            module.mod_items = first_mod.mod_items;
+            module.modules = first_mod.modules;
+            module.mod_item = first_mod.mod_item;
+        } else {
+            module.modules = modules;
+        }
+
+        module.debug_module();
+
+        module
 
     }
 
-    fn parse_single_layer_item_mod(syn_file: syn::File, base_dir: &str) -> Vec<Item> {
+    fn get_lib_file_path(base_env: &str) -> PathBuf {
+        let mut path = Path::new(base_env).join("main.rs");
+        if !path.exists() {
+            path = Path::new(base_env).join("main.rs");
+        }
+        path
+    }
+
+    fn parse_items(syn_file: &syn::File) -> Vec<Item> {
         syn_file.items.iter().flat_map(|item| {
+            log_message!("Parsed in syn file {}.", item.to_token_stream().to_string().as_str());
             match item {
-                Item::Mod(item_mod)  => {
-                    if Self::walk_find_mod_file(
-                        base_dir,
-                        item_mod.ident.to_string().as_str()
-                    ).is_none() {
-                        return Self::parse_single_layer_item_mod(syn_file, base_dir).iter();
-                    }
-                    vec![].iter()
+                Item::Mod(item_mod) => {
+                    vec![]
                 }
                 other => {
-                    vec![other]
+                    vec![item.to_owned()]
                 }
             }
         }).collect::<Vec<Item>>()
     }
 
-    fn parse_module_from_syn_file(syn_file: syn::File, base_dir: &str) -> Vec<Module> {
+    fn parse_submodules(syn_file: &syn::File, base_dir: &str, module_or_file_name: &str, syn_file_buf: &PathBuf) -> Vec<Module> {
         syn_file.items.iter().flat_map(|item| {
+            log_message!(
+                "Parsed in syn file {}.",
+                item.to_token_stream().to_string().as_str()
+            );
             match item {
                 Item::Mod(item_mod) => {
-                    Self::parse_module_from_separate_file(base_dir, item_mod)
+                    if item_mod.ident.to_string().as_str() != module_or_file_name {
+                        return vec![Self::parse_module(base_dir, item_mod, item_mod.ident.to_string().as_str(), syn_file_buf)];
+                    }
+                    vec![]
                 }
                 _ => {
                     vec![]
@@ -157,166 +182,230 @@ impl Module {
         }).collect::<Vec<Module>>()
     }
 
-    fn parse_module_from_separate_file(base_dir: &str, item_mod: &ItemMod) -> Vec<Module> {
-        let found = Self::walk_find_mod_file(base_dir, item_mod.ident.to_string().as_str())
-            .map(|item| item.1.ok()
-                .map(|&mut item_file| Self::parse_module_from_file(item_file, base_dir))
-            )
+    fn parse_module(base_dir: &str, item_mod: &ItemMod, module_name_or_file: &str, syn_file_buf: &PathBuf) -> Module {
+        log_message!("successfully parsed mod file.");
+        let ident = item_mod.ident.clone();
+        let found = Self::walk_find_mod_file(base_dir, ident.to_string().as_str(), syn_file_buf)
+            .map(|mut item| {
+                log_message!("parsed mod file for {}.", item_mod.to_token_stream().to_string().as_str());
+                item.1.ok()
+                    .map(|mut item_file| Self::parse_module_from_file(
+                        &mut item_file,
+                        base_dir,
+                        module_name_or_file,
+                        Some(ident.clone()),
+                        syn_file_buf
+                    ))
+            })
             .flatten()
-            .or(Some(vec![]));
+            .or_else(|| {
+
+                let (module_items, containing_modules)
+                    = Self::create_get_module_items(
+                        base_dir, item_mod, module_name_or_file, syn_file_buf
+                    );
+
+                log_message!(
+                    "Creating module for {} with {} module items and {} modules.",
+                    item_mod.ident.to_string().as_str(), module_items.len(), containing_modules.len()
+                );
+
+                Some(Module {
+                    identifier: Some(ident),
+                    modules: containing_modules,
+                    mod_items: module_items,
+                    is_head: false,
+                    mod_item: Some(item_mod.clone()),
+                })
+            });
 
         found.unwrap()
     }
 
+    fn create_get_module_items(base_dir: &str, item_mod: &ItemMod, module_name_or_file: &str, syn_file_buf: &PathBuf) -> (Vec<Item>, Vec<Module>) {
+        let mut module_items = vec![];
+        let mut containing_modules = vec![];
+
+        item_mod.content.clone().map(|item_content| {
+            item_content.1.iter().for_each(|items_found| {
+                match items_found {
+                    Item::Mod(item_mod_again) => {
+                        log_message!(
+                            "Found {} item mod in create get module items and {} is module name or file.",
+                            item_mod_again.ident.clone().to_string(), module_name_or_file.clone().to_string()
+                        );
+                        if item_mod_again.ident.to_string().as_str() != module_name_or_file {
+                            let next_mod = Self::parse_module(
+                                base_dir, item_mod_again,
+                                item_mod_again.ident.to_string().as_str(),
+                                syn_file_buf
+                            );
+                            containing_modules.push(next_mod);
+                        }
+                    }
+                    other => {
+                        module_items.push(other.to_owned());
+                    }
+                }
+            });
+        });
+
+        (module_items, containing_modules)
+    }
+
     fn parse_syn(base_env: Option<&str>) -> Option<syn::File> {
-        parse::open_file(base_env.unwrap(), "lib.rs")
-            .or_else(|| parse::open_file(base_env.unwrap(), "main.rs"))
+        parse::open_file(base_env.unwrap(), "main.rs")
+            .or_else(|_| parse::open_file(base_env.unwrap(), "main.rs"))
             .map(|mut file| parse::parse_syn_file(&mut file))
             .map_err(|err| {
-                log_message!("Error opening lib.rs file: {}.", err.to_string());
+                log_message!("Error opening main.rs file: {}.", err.to_string());
                 err
             })
             .ok()
             .flatten()
     }
 
-    fn create_order(modules: Module) -> Vec<Module> {
-        /// Make sure that the last module is first so that they can be inserted into the containing module
-        if modules.modules.len() != 0 {
-            let mut this_module = modules.modules.iter()
-                .flat_map(|m| Self::create_order(m.to_owned()).iter())
-                .collect::<Vec<Module>>();
-            modules.mod_item.map(|m| this_module.push(m));
-            return this_module;
-        }
-
-        if !modules.is_head {
-            log!(LogLevel::Error, "First module was not head! Error parsing module tree.".to_string(), "6".to_string());
-        }
-
-        vec![modules]
-    }
-
-    fn find_mod_content_index(item_mod: &ItemMod, name: &str) -> usize {
-        let mut counter = 0;
-        item_mod.content.map(|c| {
-            let items = c.1;
-            if items.len() == 0 {
-                counter = -1;
-            } else {
-                for i in items.iter() {
-                    match i {
-                        Item::Mod(item_mod) => {
-                            if item_mod.ident.to_string().as_str() == name {
-                                break;
-                            }
-                        }
-                        _ => {}
-                    }
-                    counter += 1;
-                }
-            }
-        }).or_else(|| {
-            counter = -1;
-            None
+    fn log_module(&self) {
+        self.modules.iter().for_each(|m| {
+            m.log_module();
         });
-        counter
+        self.mod_items.iter().for_each(|m| {
+            log_message!("Found {} as mod item in module.", m.to_token_stream().to_string().as_str());
+        });
     }
 
-    fn do_parse(rerun_files: Vec<&str>, modules: Module) {
-        let out_dir = env::var_os("OUT_DIR").unwrap();
+    fn do_parse(rerun_files: Vec<&str>, mut modules: Module) {
+        let out_dir = env::var_os("OUT_DIR").or(Some(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/test_out"))).unwrap();
         let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
         if File::open(dest_path.clone()).is_ok() {
             fs::remove_file(&dest_path.clone())
                 .unwrap();
         }
 
+        log_message!("Doing final parse.");
+
+        modules.debug_module();
+
         File::create(&dest_path)
             .unwrap();
 
-        let mut prev = None;
-
-        for mut x in Self::create_order(modules) {
-
-            if prev.is_none() {
-                prev = Some(x);
-                continue;
-            }
-
-            let prev_mod_module = prev.unwrap();
-
-            for prev_mod in prev_mod_module.modules.iter() {
-
-                prev_mod.mod_item.iter()
-                    .flat_map(|c| c.content
-                        .map(|content| content.1.iter()
-                            .map(|content| (
-                                content,
-                                Self::find_mod_content_index(m, c.ident.to_string().as_str()),
-                                c.ident.to_string().clone()
-                            ))
-                            .collect()
-                        )
-                        .or(Some(vec![])).unwrap()
-                    )
-                    .for_each(|m| {
-                        let mod_index = m.1;
-
-                        if mod_index != -1 {
-                            x.add_item_to_module(m.2.as_str(), mod_index, m.0.clone())
-                        }
-
-                });
-
-            }
+        for mut next_mod in modules.modules.clone().iter() {
+            let mut next_mod_owned = next_mod.to_owned();
+            next_mod_owned = Self::do_parse_recursive(next_mod_owned);
+            modules.add_mod(next_mod_owned.to_owned());
         }
 
-
-        Self::process_lib_main_mod(dest_path, &mut prev);
+        modules.process_lib_main_mod(dest_path);
 
         rerun_files.iter().for_each(|rerun_file| {
             print!("cargo:rerun-if-changed={}", rerun_file);
         })
     }
 
-    fn add_item_to_module(&mut self, item_mod_name: &str, mod_index: usize, item: Item) {
-        let mut index = 0;
-        let mut contains = false;
-        for mod_item in self.mod_item.iter() {
-            if mod_item.ident.to_string().as_str() == item_mod_name {
-                contains = true;
-                break;
+
+    fn do_parse_recursive(mut modules: Module) -> Module {
+        for mut next_mod in modules.modules.clone().iter() {
+            let mut next_mod = next_mod.to_owned();
+            next_mod = Self::do_parse_recursive(next_mod);
+            modules.add_mod(next_mod.to_owned());
+        }
+        modules.to_owned()
+    }
+
+    /// At this point, the prev_mod will have already put all of it's modules into the mod_items.
+    fn add_mod(&mut self, mut prev_mod: Module) {
+        log_message!("Adding {} mod items.", prev_mod.mod_items.len());
+        log_message!("Module now has {} items.", self.mod_items.len());
+
+        for mut next_mod in prev_mod.mod_items.clone().iter() {
+            if prev_mod.identifier.is_none() && self.identifier.is_none() {
+                log_message!("was none when parsing {}", self.identifier.clone().unwrap());
+                continue;
+            } else if (prev_mod.identifier.is_none() && self.identifier.is_none()) {
+                log_message!("Warning: both identifiers are none!");
+                continue;
             }
-            index += 1;
+            self.add_item_mod(next_mod.clone(), prev_mod.identifier.clone().unwrap())
         }
-        if contains {
-            self.mod_item[index].content[mod_index] = item;
+
+        log_message!("module now has {} items.", self.mod_items.len());
+    }
+
+    fn add_item_mod(&mut self, item: Item, ident: Ident) {
+        let index = self.get_item_mod_index(item.clone(), ident.clone());
+        if index != -1 {
+            let mut mod_item_to_update = self.mod_items.remove(index as usize);
+            match mod_item_to_update {
+                Item::Mod(ref mut item_mod) => {
+                    item_mod.content.as_mut().map(|mut i| {
+                        log_message!("Adding to item mod!");
+                        i.1.push(item.clone());
+                    });
+                    log_message!("Adding mod.");
+                    self.mod_items.push(Item::Mod(item_mod.clone()));
+                }
+                _ => {
+                    self.mod_items.push(mod_item_to_update);
+                }
+            }
+        } else {
+            let mut new_mod = ItemMod {
+                attrs: vec![],
+                vis: Visibility::Public(VisPublic{ pub_token: Default::default() }),
+                mod_token: Default::default(),
+                ident,
+                content: Some((Brace::default(), vec![item])),
+                semi: None,
+            };
+            self.mod_items.push(Item::Mod(new_mod));
         }
     }
 
-    fn process_lib_main_mod(dest_path: PathBuf, prev: &mut Option<Module>) {
-        if prev.is_some() {
-            let mut existing = fs::read_to_string(dest_path.clone())
-                .unwrap();
-            prev.unwrap().mod_item.iter().for_each(|mut mod_created| {
-                Self::remove_cfg_for_codegen(&mut mod_created);
-                Self::write_to_module_file(&mut existing, mod_created);
-            });
-            prev.unwrap().other_items.iter().for_each(|mut mod_created| {
-                log_message!("{} is the finished module", mod_created.to_token_stream().to_string().as_str());
-                existing.push_str(mod_created.to_token_stream().to_string().as_str());
-            });
-            fs::write(dest_path.clone(), existing)
-                .unwrap();
+    fn get_item_mod_index(&mut self, item: Item, ident: Ident) -> i32 {
+        log_message!("Adding {} to module {}.", item.clone().to_token_stream().to_string().as_str(), self.identifier.clone().unwrap().to_string().as_str());
+        let mut count = 0;
+        for mut prospective_mod_item in &self.mod_items {
+            match prospective_mod_item {
+                Item::Mod(item_mod) => {
+                    if item_mod.ident == ident {
+                        return count;
+                    }
+                }
+                _ => {
+                }
+            };
+            count += 1;
         }
+        log_message!("Index did not exist in item for {}!", ident.to_string().as_str());
+        -1
     }
 
-    fn write_to_module_file<T: ToTokens>(mut existing: &mut String, mut mod_created: &T) {
+    fn process_lib_main_mod(&mut self, dest_path: PathBuf) {
+        let mut existing = fs::read_to_string(dest_path.clone())
+            .unwrap();
+
+        log_message!("{} is starting existing", existing.as_str());
+        log_message!("There are {} other items.", self.mod_items.len());
+        log_message!("Here is the lib.");
+
+
+        let mut final_mod_item = self.mod_item.clone().expect("Main module was not module!");
+
+        final_mod_item.content = Some((Brace::default(), self.mod_items.clone()));
+
+        final_mod_item = Self::remove_cfg_for_codegen(&mut final_mod_item);
+        Self::write_to_module_file(&mut existing, &final_mod_item);
+
+        fs::write(dest_path.clone(), existing)
+            .unwrap();
+    }
+
+    fn write_to_module_file<T: ToTokens>(mut existing: &mut String, mod_created: &T) {
         log_message!("{} is the finished module", mod_created.to_token_stream().to_string().as_str());
         existing.push_str(mod_created.to_token_stream().to_string().as_str());
     }
 
-    fn remove_cfg_for_codegen(x: &mut ItemMod) {
+    fn remove_cfg_for_codegen(x: &mut ItemMod) -> ItemMod {
         let mut cfg_attr = 0;
         let mut counter = 0;
 
@@ -331,15 +420,17 @@ impl Module {
         }
 
         if cfg_attr != 0 {
-            module.attrs.remove(cfg_attr);
+            x.attrs.remove(cfg_attr);
         }
+
+        x.to_owned()
 
     }
 
     fn create_module(
         mut item_mod: ItemMod, items: Vec<Item>
     ) -> ItemMod {
-        log_message!("Using {}.", module.ident.to_token_stream().to_string().as_str());
+        log_message!("Using {}.", item_mod.ident.to_token_stream().to_string().as_str());
         item_mod.content = Some((Brace::default(), items));
         item_mod
     }
@@ -351,12 +442,38 @@ impl Module {
         ts
     }
 
-    fn walk_find_mod_file(base_dir: &str, module_name: &str) -> Option<(PathBuf, Result<File, std::io::Error>)> {
-        DirectoryWalker::walk_directory(module_name, base_dir)
-            .filter(|dir| dir.exists())
-            .map(|dir| {
-                (dir.clone(), File::open(dir))
+    fn walk_find_mod_file(base_dir: &str, module_name: &str, parent_buf: &PathBuf) -> Option<(PathBuf, Result<File, std::io::Error>)> {
+        let dirs_with_name = DirectoryWalker::walk_directory(module_name, base_dir);
+
+        if dirs_with_name.len() == 1 {
+            let correct_buf = dirs_with_name[0].to_owned();
+            return Some((correct_buf.clone(), File::open(correct_buf)));
+        } else if dirs_with_name.len() == 0 {
+            return None
+        }
+
+        Self::find_correct_buf(dirs_with_name, parent_buf)
+            .map(|correct_buf| Some((correct_buf.clone(), File::open(correct_buf))))
+            .flatten()
+            .or(None)
+
+    }
+
+    fn find_correct_buf(bufs: Vec<PathBuf>, parent_buf: &PathBuf) -> Option<PathBuf> {
+        bufs.iter().filter(|b| {
+            parent_buf.to_str().map(|parent_buf| {
+                b.to_str().map(|child_buf| {
+                    parent_buf.contains(child_buf)
+                })
+            }).or_else(|| {
+                panic!("Parent path could not be unwrapped!");
+                None
+            }).is_some()
+        })
+            .max_by(|first, second| {
+                (first.to_str().unwrap().len() as i32).cmp(&(second.to_str().unwrap().len() as i32))
             })
+            .map(|c| c.to_owned())
     }
 
 }
