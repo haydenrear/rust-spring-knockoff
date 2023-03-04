@@ -20,6 +20,7 @@ impl ApplicationContextGenerator {
     pub fn create_application_context() -> TokenStream {
         let ts = quote! {
             use module_macro_lib::module_macro_lib::knockoff_context::{AbstractListableFactory, ApplicationContext, Profile, ContainsBeans};
+            use std::sync::Mutex;
         };
         ts.into()
     }
@@ -36,8 +37,26 @@ impl ApplicationContextGenerator {
             }
 
             #[derive(Debug)]
+            pub struct MutableBeanDefinition<T: ?Sized> {
+                inner: Arc<Mutex<T>>
+            }
+
+            #[derive(Debug)]
             pub struct PrototypeBeanDefinition<T: ?Sized> {
                 inner: Arc<T>
+            }
+
+            impl <T: 'static + Send + Sync> MutableBeanDefinition<T> {
+                fn to_any(&self) -> MutableBeanDefinition<dyn Any + Send + Sync> {
+                    let inner: Arc<Mutex<dyn Any + Send + Sync>> = self.inner.clone() as Arc<Mutex<dyn Any + Send + Sync>>;
+                    MutableBeanDefinition {
+                        inner
+                    }
+                }
+
+                fn get_bean_type_id(&self) -> TypeId {
+                    self.inner.type_id().clone()
+                }
             }
 
             impl <T: 'static + Send + Sync> PrototypeBeanDefinition<T> {
@@ -79,7 +98,7 @@ impl ApplicationContextGenerator {
             #[derive(Default)]
             pub struct ListableBeanFactory {
                 singleton_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any + Send + Sync>>,
-                prototype_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any + Send + Sync>>
+                mutable_bean_definitions: HashMap<TypeId, MutableBeanDefinition<dyn Any + Send + Sync>>
             }
 
             impl ContainsBeans for ListableBeanFactory {
@@ -120,19 +139,29 @@ impl ApplicationContextGenerator {
         let mut singleton_types = vec![];
         let mut prototype_idents = vec![];
         let mut prototype_types = vec![];
+        let mut mutable_types = vec![];
+        let mut mutable_idents = vec![];
 
         for bean in beans_to_provide.iter() {
 
             bean.bean_type.as_ref().and_then(|bean_type| {
                 log_message!("Found bean type {:?}.", bean_type);
                 match bean_type {
-                    BeanType::Singleton(_, _) => {
+                    BeanType::Singleton(b, _) => {
                         log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
-                        Self::add_to(&mut singleton_idents, &mut singleton_types, &bean);
+                        if bean.mutable {
+                            Self::add_to(&mut mutable_idents, &mut mutable_types, &bean);
+                        } else {
+                            Self::add_to(&mut singleton_idents, &mut singleton_types, &bean);
+                        }
                     }
                     BeanType::Prototype(_, _) => {
                         log_message!("adding bean dep impl with type {} as prototype!", bean.id.clone());
-                        Self::add_to(&mut prototype_idents, &mut prototype_types, &bean);
+                        if bean.mutable {
+                            Self::add_to(&mut mutable_idents, &mut mutable_types, &bean);
+                        } else {
+                            Self::add_to(&mut prototype_idents, &mut prototype_types, &bean);
+                        }
                     }
                 };
                 None::<BeanType>
@@ -154,10 +183,10 @@ impl ApplicationContextGenerator {
 
                 fn new() -> Self {
                     let mut singleton_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any + Send + Sync>> = HashMap::new();
-                    let mut prototype_bean_definitions: HashMap<TypeId, BeanDefinition<dyn Any + Send + Sync>> = HashMap::new();
+                    let mut mutable_bean_definitions: HashMap<TypeId, MutableBeanDefinition<dyn Any + Send + Sync>> = HashMap::new();
                     let mut listable_bean_factory = ListableBeanFactory {
                         singleton_bean_definitions,
-                        prototype_bean_definitions
+                        mutable_bean_definitions
                     };
                     #(
                         let next_bean_definition = <BeanDefinition<#singleton_idents >>::get_bean(&listable_bean_factory);
@@ -176,6 +205,16 @@ impl ApplicationContextGenerator {
                     )*
                     #(
                         let next_bean_definition = <BeanDefinition<#prototype_types>>::get_bean(&listable_bean_factory);
+                        println!("Adding next bean definition {:?}.", next_bean_definition);
+                        listable_bean_factory.add_bean_definition(next_bean_definition);
+                    )*
+                    #(
+                        let next_bean_definition = <MutableBeanDefinition<#mutable_idents>>::get_bean(&listable_bean_factory);
+                        println!("Adding next bean definition {:?}.", next_bean_definition);
+                        listable_bean_factory.add_bean_definition(next_bean_definition);
+                    )*
+                    #(
+                        let next_bean_definition = <MutableBeanDefinition<#mutable_types>>::get_bean(&listable_bean_factory);
                         println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
@@ -206,6 +245,13 @@ impl ApplicationContextGenerator {
 
                 fn add_bean_definition<T: 'static + Send + Sync>(&mut self, bean_defin: BeanDefinition<T>) {
                     self.singleton_bean_definitions.insert(
+                        bean_defin.get_bean_type_id().clone(),
+                        bean_defin.to_any()
+                    );
+                }
+
+                fn add_mutable_bean_definition<T: 'static + Send + Sync>(&mut self, bean_defin: MutableBeanDefinition<T>) {
+                    self.mutable_bean_definitions.insert(
                         bean_defin.get_bean_type_id().clone(),
                         bean_defin.to_any()
                     );

@@ -320,7 +320,8 @@ impl ParseContainer {
     pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: Vec<&str>) -> Option<String> {
         autowired_attr.iter()
             .filter(|m| matcher_str.iter()
-                .any(|matcher_str| m.to_token_stream().to_string().as_str().contains(matcher_str))
+                .any(|matcher_str| m.to_token_stream().to_string()
+                    .as_str().contains(matcher_str))
             )
             .map(|m| SynHelper::parse_attr_path_single(m))
             .flatten()
