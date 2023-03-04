@@ -39,7 +39,7 @@ mod test {
     use crate::executor;
     use executors::Executor;
 
-    initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log");
+    initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/knockoff_logging_test.log"));
     initialize_log!();
 
     #[test]

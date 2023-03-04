@@ -11,3 +11,5 @@ executors = "0.9.0"
 
 [dependencies.wait_for]
 path = "../wait_for"
+[dependencies.codegen_utils]
+path = "../codegen_utils"

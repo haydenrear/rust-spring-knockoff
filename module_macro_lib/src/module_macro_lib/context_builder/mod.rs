@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
+use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::{MethodAdviceAspect, PointCut};
 use crate::module_macro_lib::aspect::AspectParser;
-use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, InjectableTypeKey, Profile};
+use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, BeanPathParts, InjectableTypeKey, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 
@@ -25,6 +26,7 @@ impl ContextBuilder {
         parse_container.build_injectable();
 
         let mut token = quote! {};
+
 
         let mut profile_map = HashMap::new();
 
@@ -134,9 +136,17 @@ impl ContextBuilder {
     }
 
     fn get_field_ids(token_type: &Bean) -> (Vec<Type>, Vec<Ident>) {
+
         let field_types = token_type.deps_map
             .clone().iter()
-            .map(|d| d.bean_info.type_of_field.clone())
+            .map(|d| {
+                log_message!("Parsing field id dep type {}.", SynHelper::get_str(d.bean_info.type_of_field.clone()).as_str());
+                log_message!("Parsing field id dep type {}.", SynHelper::get_str(d.bean_info.field.clone()).as_str());
+                d.clone().bean_type_path.map(|type_path| {
+                    type_path.get_autowirable_type()
+                }).flatten().or(Some(d.bean_info.type_of_field.clone()))
+            })
+            .map(|f| f.unwrap())
             .collect::<Vec<Type>>();
 
         let identifiers = token_type.deps_map
@@ -152,6 +162,7 @@ impl ContextBuilder {
                 }
             })
             .collect::<Vec<Ident>>();
+
         (field_types, identifiers)
     }
 
@@ -161,6 +172,10 @@ impl ContextBuilder {
         identifiers: &Vec<Ident>,
         struct_type: &T) {
         log_message!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+
+        field_types.iter().for_each(|f_type| {
+            log_message!("{} is field type for {}.", SynHelper::get_str(f_type.clone()).as_str(), struct_type.to_token_stream().to_string().clone());
+        });
 
         let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
             &field_types, &identifiers, &struct_type);

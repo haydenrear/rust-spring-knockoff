@@ -291,26 +291,10 @@ impl ParseContainer {
 
 
     pub fn get_autowired_field_dep(field: Field) -> Option<AutowiredField> {
-        log_message!("Checking attributes for field again {}. Following log contains attributes of len {}: ", field.to_token_stream().to_string().clone(), field.attrs.len());
-        field.attrs.iter().for_each( |attr| {
-            log_message!("{} is attr for field {}.", attr.to_token_stream().to_string().as_str(), field.to_token_stream().to_string().as_str());
-        });
-
-        field.attrs.iter()
-            .filter(|a| vec!["autowired"].iter()
-                .filter(|m| {
-                    log_message!("Checking if {} contains {}.", SynHelper::get_str(a), m);
-                    SynHelper::get_str(a).as_str().contains(**m)
-                }).next().is_some()
-            )
-            .next()
-            .map(|a| SynHelper::parse_attr_path_single(a).or(Some("".to_string())))
-            .flatten();
-        log_message!("{} is number of field attrs.", field.attrs.len());
         SynHelper::get_attr_from_vec(&field.attrs, vec!["autowired"])
             .map(|autowired_field| {
                 log_message!("Attempting to add autowired field for {}.", field.to_token_stream().to_string().as_str());
-                SynHelper::get_attr_from_vec(&field.attrs, vec!["mutable_field"])
+                SynHelper::get_attr_from_vec(&field.attrs, vec!["mutable_bean"])
                     .map(|mutable_field| {
                         log_message!("Adding mutable field and autowired field for {}.", field.to_token_stream().to_string().as_str());
                         AutowiredField{
@@ -321,13 +305,7 @@ impl ParseContainer {
                             mutable: true,
                         }
                     })
-                    .or(Some(AutowiredField{
-                        qualifier: None,
-                        lazy: false,
-                        field: field.clone(),
-                        type_of_field: field.ty.clone(),
-                        mutable: false,
-                    }))
+                    .or(None)
             }).unwrap_or_else(|| {
                 log_message!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
                 None

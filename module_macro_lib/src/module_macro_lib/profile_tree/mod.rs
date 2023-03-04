@@ -3,6 +3,7 @@ use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use proc_macro2::Ident;
 use quote::ToTokens;
+use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, DepType, InjectableTypeKey, Profile};
 
 use knockoff_logging::{initialize_log, use_logging};
@@ -29,28 +30,36 @@ impl ProfileTree {
         let default_profile = Profile::default();
 
         let mutable_field_types: Vec<String> = beans.values()
-            .map(|b| {
-                log_message!("Checking if {} is mutable {}.", b.id.as_str(), b.mutable);
-                b
-            })
             .filter(|b| b.mutable)
             .map(|b| b.ident.to_token_stream().to_string().clone())
             .collect::<Vec<String>>();
 
+        beans.clone().iter()
+            .map(|dep| {
+                log_message!("Checking if bean {} has mutable dep type of len {}.", dep.0, dep.1.deps_map.len());
+                dep
+            })
+            .flat_map(|b| b.1.deps_map.iter())
+            .for_each(|dep| {
+                log_message!("Checking if dep type {} is already mutable.", SynHelper::get_str(dep.bean_info.field.clone()).as_str());
+                if dep.bean_info.mutable {
+                    log_message!("Dep type {} is already mutable.", SynHelper::get_str(dep.bean_info.field.clone()).as_str());
+                }
+            });
 
         for mut i_type in beans.iter_mut() {
 
             mutable_field_types.iter().for_each(|i| {
                 log_message!("Making {} mutable field.", i.as_str());
                 i_type.1.deps_map.iter_mut()
-                    .map(|dd| {
-                        log_message!("Making {} mutable field for {}.", dd.bean_info.type_of_field.to_token_stream().to_string().as_str(), i_type.0.as_str());
-                        dd
-                    })
                     .filter(|d| d.bean_info.type_of_field.to_token_stream().to_string() == i.clone())
                     .for_each(|d| {
-                        log_message!("Making {} mutable field for {}.", d.bean_info.type_of_field.to_token_stream().to_string().as_str(), i_type.0.as_str());
-                        d.bean_info.mutable = true;
+                        if d.bean_info.mutable {
+                            log_message!("Dep type {} is already mutable.", SynHelper::get_str(d.bean_info.field.clone()).as_str());
+                        } else {
+                            log_message!("Making {} mutable field for {}.", d.bean_info.type_of_field.to_token_stream().to_string().as_str(), i_type.0.as_str());
+                            d.bean_info.mutable = true;
+                        }
                     })
             });
 

@@ -33,17 +33,17 @@ impl ApplicationContextGenerator {
 
             #[derive(Debug)]
             pub struct BeanDefinition<T: ?Sized> {
-                inner: Arc<T>
+                pub inner: Arc<T>
             }
 
             #[derive(Debug)]
             pub struct MutableBeanDefinition<T: ?Sized> {
-                inner: Arc<Mutex<T>>
+                pub inner: Arc<Mutex<T>>
             }
 
             #[derive(Debug)]
             pub struct PrototypeBeanDefinition<T: ?Sized> {
-                inner: Arc<T>
+                pub inner: Arc<T>
             }
 
             impl <T: 'static + Send + Sync> MutableBeanDefinition<T> {
@@ -273,8 +273,10 @@ impl ApplicationContextGenerator {
     }
 
     pub fn gen_autowire_code_gen_concrete<T: ToTokens>(
-        field_types: &Vec<Type>, field_idents: &Vec<Ident>,
-        struct_type: &T) -> TokenStream2 {
+        field_types: &Vec<Type>,
+        field_idents: &Vec<Ident>,
+        struct_type: &T
+    ) -> TokenStream2 {
         let injectable_code = quote! {
 
                 impl BeanFactory<#struct_type> for ListableBeanFactory {
@@ -289,7 +291,9 @@ impl ApplicationContextGenerator {
                     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<#struct_type> {
                         let mut inner = #struct_type::default();
                         #(
-                            inner.#field_idents = ListableBeanFactory::<#field_types>::get_bean(listable_bean_factory);
+                            let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types>>::get_bean(listable_bean_factory);
+                            let arc_bean_def: Arc<#field_types> = bean_def.inner;
+                            inner.#field_idents = arc_bean_def.clone();
                         )*
                         Self {
                             inner: Arc::new(inner)

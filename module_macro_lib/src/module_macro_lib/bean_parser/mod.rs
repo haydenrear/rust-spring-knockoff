@@ -6,6 +6,7 @@ use proc_macro2::Ident;
 use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
+use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use crate::module_macro_lib::fn_parser::FnParser;
 use crate::module_macro_lib::parse_container::ParseContainer;
@@ -129,6 +130,8 @@ impl BeanParser {
                 None
             })
     }
+
+
 }
 
 impl BeanDependencyParser {
@@ -223,8 +226,10 @@ impl BeanDependencyParser {
         let type_dep = &field_to_add.field.clone().ty.to_token_stream().to_string();
         let contains_key = injectable_types_builder.contains_key(type_dep);
         let struct_exists = injectable_types_builder.get(&field_to_add.field.clone().ty.to_token_stream().to_string()).is_some();
-        let autowired_qualifier = field_to_add.clone().qualifier.or(Some(field_to_add.type_of_field.to_token_stream().to_string().clone()));
-        if autowired_qualifier.is_some() && contains_key && struct_exists {
+        let autowired_qualifier = field_to_add.clone()
+            .qualifier
+            .or(Some(field_to_add.type_of_field.to_token_stream().to_string().clone()));
+        if autowired_qualifier.is_some() {
 
             dep_impl.ident.clone().map(|ident| {
                 log_message!("Adding dependency to struct with id {} to struct_impl of name {}", ident.to_string().clone(), dep_impl.id.clone());
@@ -242,13 +247,15 @@ impl BeanDependencyParser {
             })
                 .or(None);
 
+            log_message!("Adding dependency {} for bean with id {}.",  SynHelper::get_str(field_to_add.field.clone()), dep_impl.id.clone());
+
             if bean_type.is_some() {
                 dep_impl
                     .deps_map
                     .push(DepType {
                         bean_info: field_to_add,
                         lifetime,
-                        bean_type: bean_type.unwrap(),
+                        bean_type: bean_type.flatten(),
                         array_type,
                         bean_type_path: bean_dep_path,
                     });
@@ -336,6 +343,7 @@ impl BeanDependencyPathParser {
         angle.args.iter().flat_map(|arg| {
             match arg {
                 GenericArgument::Type(t) => {
+                    log_message!("Found type arg: {}.", SynHelper::get_str(t).as_str());
                     vec![BeanPathParts::create_bean_path_parts(t)]
                 }
                 GenericArgument::Lifetime(_) => {

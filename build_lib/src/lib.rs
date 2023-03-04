@@ -19,19 +19,20 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use codegen_utils::parse;
+use codegen_utils::env::{get_project_base_dir, get_project_dir};
+use codegen_utils::{parse, project_directory};
 use codegen_utils::walk::DirectoryWalker;
 use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
 
 use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/build_lib.log");
+initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/build_lib.log"));
 initialize_log!();
 
 #[test]
 fn do_test() {
     replace_modules(
-        Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
-        vec![".git/HEAD"]
+        Some(get_project_dir("delegator_test/src").as_str()),
+        vec![get_project_base_dir().as_str()]
     );
 }
 
@@ -66,10 +67,13 @@ impl Module {
 pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
 
     log_message!("Starting to replace modules.");
+
     if base_env.is_none() {
         return;
     }
+
     log_message!("Continuing to replace modules.");
+
     Module::parse_syn(base_env)
         .map(|lib_file|
             Module::do_parse(

@@ -61,6 +61,34 @@ pub struct BeanPath {
     pub(crate) path_segments: Vec<BeanPathParts>
 }
 
+impl BeanPath {
+    pub fn get_autowirable_type(&self) -> Option<Type> {
+        for path_segment in self.path_segments.iter() {
+            match path_segment {
+                BeanPathParts::ArcType { arc_inner_types } => {
+                    return Some(arc_inner_types.clone())
+                }
+                BeanPathParts::ArcMutexType { arc_mutex_inner_type } => {
+                    return Some(arc_mutex_inner_type.clone())
+                }
+                BeanPathParts::FnType { input_types, return_type } => {
+                    return return_type.clone()
+                }
+                BeanPathParts::QSelfType { q_self } => {
+                    return Some(q_self.clone())
+                }
+                BeanPathParts::BindingType { associated_type } => {
+                    return Some(associated_type.clone())
+                }
+                BeanPathParts::GenType { inner } => {
+                    return Some(inner.clone())
+                }
+            }
+        }
+        None
+    }
+}
+
 #[derive(Clone)]
 pub enum BeanPathParts {
     ArcType {
