@@ -6,7 +6,7 @@ use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::{MethodAdviceAspect, PointCut};
 use crate::module_macro_lib::aspect::AspectParser;
-use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, BeanPathParts, InjectableTypeKey, Profile};
+use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, BeanPath, BeanPathParts, BeanType, InjectableTypeKey, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 
@@ -105,9 +105,10 @@ impl ContextBuilder {
 
     }
 
+    // TODO:
     fn implement_abstract_autowire(mut token: &mut TokenStream, token_type: &Bean, profile: &Profile) {
 
-        let (field_types, identifiers) = Self::get_field_ids(token_type);
+        let (field_types, identifiers) = Self::get_singleton_field_ids(token_type);
 
         if token_type.struct_type.is_some() {
             let struct_type = token_type.struct_type.clone()
@@ -122,31 +123,81 @@ impl ContextBuilder {
 
     fn implement_concrete_autowire(mut token: &mut TokenStream, token_type: &Bean, profile: &Profile, aspects: &AspectParser) {
 
-        let (field_types, identifiers) = Self::get_field_ids(token_type);
+        let (field_types, identifiers) = Self::get_singleton_field_ids(token_type);
+        let (mutable_field_types, mutable_identifiers) = Self::get_mutable_singleton_field_ids(token_type);
 
         if token_type.struct_type.is_some() {
             let struct_type = token_type.struct_type.clone()
                 .unwrap();
-            Self::implement_autowire_code(&mut token, &field_types, &identifiers, &struct_type);
+            Self::gen_autowire_code(&mut token, token_type, &field_types, &identifiers, &mutable_field_types, &mutable_identifiers, &struct_type);
         } else if token_type.ident.is_some() {
             let struct_type = token_type.ident.clone()
                 .unwrap();
-            Self::implement_autowire_code(&mut token, &field_types, &identifiers, &struct_type);
+            Self::gen_autowire_code(&mut token, token_type, &field_types, &identifiers, &mutable_field_types, &mutable_identifiers, &struct_type);
         }
     }
 
-    fn get_field_ids(token_type: &Bean) -> (Vec<Type>, Vec<Ident>) {
+    fn gen_autowire_code<T: ToTokens>(
+        mut token: &mut TokenStream,
+        token_type: &Bean,
+        field_types: &Vec<Type>,
+        identifiers: &Vec<Ident>,
+        mutable_field_types: &Vec<Type>,
+        mutable_identifiers: &Vec<Ident>,
+        struct_type: &T
+    ) {
+        Self::implement_autowire_mutable_code(&mut token, &field_types, &identifiers, &mutable_field_types, &mutable_identifiers, &struct_type);
+        Self::implement_autowire_code(&mut token, &field_types, &identifiers, &mutable_field_types, &mutable_identifiers, &struct_type);
+    }
+
+    fn get_singleton_field_ids(token_type: &Bean) -> (Vec<Type>, Vec<Ident>) {
+        let non_mutable = Self::get_field_ids(token_type, &|b| {
+            b.path_segments.iter().all(|path_part| !path_part.is_mutable())
+        });
+        non_mutable.0.iter().for_each(|non_mutable_type| {
+            log_message!("{} is non mutable field type.", SynHelper::get_str(non_mutable_type.clone()));
+        });
+        non_mutable
+    }
+
+    fn get_mutable_singleton_field_ids(token_type: &Bean) -> (Vec<Type>, Vec<Ident>) {
+        let non_mutable = Self::get_field_ids(token_type, &|b| {
+            b.path_segments.iter().any(|path_part| path_part.is_mutable())
+        });
+        non_mutable.0.iter().for_each(|non_mutable_type| {
+            log_message!("{} is mutable field type.", SynHelper::get_str(non_mutable_type.clone()));
+        });
+        non_mutable
+    }
+
+    fn get_field_ids(token_type: &Bean, matcher: &dyn Fn(&BeanPath) -> bool) -> (Vec<Type>, Vec<Ident>) {
 
         let field_types = token_type.deps_map
             .clone().iter()
             .map(|d| {
                 log_message!("Parsing field id dep type {}.", SynHelper::get_str(d.bean_info.type_of_field.clone()).as_str());
                 log_message!("Parsing field id dep type {}.", SynHelper::get_str(d.bean_info.field.clone()).as_str());
-                d.clone().bean_type_path.map(|type_path| {
-                    type_path.get_autowirable_type()
-                }).flatten().or(Some(d.bean_info.type_of_field.clone()))
+                d.clone()
+                    .bean_type_path
+                    .filter(|btp| {
+                        let f = matcher(btp);
+                        f
+                    })
+                    .map(|type_path| {
+                        type_path.get_autowirable_type()
+                    })
+                    .flatten()
+                    .map(|a_type| {
+                        log_message!("Parsed dep type {} using bean type path.", SynHelper::get_str(a_type.clone()));
+                        a_type
+                    })
+                    .or_else(|| {
+                        log_message!("Could not parse dep type with previous id.");
+                        None
+                    })
             })
-            .map(|f| f.unwrap())
+            .flat_map(|f| f.map(|t| vec![t]).or(Some(vec![])))
+            .flat_map(|f| f)
             .collect::<Vec<Type>>();
 
         let identifiers = token_type.deps_map
@@ -166,11 +217,35 @@ impl ContextBuilder {
         (field_types, identifiers)
     }
 
+    fn implement_autowire_mutable_code<T: ToTokens>(
+        token: &mut TokenStream,
+        field_types: &Vec<Type>,
+        identifiers: &Vec<Ident>,
+        mutable_field_types: &Vec<Type>,
+        mutable_identifiers: &Vec<Ident>,
+        struct_type: &T
+    ) {
+        log_message!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
+
+        field_types.iter().for_each(|f_type| {
+            log_message!("{} is field type for {}.", SynHelper::get_str(f_type.clone()).as_str(), struct_type.to_token_stream().to_string().clone());
+        });
+
+        let this_struct_impl = ApplicationContextGenerator::gen_autowire_mutable_code_gen_concrete(
+            &field_types, &identifiers, &struct_type, mutable_identifiers, mutable_field_types
+        );
+
+        token.append_all(this_struct_impl);
+    }
+
     fn implement_autowire_code<T: ToTokens>(
         token: &mut TokenStream,
         field_types: &Vec<Type>,
         identifiers: &Vec<Ident>,
-        struct_type: &T) {
+        mutable_field_types: &Vec<Type>,
+        mutable_identifiers: &Vec<Ident>,
+        struct_type: &T
+    ) {
         log_message!("Implementing container for {}.", struct_type.to_token_stream().to_string().clone());
 
         field_types.iter().for_each(|f_type| {
@@ -178,7 +253,8 @@ impl ContextBuilder {
         });
 
         let this_struct_impl = ApplicationContextGenerator::gen_autowire_code_gen_concrete(
-            &field_types, &identifiers, &struct_type);
+            &field_types, &identifiers, &struct_type, mutable_identifiers, mutable_field_types
+        );
 
         token.append_all(this_struct_impl);
     }

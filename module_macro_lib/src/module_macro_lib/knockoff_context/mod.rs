@@ -1,5 +1,5 @@
 use std::any::TypeId;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 /**
 This is the runtime application context.
@@ -23,11 +23,15 @@ pub trait Profile {
 pub trait AbstractListableFactory<P: Profile> {
     fn new() -> Self;
     fn get_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<T>>;
+    fn get_mutable_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Mutex<T>>>;
     fn get_beans<T: 'static + Send + Sync>(&self) -> Vec<Arc<T>>;
 }
 
 pub trait ContainsBeans {
     fn contains_bean_type(&self, type_id: &TypeId) -> bool;
+    fn contains_mutable_bean_type(&self, type_id: &TypeId) -> bool;
     fn get_bean_types(&self) -> Vec<TypeId>;
+    fn get_mutable_bean_types(&self) -> Vec<TypeId>;
     fn contains_type<T: 'static + Send + Sync>(&self) -> bool;
+    fn contains_mutable_type<T: 'static + Send + Sync>(&self) -> bool;
 }

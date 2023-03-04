@@ -39,7 +39,7 @@ impl AspectParser {
             }
         } else {
             quote! {
-                impl Aspect> for #type_for_aspect {
+                impl Aspect for #type_for_aspect {
                     #aspect_fn
                 }
             }

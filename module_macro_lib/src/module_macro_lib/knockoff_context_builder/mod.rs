@@ -4,6 +4,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::__private::TokenStream2;
 use syn::Type;
+use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile};
 
 use knockoff_logging::{initialize_log, use_logging};
@@ -38,7 +39,7 @@ impl ApplicationContextGenerator {
 
             #[derive(Debug)]
             pub struct MutableBeanDefinition<T: ?Sized> {
-                pub inner: Arc<Mutex<T>>
+                pub inner: Arc<T>
             }
 
             #[derive(Debug)]
@@ -48,7 +49,7 @@ impl ApplicationContextGenerator {
 
             impl <T: 'static + Send + Sync> MutableBeanDefinition<T> {
                 fn to_any(&self) -> MutableBeanDefinition<dyn Any + Send + Sync> {
-                    let inner: Arc<Mutex<dyn Any + Send + Sync>> = self.inner.clone() as Arc<Mutex<dyn Any + Send + Sync>>;
+                    let inner: Arc<dyn Any + Send + Sync> = self.inner.clone() as Arc<dyn Any + Send + Sync>;
                     MutableBeanDefinition {
                         inner
                     }
@@ -89,6 +90,16 @@ impl ApplicationContextGenerator {
                 fn get_bean(&self) -> BeanDefinition<T>;
             }
 
+            pub trait MutableBeanFactory<T: 'static + Send + Sync + ?Sized> {
+                fn get_bean(&self) -> MutableBeanDefinition<T>;
+            }
+
+            pub trait MutableFactoryBean<T: 'static + Send + Sync + ?Sized> {
+                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<T>;
+                fn get_bean_type_id(&self) -> TypeId;
+                fn is_singleton() -> bool;
+            }
+
             pub trait FactoryBean<T: 'static + Send + Sync + ?Sized> {
                 fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<T>;
                 fn get_bean_type_id(&self) -> TypeId;
@@ -113,8 +124,24 @@ impl ApplicationContextGenerator {
                     false
                 }
 
+                fn contains_mutable_bean_type(&self, type_id: &TypeId) -> bool {
+                    for bean_def in self.mutable_bean_definitions.iter() {
+                        println!("Checking if {:?}", bean_def.1);
+                        if bean_def.0 == type_id {
+                            return true;
+                        }
+                    }
+                    false
+                }
+
                 fn get_bean_types(&self) -> Vec<TypeId> {
                     self.singleton_bean_definitions.keys()
+                        .map(|type_id| type_id.clone())
+                        .collect::<Vec<TypeId>>()
+                }
+
+                fn get_mutable_bean_types(&self) -> Vec<TypeId> {
+                    self.mutable_bean_definitions.keys()
                         .map(|type_id| type_id.clone())
                         .collect::<Vec<TypeId>>()
                 }
@@ -122,6 +149,12 @@ impl ApplicationContextGenerator {
                 fn contains_type<T: 'static + Send + Sync>(&self) -> bool {
                     let type_id_to_search = TypeId::of::<T>();
                     self.singleton_bean_definitions.keys()
+                        .any(|t| t.clone() == type_id_to_search.clone())
+                }
+
+                fn contains_mutable_type<T: 'static + Send + Sync>(&self) -> bool {
+                    let type_id_to_search = TypeId::of::<T>();
+                    self.mutable_bean_definitions.keys()
                         .any(|t| t.clone() == type_id_to_search.clone())
                 }
             }
@@ -209,14 +242,14 @@ impl ApplicationContextGenerator {
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <MutableBeanDefinition<#mutable_idents>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <MutableBeanDefinition<Mutex<#mutable_idents>>>::get_bean(&listable_bean_factory);
                         println!("Adding next bean definition {:?}.", next_bean_definition);
-                        listable_bean_factory.add_bean_definition(next_bean_definition);
+                        listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <MutableBeanDefinition<#mutable_types>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <MutableBeanDefinition<Mutex<#mutable_types>>>::get_bean(&listable_bean_factory);
                         println!("Adding next bean definition {:?}.", next_bean_definition);
-                        listable_bean_factory.add_bean_definition(next_bean_definition);
+                        listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     listable_bean_factory
                 }
@@ -227,6 +260,21 @@ impl ApplicationContextGenerator {
                         println!("Contains bean type!");
                         let downcast_result = self.singleton_bean_definitions[&type_id]
                             .inner.clone().downcast::<T>();
+                        if downcast_result.is_ok() {
+                            return Some(downcast_result.unwrap().clone());
+                        }
+                        return None;
+                    }
+                    println!("Does not contain bean type..");
+                    None
+                }
+
+                fn get_mutable_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Mutex<T>>> {
+                    let type_id = TypeId::of::<T>();
+                    if self.contains_mutable_bean_type(&type_id) {
+                        println!("Contains bean type!");
+                        let downcast_result = self.mutable_bean_definitions[&type_id]
+                            .inner.clone().downcast::<Mutex<T>>();
                         if downcast_result.is_ok() {
                             return Some(downcast_result.unwrap().clone());
                         }
@@ -275,8 +323,18 @@ impl ApplicationContextGenerator {
     pub fn gen_autowire_code_gen_concrete<T: ToTokens>(
         field_types: &Vec<Type>,
         field_idents: &Vec<Ident>,
-        struct_type: &T
+        struct_type: &T,
+        mutable_identifiers: &Vec<Ident>,
+        mutable_field_types: &Vec<Type>
     ) -> TokenStream2 {
+        log_message!("Creating bean factory with the following mutable field types: ");
+        mutable_field_types.iter().for_each(|m| {
+            log_message!("{} is the mutable field type.", SynHelper::get_str(m.clone()));
+        });
+        log_message!("Creating bean factory with the following field types: ");
+        field_types.iter().for_each(|m| {
+            log_message!("{} is the mutable field type.", SynHelper::get_str(m.clone()));
+        });
         let injectable_code = quote! {
 
                 impl BeanFactory<#struct_type> for ListableBeanFactory {
@@ -295,8 +353,72 @@ impl ApplicationContextGenerator {
                             let arc_bean_def: Arc<#field_types> = bean_def.inner;
                             inner.#field_idents = arc_bean_def.clone();
                         )*
+                        #(
+                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>> = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>>>::get_bean(listable_bean_factory);
+                            let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
+                            inner.#mutable_identifiers = arc_bean_def.clone();
+                        )*
                         Self {
                             inner: Arc::new(inner)
+                        }
+                    }
+
+                    fn get_bean_type_id(&self) -> TypeId {
+                        self.inner.deref().type_id().clone()
+                    }
+
+                    fn is_singleton() -> bool {
+                        true
+                    }
+
+                }
+
+        };
+
+        injectable_code.into()
+    }
+
+
+    pub fn gen_autowire_mutable_code_gen_concrete<T: ToTokens>(
+        field_types: &Vec<Type>,
+        field_idents: &Vec<Ident>,
+        struct_type: &T,
+        mutable_identifiers: &Vec<Ident>,
+        mutable_field_types: &Vec<Type>
+    ) -> TokenStream2 {
+        log_message!("Creating mutable bean factory with the following mutable field types: ");
+        mutable_field_types.iter().for_each(|m| {
+            log_message!("{} is the mutable field type.", SynHelper::get_str(m.clone()));
+        });
+        log_message!("Creating mutable bean factory with the following field types: ");
+        field_types.iter().for_each(|m| {
+            log_message!("{} is the mutable field type.", SynHelper::get_str(m.clone()));
+        });
+        let injectable_code = quote! {
+
+                impl MutableBeanFactory<Mutex<#struct_type>> for ListableBeanFactory {
+                    fn get_bean(&self) -> MutableBeanDefinition<Mutex<#struct_type>> {
+                        let this_component = <MutableBeanDefinition<Mutex<#struct_type>>>::get_bean(&self);
+                        this_component
+                    }
+                }
+
+                impl MutableFactoryBean<Mutex<#struct_type>> for MutableBeanDefinition<Mutex<#struct_type>> {
+
+                    fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Mutex<#struct_type>> {
+                        let mut inner = #struct_type::default();
+                        #(
+                            let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types>>::get_bean(listable_bean_factory);
+                            let arc_bean_def: Arc<#field_types> = bean_def.inner;
+                            inner.#field_idents = arc_bean_def.clone();
+                        )*
+                        #(
+                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>> = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>>>::get_bean(listable_bean_factory);
+                            let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
+                            inner.#mutable_identifiers = arc_bean_def.clone();
+                        )*
+                        Self {
+                            inner: Arc::new(Mutex::new(inner))
                         }
                     }
 

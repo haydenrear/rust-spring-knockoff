@@ -8,7 +8,7 @@ use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::ops::Deref;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 
 pub mod web_framework {
@@ -33,6 +33,11 @@ pub struct Gen<T: ?Sized>{
 pub struct Gen2<T: ?Sized>{
     inner: Arc<T>,
     phantom: PhantomGuy<T>
+}
+
+pub struct Gen2Mutex<T: ?Sized>{
+    pub inner: Arc<Mutex<T>>,
+    pub phantom: PhantomGuy<T>
 }
 
 
@@ -91,6 +96,11 @@ impl <T: 'static + Send + Sync> Gen2<T> {
     }
 }
 
+pub trait SMutex {
+}
+
+
+
 fn contains<T: 'static>(type_id: TypeId) -> bool {
     TypeId::of::<T>() == type_id
 }
@@ -142,6 +152,10 @@ fn test_downcast() {
         phantom: PhantomGuy { phantom: Default::default() },
     };
     let new_any = gen_2.to_any();
+
+    let mutex = Arc::new(Mutex::new(One {}));
+    let mutex = mutex.clone() as Arc<dyn Any + Send + Sync + 'static>;
+    let m = mutex.downcast::<Mutex<One>>().unwrap();
 }
 
 fn add_to<'a>() -> HashMap<TypeId, Gen<dyn Any + Send + Sync>> {

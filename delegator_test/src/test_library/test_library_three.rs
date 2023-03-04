@@ -28,7 +28,9 @@ impl One {
 pub struct Four {
     #[autowired]
     #[mutable_bean]
-    pub one: Arc<One>,
+    pub one: Arc<Mutex<One>>,
+    #[autowired]
+    pub test_one: Arc<One>,
     pub two: String,
 }
 

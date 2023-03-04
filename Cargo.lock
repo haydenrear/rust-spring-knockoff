@@ -1033,6 +1033,7 @@ dependencies = [
 name = "knockoff_logging"
 version = "0.1.0"
 dependencies = [
+ "codegen_utils",
  "executors",
  "lazy_static",
  "wait_for",
