@@ -1,4 +1,4 @@
 [env]
-KNOCKOFF_FACTORIES = { value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs", force = true }
+KNOCKOFF_FACTORIES = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs"
 LOGGING_DIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/log.log"
 KNOCKOFF_LOGGING_TEST_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log"

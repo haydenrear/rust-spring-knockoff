@@ -23,9 +23,9 @@ fn main() {
     log_message!("Initializing module macro lib.");
     let aug_file = get_aug_file();
     log_message!("Found augmented file: {}.", aug_file.as_str());
-    LibParser::do_codegen(&aug_file, ".git/HEAD");
+    LibParser::do_codegen(&aug_file, "codegen.rs");
     let mut cargo_change = "cargo:rerun-if-changed=".to_string();
-    cargo_change += aug_file.as_str();
+    cargo_change += ".git/HEAD";
     println!("{}", cargo_change);
 }
 

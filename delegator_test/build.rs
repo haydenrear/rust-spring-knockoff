@@ -18,11 +18,3 @@ fn main() {
         vec![".git/HEAD"]
     );
 }
-
-fn create_log_file() -> File {
-    let mut log_file = File::create(
-        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
-            .join("log.txt")
-    ).unwrap();
-    log_file
-}

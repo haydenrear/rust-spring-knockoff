@@ -17,10 +17,12 @@ impl SynHelper {
     pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: Vec<&str>) -> Option<String> {
         autowired_attr.iter()
             .filter(|a| matcher_str.iter()
-                .filter(|m| Self::get_str(a).as_str().contains(**m)).next().is_some()
+                .filter(|m| {
+                    Self::get_str(a).as_str().contains(**m)
+                }).next().is_some()
             )
             .next()
-            .map(|a| SynHelper::parse_attr_path_single(a))
+            .map(|a| SynHelper::parse_attr_path_single(a).or(Some("".to_string())))
             .flatten()
     }
 

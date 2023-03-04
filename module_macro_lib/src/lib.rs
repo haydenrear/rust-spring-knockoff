@@ -46,7 +46,6 @@ mod tests {
                 _ => {}
             }
         }
-
         p.build_injectable();
         let ordering = p.is_valid_ordering_create();
         println!("{}", ordering.join(",").as_str())
