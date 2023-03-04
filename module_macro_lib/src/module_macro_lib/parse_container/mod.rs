@@ -35,7 +35,7 @@ use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
-use crate::module_macro_lib::aspect::AspectParser;
+use module_macro_codegen::aspect::AspectParser;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
@@ -62,9 +62,40 @@ impl ParseContainer {
     }
 
     pub fn build_injectable(&mut self) {
+        self.set_build_dep_types();
+
+        log_message!("{} is the number of injectable types.", &self.injectable_types_builder.values().len());
         self.injectable_types_map = ProfileTree::new(&mut self.injectable_types_builder);
         log_message!("{:?} is the debugged tree.", &self.injectable_types_map);
-        log_message!("{} is the number of injectable types.", &self.injectable_types_builder.len());
+        log_message!("{} is the number of injectable types.", &self.injectable_types_map.injectable_types.values().len());
+        log_message!("Here is the profile tree: ");
+        self.injectable_types_map.injectable_types.values().flat_map(|b| {
+                b.iter()
+            })
+            .for_each(|v| {
+                log_message!("{:?} is the bean definition.", v.clone());
+            })
+
+    }
+
+    pub fn set_build_dep_types(&mut self) {
+        let keys = self.get_injectable_keys();
+        let fns = self.fns.values().map(|fn_found| fn_found.fn_found.clone())
+            .collect::<Vec<FunctionType>>();
+        log_message!("{} is the number of injectable keys before.", keys.len());
+        for id in keys.iter() {
+            let mut removed = self.injectable_types_builder.remove(id).unwrap();
+            let deps_set = BeanDependencyParser::add_dependencies(removed, &self.injectable_types_builder, &self.fns);
+            self.injectable_types_builder.insert(id.clone().parse().unwrap(), deps_set);
+        }
+        for fn_type in fns.iter() {
+            self.set_fn_type_dep(&fn_type);
+        }
+        log_message!("{} is the number of injectable keys after.", self.injectable_types_builder.len());
+    }
+
+    pub fn get_injectable_keys(&self) -> Vec<String> {
+        self.injectable_types_builder.keys().map(|k| k.clone()).collect()
     }
 
     /**
@@ -154,7 +185,7 @@ impl ParseContainer {
                     ident: None,
                     fields: vec![],
                     bean_type: None,
-                    mutable: Self::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
+                    mutable: SynHelper::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                 };
@@ -162,7 +193,7 @@ impl ParseContainer {
                 None
             });
 
-        self.set_deps_safe(id.as_str());
+        // self.set_deps_safe(id.as_str());
     }
 
     pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct, path_depth: Vec<String>) -> Option<String> {
@@ -191,7 +222,7 @@ impl ParseContainer {
                     ident: Some(item_impl.ident.clone()),
                     fields: vec![item_impl.fields.clone()],
                     bean_type: BeanParser::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone())),
-                    mutable: Self::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
+                    mutable: SynHelper::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                 };
@@ -199,7 +230,7 @@ impl ParseContainer {
                 None
             });
 
-        self.set_deps_safe(item_impl.ident.to_string().as_str());
+        // self.set_deps_safe(item_impl.ident.to_string().as_str());
         Some(item_impl.ident.to_string().clone())
 
     }
@@ -227,7 +258,7 @@ impl ParseContainer {
                     ident: Some(enum_to_add.ident.clone()),
                     fields: enum_fields,
                     bean_type: BeanParser::get_bean_type(&enum_to_add.attrs, None, Some(enum_to_add.ident.clone())),
-                    mutable: Self::get_attr_from_vec(&enum_to_add.attrs, vec!["mutable_bean"])
+                    mutable: SynHelper::get_attr_from_vec(&enum_to_add.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                 };
@@ -235,13 +266,9 @@ impl ParseContainer {
                 None
             });
 
-        self.set_deps_safe(enum_to_add.ident.to_string().as_str());
     }
 
     fn set_deps_safe(&mut self, id: &str) {
-        let mut removed = self.injectable_types_builder.remove(id).unwrap();
-        let deps_set = BeanDependencyParser::add_dependencies(removed, &self.injectable_types_builder, &self.fns);
-        self.injectable_types_builder.insert(id.clone().parse().unwrap(), deps_set);
     }
 
     pub fn create_update_trait(&mut self, trait_found: &mut ItemTrait) {
@@ -256,46 +283,54 @@ impl ParseContainer {
         FnParser::to_fn_type(item_fn.clone())
             .map(|fn_found| {
                 self.fns.insert(item_fn.clone().type_id().clone(), ModulesFunctions{ fn_found: fn_found.clone() });
-                for i_type in self.injectable_types_builder.iter_mut() {
-                    for dep_type in i_type.1.deps_map.iter_mut() {
-                        if dep_type.bean_type.is_none() {
-                            match &fn_found {
-                                FunctionType::Singleton(fn_type, qualifier, type_found) => {
-                                    dep_type.bean_type = Some(
-                                        BeanType::Singleton(
-                                            BeanDefinition {
-                                                qualifier: qualifier.clone(),
-                                                bean_type_type: type_found.clone(),
-                                                bean_type_ident: None
-                                            },
-                                            Some(fn_found.clone()))
-                                    );
-                                }
-                                FunctionType::Prototype(fn_type, qualifier, type_found) => {
-                                    dep_type.bean_type = Some(
-                                        BeanType::Prototype(
-                                        BeanDefinition {
-                                            qualifier: qualifier.clone(),
-                                            bean_type_type: type_found.clone(),
-                                            bean_type_ident: None
-                                        },
-                                        Some(fn_found.clone())
-                                    ));
-                                }
-                            };
-                        }
-                    }
-                }
+            })
+            .or_else(|| {
+                log_message!("Could not set fn type for fn named: {}", SynHelper::get_str(item_fn.sig.ident.clone()).as_str());
+                None
             });
     }
 
+    fn set_fn_type_dep(&mut self, fn_found: &FunctionType) {
+        for i_type in self.injectable_types_builder.iter_mut() {
+            for dep_type in i_type.1.deps_map.iter_mut() {
+                if dep_type.bean_type.is_none() {
+                    match &fn_found {
+                        FunctionType::Singleton(fn_type, qualifier, type_found) => {
+                            dep_type.bean_type = Some(
+                                BeanType::Singleton(
+                                    BeanDefinition {
+                                        qualifier: qualifier.clone(),
+                                        bean_type_type: type_found.clone(),
+                                        bean_type_ident: None
+                                    },
+                                    Some(fn_found.clone()))
+                            );
+                        }
+                        FunctionType::Prototype(fn_type, qualifier, type_found) => {
+                            dep_type.bean_type = Some(
+                                BeanType::Prototype(
+                                    BeanDefinition {
+                                        qualifier: qualifier.clone(),
+                                        bean_type_type: type_found.clone(),
+                                        bean_type_ident: None
+                                    },
+                                    Some(fn_found.clone())
+                                ));
+                        }
+                    };
+                }
+            }
+        }
+    }
 
-    pub fn get_autowired_field_dep(attrs: Vec<Attribute>, field: Field) -> Option<AutowiredField> {
-        log_message!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
-        ParseContainer::get_attr_from_vec(&attrs, vec!["autowired"])
+
+    pub fn get_autowired_field_dep(field: Field) -> Option<AutowiredField> {
+        SynHelper::get_attr_from_vec(&field.attrs, vec!["autowired"])
             .map(|autowired_field| {
-                ParseContainer::get_attr_from_vec(&attrs, vec!["mutable_field"])
+                log_message!("Attempting to add autowired field for {}.", field.to_token_stream().to_string().as_str());
+                SynHelper::get_attr_from_vec(&field.attrs, vec!["mutable_bean"])
                     .map(|mutable_field| {
+                        log_message!("Adding mutable field and autowired field for {}.", field.to_token_stream().to_string().as_str());
                         AutowiredField{
                             qualifier: Some(autowired_field),
                             lazy: false,
@@ -304,27 +339,11 @@ impl ParseContainer {
                             mutable: true,
                         }
                     })
-                    .or(Some(AutowiredField{
-                        qualifier: None,
-                        lazy: false,
-                        field: field.clone(),
-                        type_of_field: field.ty.clone(),
-                        mutable: false,
-                    }))
+                    .or(None)
             }).unwrap_or_else(|| {
                 log_message!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
                 None
             })
-    }
-
-    pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: Vec<&str>) -> Option<String> {
-        autowired_attr.iter()
-            .filter(|m| matcher_str.iter()
-                .any(|matcher_str| m.to_token_stream().to_string().as_str().contains(matcher_str))
-            )
-            .map(|m| SynHelper::parse_attr_path_single(m))
-            .flatten()
-            .next()
     }
 
     pub fn get_type_from_fn_type(fn_type: &FunctionType) -> Option<Type> {

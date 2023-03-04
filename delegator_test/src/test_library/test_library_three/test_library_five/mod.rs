@@ -2,4 +2,5 @@ fn whatever() {
     pub struct RANDOM;
 }
 
-// pub struct Random2;
+//TODO: weird bug
+// pub struct Okay;

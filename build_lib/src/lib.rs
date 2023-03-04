@@ -19,19 +19,20 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use codegen_utils::parse;
+use codegen_utils::env::{get_project_base_dir, get_project_dir};
+use codegen_utils::{parse, project_directory};
 use codegen_utils::walk::DirectoryWalker;
 use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
 
 use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/build_lib.log");
+initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/build_lib.log"));
 initialize_log!();
 
 #[test]
 fn do_test() {
     replace_modules(
-        Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
-        vec![".git/HEAD"]
+        Some(get_project_dir("delegator_test/src").as_str()),
+        vec![get_project_base_dir().as_str()]
     );
 }
 
@@ -64,18 +65,26 @@ impl Module {
 }
 
 pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
+
     log_message!("Starting to replace modules.");
+
     if base_env.is_none() {
         return;
     }
+
     log_message!("Continuing to replace modules.");
+
     Module::parse_syn(base_env)
         .map(|lib_file|
             Module::do_parse(
-                rerun_files,
                 Module::parse_modules(base_env.unwrap())
             )
         );
+
+    rerun_files.iter().for_each(|rerun_file| {
+        println!("cargo:rerun-if-changed={}", rerun_file.to_string().as_str());
+    });
+
 }
 
 impl Module {
@@ -275,7 +284,7 @@ impl Module {
         });
     }
 
-    fn do_parse(rerun_files: Vec<&str>, mut modules: Module) {
+    fn do_parse(mut modules: Module) {
         let out_dir = env::var_os("OUT_DIR").or(Some(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/test_out"))).unwrap();
         let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
         let out_path = dest_path.to_str().unwrap();
@@ -300,9 +309,6 @@ impl Module {
 
         modules.process_lib_main_mod(dest_path);
 
-        rerun_files.iter().for_each(|rerun_file| {
-            print!("cargo:rerun-if-changed={}", rerun_file);
-        })
     }
 
 
@@ -390,17 +396,21 @@ impl Module {
         log_message!("{} is starting existing", existing.as_str());
         log_message!("There are {} other items.", self.mod_items.len());
         log_message!("Here is the lib.");
+        if self.mod_item.clone().is_none() {
+            log_message!("Could not find mod item.");
+        } else {
+            let mut final_mod_item = self.mod_item.clone().unwrap();
+
+            final_mod_item.content = Some((Brace::default(), self.mod_items.clone()));
+
+            final_mod_item = Self::remove_cfg_for_codegen(&mut final_mod_item);
+            Self::write_to_module_file(&mut existing, &final_mod_item);
+
+            fs::write(dest_path.clone(), existing)
+                .unwrap();
+        }
 
 
-        let mut final_mod_item = self.mod_item.clone().expect("Main module was not module!");
-
-        final_mod_item.content = Some((Brace::default(), self.mod_items.clone()));
-
-        final_mod_item = Self::remove_cfg_for_codegen(&mut final_mod_item);
-        Self::write_to_module_file(&mut existing, &final_mod_item);
-
-        fs::write(dest_path.clone(), existing)
-            .unwrap();
     }
 
     fn write_to_module_file<T: ToTokens>(mut existing: &mut String, mod_created: &T) {

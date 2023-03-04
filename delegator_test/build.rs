@@ -11,18 +11,12 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
 use build_lib::replace_modules;
+use codegen_utils::env::{get_project_base_dir, get_project_dir};
 
 fn main() {
-    replace_modules(
-        Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
-        vec![".git/HEAD"]
-    );
-}
 
-fn create_log_file() -> File {
-    let mut log_file = File::create(
-        Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src")
-            .join("log.txt")
-    ).unwrap();
-    log_file
+    replace_modules(
+        Some(get_project_dir("delegator_test/src").as_str()),
+        vec![get_project_base_dir().as_str()]
+    );
 }

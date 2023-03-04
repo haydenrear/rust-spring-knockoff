@@ -1,4 +1,6 @@
-use syn::{Item, Path, PathArguments, PathSegment};
+use syn::{Item, Path, PathArguments, PathSegment, Type};
+use proc_macro2::TokenStream;
+use quote::quote;
 
 #[cfg(test)]
 pub mod test;

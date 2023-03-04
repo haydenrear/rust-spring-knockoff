@@ -6,6 +6,7 @@ use proc_macro2::Ident;
 use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
+use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use crate::module_macro_lib::fn_parser::FnParser;
 use crate::module_macro_lib::parse_container::ParseContainer;
@@ -129,6 +130,8 @@ impl BeanParser {
                 None
             })
     }
+
+
 }
 
 impl BeanDependencyParser {
@@ -174,7 +177,7 @@ impl BeanDependencyParser {
         injectable_types_builder: &HashMap<String, Bean>,
         fns: &HashMap<TypeId, ModulesFunctions>
     ) -> Bean {
-        let autowired = ParseContainer::get_autowired_field_dep(field.attrs.clone(), field.clone());
+        let autowired = ParseContainer::get_autowired_field_dep(field.clone());
         match autowired {
             None => {
                 dep_impl
@@ -190,6 +193,7 @@ impl BeanDependencyParser {
                         dep_impl = Self::add_type_dep(dep_impl, autowired, lifetime, Some(arr), injectable_types_builder, fns, None);
                     }
                     Type::Path(path) => {
+                        log_message!("Adding {} to bean path.", path.to_token_stream().clone().to_string().as_str());
                         let type_path = BeanDependencyPathParser::parse_type_path(path);
                         dep_impl = Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, Some(type_path));
                     }
@@ -219,26 +223,29 @@ impl BeanDependencyParser {
     ) -> Bean
     {
         log_message!("Adding dependency for {}.", dep_impl.id.clone());
-        let type_dep = &field_to_add.field.clone().ty.to_token_stream().to_string();
-        let contains_key = injectable_types_builder.contains_key(type_dep);
-        let struct_exists = injectable_types_builder.get(&field_to_add.field.clone().ty.to_token_stream().to_string()).is_some();
-        let autowired_qualifier = field_to_add.clone().qualifier.or(Some(field_to_add.type_of_field.to_token_stream().to_string().clone()));
-        if autowired_qualifier.is_some() && contains_key && struct_exists {
+
+        let autowired_qualifier = field_to_add.clone()
+            .qualifier
+            .or(Some(field_to_add.type_of_field.to_token_stream().to_string().clone()));
+
+        if autowired_qualifier.is_some() {
+
+            log_message!("Adding dependency {} for bean with id {}.",  SynHelper::get_str(field_to_add.field.clone()), dep_impl.id.clone());
 
             dep_impl.ident.clone().map(|ident| {
                 log_message!("Adding dependency to struct with id {} to struct_impl of name {}", ident.to_string().clone(), dep_impl.id.clone());
             }).or_else(|| {
-                log_message!("Could not find ident for {}.", dep_impl.id.clone());
+                log_message!("Could not find ident for {} when attempting to add dependency to struct.", dep_impl.id.clone());
                 None
             });
 
             let bean_type = FnParser::get_fn_for_qualifier(
-                 fns,
-                autowired_qualifier.clone(),
-                Some(field_to_add.type_of_field.clone())
-            ).map(|fn_type| {
-                BeanParser::get_bean_type_from_qual(autowired_qualifier, None, fn_type)
-            })
+                     fns,
+                    autowired_qualifier.clone(),
+                    Some(field_to_add.type_of_field.clone())
+                ).map(|fn_type| {
+                    BeanParser::get_bean_type_from_qual(autowired_qualifier, None, fn_type)
+                })
                 .or(None);
 
             if bean_type.is_some() {
@@ -247,7 +254,7 @@ impl BeanDependencyParser {
                     .push(DepType {
                         bean_info: field_to_add,
                         lifetime,
-                        bean_type: bean_type.unwrap(),
+                        bean_type: bean_type.flatten(),
                         array_type,
                         bean_type_path: bean_dep_path,
                     });
@@ -264,13 +271,6 @@ impl BeanDependencyParser {
             }
 
 
-        } else {
-            if !struct_exists {
-                log_message!("{}", "Struct impl did not exist in module container.");
-            }
-            if !contains_key {
-                log_message!("{}", "Dependency did not exist in module container.");
-            }
         }
 
         dep_impl
@@ -301,17 +301,17 @@ impl BeanDependencyPathParser {
                     vec![]
                 }
                 PathArguments::AngleBracketed(angle) => {
-                    Self::parse_angle_bracketed(angle)
+                    Self::parse_angle_bracketed(angle, path)
                 }
                 PathArguments::Parenthesized(parenthesized) => {
-                    Self::parse_parenthasized(parenthesized)
+                    Self::parse_parenthasized(parenthesized, path)
                 }
             }
         }).collect()
 
     }
 
-    fn parse_parenthasized(parenthesized: &ParenthesizedGenericArguments) -> Vec<BeanPathParts> {
+    fn parse_parenthasized(parenthesized: &ParenthesizedGenericArguments, path: &syn::Path) -> Vec<BeanPathParts> {
         log_message!("{} are the parenthesized type arguments.", parenthesized.to_token_stream().to_string().as_str());
         let inputs = parenthesized.inputs.iter().map(|arg| {
             arg.clone()
@@ -330,12 +330,72 @@ impl BeanDependencyPathParser {
         }]
     }
 
-    fn parse_angle_bracketed(angle: &AngleBracketedGenericArguments) -> Vec<BeanPathParts> {
+    pub fn create_bean_path_parts(in_type: &Type, path: &syn::Path) -> Vec<BeanPathParts> {
+        let string = in_type.to_token_stream().to_string();
+        let match_ts = string.as_str().clone();
+        let path_str = path.to_token_stream().to_string();
+        let path_str_to_match = path_str.as_str();
+        log_message!("Parsing {} path.", path_str_to_match);
+        let mut bean_parts = vec![];
+        if path_str_to_match.contains("Arc") && path_str_to_match.contains("Mutex") {
+            log_message!("Found arc mutex type {}!", path_str_to_match);
+            let type_to_add = BeanPathParts::ArcMutexType {
+                arc_mutex_inner_type: in_type.clone(),
+                outer_type: path.clone(),
+            };
+            bean_parts.push(type_to_add);
+            Self::add_recurse_parse(in_type, &mut bean_parts);
+        } else if path_str_to_match.contains("Arc") {
+            log_message!("Found arc type {}!", match_ts);
+            let type_to_add = BeanPathParts::ArcType {
+                arc_inner_types: in_type.clone(),
+                outer_type: path.clone(),
+            };
+            bean_parts.push(type_to_add);
+            Self::add_recurse_parse(in_type, &mut bean_parts);
+        } else if path_str_to_match.contains("Mutex") {
+            log_message!("Found arc type {}!", match_ts);
+            let type_to_add =  BeanPathParts::MutexType {
+                mutex_type_inner_type: in_type.clone(),
+                outer_type: path.clone(),
+            };
+            bean_parts.push(type_to_add);
+            Self::add_recurse_parse(in_type, &mut bean_parts);
+        } else {
+            log_message!("Found generic type {}!", match_ts);
+            let type_to_add = BeanPathParts::GenType {
+                inner: in_type.clone()
+            };
+            bean_parts.push(type_to_add);
+            Self::add_recurse_parse(in_type, &mut bean_parts);
+        }
+        bean_parts
+    }
+
+    fn add_recurse_parse(in_type: &Type, bean_parts: &mut Vec<BeanPathParts>) {
+        for p in Self::parse_next_path(in_type).iter() {
+            bean_parts.push(p.to_owned());
+        }
+    }
+
+    fn parse_next_path(in_type: &Type) -> Vec<BeanPathParts> {
+        match in_type {
+            Type::Path(type_path) => {
+                Self::parse_path(&type_path.path.clone())
+            }
+            _ => {
+                vec![]
+            }
+        }
+    }
+
+    fn parse_angle_bracketed(angle: &AngleBracketedGenericArguments, path: &syn::Path) -> Vec<BeanPathParts> {
         log_message!("{} are the angle bracketed type arguments.", angle.to_token_stream().to_string().as_str());
         angle.args.iter().flat_map(|arg| {
             match arg {
                 GenericArgument::Type(t) => {
-                    vec![BeanPathParts::create_bean_path_parts(t)]
+                    log_message!("Found type arg: {}.", SynHelper::get_str(t).as_str());
+                    Self::create_bean_path_parts(t, path)
                 }
                 GenericArgument::Lifetime(_) => {
                     log_message!("Ignored lifetime of generic arg.");
@@ -345,7 +405,7 @@ impl BeanDependencyPathParser {
                     vec![BeanPathParts::BindingType { associated_type: binding.ty.clone() }]
                 }
                 GenericArgument::Constraint(constraint) => {
-                    Self::parse_contraints(constraint)
+                    Self::parse_contraints(constraint, path)
                 }
                 GenericArgument::Const(_) => {
                     log_message!("Ignored const declaration in generic arg.");
@@ -355,7 +415,7 @@ impl BeanDependencyPathParser {
         }).collect()
     }
 
-    fn parse_contraints(constraint: &Constraint) -> Vec<BeanPathParts> {
+    fn parse_contraints(constraint: &Constraint, path: &syn::Path) -> Vec<BeanPathParts> {
         constraint.bounds.iter().flat_map(|bound| {
             match bound {
                 TypeParamBound::Trait(trait_bound) => {

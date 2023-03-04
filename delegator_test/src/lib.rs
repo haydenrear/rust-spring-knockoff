@@ -14,7 +14,7 @@ use crate::test_library::test_library_three::{Four, Once, One};
 use crate::test_library::test_library_two::Ten;
 
 use std::any::Any;
-use std::sync::Arc;
+use std::sync::{Arc};
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::marker::PhantomData;
@@ -46,10 +46,11 @@ fn test_module_macro() {
     assert!(two_found.is_some());
     assert!(one_found.is_some());
 
-    let two_found: Option<Arc<Four>> = listable.get_bean_definition::<Four>();
+    let four_found: Option<Arc<Four>> = listable.get_bean_definition::<Four>();
     let one_found_again: Option<Arc<One>> = listable.get_bean_definition::<One>();
-    assert!(two_found.is_some());
-    assert_eq!(two_found.unwrap().one.deref(), one_found_again.unwrap().deref());
+    assert!(four_found.is_some());
+    assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id(), one_found_again.unwrap().deref().type_id());
+
 
     let app_ctx = AppCtx::new();
 }

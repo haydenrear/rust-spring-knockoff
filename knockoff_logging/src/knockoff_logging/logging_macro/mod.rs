@@ -6,6 +6,9 @@ macro_rules! initialize_logger {
     ($logger:ident, $log_data:ty, $log_file:literal) => {
         create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), 2);
     };
+    ($logger:ident, $log_data:ty, $log_file:expr) => {
+        create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), 2);
+    };
     ($logger:ident, $log_data:ty, $log_file:literal, $num_cores:literal) => {
         create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), $num_cores);
     };

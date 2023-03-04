@@ -11,12 +11,14 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
 use build_lib::replace_modules;
+use codegen_utils::env::get_project_base_dir;
+use codegen_utils::project_directory;
 use module_macro_codegen::parser::LibParser;
 
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
 
 use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/module_macro_lib.log");
+initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/module_macro_lib.log"));
 initialize_log!();
 
 fn main() {
@@ -25,7 +27,7 @@ fn main() {
     log_message!("Found augmented file: {}.", aug_file.as_str());
     LibParser::do_codegen(&aug_file, "codegen.rs");
     let mut cargo_change = "cargo:rerun-if-changed=".to_string();
-    cargo_change += aug_file.as_str();
+    cargo_change += get_project_base_dir().as_str();
     println!("{}", cargo_change);
 }
 

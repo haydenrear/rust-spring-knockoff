@@ -32,9 +32,6 @@ pub fn module_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let mut token_stream_builder = TokenStreamBuilder::default();
     let input_found = input.clone();
-    token_stream_builder.add_to_tokens(
-        write_starting_types()
-    );
 
     let mut found: Item = parse_macro_input!(input_found as Item);
 
@@ -62,14 +59,3 @@ impl TokenStreamBuilder {
     }
 
 }
-
-fn write_starting_types() -> TokenStream {
-    let mut tokens = TokenStreamBuilder::default();
-    tokens.add_to_tokens(ApplicationContextGenerator::create_application_context().into());
-    tokens.add_to_tokens(ApplicationContextGenerator::create_bean_factory().into());
-    tokens.build()
-}
-
-
-
-
