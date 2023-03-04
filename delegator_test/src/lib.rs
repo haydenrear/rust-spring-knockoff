@@ -49,7 +49,7 @@ fn test_module_macro() {
     let four_found: Option<Arc<Four>> = listable.get_bean_definition::<Four>();
     let one_found_again: Option<Arc<One>> = listable.get_bean_definition::<One>();
     assert!(four_found.is_some());
-    // assert_eq!(four_found.unwrap().one.deref(), one_found_again.unwrap().deref());
+    assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id(), one_found_again.unwrap().deref().type_id());
 
 
     let app_ctx = AppCtx::new();

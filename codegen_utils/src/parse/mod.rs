@@ -1,3 +1,4 @@
+use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -5,6 +6,19 @@ use std::path::Path;
 pub fn open_syn_file(base_env: &str, lib_file: &str) -> Option<syn::File> {
     open_file(base_env, lib_file)
         .map(|mut b| parse_syn_file(&mut b))
+        .ok()
+        .flatten()
+}
+
+pub fn open_factories_file_syn() -> Option<syn::File> {
+    env::var("KNOCKOFF_FACTORIES")
+        .map(|knockoff_factory| {
+            File::open(knockoff_factory)
+                .expect("Could not open knockoff factories file")
+        })
+        .map(|mut file| {
+            parse_syn_file(&mut file)
+        })
         .ok()
         .flatten()
 }

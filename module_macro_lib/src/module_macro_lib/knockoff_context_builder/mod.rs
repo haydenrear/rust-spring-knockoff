@@ -413,7 +413,10 @@ impl ApplicationContextGenerator {
                             inner.#field_idents = arc_bean_def.clone();
                         )*
                         #(
-                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>> = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>>>::get_bean(listable_bean_factory);
+                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
+                                = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>>>::get_bean(
+                                    listable_bean_factory
+                                );
                             let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
                             inner.#mutable_identifiers = arc_bean_def.clone();
                         )*

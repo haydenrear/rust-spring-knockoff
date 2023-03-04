@@ -67,6 +67,7 @@ impl ProfileTree {
                 log_message!("Adding {} to default_impls.", i_type.1.id.clone());
                 profile_tree.add_to_profile_concrete(i_type.1, &default_profile);
             }
+            //TODO: fix this
             // i_type.1.profile.iter()
             //     .filter(|p| p.profile != default_profile.profile)
             //     .for_each(|profile| {
@@ -74,18 +75,22 @@ impl ProfileTree {
             //         profile_tree.add_to_profile_concrete(i_type.1, profile);
             //     });
             // log_message!("{} is the number after.", profile_tree.injectable_types.get(&default_profile).unwrap().len());
-            // i_type.1.traits_impl.iter()
-            //     .for_each(|trait_type| {
-            //         if trait_type.profile.len() == 0 {
-            //             profile_tree.add_to_profile_abstract(i_type.1, &default_profile, trait_type.clone());
-            //         }
-            //         trait_type.profile
-            //             .iter()
-            //             .filter(|p| p.profile != default_profile.profile)
-            //             .for_each(|profile| {
-            //                 profile_tree.add_to_profile_abstract(i_type.1, &profile, trait_type.clone());
-            //             })
-            //     });
+
+            i_type.1.traits_impl.iter()
+                .for_each(|trait_type| {
+                    if trait_type.profile.len() == 0 {
+                        log_message!("Creating abstract bean definition.");
+                        profile_tree.add_to_profile_abstract(i_type.1, &default_profile, trait_type.clone());
+                    } else {
+                        trait_type.profile
+                            .iter()
+                            .filter(|p| p.profile != default_profile.profile)
+                            .for_each(|profile| {
+                                log_message!("Adding to profile {}", profile.profile.as_str());
+                                profile_tree.add_to_profile_abstract(i_type.1, &profile, trait_type.clone());
+                            })
+                    }
+                });
         }
         log_message!("{:?} is the debugged profile tree.", &profile_tree);
         log_message!("{} is the number after.", profile_tree.injectable_types.get(&default_profile).unwrap().len());
@@ -133,7 +138,8 @@ impl ProfileTree {
 
         beans.iter().flat_map(|bean| {
             let mut profiles = bean.1.profile.clone();
-            bean.1.traits_impl.iter().flat_map(|t| t.profile.clone())
+            bean.1.traits_impl.iter()
+                .flat_map(|t| t.profile.clone())
                 .for_each(|profile| profiles.push(profile));
             profiles
         }).for_each(|profile| {
