@@ -1,14 +1,44 @@
 use std::env;
+use std::env::VarError;
 use std::fs::File;
 use std::path::Path;
-use syn::{Item, ItemFn};
+use syn::{Attribute, Item, ItemFn};
 use crate::parse::parse_syn_file;
 use crate::syn_helper::SynHelper;
 
 #[test]
 fn test_syn_helper() {
+    let out = do_test(&|attribute| {
+        let attr = SynHelper::parse_attr_path_single(&attribute);
+        attr.is_some() && attr.unwrap() == "*"
+    });
+    assert!(out.is_some());
+}
+
+#[test]
+fn test_get_attr_from_vec() {
+    let out = do_test(&|attribute| {
+        let attr = SynHelper::get_attr_from_vec(&vec![attribute.clone()], vec!["aspect"]);
+        println!("{} is attr.", attr.clone().unwrap().as_str());
+        attr.is_some() && attr.unwrap() == "*"
+    });
+    assert!(out.is_some());
+}
+
+#[test]
+fn test_knockoff_factories() {
+    assert!(get_knockoff_factores_arg().is_some());
+}
+
+fn get_knockoff_factores_arg() -> Option<String> {
+    env::var("KNOCKOFF_FACTORIES").ok()
+}
+
+fn do_test(attr_matcher: &dyn Fn(&Attribute) -> bool) -> Option<ItemFn> {
+    let option = get_knockoff_factores_arg();
     let mut did_check = false;
-    let out = env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
+    assert!(option.is_some());
+    option.map(|aug_file| {
         let p = Path::new(&aug_file);
         if p.exists() {
             let mut f = File::open(p).unwrap();
@@ -26,17 +56,17 @@ fn test_syn_helper() {
                     }
                 }
             })
-            .map(|item_fn| {
-                let attr = SynHelper::parse_attr_path_single(&item_fn.attrs[0].clone());
-                assert!(attr.is_some());
-                assert_eq!(attr.unwrap(), "*");
-                did_check = true;
-                Some(item_fn.clone())
-            }).next().flatten();
+                .map(|item_fn| {
+                    let attribute = item_fn.attrs[0].clone();
+                    assert!(attr_matcher(&attribute));
+                    did_check = true;
+                    Some(item_fn.clone())
+                }).next().flatten();
             return out
         }
         None::<ItemFn>
-    });
-    assert!(out.is_ok());
-    assert!(did_check);
+    }).flatten().map(|f| {
+        assert!(did_check);
+        f
+    })
 }

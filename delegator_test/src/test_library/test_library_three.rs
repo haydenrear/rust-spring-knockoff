@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use spring_knockoff_boot_macro::{autowired, bean, singleton};
 
 pub mod test_library_four;
@@ -27,6 +27,7 @@ impl One {
 #[singleton(Four)]
 pub struct Four {
     #[autowired]
+    #[mutable_bean]
     pub one: Arc<One>,
     pub two: String,
 }

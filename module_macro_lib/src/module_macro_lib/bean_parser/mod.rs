@@ -174,7 +174,7 @@ impl BeanDependencyParser {
         injectable_types_builder: &HashMap<String, Bean>,
         fns: &HashMap<TypeId, ModulesFunctions>
     ) -> Bean {
-        let autowired = ParseContainer::get_autowired_field_dep(field.attrs.clone(), field.clone());
+        let autowired = ParseContainer::get_autowired_field_dep(field.clone());
         match autowired {
             None => {
                 dep_impl
@@ -190,6 +190,7 @@ impl BeanDependencyParser {
                         dep_impl = Self::add_type_dep(dep_impl, autowired, lifetime, Some(arr), injectable_types_builder, fns, None);
                     }
                     Type::Path(path) => {
+                        log_message!("Adding {} to bean path.", path.to_token_stream().clone().to_string().as_str());
                         let type_path = BeanDependencyPathParser::parse_type_path(path);
                         dep_impl = Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, Some(type_path));
                     }

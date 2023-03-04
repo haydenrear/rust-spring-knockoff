@@ -29,6 +29,10 @@ impl ProfileTree {
         let default_profile = Profile::default();
 
         let mutable_field_types: Vec<String> = beans.values()
+            .map(|b| {
+                log_message!("Checking if {} is mutable {}.", b.id.as_str(), b.mutable);
+                b
+            })
             .filter(|b| b.mutable)
             .map(|b| b.ident.to_token_stream().to_string().clone())
             .collect::<Vec<String>>();
@@ -36,9 +40,19 @@ impl ProfileTree {
 
         for mut i_type in beans.iter_mut() {
 
-            if mutable_field_types.iter().any(|i| i == i_type.0) {
-                i_type.1.mutable = true;
-            }
+            mutable_field_types.iter().for_each(|i| {
+                log_message!("Making {} mutable field.", i.as_str());
+                i_type.1.deps_map.iter_mut()
+                    .map(|dd| {
+                        log_message!("Making {} mutable field for {}.", dd.bean_info.type_of_field.to_token_stream().to_string().as_str(), i_type.0.as_str());
+                        dd
+                    })
+                    .filter(|d| d.bean_info.type_of_field.to_token_stream().to_string() == i.clone())
+                    .for_each(|d| {
+                        log_message!("Making {} mutable field for {}.", d.bean_info.type_of_field.to_token_stream().to_string().as_str(), i_type.0.as_str());
+                        d.bean_info.mutable = true;
+                    })
+            });
 
             log_message!("Adding {} to type.", i_type.1.id.clone());
 

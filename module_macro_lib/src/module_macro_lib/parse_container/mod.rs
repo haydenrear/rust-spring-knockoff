@@ -154,7 +154,7 @@ impl ParseContainer {
                     ident: None,
                     fields: vec![],
                     bean_type: None,
-                    mutable: Self::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
+                    mutable: SynHelper::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                 };
@@ -191,7 +191,7 @@ impl ParseContainer {
                     ident: Some(item_impl.ident.clone()),
                     fields: vec![item_impl.fields.clone()],
                     bean_type: BeanParser::get_bean_type(&item_impl.attrs, None, Some(item_impl.ident.clone())),
-                    mutable: Self::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
+                    mutable: SynHelper::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                 };
@@ -227,7 +227,7 @@ impl ParseContainer {
                     ident: Some(enum_to_add.ident.clone()),
                     fields: enum_fields,
                     bean_type: BeanParser::get_bean_type(&enum_to_add.attrs, None, Some(enum_to_add.ident.clone())),
-                    mutable: Self::get_attr_from_vec(&enum_to_add.attrs, vec!["mutable_bean"])
+                    mutable: SynHelper::get_attr_from_vec(&enum_to_add.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                 };
@@ -290,12 +290,30 @@ impl ParseContainer {
     }
 
 
-    pub fn get_autowired_field_dep(attrs: Vec<Attribute>, field: Field) -> Option<AutowiredField> {
-        log_message!("Checking attributes for field {}.", field.to_token_stream().to_string().clone());
-        ParseContainer::get_attr_from_vec(&attrs, vec!["autowired"])
+    pub fn get_autowired_field_dep(field: Field) -> Option<AutowiredField> {
+        log_message!("Checking attributes for field {}. Following log contains attributes of len {}: ", field.to_token_stream().to_string().clone(), field.attrs.len());
+        field.attrs.iter().for_each( |attr| {
+            log_message!("{} is attr for field {}.", attr.to_token_stream().to_string().as_str(), field.to_token_stream().to_string().as_str());
+        });
+
+        log_message!("{} is number of field attrs.", field.attrs.len());
+        field.attrs.iter()
+            .map(|a| {
+                log_message!("Checking {}.", SynHelper::get_str(a).as_str());
+                a
+            })
+            .filter(|a| vec!["autowired"].iter()
+                .filter(|m| SynHelper::get_str(a).as_str().contains(**m)).next().is_some()
+            )
+            .next()
+            .map(|a| SynHelper::parse_attr_path_single(a))
+            .flatten();
+        SynHelper::get_attr_from_vec(&field.attrs, vec!["autowired"])
             .map(|autowired_field| {
-                ParseContainer::get_attr_from_vec(&attrs, vec!["mutable_field"])
+                log_message!("Attempting to add autowired field for {}.", field.to_token_stream().to_string().as_str());
+                SynHelper::get_attr_from_vec(&field.attrs, vec!["mutable_field"])
                     .map(|mutable_field| {
+                        log_message!("Adding mutable field and autowired field for {}.", field.to_token_stream().to_string().as_str());
                         AutowiredField{
                             qualifier: Some(autowired_field),
                             lazy: false,
@@ -315,17 +333,6 @@ impl ParseContainer {
                 log_message!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
                 None
             })
-    }
-
-    pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: Vec<&str>) -> Option<String> {
-        autowired_attr.iter()
-            .filter(|m| matcher_str.iter()
-                .any(|matcher_str| m.to_token_stream().to_string()
-                    .as_str().contains(matcher_str))
-            )
-            .map(|m| SynHelper::parse_attr_path_single(m))
-            .flatten()
-            .next()
     }
 
     pub fn get_type_from_fn_type(fn_type: &FunctionType) -> Option<Type> {
