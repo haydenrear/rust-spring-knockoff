@@ -29,7 +29,8 @@ initialize_log!();
 
 #[test]
 fn do_test() {
-    replace_modules(Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
+    replace_modules(
+        Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src"),
         vec![".git/HEAD"]
     );
 }
@@ -254,11 +255,11 @@ impl Module {
     }
 
     fn parse_syn(base_env: Option<&str>) -> Option<syn::File> {
-        parse::open_file(base_env.unwrap(), "main.rs")
+        parse::open_file(base_env.unwrap(), "lib.rs")
             .or_else(|_| parse::open_file(base_env.unwrap(), "main.rs"))
             .map(|mut file| parse::parse_syn_file(&mut file))
             .map_err(|err| {
-                log_message!("Error opening main.rs file: {}.", err.to_string());
+                log_message!("Error opening main.rs or lib.rs file: {}.", err.to_string());
                 err
             })
             .ok()
@@ -277,6 +278,8 @@ impl Module {
     fn do_parse(rerun_files: Vec<&str>, mut modules: Module) {
         let out_dir = env::var_os("OUT_DIR").or(Some(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/test_out"))).unwrap();
         let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
+        let out_path = dest_path.to_str().unwrap();
+        log_message!("Writing output to {}.", out_path);
         if File::open(dest_path.clone()).is_ok() {
             fs::remove_file(&dest_path.clone())
                 .unwrap();
