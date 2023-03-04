@@ -76,6 +76,16 @@ pub fn autowired(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn mutable_bean(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
+#[proc_macro_attribute]
+pub fn mutable_field(attr: TokenStream, input: TokenStream) -> TokenStream {
+    strip_autowired(input)
+}
+
+#[proc_macro_attribute]
 pub fn aspect(attr: TokenStream, input: TokenStream) -> TokenStream {
     input.into()
 }

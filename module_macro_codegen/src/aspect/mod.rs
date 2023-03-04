@@ -67,20 +67,20 @@ impl MethodAdviceAspect {
             Box::new(
                 match item {
                     Item::Fn(item_fn) => {
-
-                        let type_args = item_fn.sig.inputs.iter().flat_map(|i| {
-                            match i {
-                                FnArg::Receiver(_) => {
-                                    vec![]
-                                }
-                                FnArg::Typed(typed) => {
-                                    if Self::is_pointcut_arg(typed) {
-                                        return vec![typed.ty.deref().clone()];
+                        let type_args = item_fn.sig.inputs.iter()
+                            .flat_map(|i| {
+                                match i {
+                                    FnArg::Receiver(_) => {
+                                        vec![]
                                     }
-                                    vec![]
+                                    FnArg::Typed(typed) => {
+                                        if Self::is_pointcut_arg(typed) {
+                                            return vec![typed.ty.deref().clone()];
+                                        }
+                                        vec![]
+                                    }
                                 }
-                            }
-                        }).collect();
+                            }).collect();
 
                         let pointcut_expr = item_fn.attrs.iter()
                             .filter(|a| a.to_token_stream().to_string().as_str().contains("aspect"))

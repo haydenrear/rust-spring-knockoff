@@ -29,7 +29,11 @@ path = "../knockoff_security"
 path = "../spring_knockoff_boot_macro"
 [dependencies.module_macro_codegen]
 path = "../module_macro_codegen"
+[dependencies.codegen_utils]
+path = "../codegen_utils"
 
+[build-dependencies.codegen_utils]
+path = "../codegen_utils"
 [build-dependencies.knockoff_logging]
 path = "../knockoff_logging"
 [build-dependencies.spring_knockoff_boot_macro]

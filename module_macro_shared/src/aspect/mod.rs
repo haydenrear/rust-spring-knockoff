@@ -3,9 +3,19 @@ use syn::{Item, Path, PathArguments, PathSegment};
 #[cfg(test)]
 pub mod test;
 
-pub trait Aspect {
+pub trait AspectMatcher {
     fn does_match(&self, item: Item, package: AspectAwarePackage) -> bool;
 }
+
+pub trait AspectWithArgs<ARGS> {
+    fn do_aspect(&self, join_point: ProceedingJoinPoint, arg: ARGS) -> String;
+}
+
+pub trait Aspect {
+    fn do_aspect(&self, join_point: ProceedingJoinPoint) -> String;
+}
+
+pub struct ProceedingJoinPoint;
 
 pub enum JoinPoint<T, ARGS> {
     ProceedingJoinPointReturn(Box<dyn ProceedingJoinPointReturn<T, ARGS>>),
@@ -30,6 +40,7 @@ pub struct AspectAwarePackage {
     module_path: String,
     /// original path
     path: Path
+
 }
 
 impl AspectAwarePackage {

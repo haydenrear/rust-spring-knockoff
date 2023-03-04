@@ -23,17 +23,29 @@ pub struct AspectParser {
 impl AspectParser {
     pub(crate) fn parse_aspects() -> Option<CodegenItems> {
         Some(
-            CodegenItems{
+            CodegenItems {
                 codegen: LibParser::parse_aspects(),
             }
         )
     }
 
-    pub(crate) fn write_aspect(&self, type_for_aspect: Type) -> TokenStream {
-        quote! {
-
+    pub(crate) fn write_aspect(&self, type_for_aspect: Type, args_for_aspect: Option<Type>, aspect_fn: TokenStream) -> TokenStream {
+        if args_for_aspect.is_some() {
+            let args = args_for_aspect.unwrap();
+            quote! {
+                impl AspectWithArgs<#args> for #type_for_aspect {
+                    #aspect_fn
+                }
+            }
+        } else {
+            quote! {
+                impl Aspect> for #type_for_aspect {
+                    #aspect_fn
+                }
+            }
         }
     }
+
 }
 
 

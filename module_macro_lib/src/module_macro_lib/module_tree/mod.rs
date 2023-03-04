@@ -19,7 +19,14 @@ use syn::{
 use quote::{format_ident, IdentFragment, quote, quote_token, TokenStreamExt, ToTokens};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
+use knockoff_logging::{initialize_log, use_logging};
 use crate::module_macro_lib::parse_container::ParseContainer;
+
+use_logging!();
+initialize_log!();
+
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 #[derive(Clone)]
 pub struct Bean {
@@ -35,7 +42,8 @@ pub struct Bean {
     pub profile: Vec<Profile>,
     pub ident: Option<Ident>,
     pub fields: Vec<Fields>,
-    pub bean_type: Option<BeanType>
+    pub bean_type: Option<BeanType>,
+    pub mutable: bool
 }
 
 #[derive(Clone)]
@@ -44,7 +52,7 @@ pub enum BeanDefinitionType {
         bean: Bean,
         dep_type: AutowireType
     }, Concrete {
-        bean: Bean
+        bean: Bean,
     }
 }
 
@@ -58,6 +66,9 @@ pub enum BeanPathParts {
     ArcType {
         arc_inner_types: Type
     },
+    ArcMutexType {
+        arc_mutex_inner_type: Type
+    },
     FnType {
         input_types: Vec<Type>,
         return_type: Option<Type>
@@ -70,6 +81,28 @@ pub enum BeanPathParts {
     },
     GenType {
         inner: Type
+    }
+}
+
+impl BeanPathParts {
+    pub fn create_bean_path_parts(in_type: &Type) -> BeanPathParts {
+        let string = in_type.to_token_stream().to_string();
+        let match_ts = string.as_str().clone();
+        if match_ts.contains("Arc") && match_ts.contains("Mutex") {
+            log_message!("Found arc mutex type {}!", match_ts);
+            return BeanPathParts::ArcMutexType {
+                arc_mutex_inner_type: in_type.clone()
+            }
+        } else if match_ts.contains("Arc") {
+            log_message!("Found arc type {}!", match_ts);
+            return BeanPathParts::ArcType {
+                arc_inner_types: in_type.clone()
+            }
+        }
+        log_message!("Found generic type {}!", match_ts);
+        BeanPathParts::GenType {
+            inner: in_type.clone()
+        }
     }
 }
 
@@ -135,7 +168,8 @@ pub struct AutowiredField {
     pub qualifier: Option<String>,
     pub lazy: bool,
     pub field: Field,
-    pub type_of_field: Type
+    pub type_of_field: Type,
+    pub mutable: bool
 }
 
 impl Default for Bean {
@@ -152,7 +186,8 @@ impl Default for Bean {
             profile: vec![],
             ident: None,
             fields: vec![],
-            bean_type: None
+            bean_type: None,
+            mutable: false
         }
     }
 }

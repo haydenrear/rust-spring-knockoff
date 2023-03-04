@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
+use proc_macro2::Ident;
 use quote::ToTokens;
 use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, DepType, InjectableTypeKey, Profile};
 
@@ -17,7 +18,7 @@ pub struct ProfileTree {
 
 impl ProfileTree {
 
-    pub fn new(beans: &HashMap<String, Bean>) -> Self {
+    pub fn new(beans: &mut HashMap<String, Bean>) -> Self {
 
         let mut injectable_types = Self::create_initial(&beans);
 
@@ -27,8 +28,20 @@ impl ProfileTree {
 
         let default_profile = Profile::default();
 
-        for i_type in beans.iter() {
+        let mutable_field_types: Vec<String> = beans.values()
+            .filter(|b| b.mutable)
+            .map(|b| b.ident.to_token_stream().to_string().clone())
+            .collect::<Vec<String>>();
+
+
+        for mut i_type in beans.iter_mut() {
+
+            if mutable_field_types.iter().any(|i| i == i_type.0) {
+                i_type.1.mutable = true;
+            }
+
             log_message!("Adding {} to type.", i_type.1.id.clone());
+
             if i_type.1.profile.len() == 0 {
                 log_message!("Adding {} to default_impls.", i_type.1.id.clone());
                 profile_tree.add_to_profile_concrete(i_type.1, &default_profile);
@@ -87,6 +100,7 @@ impl ProfileTree {
     }
 
     fn create_initial(beans: &HashMap<String,Bean>) -> HashMap<Profile, Vec<BeanDefinitionType>> {
+
         let mut injectable_types = HashMap::new();
 
         injectable_types.insert(Profile::default(), vec![]);
