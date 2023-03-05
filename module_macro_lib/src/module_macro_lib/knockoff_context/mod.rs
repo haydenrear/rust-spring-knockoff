@@ -1,4 +1,4 @@
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::sync::{Arc, Mutex};
 
 /**
@@ -11,8 +11,7 @@ pub trait ApplicationContext {
         where P: Profile, T: 'static + Send + Sync;
     fn get_bean<T,P>(&self) -> Option<Arc<T>>
         where P: Profile, T: 'static + Send + Sync;
-    fn get_beans<T>(&self) -> Vec<Arc<T>>
-        where T: 'static + Send + Sync;
+    fn get_beans(&self) -> Vec<Arc<dyn Any + Send + Sync>>;
     fn new() -> Self;
 }
 
@@ -24,7 +23,8 @@ pub trait AbstractListableFactory<P: Profile> {
     fn new() -> Self;
     fn get_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<T>>;
     fn get_mutable_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Mutex<T>>>;
-    fn get_beans<T: 'static + Send + Sync>(&self) -> Vec<Arc<T>>;
+    fn get_beans(&self) -> Vec<Arc<dyn Any + Send + Sync>>;
+    fn get_mutable_beans(&self) -> Vec<Arc<dyn Any + Send + Sync>>;
 }
 
 pub trait ContainsBeans {

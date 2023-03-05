@@ -35,7 +35,7 @@ use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
-use crate::module_macro_lib::aspect::AspectParser;
+use module_macro_codegen::aspect::AspectParser;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;

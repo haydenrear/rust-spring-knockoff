@@ -1,12 +1,15 @@
+use std::any::Any;
+use std::env;
+use std::io::Error;
 use std::ops::Deref;
 use std::process::id;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{Attribute, FnArg, Item, ItemFn, PatType, Type};
 use codegen_utils::syn_helper::SynHelper;
-use knockoff_logging::{use_logging};
+use knockoff_logging::use_logging;
 use web_framework_shared::matcher::{AntStringRequestMatcher, Matcher};
-use crate::parser::CodegenItem;
+use crate::parser::{CodegenItem, LibParser};
 
 use_logging!();
 
@@ -172,5 +175,60 @@ impl MethodAdviceAspect {
                 attr.to_token_stream().to_string().as_str().contains("aspect")
             )
     }
+}
+
+#[derive(Default, Clone)]
+pub struct AspectParser {
+    pub aspects: Vec<MethodAdviceAspect>
+}
+
+impl AspectParser {
+
+    pub fn parse_method_advice_aspects() -> Vec<MethodAdviceAspect> {
+        env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
+            LibParser::parse_codegen_items(&aug_file)
+                .iter().filter(|c| c.get_unique_id().as_str().contains("MethodAdviceAspect"))
+                .map(|b| b.clone_dyn_codegen())
+                .collect::<Vec<Box<dyn CodegenItem>>>()
+        }).or(Ok::<Vec<Box<dyn CodegenItem>>, Error>(vec![])).unwrap()
+            .iter()
+            .map(|b| b as &dyn Any)
+            .map(|b| b.downcast_ref::<MethodAdviceAspect>())
+            .flat_map(|d| {
+                if d.is_none() {
+                    return vec![];
+                }
+                vec![d.unwrap().to_owned()]
+            })
+            .collect()
+    }
+
+    pub fn new_aspects() -> Self {
+        Self::parse_aspects()
+    }
+
+    pub fn parse_aspects() -> Self {
+        Self {
+            aspects: Self::parse_method_advice_aspects()
+        }
+    }
+
+    pub fn write_aspect(&self, type_for_aspect: Type, args_for_aspect: Option<Type>, aspect_fn: TokenStream) -> TokenStream {
+        if args_for_aspect.is_some() {
+            let args = args_for_aspect.unwrap();
+            quote! {
+                impl AspectWithArgs<#args> for #type_for_aspect {
+                    #aspect_fn
+                }
+            }
+        } else {
+            quote! {
+                impl Aspect for #type_for_aspect {
+                    #aspect_fn
+                }
+            }
+        }
+    }
+
 }
 

@@ -14,8 +14,10 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 #[derive(Clone, Default)]
 pub struct ProfileTree {
+    /// for profile implementations.
     pub injectable_types: HashMap<Profile, Vec<BeanDefinitionType>>,
 }
+
 
 impl ProfileTree {
 
@@ -24,7 +26,7 @@ impl ProfileTree {
         let mut injectable_types = Self::create_initial(&beans);
 
         let mut profile_tree = Self {
-            injectable_types
+            injectable_types,
         };
 
         let default_profile = Profile::default();
@@ -67,14 +69,14 @@ impl ProfileTree {
                 log_message!("Adding {} to default_impls.", i_type.1.id.clone());
                 profile_tree.add_to_profile_concrete(i_type.1, &default_profile);
             }
-            //TODO: fix this
-            // i_type.1.profile.iter()
-            //     .filter(|p| p.profile != default_profile.profile)
-            //     .for_each(|profile| {
-            //         log_message!("Adding {} to profile {}.", i_type.0.clone(), profile.profile.as_str());
-            //         profile_tree.add_to_profile_concrete(i_type.1, profile);
-            //     });
-            // log_message!("{} is the number after.", profile_tree.injectable_types.get(&default_profile).unwrap().len());
+
+            i_type.1.profile.iter()
+                .filter(|p| p.profile != default_profile.profile)
+                .for_each(|profile| {
+                    log_message!("Adding {} to profile {}.", i_type.0.clone(), profile.profile.as_str());
+                    profile_tree.add_to_profile_concrete(i_type.1, profile);
+                });
+            log_message!("{} is the number after.", profile_tree.injectable_types.get(&default_profile).unwrap().len());
 
             i_type.1.traits_impl.iter()
                 .for_each(|trait_type| {
@@ -92,6 +94,7 @@ impl ProfileTree {
                     }
                 });
         }
+
         log_message!("{:?} is the debugged profile tree.", &profile_tree);
         log_message!("{} is the number after.", profile_tree.injectable_types.get(&default_profile).unwrap().len());
 

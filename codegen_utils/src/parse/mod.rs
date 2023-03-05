@@ -11,16 +11,21 @@ pub fn open_syn_file(base_env: &str, lib_file: &str) -> Option<syn::File> {
 }
 
 pub fn open_factories_file_syn() -> Option<syn::File> {
-    env::var("KNOCKOFF_FACTORIES")
+    open_syn_file_from_env("KNOCKOFF_FACTORIES")
+}
+
+pub fn open_syn_file_from_env(key: &str) -> Option<syn::File> {
+    env::var(key)
         .map(|knockoff_factory| {
-            File::open(knockoff_factory)
-                .expect("Could not open knockoff factories file")
-        })
-        .map(|mut file| {
-            parse_syn_file(&mut file)
+            parse_syn_from_filename(knockoff_factory)
         })
         .ok()
         .flatten()
+}
+
+pub fn parse_syn_from_filename(filename: String) -> Option<syn::File> {
+    parse_syn_file(&mut File::open(filename)
+        .expect("Could not open knockoff factories file"))
 }
 
 pub fn parse_syn_file(file: &mut File) -> Option<syn::File> {
