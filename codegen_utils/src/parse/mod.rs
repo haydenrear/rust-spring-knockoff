@@ -41,3 +41,17 @@ pub fn open_file(base_env: &str, lib_file: &str) -> Result<File, std::io::Error>
             .join(lib_file)
     )
 }
+
+pub fn open_from_base_dir(file_name_path: &str) -> syn::File {
+    parse_syn_file(
+       &mut env::var("PROJECT_BASE_DIRECTORY")
+           .map(|p| {
+               Path::new(&p).join(file_name_path)
+           })
+           .map(|p| {
+               File::open(p).expect("Could not open factories file")
+           })
+           .ok()
+           .expect("Could not open factories file")
+    ).expect("Could not parse syn file.")
+}

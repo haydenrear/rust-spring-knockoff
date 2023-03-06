@@ -1,8 +1,9 @@
 use std::any::Any;
+use std::borrow::BorrowMut;
 use std::default::Default;
 use std::env;
 use std::io::Error;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::process::id;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
@@ -66,49 +67,72 @@ impl MethodAdviceAspect {
         pointcut_expr.matches(bean_path_with_id.join(".").as_str())
     }
 
-    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new(item: &Item) -> Option<Self> {
         Some(
-            Box::new(
-                match item {
-                    Item::Fn(item_fn) => {
-                        let type_args = item_fn.sig.inputs.iter()
-                            .flat_map(|i| {
-                                match i {
-                                    FnArg::Receiver(_) => {
-                                        vec![]
-                                    }
-                                    FnArg::Typed(typed) => {
-                                        if Self::is_pointcut_arg(typed) {
-                                            return vec![typed.ty.deref().clone()];
-                                        }
-                                        vec![]
-                                    }
+            match item {
+                Item::Fn(item_fn) => {
+                    let type_args = item_fn.sig.inputs.iter()
+                        .flat_map(|i| {
+                            match i {
+                                FnArg::Receiver(_) => {
+                                    vec![]
                                 }
-                            }).collect();
+                                FnArg::Typed(typed) => {
+                                    if Self::is_pointcut_arg(typed) {
+                                        return vec![typed.ty.deref().clone()];
+                                    }
+                                    vec![]
+                                }
+                            }
+                        }).collect();
 
-                        let pointcut_expr = item_fn.attrs.iter()
-                            .filter(|a| a.to_token_stream().to_string().as_str().contains("aspect"))
-                            .map(|aspect_attr| SynHelper::parse_attr_path_single(aspect_attr))
-                            .next()
-                            .unwrap();
+                    let mut pointcut_expr = item_fn.attrs.iter()
+                        .filter(|a| a.to_token_stream().to_string().as_str().contains("aspect"))
+                        .map(|aspect_attr| SynHelper::parse_attr_path_single(aspect_attr))
+                        .next()
+                        .unwrap();
 
-                        MethodAdviceAspect {
-                            default: None,
-                            item: Some(item.clone()),
-                            type_args,
-                            before_advice: Some(Self::up_until_join_point(item_fn.block.deref())),
-                            after_advice: Some(Self::after_join_point(item_fn.block.deref())),
-                            pointcut: PointCut::new(pointcut_expr.unwrap()),
-                        }
-                    }
-                    _ => {
-                        MethodAdviceAspect::default()
+
+                    pointcut_expr = pointcut_expr.map(|mut p| {
+                        p.replace(" ", "")
+                    });
+
+                    log_message!("{} is the pointcut expression of length {}.",
+                        pointcut_expr.clone().unwrap(), pointcut_expr.clone().unwrap().len()
+                    );
+
+                    Self {
+                        default: None,
+                        item: Some(item.clone()),
+                        type_args,
+                        before_advice: Some(Self::up_until_join_point(item_fn.block.deref())),
+                        after_advice: Some(Self::after_join_point(item_fn.block.deref())),
+                        pointcut: PointCut::new(pointcut_expr.unwrap()),
                     }
                 }
-            )
+                _ => {
+                    Self::default()
+                }
+            }
         )
     }
 
+    pub(crate) fn new_dyn_codegen(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
+    }
+
+    pub(crate) fn new_any(item: &Item) -> Option<Box<dyn Any>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn Any>)
+    }
+
+    fn is_aspect(vec: &Vec<Attribute>) -> bool {
+        vec.iter()
+            .any(|attr|
+                attr.to_token_stream().to_string().as_str().contains("aspect")
+            )
+    }
 
     fn up_until_join_point(block: &Block) -> Block {
         let mut block_stmts = vec![];
@@ -131,10 +155,15 @@ impl MethodAdviceAspect {
         let mut block_stmts = vec![];
         let mut did_proceed = false;
         for stmt in &block.stmts {
-            if !did_proceed && !stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+            if stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+                did_proceed = true;
+            }
+            if !did_proceed {
                 continue;
             }
-            block_stmts.push(stmt.clone());
+            if !stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+                block_stmts.push(stmt.clone());
+            }
         }
         Block {
             brace_token: Default::default(),
@@ -202,14 +231,6 @@ impl CodegenItem for MethodAdviceAspect {
     }
 }
 
-impl MethodAdviceAspect {
-    fn is_aspect(vec: &Vec<Attribute>) -> bool {
-        vec.iter()
-            .any(|attr|
-                attr.to_token_stream().to_string().as_str().contains("aspect")
-            )
-    }
-}
 
 #[derive(Default, Clone)]
 pub struct AspectParser {
@@ -219,22 +240,21 @@ pub struct AspectParser {
 impl AspectParser {
 
     pub fn parse_method_advice_aspects() -> Vec<MethodAdviceAspect> {
+        log_message!("Parsing aspects.");
         env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
-            LibParser::parse_codegen_items(&aug_file)
-                .iter().filter(|c| c.get_unique_id().as_str().contains("MethodAdviceAspect"))
-                .map(|b| b.clone_dyn_codegen())
-                .collect::<Vec<Box<dyn CodegenItem>>>()
-        }).or(Ok::<Vec<Box<dyn CodegenItem>>, Error>(vec![])).unwrap()
-            .iter()
-            .map(|b| b as &dyn Any)
-            .map(|b| b.downcast_ref::<MethodAdviceAspect>())
-            .flat_map(|d| {
-                if d.is_none() {
-                    return vec![];
-                }
-                vec![d.unwrap().to_owned()]
-            })
-            .collect()
+            log_message!("Found knockoff factories file {}. Parsing aspects.", aug_file.as_str());
+            LibParser::parse_codegen_items_any(&aug_file)
+                .iter()
+                .flat_map(|c| c.downcast_ref::<MethodAdviceAspect>()
+                    .map(|m| vec![m]).or(Some(vec![]))
+                    .unwrap()
+                )
+                .flat_map(|b| {
+                    log_message!("Found method advice aspect.");
+                    vec![b.clone()]
+                })
+                .collect::<Vec<MethodAdviceAspect>>()
+        }).ok().or(Some(vec![])).unwrap()
     }
 
     pub fn new_aspects() -> Self {

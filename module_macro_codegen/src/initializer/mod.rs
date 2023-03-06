@@ -1,4 +1,5 @@
 use std::{env, fs};
+use std::any::Any;
 use std::fmt::Error;
 use std::fs::File;
 use std::io::Write;
@@ -16,12 +17,24 @@ pub struct Initializer {
 }
 
 impl Initializer {
-    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+
+    pub(crate) fn new_dyn_codegen(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
+    }
+
+    pub(crate) fn new_any(item: &Item) -> Option<Box<dyn Any>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn Any>)
+    }
+
+    pub(crate) fn new(item: &Item) -> Option<Self> {
         if Initializer::supports_item(item) {
-            return Some(Box::new(Initializer { default: None, item: Some(item.clone()) }));
+            return Some(Self { default: None, item: Some(item.clone()) });
         }
         None
     }
+
 
     fn default_tokens() -> TokenStream {
         let t = quote! {

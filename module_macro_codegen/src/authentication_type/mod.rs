@@ -1,4 +1,5 @@
 use std::{env, fs};
+use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Error;
 use std::fs::File;
@@ -26,9 +27,19 @@ pub struct AuthenticationTypeCodegen {
 }
 
 impl AuthenticationTypeCodegen {
-    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new_dyn_codegen(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
+    }
+
+    pub(crate) fn new_any(item: &Item) -> Option<Box<dyn Any>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn Any>)
+    }
+
+    pub(crate) fn new(item: &Item) -> Option<Self> {
         if AuthenticationTypeCodegen::supports_item(item) {
-            return Some(Box::new(AuthenticationTypeCodegen { default: None, item: Some(item.clone()) }));
+            return Some(Self { default: None, item: Some(item.clone()) });
         }
         None
     }
@@ -331,6 +342,7 @@ struct NextAuthType {
 }
 
 impl CodegenItem for AuthenticationTypeCodegen {
+
     fn supports_item(impl_item: &Item) -> bool where Self: Sized {
         match impl_item {
             Item::Mod(item_mod) => {

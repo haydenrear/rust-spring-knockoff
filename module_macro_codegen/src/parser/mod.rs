@@ -88,6 +88,20 @@ impl LibParser {
         flatten
     }
 
+    pub fn parse_codegen_items_any(in_dir_file: &str) -> Vec<Box<dyn Any>> {
+        let flatten = Self::parse_syn(in_dir_file)
+            .iter()
+            .flat_map(|syn_file| {
+                syn_file.items.iter()
+            })
+            .flat_map(|item| get_codegen_item_any(item)
+                .map(|codegen_item| vec![codegen_item])
+                .or(Some(vec![]))
+            )
+            .flatten()
+            .collect::<Vec<Box<dyn Any>>>();
+        flatten
+    }
 
     pub fn parse_syn(in_dir_file: &str) -> Option<syn::File> {
         let in_path = Path::new(in_dir_file);
@@ -123,6 +137,7 @@ impl LibParser {
         quoted.to_string()
     }
 }
+
 
 pub trait CodegenItem {
 

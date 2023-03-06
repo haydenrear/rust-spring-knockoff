@@ -21,10 +21,11 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
 }
 
 #[aspect(**)]
-pub fn do_aspect(&self, join_point: ProceedingJoinPoint, arg: One) -> String {
+pub fn do_aspect(&self, join_point: ProceedingJoinPoint, arg: One) {
     println!("hello");
+    println!("{}", self.two.clone());
     join_point.proceed();
-    "".to_string()
+    "".to_string();
 }
 
 #[configuration(field_aug)]

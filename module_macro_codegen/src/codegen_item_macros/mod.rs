@@ -4,7 +4,17 @@ macro_rules! codegen_items {
         pub fn get_codegen_item(item: &Item) -> Option<Box<dyn CodegenItem>> {
             $(
                 if <$codegen_item>::supports_item(item) {
-                    let codegen_item: Option<Box<dyn CodegenItem>> = <$codegen_item>::new(item);
+                    let codegen_item: Option<Box<dyn CodegenItem>> = <$codegen_item>::new_dyn_codegen(item);
+                    return codegen_item;
+                }
+            )*
+            None
+        }
+
+        pub fn get_codegen_item_any(item: &Item) -> Option<Box<dyn Any>> {
+            $(
+                if <$codegen_item>::supports_item(item) {
+                    let codegen_item: Option<Box<dyn Any>> = <$codegen_item>::new_any(item);
                     return codegen_item;
                 }
             )*

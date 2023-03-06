@@ -23,13 +23,14 @@ pub mod module_macro_lib {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use std::env;
     use std::fs::File;
     use std::io::Read;
     use std::path::Path;
     use base64::decode;
     use quote::ToTokens;
     use syn::{Item, parse_macro_input};
-    use codegen_utils::parse::{open_factories_file_syn, parse_syn_from_filename};
+    use codegen_utils::parse::{open_factories_file_syn, open_from_base_dir, parse_syn_from_filename};
     use codegen_utils::syn_helper::SynHelper;
     use crate::module_macro_lib::module_parser::{parse_item_recursive, parse_module};
     use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, Profile};
@@ -38,8 +39,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let lib_file = parse_syn_from_filename("/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/spring-knockoff.rs".to_string())
-            .expect("Could not open factories file.");
+        let lib_file = open_from_base_dir("codegen_resources/spring-knockoff.rs");
 
         let items = lib_file.items.clone();
 

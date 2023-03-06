@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::collections::LinkedList;
 use std::ops::Deref;
 use quote::{quote, ToTokens};
@@ -29,14 +30,24 @@ pub struct ModuleParser {
 /// specified by the user.
 impl ModuleParser {
 
-    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new(item: &Item) -> Option<Self> {
         if ModuleParser::supports_item(item) {
             return Self::get_codegen_items(item)
-                .map(|c| Some(Box::new(Self{codegen_items: c }) as Box<dyn CodegenItem>))
+                .map(|c| Some(Self{codegen_items: c }))
                 .flatten()
                 .or(None);
         }
         None
+    }
+
+    pub(crate) fn new_dyn_codegen(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
+    }
+
+    pub(crate) fn new_any(item: &Item) -> Option<Box<dyn Any>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn Any>)
     }
 
     pub(crate) fn get_codegen_items(tokens: &Item) -> Option<CodegenItems> {

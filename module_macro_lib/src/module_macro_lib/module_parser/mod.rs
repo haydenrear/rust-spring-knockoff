@@ -25,6 +25,8 @@ use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_codegen::aspect::AspectParser;
+use module_macro_codegen::parser::LibParser;
 use web_framework_shared::matcher::Matcher;
 use_logging!();
 initialize_log!();
@@ -35,6 +37,7 @@ pub fn parse_module(mut found: Item) -> TokenStream {
     match &mut found {
         Item::Mod(ref mut module_found) => {
             let mut container = ParseContainer::default();
+            container.aspects = AspectParser::parse_aspects();
 
             parse_item_recursive(
                 module_found,

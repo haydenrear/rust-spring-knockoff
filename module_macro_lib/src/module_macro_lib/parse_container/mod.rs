@@ -43,6 +43,7 @@ initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
 
+
 #[derive(Default)]
 pub struct ParseContainer {
     pub injectable_types_builder: HashMap<String, Bean>,
@@ -157,6 +158,7 @@ impl ParseContainer {
      **/
     pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl, path_depth: &mut Vec<String>) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
+        log_message!("Doing create update impl.");
 
         &mut self.injectable_types_builder.get_mut(&id)
             .map(|bean: &mut Bean| {
@@ -196,18 +198,24 @@ impl ParseContainer {
                 None
             });
 
+        log_message!("Adding method advice aspect now.");
+
         self.add_method_advice_aspect(item_impl, path_depth);
 
     }
 
     fn add_method_advice_aspect(&mut self, item_impl: &mut ItemImpl, path_depth: &mut Vec<String>) {
+        log_message!("Adding method advice aspect to: {}", SynHelper::get_str(item_impl.clone()));
         item_impl.items.iter_mut()
             .for_each(|i| {
                 match i {
                     ImplItem::Method(ref mut method) => {
+                        log_message!("Adding method advice aspect to: {}", SynHelper::get_str(method.clone()));
                         let mut next_path = path_depth.clone();
                         next_path.push(method.sig.ident.to_token_stream().to_string().clone());
+                        log_message!("{} is the method before the method advice aspect.", SynHelper::get_str(method.block.clone()));
                         self.do_aspect(method, next_path);
+                        log_message!("{} is the method after the method advice aspect.", SynHelper::get_str(method.block.clone()));
                     }
                     _ => {}
                 }
@@ -215,9 +223,20 @@ impl ParseContainer {
     }
 
     fn do_aspect(&mut self, method: &mut ImplItemMethod, mut next_path: Vec<String>) {
+        log_message!("Doing aspect with {} aspects.", self.aspects.aspects.len());
         self.aspects.aspects.iter()
-            .filter(|a| a.pointcut.pointcut_expr.matches(next_path.join(".").as_str()))
+            .filter(|a| {
+                let point_cut_matcher = next_path.join(".");
+                log_message!("Checking if before advice {} and after advice {} matches {}.",
+                    SynHelper::get_str(a.before_advice.clone().unwrap()),
+                    SynHelper::get_str(a.after_advice.clone().unwrap()),
+                    point_cut_matcher.clone()
+                );
+                a.pointcut.pointcut_expr.matches(point_cut_matcher.as_str())
+            })
             .for_each(|a| {
+                log_message!("Adding before advice aspect: {}.", SynHelper::get_str(a.before_advice.clone().unwrap()));
+                log_message!("Adding after advice aspect: {}.", SynHelper::get_str(a.after_advice.clone().unwrap()));
                 Self::add_advice_to_stmts(method, a);
                 Self::rewrite_block_new_span(method);
             });
@@ -235,9 +254,12 @@ impl ParseContainer {
 
     fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspect) {
         let before = a.before_advice.clone();
+        log_message!("Adding statements to method.");
         before.map(|mut before| {
+            log_message!("Adding statements {} to method.", SynHelper::get_str(before.clone()));
             let mut before_stmts = before.stmts;
             for i in 0..before_stmts.len() {
+                log_message!("Adding statement {} to method.", SynHelper::get_str(before_stmts.get(i).unwrap().clone()));
                 method.block.stmts.insert(i, before_stmts.get(i).unwrap().to_owned())
             }
         });
@@ -280,7 +302,6 @@ impl ParseContainer {
                 None
             });
 
-        // self.set_deps_safe(item_impl.ident.to_string().as_str());
         Some(item_impl.ident.to_string().clone())
 
     }
@@ -316,9 +337,6 @@ impl ParseContainer {
                 None
             });
 
-    }
-
-    fn set_deps_safe(&mut self, id: &str) {
     }
 
     pub fn create_update_trait(&mut self, trait_found: &mut ItemTrait) {

@@ -14,6 +14,7 @@ fn this_one() -> Option<&'static str> {
 }
 
 impl Found for One {
+
 }
 
 impl Found for Four {
@@ -21,6 +22,9 @@ impl Found for Four {
 
 
 impl One {
+    fn one_two_three(&self) {
+        print!("testing...");
+    }
 }
 
 #[derive(Default, Debug)]
