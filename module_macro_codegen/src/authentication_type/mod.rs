@@ -1,4 +1,5 @@
 use std::{env, fs};
+use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Error;
 use std::fs::File;
@@ -12,7 +13,7 @@ use syn::{Attribute, Item, ItemFn, ItemImpl, ItemStruct, Type};
 use syn::__private::str;
 use syn::token::Token;
 use knockoff_logging::use_logging;
-use crate::parser::{CodegenItem, LibParser};
+use crate::parser::{CodegenItem, CodegenItemType, LibParser};
 
 use_logging!();
 
@@ -22,13 +23,19 @@ use crate::logger::StandardLoggingFacade;
 #[derive(Clone, Default)]
 pub struct AuthenticationTypeCodegen {
     default: Option<TokenStream>,
-    item: Option<Item>,
+    item: Vec<Item>,
 }
 
 impl AuthenticationTypeCodegen {
-    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<CodegenItemType> {
+        Self::new(item)
+            .map(|i| CodegenItemType::AuthenticationType(i))
+    }
+
+    pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
         if AuthenticationTypeCodegen::supports_item(item) {
-            return Some(Box::new(AuthenticationTypeCodegen { default: None, item: Some(item.clone()) }));
+            return Some(Self { default: None, item: item.clone().iter().map(|v| v.clone()).collect() });
         }
         None
     }
@@ -114,7 +121,7 @@ impl AuthenticationTypeCodegen {
         t.into()
     }
 
-    fn get_authentication_types(types_next: &Vec<&NextAuthType>) -> TokenStream {
+    fn get_authentication_types(types_next: &Vec<NextAuthType>) -> TokenStream {
         let (enum_names, types, types_tokens, impl_tokens, auth_aware) =
             Self::create_prepare_auth_type_ts(types_next);
 
@@ -222,7 +229,7 @@ impl AuthenticationTypeCodegen {
         t.into()
     }
 
-    fn create_prepare_auth_type_ts(types_next: &Vec<&NextAuthType>) -> (Vec<Ident>, Vec<Type>, Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) {
+    fn create_prepare_auth_type_ts(types_next: &Vec<NextAuthType>) -> (Vec<Ident>, Vec<Type>, Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) {
         let enum_names = Self::get_collect_ts_type(
             types_next,
             &|next| next.auth_type_to_add.clone().unwrap().ident.clone(),
@@ -246,13 +253,13 @@ impl AuthenticationTypeCodegen {
         (enum_names, types, types_tokens, impl_tokens, auth_aware)
     }
 
-    fn get_collect_ts_type<T: ToTokens>(types_next: &Vec<&NextAuthType>, ts_getter: &dyn Fn(&&NextAuthType) -> T) -> Vec<T> {
+    fn get_collect_ts_type<T: ToTokens>(types_next: &Vec<NextAuthType>, ts_getter: &dyn Fn(&NextAuthType) -> T) -> Vec<T> {
         types_next.iter()
             .map(|next| ts_getter(next))
             .collect::<Vec<T>>()
     }
 
-    fn get_converter(additional_auth_types: &Vec<&NextAuthType>) -> TokenStream {
+    fn get_converter(additional_auth_types: &Vec<NextAuthType>) -> TokenStream {
         let additional_auth_types = additional_auth_types.iter()
             .map(|auth| auth.auth_type_to_add.clone().unwrap().ident.clone())
             .collect::<Vec<Ident>>();
@@ -315,7 +322,7 @@ impl AuthenticationTypeCodegen {
         ts.into()
     }
 
-    fn get_codegen_items(types: Vec<&NextAuthType>) -> TokenStream {
+    fn get_codegen_items(types: &Vec<NextAuthType>) -> TokenStream {
         let mut ts = TokenStream::default();
         ts.append_all(Self::get_imports());
         ts.append_all(Self::get_authentication_types(&types));
@@ -324,6 +331,7 @@ impl AuthenticationTypeCodegen {
     }
 }
 
+#[derive(Default, Clone)]
 struct NextAuthType {
     auth_type_to_add: Option<ItemStruct>,
     auth_type_impl: Option<ItemImpl>,
@@ -331,26 +339,34 @@ struct NextAuthType {
 }
 
 impl CodegenItem for AuthenticationTypeCodegen {
-    fn supports_item(impl_item: &Item) -> bool where Self: Sized {
-        match impl_item {
-            Item::Mod(item_mod) => {
-                item_mod.attrs.iter()
-                    .any(|attr_found| attr_found.to_token_stream()
-                        .to_string().as_str().contains("authentication_type")
-                    )
+
+    fn supports_item(impl_item: &Vec<Item>) -> bool where Self: Sized {
+        impl_item.iter().any(|impl_item| {
+            match impl_item {
+                Item::Mod(item_mod) => {
+                    item_mod.attrs.iter()
+                        .any(|attr_found| attr_found.to_token_stream()
+                            .to_string().as_str().contains("authentication_type")
+                        )
+                }
+                _ => {
+                    false
+                }
             }
-            _ => {
-                false
-            }
-        }
+        })
     }
 
-    fn supports(&self, item: &Item) -> bool {
+    fn supports(&self, item: &Vec<Item>) -> bool {
         Self::supports_item(item)
     }
 
     fn get_codegen(&self) -> Option<String> {
-        self.item.clone().map(|item| {
+        if self.item.len() == 0 {
+            return None;
+        }
+
+        let auth_types: Vec<NextAuthType> = self.item.iter().clone().flat_map(|item| {
+
             match item {
                 Item::Mod(item_mod) => {
                     let mut to_add_map: HashMap<String, NextAuthType> = HashMap::new();
@@ -361,32 +377,29 @@ impl CodegenItem for AuthenticationTypeCodegen {
                         );
 
                     let auth_types = to_add_map.values()
-                        .into_iter()
-                        .collect::<Vec<&NextAuthType>>();
+                        .map(|next| next.to_owned().clone())
+                        .collect::<Vec<NextAuthType>>();
+                    auth_types
 
-                    let tokens = Self::get_codegen_items(auth_types);
-
-                    let q = quote! {
-                        #tokens
-                    };
-
-                    Some(q.to_string())
                 }
                 _ => {
-                    None
+                    vec![]
                 }
             }
         })
-            .flatten()
-            .or(None)
+            .collect();
+
+
+        let tokens = Self::get_codegen_items(&auth_types);
+
+        let q = quote! {
+                        #tokens
+                    };
+        Some(q.to_string())
     }
 
     fn default_codegen(&self) -> String {
         AuthenticationTypeCodegen::default_tokens().to_string()
-    }
-
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
-        Box::new(self.clone())
     }
 
     fn get_unique_id(&self) -> String {

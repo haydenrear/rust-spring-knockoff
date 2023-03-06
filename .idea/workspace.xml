@@ -7,11 +7,13 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactored factory">
-      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="aspect decorator bug - not parse into chain">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,34 +73,35 @@
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "aspect.path.notification.shown": "true",
-    "go.import.settings.migrated": "true",
-    "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/codegen_resources" />
@@ -116,8 +119,8 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test syn_helper::test::test_get_attr_from_vec" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package codegen_utils --lib syn_helper::test::test_get_attr_from_vec -- --exact" />
+    <configuration name="Test module_macro_lib::item_parser::test::test_injectable_types" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_parser::test::test_injectable_types -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -133,8 +136,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test syn_helper::test::test_syn_helper" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package codegen_utils --lib syn_helper::test::test_syn_helper -- --exact" />
+    <configuration name="Test module_macro_lib::item_parser::test::test_method_advice_aspects" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_parser::test::test_method_advice_aspects -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -150,8 +153,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
+    <configuration name="Test module_macro_lib::item_parser::test::test_parse_module" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_parser::test::test_parse_module -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test module_macro_lib::item_parser::test::test_parser" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_parser::test::test_parser -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -169,23 +189,6 @@
     </configuration>
     <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test tests::it_works" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib tests::it_works -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -220,19 +223,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test test_downcast" />
-      <item itemvalue="Cargo.Test tests::it_works" />
-      <item itemvalue="Cargo.Test syn_helper::test::test_get_attr_from_vec" />
-      <item itemvalue="Cargo.Test syn_helper::test::test_syn_helper" />
+      <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_injectable_types" />
+      <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_method_advice_aspects" />
+      <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parse_module" />
+      <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parser" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Test tests::it_works" />
         <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test test_downcast" />
-        <item itemvalue="Cargo.Test syn_helper::test::test_get_attr_from_vec" />
-        <item itemvalue="Cargo.Test syn_helper::test::test_syn_helper" />
+        <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parse_module" />
+        <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_injectable_types" />
+        <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_method_advice_aspects" />
+        <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parser" />
       </list>
     </recent_temporary>
   </component>
@@ -296,210 +299,7 @@
       <workItem from="1677421523187" duration="35786000" />
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
-      <workItem from="1678022170942" duration="19945000" />
-    </task>
-    <task id="LOCAL-00041" summary="profile tree parsing">
-      <created>1676045817200</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1676045817200</updated>
-    </task>
-    <task id="LOCAL-00042" summary="profile tree parsing">
-      <created>1676045954000</created>
-      <option name="number" value="00042" />
-      <option name="presentableId" value="LOCAL-00042" />
-      <option name="project" value="LOCAL" />
-      <updated>1676045954000</updated>
-    </task>
-    <task id="LOCAL-00043" summary="refactor">
-      <created>1676051521271</created>
-      <option name="number" value="00043" />
-      <option name="presentableId" value="LOCAL-00043" />
-      <option name="project" value="LOCAL" />
-      <updated>1676051521271</updated>
-    </task>
-    <task id="LOCAL-00044" summary="path">
-      <created>1676220350166</created>
-      <option name="number" value="00044" />
-      <option name="presentableId" value="LOCAL-00044" />
-      <option name="project" value="LOCAL" />
-      <updated>1676220350166</updated>
-    </task>
-    <task id="LOCAL-00045" summary="logging">
-      <created>1676226965208</created>
-      <option name="number" value="00045" />
-      <option name="presentableId" value="LOCAL-00045" />
-      <option name="project" value="LOCAL" />
-      <updated>1676226965208</updated>
-    </task>
-    <task id="LOCAL-00046" summary="logging macro">
-      <created>1676244149006</created>
-      <option name="number" value="00046" />
-      <option name="presentableId" value="LOCAL-00046" />
-      <option name="project" value="LOCAL" />
-      <updated>1676244149006</updated>
-    </task>
-    <task id="LOCAL-00047" summary="logging facade">
-      <created>1676305083936</created>
-      <option name="number" value="00047" />
-      <option name="presentableId" value="LOCAL-00047" />
-      <option name="project" value="LOCAL" />
-      <updated>1676305083936</updated>
-    </task>
-    <task id="LOCAL-00048" summary="logging facade">
-      <created>1676305131266</created>
-      <option name="number" value="00048" />
-      <option name="presentableId" value="LOCAL-00048" />
-      <option name="project" value="LOCAL" />
-      <updated>1676305131266</updated>
-    </task>
-    <task id="LOCAL-00049" summary="logging facade">
-      <created>1676305184436</created>
-      <option name="number" value="00049" />
-      <option name="presentableId" value="LOCAL-00049" />
-      <option name="project" value="LOCAL" />
-      <updated>1676305184436</updated>
-    </task>
-    <task id="LOCAL-00050" summary="logging facade">
-      <created>1676320134290</created>
-      <option name="number" value="00050" />
-      <option name="presentableId" value="LOCAL-00050" />
-      <option name="project" value="LOCAL" />
-      <updated>1676320134290</updated>
-    </task>
-    <task id="LOCAL-00051" summary="logging facade">
-      <created>1676321673533</created>
-      <option name="number" value="00051" />
-      <option name="presentableId" value="LOCAL-00051" />
-      <option name="project" value="LOCAL" />
-      <updated>1676321673533</updated>
-    </task>
-    <task id="LOCAL-00052" summary="Added way to dynamically change the DI">
-      <created>1676416881839</created>
-      <option name="number" value="00052" />
-      <option name="presentableId" value="LOCAL-00052" />
-      <option name="project" value="LOCAL" />
-      <updated>1676416881840</updated>
-    </task>
-    <task id="LOCAL-00053" summary="Updated logging">
-      <created>1676562905323</created>
-      <option name="number" value="00053" />
-      <option name="presentableId" value="LOCAL-00053" />
-      <option name="project" value="LOCAL" />
-      <updated>1676562905323</updated>
-    </task>
-    <task id="LOCAL-00054" summary="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication.">
-      <created>1677097877491</created>
-      <option name="number" value="00054" />
-      <option name="presentableId" value="LOCAL-00054" />
-      <option name="project" value="LOCAL" />
-      <updated>1677097877491</updated>
-    </task>
-    <task id="LOCAL-00055" summary="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication.">
-      <created>1677097888255</created>
-      <option name="number" value="00055" />
-      <option name="presentableId" value="LOCAL-00055" />
-      <option name="project" value="LOCAL" />
-      <updated>1677097888255</updated>
-    </task>
-    <task id="LOCAL-00056" summary="refactored to make AuthenticationType dynamically provided.">
-      <created>1677346320625</created>
-      <option name="number" value="00056" />
-      <option name="presentableId" value="LOCAL-00056" />
-      <option name="project" value="LOCAL" />
-      <updated>1677346320625</updated>
-    </task>
-    <task id="LOCAL-00057" summary="req. matcher">
-      <created>1677348733541</created>
-      <option name="number" value="00057" />
-      <option name="presentableId" value="LOCAL-00057" />
-      <option name="project" value="LOCAL" />
-      <updated>1677348733541</updated>
-    </task>
-    <task id="LOCAL-00058" summary="req. matcher">
-      <created>1677348873640</created>
-      <option name="number" value="00058" />
-      <option name="presentableId" value="LOCAL-00058" />
-      <option name="project" value="LOCAL" />
-      <updated>1677348873640</updated>
-    </task>
-    <task id="LOCAL-00059" summary="req. matcher">
-      <created>1677349031900</created>
-      <option name="number" value="00059" />
-      <option name="presentableId" value="LOCAL-00059" />
-      <option name="project" value="LOCAL" />
-      <updated>1677349031900</updated>
-    </task>
-    <task id="LOCAL-00060" summary="add auth type">
-      <created>1677356111040</created>
-      <option name="number" value="00060" />
-      <option name="presentableId" value="LOCAL-00060" />
-      <option name="project" value="LOCAL" />
-      <updated>1677356111040</updated>
-    </task>
-    <task id="LOCAL-00061" summary="add auth type">
-      <created>1677437793571</created>
-      <option name="number" value="00061" />
-      <option name="presentableId" value="LOCAL-00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1677437793572</updated>
-    </task>
-    <task id="LOCAL-00062" summary="configuration mod">
-      <created>1677455175676</created>
-      <option name="number" value="00062" />
-      <option name="presentableId" value="LOCAL-00062" />
-      <option name="project" value="LOCAL" />
-      <updated>1677455175676</updated>
-    </task>
-    <task id="LOCAL-00063" summary="configuration mod">
-      <created>1677467233552</created>
-      <option name="number" value="00063" />
-      <option name="presentableId" value="LOCAL-00063" />
-      <option name="project" value="LOCAL" />
-      <updated>1677467233552</updated>
-    </task>
-    <task id="LOCAL-00064" summary="configuration mod">
-      <created>1677467302093</created>
-      <option name="number" value="00064" />
-      <option name="presentableId" value="LOCAL-00064" />
-      <option name="project" value="LOCAL" />
-      <updated>1677467302093</updated>
-    </task>
-    <task id="LOCAL-00065" summary="configuration mod">
-      <created>1677467712746</created>
-      <option name="number" value="00065" />
-      <option name="presentableId" value="LOCAL-00065" />
-      <option name="project" value="LOCAL" />
-      <updated>1677467712746</updated>
-    </task>
-    <task id="LOCAL-00066" summary="sec">
-      <created>1677515641875</created>
-      <option name="number" value="00066" />
-      <option name="presentableId" value="LOCAL-00066" />
-      <option name="project" value="LOCAL" />
-      <updated>1677515641875</updated>
-    </task>
-    <task id="LOCAL-00067" summary="dao auth provider">
-      <created>1677525130657</created>
-      <option name="number" value="00067" />
-      <option name="presentableId" value="LOCAL-00067" />
-      <option name="project" value="LOCAL" />
-      <updated>1677525130657</updated>
-    </task>
-    <task id="LOCAL-00068" summary="security">
-      <created>1677539579678</created>
-      <option name="number" value="00068" />
-      <option name="presentableId" value="LOCAL-00068" />
-      <option name="project" value="LOCAL" />
-      <updated>1677539579678</updated>
-    </task>
-    <task id="LOCAL-00069" summary="authentication">
-      <created>1677597155626</created>
-      <option name="number" value="00069" />
-      <option name="presentableId" value="LOCAL-00069" />
-      <option name="project" value="LOCAL" />
-      <updated>1677597155626</updated>
+      <workItem from="1678022170942" duration="70052000" />
     </task>
     <task id="LOCAL-00070" summary="authentication">
       <created>1677617328787</created>
@@ -641,7 +441,210 @@
       <option name="project" value="LOCAL" />
       <updated>1678054608997</updated>
     </task>
-    <option name="localTasksCounter" value="90" />
+    <task id="LOCAL-00090" summary="refactored factory">
+      <created>1678055339260</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1678055339260</updated>
+    </task>
+    <task id="LOCAL-00091" summary="aspect block">
+      <created>1678069446430</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1678069446430</updated>
+    </task>
+    <task id="LOCAL-00092" summary="aspect block">
+      <created>1678071038911</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1678071038911</updated>
+    </task>
+    <task id="LOCAL-00093" summary="aspect block">
+      <created>1678110086834</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1678110086834</updated>
+    </task>
+    <task id="LOCAL-00094" summary="refactored to delegate (multiple of factory types)">
+      <created>1678129701239</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1678129701239</updated>
+    </task>
+    <task id="LOCAL-00095" summary="refactored to delegate (multiple of factory types)">
+      <created>1678131605504</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1678131605504</updated>
+    </task>
+    <task id="LOCAL-00096" summary="enum + macro to get rid of dyn">
+      <created>1678136528138</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1678136528138</updated>
+    </task>
+    <task id="LOCAL-00097" summary="method advice aspect w/ proceed">
+      <created>1678214276384</created>
+      <option name="number" value="00097" />
+      <option name="presentableId" value="LOCAL-00097" />
+      <option name="project" value="LOCAL" />
+      <updated>1678214276384</updated>
+    </task>
+    <task id="LOCAL-00098" summary="method advice aspect w/ proceed">
+      <created>1678215419054</created>
+      <option name="number" value="00098" />
+      <option name="presentableId" value="LOCAL-00098" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215419054</updated>
+    </task>
+    <task id="LOCAL-00099" summary="method advice aspect w/ proceed">
+      <created>1678215439823</created>
+      <option name="number" value="00099" />
+      <option name="presentableId" value="LOCAL-00099" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215439823</updated>
+    </task>
+    <task id="LOCAL-00100" summary="method advice aspect w/ proceed">
+      <created>1678215689822</created>
+      <option name="number" value="00100" />
+      <option name="presentableId" value="LOCAL-00100" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215689822</updated>
+    </task>
+    <task id="LOCAL-00101" summary="method advice aspect w/ proceed">
+      <created>1678215742715</created>
+      <option name="number" value="00101" />
+      <option name="presentableId" value="LOCAL-00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215742715</updated>
+    </task>
+    <task id="LOCAL-00102" summary="arbitrary suffix to fix collision.">
+      <created>1678224490457</created>
+      <option name="number" value="00102" />
+      <option name="presentableId" value="LOCAL-00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1678224490457</updated>
+    </task>
+    <task id="LOCAL-00103" summary="arbitrary suffix to fix collision.">
+      <created>1678225217831</created>
+      <option name="number" value="00103" />
+      <option name="presentableId" value="LOCAL-00103" />
+      <option name="project" value="LOCAL" />
+      <updated>1678225217831</updated>
+    </task>
+    <task id="LOCAL-00104" summary="arbitrary suffix to fix collision.">
+      <created>1678225259852</created>
+      <option name="number" value="00104" />
+      <option name="presentableId" value="LOCAL-00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1678225259852</updated>
+    </task>
+    <task id="LOCAL-00105" summary="refactor items">
+      <created>1678232571512</created>
+      <option name="number" value="00105" />
+      <option name="presentableId" value="LOCAL-00105" />
+      <option name="project" value="LOCAL" />
+      <updated>1678232571513</updated>
+    </task>
+    <task id="LOCAL-00106" summary="fix issue">
+      <created>1678234402449</created>
+      <option name="number" value="00106" />
+      <option name="presentableId" value="LOCAL-00106" />
+      <option name="project" value="LOCAL" />
+      <updated>1678234402449</updated>
+    </task>
+    <task id="LOCAL-00107" summary="fix issue">
+      <created>1678234428441</created>
+      <option name="number" value="00107" />
+      <option name="presentableId" value="LOCAL-00107" />
+      <option name="project" value="LOCAL" />
+      <updated>1678234428441</updated>
+    </task>
+    <task id="LOCAL-00108" summary="multiple method advice aspect aspect">
+      <created>1678306626292</created>
+      <option name="number" value="00108" />
+      <option name="presentableId" value="LOCAL-00108" />
+      <option name="project" value="LOCAL" />
+      <updated>1678306626292</updated>
+    </task>
+    <task id="LOCAL-00109" summary="multiple method advice aspect aspect">
+      <created>1678306671588</created>
+      <option name="number" value="00109" />
+      <option name="presentableId" value="LOCAL-00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1678306671588</updated>
+    </task>
+    <task id="LOCAL-00110" summary="Fixed to add same args as function call.">
+      <created>1678311102153</created>
+      <option name="number" value="00110" />
+      <option name="presentableId" value="LOCAL-00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1678311102154</updated>
+    </task>
+    <task id="LOCAL-00111" summary="Fixed to add same args as function call.">
+      <created>1678329426681</created>
+      <option name="number" value="00111" />
+      <option name="presentableId" value="LOCAL-00111" />
+      <option name="project" value="LOCAL" />
+      <updated>1678329426681</updated>
+    </task>
+    <task id="LOCAL-00112" summary="Fixed bug">
+      <created>1678333017718</created>
+      <option name="number" value="00112" />
+      <option name="presentableId" value="LOCAL-00112" />
+      <option name="project" value="LOCAL" />
+      <updated>1678333017718</updated>
+    </task>
+    <task id="LOCAL-00113" summary="Fixed bug">
+      <created>1678333036012</created>
+      <option name="number" value="00113" />
+      <option name="presentableId" value="LOCAL-00113" />
+      <option name="project" value="LOCAL" />
+      <updated>1678333036013</updated>
+    </task>
+    <task id="LOCAL-00114" summary="Removed duplicated BeanType">
+      <created>1678342873797</created>
+      <option name="number" value="00114" />
+      <option name="presentableId" value="LOCAL-00114" />
+      <option name="project" value="LOCAL" />
+      <updated>1678342873797</updated>
+    </task>
+    <task id="LOCAL-00115" summary="Fixed aspect logic and ensured args all the same in the whole chain.">
+      <created>1678386629461</created>
+      <option name="number" value="00115" />
+      <option name="presentableId" value="LOCAL-00115" />
+      <option name="project" value="LOCAL" />
+      <updated>1678386629461</updated>
+    </task>
+    <task id="LOCAL-00116" summary="Fixed aspect logic and ensured args all the same in the whole chain.">
+      <created>1678390222669</created>
+      <option name="number" value="00116" />
+      <option name="presentableId" value="LOCAL-00116" />
+      <option name="project" value="LOCAL" />
+      <updated>1678390222669</updated>
+    </task>
+    <task id="LOCAL-00117" summary="updated to proc-macro2 for testing.">
+      <created>1678397294034</created>
+      <option name="number" value="00117" />
+      <option name="presentableId" value="LOCAL-00117" />
+      <option name="project" value="LOCAL" />
+      <updated>1678397294034</updated>
+    </task>
+    <task id="LOCAL-00118" summary="aspect decorator bug - not parse into chain">
+      <created>1678403367080</created>
+      <option name="number" value="00118" />
+      <option name="presentableId" value="LOCAL-00118" />
+      <option name="project" value="LOCAL" />
+      <updated>1678403367080</updated>
+    </task>
+    <option name="localTasksCounter" value="119" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -691,22 +694,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="path" />
-    <MESSAGE value="logging" />
-    <MESSAGE value="logging macro" />
-    <MESSAGE value="logging facade" />
-    <MESSAGE value="Added way to dynamically change the DI" />
-    <MESSAGE value="Updated logging" />
-    <MESSAGE value="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication." />
-    <MESSAGE value="refactored to make AuthenticationType dynamically provided." />
-    <MESSAGE value="req. matcher" />
-    <MESSAGE value="add auth type" />
-    <MESSAGE value="configuration mod" />
-    <MESSAGE value="sec" />
-    <MESSAGE value="dao auth provider" />
-    <MESSAGE value="security" />
-    <MESSAGE value="authentication" />
-    <MESSAGE value="registration" />
     <MESSAGE value="aspect started" />
     <MESSAGE value="refactored to add ability to have same name modules and recursive modules" />
     <MESSAGE value="refactored" />
@@ -716,7 +703,23 @@
     <MESSAGE value="fixed issue" />
     <MESSAGE value="mutable bean" />
     <MESSAGE value="refactored factory" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactored factory" />
+    <MESSAGE value="aspect block" />
+    <MESSAGE value="refactored to delegate (multiple of factory types)" />
+    <MESSAGE value="enum get rid of dyn" />
+    <MESSAGE value="enum + macro to get rid of dyn" />
+    <MESSAGE value="method advice aspect w/ proceed" />
+    <MESSAGE value="arbitrary suffix to fix collision." />
+    <MESSAGE value="refactor items" />
+    <MESSAGE value="fix issue" />
+    <MESSAGE value="multiple method advice aspect aspect" />
+    <MESSAGE value="Fixed to add same args as function call." />
+    <MESSAGE value="Fixed bug" />
+    <MESSAGE value="Removed duplicated BeanType" />
+    <MESSAGE value="Fixed aspect logic" />
+    <MESSAGE value="Fixed aspect logic and ensured args all the same in the whole chain." />
+    <MESSAGE value="updated to proc-macro2 for testing." />
+    <MESSAGE value="aspect decorator bug - not parse into chain" />
+    <option name="LAST_COMMIT_MESSAGE" value="aspect decorator bug - not parse into chain" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -725,16 +728,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>267</line>
-          <option name="timeStamp" value="55" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>57</line>
-          <option name="timeStamp" value="56" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs</url>
           <line>4</line>
@@ -777,43 +770,38 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs</url>
-          <line>167</line>
+          <line>174</line>
           <option name="timeStamp" value="122" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_shared/src/aspect/mod.rs</url>
-          <line>58</line>
+          <line>50</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/codegen_utils/src/syn_helper/test.rs</url>
-          <line>40</line>
+          <line>49</line>
           <option name="timeStamp" value="173" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/codegen_utils/src/syn_helper/test.rs</url>
-          <line>22</line>
+          <line>21</line>
           <option name="timeStamp" value="174" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs</url>
-          <line>141</line>
+          <line>157</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>68</line>
+          <line>22</line>
           <option name="timeStamp" value="180" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>63</line>
-          <option name="timeStamp" value="187" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs</url>
-          <line>195</line>
-          <option name="timeStamp" value="189" />
+          <url>file://$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs</url>
+          <line>42</line>
+          <option name="timeStamp" value="203" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

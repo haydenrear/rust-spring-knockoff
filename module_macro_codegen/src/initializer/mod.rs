@@ -1,4 +1,5 @@
 use std::{env, fs};
+use std::any::Any;
 use std::fmt::Error;
 use std::fs::File;
 use std::io::Write;
@@ -6,22 +7,29 @@ use std::ops::Deref;
 use std::path::Path;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Item, ItemFn, ItemImpl};
-use crate::parser::{CodegenItem, LibParser};
+use syn::{Block, Item, ItemFn, ItemImpl};
+use crate::parser::{CodegenItem, CodegenItemType, LibParser};
 
 #[derive(Clone, Default)]
 pub struct Initializer {
     default: Option<TokenStream>,
-    item: Option<Item>
+    item: Vec<Item>
 }
 
 impl Initializer {
-    pub(crate) fn new(item: &Item) -> Option<Box<dyn CodegenItem>> {
+
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<CodegenItemType> {
+        Self::new(item)
+            .map(|i| CodegenItemType::ContextInitializer(i))
+    }
+
+    pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
         if Initializer::supports_item(item) {
-            return Some(Box::new(Initializer { default: None, item: Some(item.clone()) }));
+            return Some(Self { default: None, item: item.clone().iter().map(|c|c.clone()).collect() });
         }
         None
     }
+
 
     fn default_tokens() -> TokenStream {
         let t = quote! {
@@ -36,11 +44,8 @@ impl Initializer {
             }.into();
         t
     }
-}
 
-impl CodegenItem for Initializer {
-
-    fn supports_item(impl_item: &Item) -> bool where Self: Sized {
+    fn item_filter(impl_item: &Item) -> bool {
         match impl_item {
             Item::Fn(impl_item) => {
                 impl_item.attrs.iter()
@@ -53,46 +58,58 @@ impl CodegenItem for Initializer {
             }
         }
     }
+}
 
-    fn supports(&self, item: &Item) -> bool {
+impl CodegenItem for Initializer {
+
+    fn supports_item(impl_item: &Vec<Item>) -> bool where Self: Sized {
+        impl_item.iter().any(|impl_item| {
+            Self::item_filter(impl_item)
+        })
+    }
+
+    fn supports(&self, item: &Vec<Item>) -> bool {
         Self::supports_item(item)
     }
 
     fn get_codegen(&self) -> Option<String> {
-        self.item.clone().map(|item| {
-            match item {
-                Item::Fn(item_fn) => {
+        if self.item.len() == 0 {
+            return None;
+        }
 
-                    let block = item_fn.block.deref().clone();
-
-                    let q = quote! {
-
-                    #[derive(Parse, Default, Clone, Debug)]
-                    pub struct ContextInitializerImpl;
-
-                    impl ContextInitializer for ContextInitializerImpl {
-                        fn do_update(&self) {
-                            #block
-                        }
+        let blocks = self.item.clone().iter()
+            .filter(|impl_item| Self::item_filter(impl_item))
+            .flat_map(|item| {
+                match item {
+                    Item::Fn(item_fn) => {
+                        let block = item_fn.block.deref().clone();
+                        vec![block]
                     }
-                };
-                    Some(q.to_string())
+                    _ => {
+                        vec![]
+                    }
                 }
-                _ => {
-                    None
+            })
+            .collect::<Vec<Block>>();
+
+        let ts = quote!{
+            #[derive(Parse, Default, Clone, Debug)]
+            pub struct ContextInitializerImpl;
+
+            impl ContextInitializer for ContextInitializerImpl {
+                fn do_update(&self) {
+                    #(
+                        #blocks
+                    )*
                 }
             }
-        })
-            .flatten()
-            .or(None)
+        };
+
+        Some(ts.to_string())
     }
 
     fn default_codegen(&self) -> String {
         Initializer::default_tokens().to_string()
-    }
-
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
-        Box::new(self.clone())
     }
 
     fn get_unique_id(&self) -> String {

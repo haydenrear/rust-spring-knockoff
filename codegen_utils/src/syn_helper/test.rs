@@ -3,7 +3,6 @@ use std::env::VarError;
 use std::fs::File;
 use std::path::Path;
 use syn::{Attribute, Item, ItemFn};
-use crate::parse::parse_syn_file;
 use crate::syn_helper::SynHelper;
 
 #[test]
@@ -26,6 +25,16 @@ fn test_get_attr_from_vec() {
 }
 
 #[test]
+fn test_get_name() {
+    let this_name = "let x = proceed_onetwothree(one, two, three)";
+    let proceed = SynHelper::get_proceed(this_name.to_string());
+    assert_eq!(proceed, "_onetwothree");
+    let this_name = "let x = proceed___onetwothree()";
+    let proceed = SynHelper::get_proceed(this_name.to_string());
+    assert_eq!(proceed, "___onetwothree");
+}
+
+#[test]
 fn test_knockoff_factories() {
     assert!(get_knockoff_factores_arg().is_some());
 }
@@ -42,7 +51,7 @@ fn do_test(attr_matcher: &dyn Fn(&Attribute) -> bool) -> Option<ItemFn> {
         let p = Path::new(&aug_file);
         if p.exists() {
             let mut f = File::open(p).unwrap();
-            let f = parse_syn_file(&mut f);
+            let f = SynHelper::parse_syn_file(&mut f);
             let out = f.unwrap().items.iter().flat_map(|f| {
                 match f {
                     Item::Fn(item_fn) => {

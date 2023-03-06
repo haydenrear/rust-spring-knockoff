@@ -4,7 +4,7 @@ use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_codegen::aspect::{MethodAdviceAspect, PointCut};
+use module_macro_codegen::aspect::{MethodAdviceAspectCodegen, PointCut};
 use module_macro_codegen::aspect::AspectParser;
 use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, BeanPath, BeanPathParts, BeanType, InjectableTypeKey, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
@@ -24,8 +24,9 @@ impl ContextBuilder {
     pub fn build_token_stream(parse_container: &mut ParseContainer) -> TokenStream {
         parse_container.log_app_container_info();
         parse_container.build_injectable();
-        ApplicationContextGenerator::create_context_generator(parse_container.injectable_types_map.clone())
-            .generate_token_stream()
+        ApplicationContextGenerator::create_context_generator(
+            &parse_container.injectable_types_map
+        ).generate_token_stream()
     }
 
 }

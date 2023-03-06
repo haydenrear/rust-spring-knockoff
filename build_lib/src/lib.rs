@@ -20,7 +20,8 @@ use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
 use codegen_utils::env::{get_project_base_dir, get_project_dir};
-use codegen_utils::{parse, project_directory};
+use codegen_utils::{parse, project_directory, syn_helper};
+use codegen_utils::syn_helper::SynHelper;
 use codegen_utils::walk::DirectoryWalker;
 use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
 
@@ -106,7 +107,7 @@ impl Module {
     }
 
     fn parse_module_from_file(file_to_parse: &mut File, base_dir: &str, module_file: &str, id: Option<Ident>, syn_file_buf: &PathBuf) -> Module {
-        parse::parse_syn_file(file_to_parse)
+        SynHelper::parse_syn_file(file_to_parse)
             .map(|syn_file| {
                 log_message!("Successfully parsed module syn file.");
                 Self::parse_module_from_syn_file(&syn_file, base_dir, module_file, id, syn_file_buf)
@@ -266,7 +267,7 @@ impl Module {
     fn parse_syn(base_env: Option<&str>) -> Option<syn::File> {
         parse::open_file(base_env.unwrap(), "lib.rs")
             .or_else(|_| parse::open_file(base_env.unwrap(), "main.rs"))
-            .map(|mut file| parse::parse_syn_file(&mut file))
+            .map(|mut file| SynHelper::parse_syn_file(&mut file))
             .map_err(|err| {
                 log_message!("Error opening main.rs or lib.rs file: {}.", err.to_string());
                 err
@@ -285,7 +286,8 @@ impl Module {
     }
 
     fn do_parse(mut modules: Module) {
-        let out_dir = env::var_os("OUT_DIR").or(Some(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/test_out"))).unwrap();
+        let out_dir = env::var_os("OUT_DIR")
+            .or(Some(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/test_out"))).unwrap();
         let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
         let out_path = dest_path.to_str().unwrap();
         log_message!("Writing output to {}.", out_path);

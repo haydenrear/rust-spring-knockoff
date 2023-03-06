@@ -14,7 +14,7 @@ pub trait StringMatcher<'a>: Matcher<&'a str> {
 pub trait RequestMatcher: Matcher<WebRequest> {
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct AntStringRequestMatcher {
     to_match: String,
     splitter: String
@@ -33,6 +33,18 @@ impl AntStringRequestMatcher {
             .collect::<Vec<&str>>();
         split_self_match
     }
+
+    fn do_match(split_match: &Vec<&str>, i: usize, matched: Vec<&str>) -> bool {
+        for or_self in matched.iter() {
+            let x = split_match.get(i).unwrap();
+            let first = or_self.to_string();
+            let second = x.to_string();
+            if first == second {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 impl Matcher<&str> for AntStringRequestMatcher {
@@ -40,23 +52,36 @@ impl Matcher<&str> for AntStringRequestMatcher {
         let split_self_match = self.split_for_match(&self.to_match);
         let split_match = self.split_for_match(to_match);
         for i in 0..split_match.len() {
+            if split_self_match.len() < i + 1 {
+                return false;
+            }
             let self_to_match = split_self_match.get(i);
-            if self_to_match == split_match.get(i) {
-                continue
+            let matched = self_to_match.or(Some(&""))
+                .unwrap()
+                .split("|")
+                .filter(|s| s.len() != 0)
+                .collect::<Vec<&str>>();
+            if matched.len() > 1 {
+                if Self::do_match(&split_match, i, matched) {
+                    continue;
+                }
             } else {
-                return match self_to_match {
-                    Some(&"**") => {
-                        true
+                if self_to_match == split_match.get(i) {
+                    continue;
+                }
+            }
+            return match self_to_match {
+                Some(&"**") => {
+                    true
+                }
+                Some(&"*") => {
+                    if split_match.len() - i > 1 {
+                        continue;
                     }
-                    Some(&"*") => {
-                        if split_match.len() - i > 1 {
-                            continue;
-                        }
-                        true
-                    }
-                    _ => {
-                        false
-                    }
+                    true
+                }
+                _ => {
+                    false
                 }
             }
         }

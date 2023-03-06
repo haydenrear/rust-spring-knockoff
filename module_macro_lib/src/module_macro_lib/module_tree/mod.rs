@@ -4,9 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::ops::Deref;
-use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
-use syn::{Attribute, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, TraitItem, Type, TypeArray, TypePath};
+use syn::{Attribute, Block, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, Stmt, TraitItem, Type, TypeArray, TypePath};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -21,6 +20,7 @@ use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 use_logging!();
@@ -44,7 +44,38 @@ pub struct Bean {
     pub ident: Option<Ident>,
     pub fields: Vec<Fields>,
     pub bean_type: Option<BeanType>,
-    pub mutable: bool
+    pub mutable: bool,
+    pub aspect_info: Vec<AspectInfo>
+}
+
+#[derive(Default, Clone)]
+pub struct AspectInfo {
+    pub(crate) method_advice_aspect: MethodAdviceAspectCodegen,
+    pub(crate) method: Option<ImplItemMethod>,
+    pub(crate) args: Vec<(Ident, Type)>,
+    /// This is the block before any aspects are added.
+    pub(crate) original_fn_logic: Option<Block>,
+    pub(crate) return_type: Option<Type>,
+    pub(crate) method_after: Option<ImplItemMethod>,
+    pub(crate) mutable: bool,
+    pub(crate) advice_chain: Vec<MethodAdviceChain>
+}
+
+#[derive(Default, Clone)]
+pub struct MethodAdviceChain {
+    pub before_advice: Option<Block>,
+    pub after_advice: Option<Block>,
+    pub proceed_statement: Option<Stmt>
+}
+
+impl MethodAdviceChain {
+    pub(crate) fn new(method_advice: &MethodAdviceAspectCodegen) -> Self {
+        Self {
+            before_advice: method_advice.before_advice.clone(),
+            after_advice: method_advice.after_advice.clone(),
+            proceed_statement: method_advice.proceed_statement.clone(),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -54,20 +85,6 @@ pub enum BeanDefinitionType {
         dep_type: AutowireType
     }, Concrete {
         bean: Bean,
-    }
-}
-
-impl Debug for BeanDefinitionType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BeanDefinitionType::Abstract { bean, dep_type } => {
-                log_message!("{} is bean id.", bean.id.as_str());
-            }
-            BeanDefinitionType::Concrete { bean } => {
-                log_message!("{} is bean id.", bean.id.as_str());
-            }
-        };
-        Ok(())
     }
 }
 
@@ -212,13 +229,16 @@ impl Debug for BeanPathParts {
 Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
  **/
 pub struct ModulesFunctions {
-    pub fn_found: FunctionType
+    pub fn_found: FunctionType,
+    pub path: Vec<String>
 }
 
 #[derive(Clone)]
-pub enum FunctionType {
-    Singleton(ItemFn, Option<String>, Option<Type>),
-    Prototype(ItemFn, Option<String>, Option<Type>)
+pub struct FunctionType {
+    pub(crate) item_fn: ItemFn,
+    pub(crate) qualifier: Option<String>,
+    pub(crate) fn_type: Option<Type>,
+    pub(crate) bean_type: BeanType
 }
 
 #[derive(Clone)]
@@ -253,8 +273,16 @@ pub struct DepType {
 #[derive(Clone, Debug)]
 pub enum BeanType {
     // contains the identifier and the qualifier as string
-    Singleton(BeanDefinition, Option<FunctionType>),
-    Prototype(BeanDefinition, Option<FunctionType>)
+    Singleton, Prototype
+}
+
+impl BeanType {
+    fn new(name: &str) -> Self {
+        if name.to_lowercase() == "singleton" {
+            return BeanType::Singleton;
+        }
+        BeanType::Prototype
+    }
 }
 
 
@@ -263,6 +291,7 @@ pub struct BeanDefinition {
     pub qualifier: Option<String>,
     pub bean_type_type: Option<Type>,
     pub bean_type_ident: Option<Ident>,
+    pub bean_type: BeanType
 }
 
 #[derive(Clone)]
@@ -289,19 +318,23 @@ impl Default for Bean {
             ident: None,
             fields: vec![],
             bean_type: None,
-            mutable: false
+            mutable: false,
+            aspect_info: vec![],
         }
     }
 }
 
+#[derive(Default, Clone)]
 pub struct Trait {
     pub trait_type: Option<ItemTrait>,
+    pub trait_path: Vec<String>
 }
 
 impl Trait {
-    pub fn new(trait_type: ItemTrait) -> Self {
+    pub fn new(trait_type: ItemTrait, path: Vec<String>) -> Self {
         Self {
-            trait_type: Some(trait_type)
+            trait_type: Some(trait_type),
+            trait_path: path,
         }
     }
 }

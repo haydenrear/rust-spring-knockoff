@@ -26,20 +26,18 @@ pub fn do_aspect(&self, one: One) -> String {
     println!("hello");
     println!("{}", self.two.clone());
     let found = self.proceed_one_test(one);
-    let mut three_four = "three four ".to_string() + found.as_str();
-    three_four
+    found
 }
 
 #[aspect(**)]
 #[ordered(1)]
-pub fn do_aspect_again(&self, one: One) -> String {
-    println!("hello");
+pub fn second_aspect(&self, one: One) -> String {
+    println!("another_hello");
     println!("{}", self.two.clone());
-    let found = self.proceed_one_test_two(one);
-    let mut zero = " zero".to_string();
-    zero = found + zero.as_str();
-    zero
+    let found = self.proceed_one_test_again(one);
+    "another".to_string()
 }
+
 
 #[configuration(field_aug)]
 pub mod field_aug_configuration {

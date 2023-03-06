@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 use spring_knockoff_boot_macro::{autowired, bean, singleton};
+use crate::_one_testOne;
 
 pub mod test_library_four;
 
@@ -14,6 +15,7 @@ fn this_one() -> Option<&'static str> {
 }
 
 impl Found for One {
+
 }
 
 impl Found for Four {
@@ -21,6 +23,11 @@ impl Found for Four {
 
 
 impl One {
+    pub fn one_two_three(&self, one: One) -> String {
+        print!("testing...");
+        print!("{} is one", one.two.to_string());
+        "two one".to_string()
+    }
 }
 
 #[derive(Default, Debug)]

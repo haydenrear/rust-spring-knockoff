@@ -2,12 +2,13 @@ use std::ops::Deref;
 use quote::ToTokens;
 use syn::Item;
 use syn::parse::Parse;
-use codegen_utils::parse;
+use codegen_utils::{parse, syn_helper};
+use codegen_utils::syn_helper::SynHelper;
 use crate::aspect::AspectAwarePackage;
 
 #[test]
 fn test_create_aspect_aware_package() {
-    let syn_file = parse::open_syn_file(
+    let syn_file = SynHelper::open_syn_file(
         "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources",
         "test_library_three.rs"
     )

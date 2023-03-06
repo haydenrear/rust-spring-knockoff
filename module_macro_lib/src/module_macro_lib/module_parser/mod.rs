@@ -6,136 +6,88 @@ use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
 use proc_macro2::TokenStream;
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf};
+use syn::{Attribute, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, TraitItem, Type, TypePath};
 use syn::__private::{str, TokenStream2};
 use syn::parse::Parser;
 use syn::spanned::Spanned;
 use syn::{
+    Ident,
     LitStr,
     Token,
-    Ident,
     token::Paren,
 };
-use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token};
+use quote::{format_ident, IdentFragment, quote, quote_token, ToTokens};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
+use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::parse_container::ParseContainer;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_codegen::aspect::AspectParser;
+use module_macro_codegen::module_extractor::ModuleParser;
+use module_macro_codegen::parser::LibParser;
+use web_framework_shared::matcher::Matcher;
+use crate::module_macro_lib::item_modifier::delegating_modifier::DelegatingItemModifier;
+use crate::module_macro_lib::item_modifier::ItemModifier;
+use crate::module_macro_lib::item_parser::item_enum_parser::ItemEnumParser;
+use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
+use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
+use crate::module_macro_lib::item_parser::item_struct_parser::ItemStructParser;
+use crate::module_macro_lib::item_parser::item_trait_parser::ItemTraitParser;
+use crate::module_macro_lib::item_parser::ItemParser;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 pub fn parse_module(mut found: Item) -> TokenStream {
-    match &mut found {
-        Item::Mod(ref mut module_found) => {
-            let mut container = ParseContainer::default();
-
-            parse_item_recursive(
-                module_found,
-                &mut container,
-                &mut vec![module_found.ident.to_string().clone()]
-            );
+    create_initial_parse_container(&mut found).as_mut()
+        .map(|created| {
+            let container = do_container_modifications(&mut found, created);
 
             let container_tokens = container.build_to_token_stream();
 
-            quote!(
-                #found
+            return quote!(
                 #container_tokens
-            ).into()
+                #found
+            ).into();
+        })
+        .or(Some(quote!(#found).into()))
+        .unwrap()
 
+}
+
+pub(crate) fn do_container_modifications<'a>(mut found: &'a mut Item, created: &'a mut (ParseContainer, String)) -> &'a mut ParseContainer {
+    let item_modifier = DelegatingItemModifier::new();
+    let container = &mut created.0;
+    item_modifier.modify_item(container, &mut found, vec![created.1.clone()]);
+    container
+}
+
+pub(crate) fn create_initial_parse_container(mut found: &mut Item) -> Option<(ParseContainer, String)> {
+    let mut created = match &mut found {
+        Item::Mod(ref mut module_found) => {
+            let mut container = ParseContainer::default();
+            container.aspects = AspectParser::parse_aspects();
+
+            ItemModParser::parse_item(
+                &mut container,
+                module_found,
+                vec![module_found.ident.to_string().clone()]
+            );
+
+            log_message!("{} is module.", module_found.ident.to_string().as_str());
+            log_message!("{:?} is module.", &container);
+
+            Some((container, module_found.ident.to_string().clone()))
         }
         _ => {
-            return quote!(#found).into();
+            None
         }
-    }
+    };
+    created
 }
 
-pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
-    item_found.content.iter_mut()
-        .flat_map(|mut c| c.1.iter_mut())
-        .for_each(|i: &mut Item| parse_item(i, module_container, path_depth));
-}
-
-
-pub fn get_trait(item_impl: &mut ItemImpl) -> Option<Path> {
-    item_impl.trait_.clone()
-        .and_then(|item_impl_found| {
-            Some(item_impl_found.1)
-        })
-        .or_else(|| None)
-}
-
-pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
-    match i {
-        Item::Const(const_val) => {
-            log_message!("Found const val {}.", const_val.to_token_stream().clone());
-        }
-        Item::Enum(enum_type) => {
-            log_message!("Found enum val {}.", enum_type.to_token_stream().clone());
-            app_container.add_item_enum(enum_type, path_depth.clone());
-        }
-        Item::Fn(fn_type) => {
-            log_message!("Found fn type {}.", fn_type.to_token_stream().clone());
-            app_container.add_fn_to_dep_types(fn_type);
-        }
-        Item::ForeignMod(_) => {}
-        Item::Impl(impl_found) => {
-            // TODO: add decorator for methods. The attribute will specify knockoff SpEL expression
-            //  and from this SpEL expression the authorization manager will be used.
-            //  More generally, the ability to add aspects to methods can be added somewhat trivially.
-            //  -- Unfortunately, it will be difficult (impossible?) to add "this" to the aspect? I
-            //  suppose you cauld try just calling self but that won't work because of hygiene /
-            //  it wouldn't really compile...? might compile actually... bc it's in the aug file
-            //  --- the best way will be to add the aspect as a field of the struct if the this param...
-            /// is required, and implement the Aspect interface for the struct if not. Then, you can
-            /// have access to self or just call the type beforehand..
-            // impl_found.items.iter().map(|i| {
-            //     match i {
-            //         ImplItem::Const(_) => {}
-            //         ImplItem::Method(method) => {
-            //             method.block
-            //         }
-            //         ImplItem::Type(_) => {}
-            //         ImplItem::Macro(_) => {}
-            //         ImplItem::Verbatim(_) => {}
-            //         ImplItem::__NonExhaustive => {}
-            //     }
-            // })
-            // }
-            log_message!("Found impl type {}.", impl_found.to_token_stream().clone());
-            app_container.create_update_impl(impl_found, path_depth.clone());
-        }
-        Item::Macro(macro_created) => {
-        }
-        Item::Macro2(_) => {}
-        Item::Mod(ref mut module) => {
-            log_message!("Found module with name {} !!!", module.ident.to_string().clone());
-            path_depth.push(module.ident.to_string().clone());
-            parse_item_recursive(module, app_container, path_depth);
-        }
-        Item::Static(static_val) => {
-            log_message!("Found static val {}.", static_val.to_token_stream().clone());
-        }
-        Item::Struct(ref mut item_struct) => {
-            app_container.initializer.field_augmenter.process(item_struct);
-            app_container.add_item_struct(item_struct, path_depth.clone());
-            log_message!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
-        }
-        Item::Trait(trait_created) => {
-            log_message!("Trait created: {}", trait_created.ident.clone().to_string());
-            app_container.create_update_trait(trait_created);
-        }
-        Item::TraitAlias(_) => {}
-        Item::Type(type_found) => {
-            log_message!("Item type found {}!", type_found.ident.to_token_stream().to_string().clone());
-        }
-        Item::Union(_) => {}
-        Item::Verbatim(_) => {}
-        _ => {}
-    }
-}

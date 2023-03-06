@@ -159,7 +159,7 @@ impl ConcreteFactoryGenerator {
             bean.bean_type.as_ref().and_then(|bean_type| {
                 log_message!("Found bean type {:?}.", bean_type);
                 match bean_type {
-                    BeanType::Singleton(b, _) => {
+                    BeanType::Singleton => {
                         log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
                         if bean.mutable {
                             Self::add_to(&mut mutable_idents, &mut mutable_types, &bean);
@@ -167,7 +167,7 @@ impl ConcreteFactoryGenerator {
                             Self::add_to(&mut singleton_idents, &mut singleton_types, &bean);
                         }
                     }
-                    BeanType::Prototype(_, _) => {
+                    BeanType::Prototype => {
                         log_message!("adding bean dep impl with type {} as prototype!", bean.id.clone());
                         if bean.mutable {
                             Self::add_to(&mut mutable_idents, &mut mutable_types, &bean);
@@ -295,7 +295,7 @@ impl AbstractFactoryGenerator {
             bean.bean_type.as_ref().and_then(|bean_type| {
                 log_message!("Found bean type {:?}.", bean_type);
                 match bean_type {
-                    BeanType::Singleton(b, _) => {
+                    BeanType::Singleton => {
                         log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
                         if bean.mutable {
                             Self::add_to(&mut mutable_idents, &mut mutable_types, bean);
@@ -303,7 +303,7 @@ impl AbstractFactoryGenerator {
                             Self::add_to(&mut singleton_idents, &mut singleton_types, bean);
                         }
                     }
-                    BeanType::Prototype(_, _) => {
+                    BeanType::Prototype => {
                         log_message!("adding bean dep impl with type {} as prototype!", bean.id.clone());
                         if bean.mutable {
                             Self::add_to(&mut mutable_idents, &mut mutable_types, bean);

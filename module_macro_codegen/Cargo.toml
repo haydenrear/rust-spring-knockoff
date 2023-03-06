@@ -14,6 +14,7 @@ lazy_static = "1.4.0"
 serde = "1.0.137"
 base64 = "0.13.0"
 executors = "0.9.0"
+rand = "0.8.5"
 
 [dependencies.knockoff_security]
 path = "../knockoff_security"

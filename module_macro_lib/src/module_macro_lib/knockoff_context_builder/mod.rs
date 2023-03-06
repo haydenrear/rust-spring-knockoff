@@ -9,6 +9,7 @@ use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile, BeanDefiniti
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
+use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::{BeanFactoryGenerator, FactoryBeanBeanFactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::factory_generator::{AbstractFactoryGenerator, ConcreteFactoryGenerator, FactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
@@ -37,26 +38,20 @@ impl TokenStreamGenerator for ApplicationContextGenerator {
         ts.append_all(Self::context_imports());
         ts.append_all(ApplicationContextGenerator::init_bean_factory());
         ts.append_all(ConcreteFactoryGenerator::impl_listable_factory());
-        self.bean_factory_generators.iter()
-            .for_each(|factory_gens|
-                ts.append_all(factory_gens.generate_token_stream())
-            );
-        self.factory_generators.iter()
-            .for_each(|factory_gens|
-                ts.append_all(factory_gens.generate_token_stream())
-            );
-        ts.append_all(Self::finish_abstract_factory(
+        self.write_generators(&mut ts);
+        ts.append_all(
+            Self::finish_abstract_factory(
             self.profiles.iter()
-                .map(|p| p.profile.clone())
-                .collect())
-        );
+                    .map(|p| p.profile.clone())
+                    .collect()
+        ));
         ts
     }
 }
 
 impl ApplicationContextGenerator {
 
-    pub fn create_context_generator(profile_tree: ProfileTree) -> Self {
+    pub fn create_context_generator(profile_tree: &ProfileTree) -> Self {
         let factory_generators = profile_tree.injectable_types.iter()
             .flat_map(|bean_def_type_profile| Self::create_factory_generators(&bean_def_type_profile))
             .collect::<Vec<Box<dyn TokenStreamGenerator>>>();
@@ -64,9 +59,17 @@ impl ApplicationContextGenerator {
         let profiles = profile_tree.injectable_types.keys()
             .map(|p| p.clone())
             .collect();
+        let aspect_generators = vec![Self::create_aspect_generator(&profile_tree)];
         Self {
-            factory_generators, bean_factory_generators, profiles, aspect_generators: vec![]
+            factory_generators,
+            bean_factory_generators,
+            profiles,
+            aspect_generators
         }
+    }
+
+    fn create_aspect_generator(from: &ProfileTree) -> Box<dyn TokenStreamGenerator> {
+        Box::new(AspectGenerator::new(from))
     }
 
     fn create_factory_generators(from: &(&Profile, &Vec<BeanDefinitionType>)) -> Vec<Box<dyn TokenStreamGenerator>> {
@@ -101,6 +104,7 @@ impl ApplicationContextGenerator {
         let ts = quote! {
             use module_macro_lib::module_macro_lib::knockoff_context::{AbstractListableFactory, ApplicationContext, Profile, ContainsBeans};
             use std::sync::Mutex;
+            use paste::paste;
         };
         ts.into()
     }
@@ -319,6 +323,20 @@ impl ApplicationContextGenerator {
         injectable_code.into()
     }
 
+    fn write_generators(&self, mut ts: &mut TokenStream) {
+        self.bean_factory_generators.iter()
+            .for_each(|factory_gens|
+                ts.append_all(factory_gens.generate_token_stream())
+            );
+        self.factory_generators.iter()
+            .for_each(|factory_gens|
+                ts.append_all(factory_gens.generate_token_stream())
+            );
+        self.aspect_generators.iter()
+            .for_each(|aspect_generator|
+                ts.append_all(aspect_generator.generate_token_stream())
+            );
+    }
 }
 
 

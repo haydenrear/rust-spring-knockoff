@@ -9,7 +9,7 @@ use std::sync::Arc;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Item, ItemFn};
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
-use crate::aspect::{AspectMatcher, MethodAdviceAspect};
+use crate::aspect::{AspectMatcher, MethodAdviceAspectCodegen, ParsedAspects};
 use crate::authentication_type::AuthenticationTypeCodegen;
 use crate::codegen_items;
 use crate::initializer::Initializer;
@@ -22,7 +22,18 @@ use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 use crate::module_extractor::ModuleParser;
 
-codegen_items!(AuthenticationTypeCodegen, FieldAug, Initializer, ModuleParser, MethodAdviceAspect);
+codegen_items!(
+    (AuthenticationTypeCodegen, AuthenticationType),
+    (ParsedAspects, Aspect),
+    (FieldAug, FieldAug),
+    (ModuleParser, Module),
+    (Initializer, ContextInitializer)
+);
+
+#[test]
+fn test() {
+
+}
 
 pub struct LibParser;
 
@@ -34,10 +45,10 @@ impl LibParser {
 
         log_message!("Found {} codegen items.", codegen_items.len());
 
-        let mut type_id_map: HashMap<String, Box<dyn CodegenItem>> = codegen_items.iter()
+        let mut type_id_map: HashMap<String, CodegenItemType> = codegen_items.iter()
             .map(|c| {
                 log_message!("Found codegen item with ID: {}", c.get_unique_id().as_str());
-                (c.get_unique_id(), c.clone_dyn_codegen())
+                (c.get_unique_id(), c.clone())
             })
             .collect();
 
@@ -73,21 +84,15 @@ impl LibParser {
         to_write_codegen
     }
 
-    pub fn parse_codegen_items(in_dir_file: &str) -> Vec<Box<dyn CodegenItem>> {
+    pub fn parse_codegen_items(in_dir_file: &str) -> Vec<CodegenItemType> {
         let flatten = Self::parse_syn(in_dir_file)
             .iter()
             .flat_map(|syn_file| {
-                syn_file.items.iter()
+                get_codegen_item(&syn_file.items.clone())
             })
-            .flat_map(|item| get_codegen_item(item)
-                .map(|codegen_item| vec![codegen_item])
-                .or(Some(vec![]))
-            )
-            .flatten()
-            .collect::<Vec<Box<dyn CodegenItem>>>();
+            .collect::<Vec<CodegenItemType>>();
         flatten
     }
-
 
     pub fn parse_syn(in_dir_file: &str) -> Option<syn::File> {
         let in_path = Path::new(in_dir_file);
@@ -126,15 +131,13 @@ impl LibParser {
 
 pub trait CodegenItem {
 
-    fn supports_item(item: &Item) -> bool where Self: Sized;
+    fn supports_item(item: &Vec<Item>) -> bool where Self: Sized;
 
-    fn supports(&self, item: &Item) -> bool;
+    fn supports(&self, item: &Vec<Item>) -> bool;
 
     fn get_codegen(&self) -> Option<String>;
 
     fn default_codegen(&self) -> String;
-
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem>;
 
     fn get_unique_id(&self) -> String;
 
@@ -144,7 +147,7 @@ pub trait CodegenItem {
 
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct CodegenItems {
-    pub codegen: Vec<Box<dyn CodegenItem>>
+    pub codegen: Vec<CodegenItemType>
 }
