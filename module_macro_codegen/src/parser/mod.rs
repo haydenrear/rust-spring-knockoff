@@ -9,7 +9,7 @@ use std::sync::Arc;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Item, ItemFn};
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
-use crate::aspect::{AspectMatcher, MethodAdviceAspect};
+use crate::aspect::{AspectMatcher, MethodAdviceAspectCodegen, ParsedAspects};
 use crate::authentication_type::AuthenticationTypeCodegen;
 use crate::codegen_items;
 use crate::initializer::Initializer;
@@ -22,7 +22,12 @@ use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 use crate::module_extractor::ModuleParser;
 
-codegen_items!(AuthenticationTypeCodegen, FieldAug, Initializer, ModuleParser, MethodAdviceAspect);
+codegen_items!(AuthenticationTypeCodegen, ParsedAspects, FieldAug, ModuleParser, Initializer);
+
+#[test]
+fn test() {
+
+}
 
 pub struct LibParser;
 
@@ -77,13 +82,8 @@ impl LibParser {
         let flatten = Self::parse_syn(in_dir_file)
             .iter()
             .flat_map(|syn_file| {
-                syn_file.items.iter()
+                get_codegen_item(&syn_file.items.clone())
             })
-            .flat_map(|item| get_codegen_item(item)
-                .map(|codegen_item| vec![codegen_item])
-                .or(Some(vec![]))
-            )
-            .flatten()
             .collect::<Vec<Box<dyn CodegenItem>>>();
         flatten
     }
@@ -92,13 +92,8 @@ impl LibParser {
         let flatten = Self::parse_syn(in_dir_file)
             .iter()
             .flat_map(|syn_file| {
-                syn_file.items.iter()
+                get_codegen_item_any(&syn_file.items.clone())
             })
-            .flat_map(|item| get_codegen_item_any(item)
-                .map(|codegen_item| vec![codegen_item])
-                .or(Some(vec![]))
-            )
-            .flatten()
             .collect::<Vec<Box<dyn Any>>>();
         flatten
     }
@@ -138,12 +133,11 @@ impl LibParser {
     }
 }
 
-
 pub trait CodegenItem {
 
-    fn supports_item(item: &Item) -> bool where Self: Sized;
+    fn supports_item(item: &Vec<Item>) -> bool where Self: Sized;
 
-    fn supports(&self, item: &Item) -> bool;
+    fn supports(&self, item: &Vec<Item>) -> bool;
 
     fn get_codegen(&self) -> Option<String>;
 

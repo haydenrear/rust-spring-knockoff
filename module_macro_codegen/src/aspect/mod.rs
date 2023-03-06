@@ -19,13 +19,18 @@ use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 
 #[derive(Clone, Default)]
-pub struct MethodAdviceAspect {
+pub struct MethodAdviceAspectCodegen {
     pub default: Option<TokenStream>,
     pub item: Option<Item>,
     pub type_args: Vec<Type>,
     pub before_advice: Option<Block>,
     pub after_advice: Option<Block>,
     pub pointcut: PointCut,
+}
+
+#[derive(Clone, Default)]
+pub struct ParsedAspects {
+    pub method_advice_aspects: Vec<MethodAdviceAspectCodegen>
 }
 
 #[derive(Clone, Default)]
@@ -42,7 +47,7 @@ impl PointCut {
     }
 }
 
-impl MethodAdviceAspect {
+impl MethodAdviceAspectCodegen {
     pub(crate) fn create_aspect_matcher(&self) -> AspectMatcher {
         Self::create_aspect(&self.pointcut, Ident::new("TestAspect", Span::call_site()))
     }
@@ -92,7 +97,6 @@ impl MethodAdviceAspect {
                         .next()
                         .unwrap();
 
-
                     pointcut_expr = pointcut_expr.map(|mut p| {
                         p.replace(" ", "")
                     });
@@ -115,16 +119,6 @@ impl MethodAdviceAspect {
                 }
             }
         )
-    }
-
-    pub(crate) fn new_dyn_codegen(item: &Item) -> Option<Box<dyn CodegenItem>> {
-        Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
-    }
-
-    pub(crate) fn new_any(item: &Item) -> Option<Box<dyn Any>> {
-        Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn Any>)
     }
 
     fn is_aspect(vec: &Vec<Attribute>) -> bool {
@@ -188,7 +182,72 @@ impl AspectMatcher {
     }
 }
 
-impl CodegenItem for MethodAdviceAspect {
+impl ParsedAspects {
+
+    pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
+        if item.len() > 0 {
+            return Some(
+                Self {
+                    method_advice_aspects: item.iter()
+                        .filter(|i| MethodAdviceAspectCodegen::supports_item(i))
+                        .map(|i| MethodAdviceAspectCodegen::new(i))
+                        .flatten()
+                        .collect::<Vec<MethodAdviceAspectCodegen>>()
+                }
+            );
+        }
+        None
+    }
+
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<Box<dyn CodegenItem>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
+    }
+
+    pub(crate) fn new_any(item: &Vec<Item>) -> Option<Box<dyn Any>> {
+        Self::new(item)
+            .map(|i| Box::new(i) as Box<dyn Any>)
+    }
+}
+
+impl CodegenItem for ParsedAspects {
+    fn supports_item(item: &Vec<Item>) -> bool where Self: Sized {
+        item.iter().any(|i| MethodAdviceAspectCodegen::supports_item(i))
+    }
+
+    fn supports(&self, item: &Vec<Item>) -> bool {
+        item.iter().any(|i| MethodAdviceAspectCodegen::supports_item(i))
+    }
+
+    fn get_codegen(&self) -> Option<String> {
+        if self.method_advice_aspects.len() == 0 {
+            return None;
+        }
+
+        Some(
+            self.method_advice_aspects.iter()
+                .map(|m| m.get_codegen())
+                .flatten()
+                .collect::<Vec<String>>()
+                .join("")
+        )
+    }
+
+    fn default_codegen(&self) -> String {
+        String::default()
+    }
+
+    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
+        Box::new(ParsedAspects::default())
+    }
+
+    fn get_unique_id(&self) -> String {
+        "ParsedAspects".to_string()
+    }
+}
+
+impl MethodAdviceAspectCodegen {
+
     fn supports_item(item: &Item) -> bool where Self: Sized {
         match item {
             Item::Fn(item_fn) => {
@@ -206,7 +265,7 @@ impl CodegenItem for MethodAdviceAspect {
     fn supports(&self, item: &Item) -> bool {
         match item {
             Item::Fn(item_fn) => {
-                MethodAdviceAspect::is_aspect(&item_fn.attrs)
+                MethodAdviceAspectCodegen::is_aspect(&item_fn.attrs)
             }
             _ => {
                 false
@@ -222,30 +281,31 @@ impl CodegenItem for MethodAdviceAspect {
         String::default()
     }
 
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
-        Box::new(self.clone())
-    }
-
     fn get_unique_id(&self) -> String {
         "MethodAdviceAspect".to_string()
     }
+
 }
 
 
 #[derive(Default, Clone)]
 pub struct AspectParser {
-    pub aspects: Vec<MethodAdviceAspect>,
+    pub aspects: Vec<ParsedAspects>,
 }
 
 impl AspectParser {
 
-    pub fn parse_method_advice_aspects() -> Vec<MethodAdviceAspect> {
+    pub fn parse_method_advice_aspects() -> Vec<ParsedAspects> {
         log_message!("Parsing aspects.");
         env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
             log_message!("Found knockoff factories file {}. Parsing aspects.", aug_file.as_str());
             LibParser::parse_codegen_items_any(&aug_file)
                 .iter()
-                .flat_map(|c| c.downcast_ref::<MethodAdviceAspect>()
+                .flat_map(|c| c.downcast_ref::<ParsedAspects>()
+                    .map(|c| {
+                        log_message!("Downcasted method advice aspect.");
+                        c
+                    })
                     .map(|m| vec![m]).or(Some(vec![]))
                     .unwrap()
                 )
@@ -253,7 +313,7 @@ impl AspectParser {
                     log_message!("Found method advice aspect.");
                     vec![b.clone()]
                 })
-                .collect::<Vec<MethodAdviceAspect>>()
+                .collect::<Vec<ParsedAspects>>()
         }).ok().or(Some(vec![])).unwrap()
     }
 

@@ -7,40 +7,58 @@ use std::ops::Deref;
 use std::path::Path;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Item, ItemFn, ItemImpl};
+use syn::{Block, Item, ItemFn, ItemImpl};
 use crate::parser::{CodegenItem, LibParser};
 
 #[derive(Clone)]
 pub struct FieldAug {
     default: Option<TokenStream>,
-    item: Option<Item>
+    item: Vec<Item>
 }
 
 impl FieldAug {
 
-    pub(crate) fn new_dyn_codegen(item: &Item) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<Box<dyn CodegenItem>> {
         Self::new(item)
             .map(|i| Box::new(i) as Box<dyn CodegenItem>)
     }
 
-    pub(crate) fn new_any(item: &Item) -> Option<Box<dyn Any>> {
+    pub(crate) fn new_any(item: &Vec<Item>) -> Option<Box<dyn Any>> {
         Self::new(item)
             .map(|i| Box::new(i) as Box<dyn Any>)
     }
 
-    pub(crate) fn new(item: &Item) -> Option<Self> {
+    pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
         if FieldAug::supports_item(item) {
-            return Some(Self { default: None, item: Some(item.clone()) });
+            return Some(
+                Self {
+                    default: None,
+                    item: item.clone().iter().map(|c| c.clone()).collect()
+                }
+            );
         }
         None
     }
 
+    fn item_filter(impl_item: &Item) -> bool {
+        match impl_item {
+            Item::Fn(impl_item) => {
+                impl_item.attrs.iter()
+                    .any(|attr_found| attr_found.to_token_stream()
+                        .to_string().as_str().contains("field_aug")
+                    )
+            }
+            _ => {
+                false
+            }
+        }
+    }
 }
 
 impl Default for FieldAug {
     fn default() -> Self {
         Self {
-            default: None, item: None
+            default: None, item: vec![]
         }
     }
 }
@@ -63,49 +81,50 @@ impl FieldAug {
 impl CodegenItem for FieldAug {
 
 
-    fn supports_item(impl_item: &Item) -> bool where Self: Sized {
-        match impl_item {
-            Item::Fn(impl_item) => {
-                impl_item.attrs.iter()
-                    .any(|attr_found| attr_found.to_token_stream()
-                        .to_string().as_str().contains("field_aug")
-                    )
-            }
-            _ => {
-                false
-            }
-        }
+    fn supports_item(impl_item: &Vec<Item>) -> bool where Self: Sized {
+        impl_item.iter().any(|impl_item| {
+            Self::item_filter(impl_item)
+        })
     }
 
-    fn supports(&self, item: &Item) -> bool {
+    fn supports(&self, item: &Vec<Item>) -> bool {
         Self::supports_item(item)
     }
 
     fn get_codegen(&self) -> Option<String> {
-        self.item.clone().map(|item| {
-            match item {
-                Item::Fn(item_fn) => {
-                    let block = item_fn.block.deref().clone();
 
-                    let q = quote! {
-                    #[derive(Parse, Default, Clone, Debug)]
-                    pub struct FieldAugmenterImpl;
+        if self.item.len() == 0 {
+            return None;
+        }
 
-                    impl FieldAugmenter for FieldAugmenterImpl {
-                        fn process(&self, struct_item: &mut ItemStruct) {
-                            #block
-                        }
+        let blocks = self.item.iter()
+            .filter(|impl_item| Self::item_filter(impl_item))
+            .clone()
+            .flat_map(|item| {
+                match item {
+                    Item::Fn(item_fn) => {
+                        let block = item_fn.block.deref().clone();
+                        vec![block]
                     }
-                };
-                    Some(q.to_string())
+                    _ => {
+                        vec![]
+                    }
                 }
-                _ => {
-                    None
+            }).collect::<Vec<Block>>();
+
+        let q = quote! {
+            #[derive(Parse, Default, Clone, Debug)]
+            pub struct FieldAugmenterImpl;
+
+            impl FieldAugmenter for FieldAugmenterImpl {
+                fn process(&self, struct_item: &mut ItemStruct) {
+                    #(#blocks)*
                 }
             }
-        })
-            .flatten()
-            .or(None)
+        };
+
+        Some(q.to_string())
+
     }
 
     fn default_codegen(&self) -> String {

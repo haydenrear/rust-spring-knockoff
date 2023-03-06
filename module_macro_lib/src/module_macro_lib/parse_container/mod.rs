@@ -36,7 +36,7 @@ use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
-use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspect};
+use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
 use web_framework_shared::matcher::Matcher;
 use_logging!();
 initialize_log!();
@@ -225,6 +225,7 @@ impl ParseContainer {
     fn do_aspect(&mut self, method: &mut ImplItemMethod, mut next_path: Vec<String>) {
         log_message!("Doing aspect with {} aspects.", self.aspects.aspects.len());
         self.aspects.aspects.iter()
+            .flat_map(|p| &p.method_advice_aspects)
             .filter(|a| {
                 let point_cut_matcher = next_path.join(".");
                 log_message!("Checking if before advice {} and after advice {} matches {}.",
@@ -237,7 +238,7 @@ impl ParseContainer {
             .for_each(|a| {
                 log_message!("Adding before advice aspect: {}.", SynHelper::get_str(a.before_advice.clone().unwrap()));
                 log_message!("Adding after advice aspect: {}.", SynHelper::get_str(a.after_advice.clone().unwrap()));
-                Self::add_advice_to_stmts(method, a);
+                Self::add_advice_to_stmts(method, &a);
                 Self::rewrite_block_new_span(method);
             });
     }
@@ -252,7 +253,7 @@ impl ParseContainer {
         method.block = parsed.unwrap();
     }
 
-    fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspect) {
+    fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
         let before = a.before_advice.clone();
         log_message!("Adding statements to method.");
         before.map(|mut before| {

@@ -1,3 +1,4 @@
+extern crate core;
 
 use knockoff_security::knockoff_security::authentication_type::AuthenticationAware;
 

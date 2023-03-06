@@ -1,24 +1,30 @@
 #[macro_export]
 macro_rules! codegen_items {
     ($($codegen_item:ty),*) => {
-        pub fn get_codegen_item(item: &Item) -> Option<Box<dyn CodegenItem>> {
+        pub fn get_codegen_item(item: &Vec<Item>) -> Vec<Box<dyn CodegenItem>> {
+            let mut codegen_items = vec![];
             $(
-                if <$codegen_item>::supports_item(item) {
+                if <$codegen_item>::supports_item(&item) {
                     let codegen_item: Option<Box<dyn CodegenItem>> = <$codegen_item>::new_dyn_codegen(item);
-                    return codegen_item;
+                    codegen_item.map(|codegen_item| {
+                        codegen_items.push(codegen_item);
+                    });
                 }
             )*
-            None
+            codegen_items
         }
 
-        pub fn get_codegen_item_any(item: &Item) -> Option<Box<dyn Any>> {
+        pub fn get_codegen_item_any(item: &Vec<Item>) -> Vec<Box<dyn Any>> {
+            let mut codegen_items = vec![];
             $(
-                if <$codegen_item>::supports_item(item) {
+                if <$codegen_item>::supports_item(&item) {
                     let codegen_item: Option<Box<dyn Any>> = <$codegen_item>::new_any(item);
-                    return codegen_item;
+                    codegen_item.map(|codegen_item| {
+                        codegen_items.push(codegen_item);
+                    });
                 }
             )*
-            None
+            codegen_items
         }
 
         impl LibParser {

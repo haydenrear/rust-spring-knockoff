@@ -4,7 +4,7 @@ use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_codegen::aspect::{MethodAdviceAspect, PointCut};
+use module_macro_codegen::aspect::{MethodAdviceAspectCodegen, PointCut};
 use module_macro_codegen::aspect::AspectParser;
 use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, BeanPath, BeanPathParts, BeanType, InjectableTypeKey, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;

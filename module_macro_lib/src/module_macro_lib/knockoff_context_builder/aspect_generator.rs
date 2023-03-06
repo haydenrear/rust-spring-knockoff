@@ -1,11 +1,11 @@
 use proc_macro2::TokenStream;
-use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspect};
+use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType};
 use crate::module_macro_lib::profile_tree::ProfileTree;
 
 pub struct AspectGenerator {
-    method_advice_aspects: Vec<(MethodAdviceAspect, Bean)>
+    method_advice_aspects: Vec<(MethodAdviceAspectCodegen, Bean)>
 }
 
 impl TokenStreamGenerator for AspectGenerator {
@@ -26,16 +26,17 @@ impl AspectGenerator {
                         }
                         BeanDefinitionType::Concrete { bean } => {
                             aspects.aspects.iter()
+                                .flat_map(|a| &a.method_advice_aspects)
                                 .flat_map(|a| {
-                                    if MethodAdviceAspect::aspect_matches(&bean.path_depth, &a.pointcut, &bean.id) {
+                                    if MethodAdviceAspectCodegen::aspect_matches(&bean.path_depth, &a.pointcut, &bean.id) {
                                         return vec![(a.clone(), bean.clone())]
                                     }
                                     vec![]
-                                }).collect::<Vec<(MethodAdviceAspect, Bean)>>()
+                                }).collect::<Vec<(MethodAdviceAspectCodegen, Bean)>>()
                         }
                     }
                 })
-            }).collect::<Vec<(MethodAdviceAspect, Bean)>>();
+            }).collect::<Vec<(MethodAdviceAspectCodegen, Bean)>>();
 
 
         Self {

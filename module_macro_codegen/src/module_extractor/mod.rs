@@ -1,11 +1,14 @@
 use std::any::Any;
 use std::collections::LinkedList;
 use std::ops::Deref;
+use std::os::unix::raw::time_t;
 use quote::{quote, ToTokens};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use syn::Item;
 use knockoff_logging::{initialize_log, use_logging};
 use crate::codegen_items;
-use crate::parser::{CodegenItem, CodegenItems, get_codegen_item};
+use crate::parser::{CodegenItem, CodegenItems, get_codegen_item, LibParser};
 
 use_logging!();
 initialize_log!();
@@ -30,7 +33,7 @@ pub struct ModuleParser {
 /// specified by the user.
 impl ModuleParser {
 
-    pub(crate) fn new(item: &Item) -> Option<Self> {
+    pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
         if ModuleParser::supports_item(item) {
             return Self::get_codegen_items(item)
                 .map(|c| Some(Self{codegen_items: c }))
@@ -40,56 +43,68 @@ impl ModuleParser {
         None
     }
 
-    pub(crate) fn new_dyn_codegen(item: &Item) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<Box<dyn CodegenItem>> {
         Self::new(item)
             .map(|i| Box::new(i) as Box<dyn CodegenItem>)
     }
 
-    pub(crate) fn new_any(item: &Item) -> Option<Box<dyn Any>> {
+    pub(crate) fn new_any(item: &Vec<Item>) -> Option<Box<dyn Any>> {
         Self::new(item)
             .map(|i| Box::new(i) as Box<dyn Any>)
     }
 
-    pub(crate) fn get_codegen_items(tokens: &Item) -> Option<CodegenItems> {
-        match tokens {
-            Item::Mod(module_to_parse) => {
-                log_message!("{} is name of a configuration module found.", module_to_parse.ident.to_token_stream().to_string().as_str());
-                Some(
-                    CodegenItems{
-                        codegen: module_to_parse.content.iter()
-                                    .flat_map(|inner_item| inner_item.1.iter())
-                                    .map(|inner_item| get_codegen_item(inner_item))
-                                    .flatten()
-                                    .collect()
-                    }
-                )
-            }
-            _ => {
-                None
-            }
+    pub(crate) fn get_codegen_items(tokens: &Vec<Item>) -> Option<CodegenItems> {
+        if tokens.len() == 0 {
+            return None;
         }
+        let codegen = tokens.iter().flat_map(|tokens| {
+            match tokens {
+                Item::Mod(module_to_parse) => {
+                    if module_to_parse.content.is_some() {
+                        log_message!("{} is name of a configuration module found.", module_to_parse.ident.to_token_stream().to_string().as_str());
+                        return LibParser::gen_codegen_items()
+                            .codegen.iter()
+                            .filter(|c| Self::supports_item(&module_to_parse.content.clone().unwrap().1))
+                            .map(|c| c.clone_dyn_codegen())
+                            .collect::<Vec<Box<dyn CodegenItem>>>();
+                    }
+                    vec![]
+                }
+                _ => {
+                    vec![]
+                }
+            }
+        })
+            .collect::<Vec<Box<dyn CodegenItem>>>();
+
+        Some(CodegenItems{
+            codegen
+        })
+
     }
 }
 
 impl CodegenItem for ModuleParser {
 
-    fn supports_item(item: &Item) -> bool {
-        match item {
-            Item::Mod(mod_found) => {
-                log_message!("{} is name of a codegen configuration module.", mod_found.ident.to_token_stream().to_string().as_str());
-                mod_found.attrs.iter()
-                    .any(|attr| attr.path.to_token_stream()
-                        .to_string().as_str()
-                        .contains("configuration")
-                    )
+    fn supports_item(item: &Vec<Item>) -> bool {
+        item.iter().any(|item| {
+            match item {
+                Item::Mod(mod_found) => {
+                    log_message!("{} is name of a codegen configuration module.", mod_found.ident.to_token_stream().to_string().as_str());
+                    mod_found.attrs.iter()
+                        .any(|attr| attr.path.to_token_stream()
+                            .to_string().as_str()
+                            .contains("configuration")
+                        )
+                }
+                _ => {
+                    false
+                }
             }
-            _ => {
-                false
-            }
-        }
+        })
     }
 
-    fn supports(&self, item: &Item) -> bool {
+    fn supports(&self, item: &Vec<Item>) -> bool {
         Self::supports_item(item)
     }
 
@@ -122,13 +137,14 @@ impl CodegenItem for ModuleParser {
     }
 
     fn get_unique_id(&self) -> String {
-        self.get_unique_ids()
-            .join(", ")
+        rand::thread_rng()
+            .sample_iter(&Alphanumeric{})
+            .take(10)
+            .map(char::from)
+            .collect()
     }
 
     fn get_unique_ids(&self) -> Vec<String> {
-        self.codegen_items.codegen.iter()
-            .map(|c| c.get_unique_id())
-            .collect()
+        vec![self.get_unique_id()]
     }
 }
