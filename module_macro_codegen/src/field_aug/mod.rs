@@ -8,7 +8,7 @@ use std::path::Path;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{Block, Item, ItemFn, ItemImpl};
-use crate::parser::{CodegenItem, LibParser};
+use crate::parser::{CodegenItem, CodegenItemType, LibParser};
 
 #[derive(Clone)]
 pub struct FieldAug {
@@ -18,14 +18,9 @@ pub struct FieldAug {
 
 impl FieldAug {
 
-    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<CodegenItemType> {
         Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
-    }
-
-    pub(crate) fn new_any(item: &Vec<Item>) -> Option<Box<dyn Any>> {
-        Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn Any>)
+            .map(|i| CodegenItemType::FieldAug(i))
     }
 
     pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
@@ -129,10 +124,6 @@ impl CodegenItem for FieldAug {
 
     fn default_codegen(&self) -> String {
         FieldAug::default_tokens().to_string()
-    }
-
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
-        Box::new(self.clone())
     }
 
     fn get_unique_id(&self) -> String {

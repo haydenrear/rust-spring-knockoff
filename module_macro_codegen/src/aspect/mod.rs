@@ -11,7 +11,7 @@ use syn::{Attribute, Block, FnArg, Item, ItemFn, PatType, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::use_logging;
 use web_framework_shared::matcher::{AntStringRequestMatcher, Matcher};
-use crate::parser::{CodegenItem, LibParser};
+use crate::parser::{CodegenItem, CodegenItemType, LibParser};
 
 use_logging!();
 
@@ -199,15 +199,11 @@ impl ParsedAspects {
         None
     }
 
-    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<CodegenItemType> {
         Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
+            .map(|i| CodegenItemType::Aspect(i))
     }
 
-    pub(crate) fn new_any(item: &Vec<Item>) -> Option<Box<dyn Any>> {
-        Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn Any>)
-    }
 }
 
 impl CodegenItem for ParsedAspects {
@@ -235,10 +231,6 @@ impl CodegenItem for ParsedAspects {
 
     fn default_codegen(&self) -> String {
         String::default()
-    }
-
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
-        Box::new(ParsedAspects::default())
     }
 
     fn get_unique_id(&self) -> String {
@@ -299,19 +291,17 @@ impl AspectParser {
         log_message!("Parsing aspects.");
         env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
             log_message!("Found knockoff factories file {}. Parsing aspects.", aug_file.as_str());
-            LibParser::parse_codegen_items_any(&aug_file)
+            LibParser::parse_codegen_items(&aug_file)
                 .iter()
-                .flat_map(|c| c.downcast_ref::<ParsedAspects>()
-                    .map(|c| {
-                        log_message!("Downcasted method advice aspect.");
-                        c
-                    })
-                    .map(|m| vec![m]).or(Some(vec![]))
-                    .unwrap()
-                )
-                .flat_map(|b| {
-                    log_message!("Found method advice aspect.");
-                    vec![b.clone()]
+                .flat_map(|c|{
+                    match c {
+                        CodegenItemType::Aspect(aspect) => {
+                            vec![aspect.clone()]
+                        }
+                        _ => {
+                           vec![]
+                        }
+                    }
                 })
                 .collect::<Vec<ParsedAspects>>()
         }).ok().or(Some(vec![])).unwrap()

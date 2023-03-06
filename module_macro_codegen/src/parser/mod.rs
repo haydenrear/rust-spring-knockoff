@@ -22,7 +22,13 @@ use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 use crate::module_extractor::ModuleParser;
 
-codegen_items!(AuthenticationTypeCodegen, ParsedAspects, FieldAug, ModuleParser, Initializer);
+codegen_items!(
+    (AuthenticationTypeCodegen, AuthenticationType),
+    (ParsedAspects, Aspect),
+    (FieldAug, FieldAug),
+    (ModuleParser, Module),
+    (Initializer, ContextInitializer)
+);
 
 #[test]
 fn test() {
@@ -39,10 +45,10 @@ impl LibParser {
 
         log_message!("Found {} codegen items.", codegen_items.len());
 
-        let mut type_id_map: HashMap<String, Box<dyn CodegenItem>> = codegen_items.iter()
+        let mut type_id_map: HashMap<String, CodegenItemType> = codegen_items.iter()
             .map(|c| {
                 log_message!("Found codegen item with ID: {}", c.get_unique_id().as_str());
-                (c.get_unique_id(), c.clone_dyn_codegen())
+                (c.get_unique_id(), c.clone())
             })
             .collect();
 
@@ -78,23 +84,13 @@ impl LibParser {
         to_write_codegen
     }
 
-    pub fn parse_codegen_items(in_dir_file: &str) -> Vec<Box<dyn CodegenItem>> {
+    pub fn parse_codegen_items(in_dir_file: &str) -> Vec<CodegenItemType> {
         let flatten = Self::parse_syn(in_dir_file)
             .iter()
             .flat_map(|syn_file| {
                 get_codegen_item(&syn_file.items.clone())
             })
-            .collect::<Vec<Box<dyn CodegenItem>>>();
-        flatten
-    }
-
-    pub fn parse_codegen_items_any(in_dir_file: &str) -> Vec<Box<dyn Any>> {
-        let flatten = Self::parse_syn(in_dir_file)
-            .iter()
-            .flat_map(|syn_file| {
-                get_codegen_item_any(&syn_file.items.clone())
-            })
-            .collect::<Vec<Box<dyn Any>>>();
+            .collect::<Vec<CodegenItemType>>();
         flatten
     }
 
@@ -143,8 +139,6 @@ pub trait CodegenItem {
 
     fn default_codegen(&self) -> String;
 
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem>;
-
     fn get_unique_id(&self) -> String;
 
     fn get_unique_ids(&self) -> Vec<String> {
@@ -153,7 +147,7 @@ pub trait CodegenItem {
 
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct CodegenItems {
-    pub codegen: Vec<Box<dyn CodegenItem>>
+    pub codegen: Vec<CodegenItemType>
 }

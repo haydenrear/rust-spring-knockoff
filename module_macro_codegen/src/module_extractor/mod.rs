@@ -8,7 +8,7 @@ use rand::Rng;
 use syn::Item;
 use knockoff_logging::{initialize_log, use_logging};
 use crate::codegen_items;
-use crate::parser::{CodegenItem, CodegenItems, get_codegen_item, LibParser};
+use crate::parser::{CodegenItem, CodegenItems, CodegenItemType, get_codegen_item, LibParser};
 
 use_logging!();
 initialize_log!();
@@ -16,7 +16,7 @@ initialize_log!();
 use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ModuleParser {
     codegen_items: CodegenItems,
 }
@@ -43,14 +43,9 @@ impl ModuleParser {
         None
     }
 
-    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<CodegenItemType> {
         Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
-    }
-
-    pub(crate) fn new_any(item: &Vec<Item>) -> Option<Box<dyn Any>> {
-        Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn Any>)
+            .map(|i| CodegenItemType::Module(i))
     }
 
     pub(crate) fn get_codegen_items(tokens: &Vec<Item>) -> Option<CodegenItems> {
@@ -65,8 +60,8 @@ impl ModuleParser {
                         return LibParser::gen_codegen_items()
                             .codegen.iter()
                             .filter(|c| Self::supports_item(&module_to_parse.content.clone().unwrap().1))
-                            .map(|c| c.clone_dyn_codegen())
-                            .collect::<Vec<Box<dyn CodegenItem>>>();
+                            .map(|c| c.clone())
+                            .collect::<Vec<CodegenItemType>>();
                     }
                     vec![]
                 }
@@ -75,7 +70,7 @@ impl ModuleParser {
                 }
             }
         })
-            .collect::<Vec<Box<dyn CodegenItem>>>();
+            .collect::<Vec<CodegenItemType>>();
 
         Some(CodegenItems{
             codegen
@@ -130,10 +125,6 @@ impl CodegenItem for ModuleParser {
         let ts = quote!{
         };
         ts.to_string()
-    }
-
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
-        Box::new(ModuleParser::default())
     }
 
     fn get_unique_id(&self) -> String {

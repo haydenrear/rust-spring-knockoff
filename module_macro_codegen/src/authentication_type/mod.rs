@@ -13,7 +13,7 @@ use syn::{Attribute, Item, ItemFn, ItemImpl, ItemStruct, Type};
 use syn::__private::str;
 use syn::token::Token;
 use knockoff_logging::use_logging;
-use crate::parser::{CodegenItem, LibParser};
+use crate::parser::{CodegenItem, CodegenItemType, LibParser};
 
 use_logging!();
 
@@ -28,14 +28,9 @@ pub struct AuthenticationTypeCodegen {
 
 impl AuthenticationTypeCodegen {
 
-    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<Box<dyn CodegenItem>> {
+    pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<CodegenItemType> {
         Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn CodegenItem>)
-    }
-
-    pub(crate) fn new_any(item: &Vec<Item>) -> Option<Box<dyn Any>> {
-        Self::new(item)
-            .map(|i| Box::new(i) as Box<dyn Any>)
+            .map(|i| CodegenItemType::AuthenticationType(i))
     }
 
     pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
@@ -405,10 +400,6 @@ impl CodegenItem for AuthenticationTypeCodegen {
 
     fn default_codegen(&self) -> String {
         AuthenticationTypeCodegen::default_tokens().to_string()
-    }
-
-    fn clone_dyn_codegen(&self) -> Box<dyn CodegenItem> {
-        Box::new(self.clone())
     }
 
     fn get_unique_id(&self) -> String {
