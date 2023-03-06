@@ -1,4 +1,5 @@
 use std::any::{Any, TypeId};
+use std::borrow::BorrowMut;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::collections::hash_map::Keys;
@@ -9,9 +10,9 @@ use std::ptr::slice_from_raw_parts;
 use std::slice::Iter;
 use std::str::pattern::Pattern;
 use std::sync::{Arc};
-use proc_macro2::TokenStream;
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum, ReturnType};
-use syn::__private::str;
+use proc_macro2::{Span, TokenStream};
+use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum, ReturnType, Stmt, Expr, Block};
+use syn::__private::{str, TokenStream as ts};
 use syn::parse::Parser;
 use syn::spanned::Spanned;
 use syn::{
@@ -20,7 +21,7 @@ use syn::{
     Ident,
     token::Paren,
 };
-use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt};
+use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt, quote_spanned};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use codegen_utils::syn_helper::SynHelper;
@@ -35,7 +36,8 @@ use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
-use module_macro_codegen::aspect::AspectParser;
+use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspect};
+use web_framework_shared::matcher::Matcher;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
@@ -153,8 +155,9 @@ impl ParseContainer {
     /**
     Add the struct and the impl from the ItemImpl
      **/
-    pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl, path_depth: Vec<String>) {
+    pub fn create_update_impl(&mut self, item_impl: &mut ItemImpl, path_depth: &mut Vec<String>) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
+
         &mut self.injectable_types_builder.get_mut(&id)
             .map(|bean: &mut Bean| {
                 bean.traits_impl.push(
@@ -173,7 +176,7 @@ impl ParseContainer {
                         AutowireType {
                             item_impl: item_impl.clone(),
                             profile: vec![],
-                            path_depth
+                            path_depth: path_depth.clone()
                         }
                     ],
                     enum_found: None,
@@ -193,7 +196,54 @@ impl ParseContainer {
                 None
             });
 
-        // self.set_deps_safe(id.as_str());
+        self.add_method_advice_aspect(item_impl, path_depth);
+
+    }
+
+    fn add_method_advice_aspect(&mut self, item_impl: &mut ItemImpl, path_depth: &mut Vec<String>) {
+        item_impl.items.iter_mut()
+            .for_each(|i| {
+                match i {
+                    ImplItem::Method(ref mut method) => {
+                        let mut next_path = path_depth.clone();
+                        next_path.push(method.sig.ident.to_token_stream().to_string().clone());
+                        self.do_aspect(method, next_path);
+                    }
+                    _ => {}
+                }
+            });
+    }
+
+    fn do_aspect(&mut self, method: &mut ImplItemMethod, mut next_path: Vec<String>) {
+        self.aspects.aspects.iter()
+            .filter(|a| a.pointcut.pointcut_expr.matches(next_path.join(".").as_str()))
+            .for_each(|a| {
+                Self::add_advice_to_stmts(method, a);
+                Self::rewrite_block_new_span(method);
+            });
+    }
+
+    fn rewrite_block_new_span(method: &mut ImplItemMethod) {
+        let method_block_after = method.block.clone();
+        let span = Span::call_site();
+        let with_new_span = quote_spanned! {span=>
+                                    #method_block_after
+                                }.into();
+        let parsed = parse::<Block>(with_new_span);
+        method.block = parsed.unwrap();
+    }
+
+    fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspect) {
+        let before = a.before_advice.clone();
+        before.map(|mut before| {
+            let mut before_stmts = before.stmts;
+            for i in 0..before_stmts.len() {
+                method.block.stmts.insert(i, before_stmts.get(i).unwrap().to_owned())
+            }
+        });
+        a.after_advice.clone()
+            .map(|after| after.stmts.iter()
+                .for_each(|b| method.block.stmts.push(b.clone())));
     }
 
     pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct, path_depth: Vec<String>) -> Option<String> {

@@ -7,11 +7,9 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactored factory">
-      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="aspect block">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -296,21 +294,7 @@
       <workItem from="1677421523187" duration="35786000" />
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
-      <workItem from="1678022170942" duration="19945000" />
-    </task>
-    <task id="LOCAL-00041" summary="profile tree parsing">
-      <created>1676045817200</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1676045817200</updated>
-    </task>
-    <task id="LOCAL-00042" summary="profile tree parsing">
-      <created>1676045954000</created>
-      <option name="number" value="00042" />
-      <option name="presentableId" value="LOCAL-00042" />
-      <option name="project" value="LOCAL" />
-      <updated>1676045954000</updated>
+      <workItem from="1678022170942" duration="24076000" />
     </task>
     <task id="LOCAL-00043" summary="refactor">
       <created>1676051521271</created>
@@ -641,7 +625,21 @@
       <option name="project" value="LOCAL" />
       <updated>1678054608997</updated>
     </task>
-    <option name="localTasksCounter" value="90" />
+    <task id="LOCAL-00090" summary="refactored factory">
+      <created>1678055339260</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1678055339260</updated>
+    </task>
+    <task id="LOCAL-00091" summary="aspect block">
+      <created>1678069446430</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1678069446430</updated>
+    </task>
+    <option name="localTasksCounter" value="92" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -691,7 +689,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="path" />
     <MESSAGE value="logging" />
     <MESSAGE value="logging macro" />
     <MESSAGE value="logging facade" />
@@ -716,7 +713,8 @@
     <MESSAGE value="fixed issue" />
     <MESSAGE value="mutable bean" />
     <MESSAGE value="refactored factory" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactored factory" />
+    <MESSAGE value="aspect block" />
+    <option name="LAST_COMMIT_MESSAGE" value="aspect block" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -727,12 +725,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>267</line>
+          <line>317</line>
           <option name="timeStamp" value="55" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>57</line>
+          <line>59</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -812,7 +810,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs</url>
-          <line>195</line>
+          <line>229</line>
           <option name="timeStamp" value="189" />
         </line-breakpoint>
       </breakpoints>

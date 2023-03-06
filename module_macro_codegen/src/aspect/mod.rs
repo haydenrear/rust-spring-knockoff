@@ -1,11 +1,12 @@
 use std::any::Any;
+use std::default::Default;
 use std::env;
 use std::io::Error;
 use std::ops::Deref;
 use std::process::id;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{Attribute, FnArg, Item, ItemFn, PatType, Type};
+use syn::{Attribute, Block, FnArg, Item, ItemFn, PatType, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::use_logging;
 use web_framework_shared::matcher::{AntStringRequestMatcher, Matcher};
@@ -21,14 +22,14 @@ pub struct MethodAdviceAspect {
     pub default: Option<TokenStream>,
     pub item: Option<Item>,
     pub type_args: Vec<Type>,
-    pub before_advice: TokenStream,
-    pub after_advice: TokenStream,
-    pub pointcut: PointCut
+    pub before_advice: Option<Block>,
+    pub after_advice: Option<Block>,
+    pub pointcut: PointCut,
 }
 
 #[derive(Clone, Default)]
 pub struct PointCut {
-    pub pointcut_expr: AntStringRequestMatcher
+    pub pointcut_expr: AntStringRequestMatcher,
 }
 
 impl PointCut {
@@ -95,8 +96,8 @@ impl MethodAdviceAspect {
                             default: None,
                             item: Some(item.clone()),
                             type_args,
-                            before_advice: Default::default(),
-                            after_advice: Default::default(),
+                            before_advice: Some(Self::up_until_join_point(item_fn.block.deref())),
+                            after_advice: Some(Self::after_join_point(item_fn.block.deref())),
                             pointcut: PointCut::new(pointcut_expr.unwrap()),
                         }
                     }
@@ -107,25 +108,58 @@ impl MethodAdviceAspect {
             )
         )
     }
+
+
+    fn up_until_join_point(block: &Block) -> Block {
+        let mut block_stmts = vec![];
+        for stmt in &block.stmts {
+            if stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+                return Block {
+                    brace_token: Default::default(),
+                    stmts: block_stmts,
+                };
+            }
+            block_stmts.push(stmt.clone());
+        }
+        Block {
+           brace_token: Default::default(),
+           stmts: block_stmts
+        }
+    }
+
+    fn after_join_point(block: &Block) -> Block {
+        let mut block_stmts = vec![];
+        let mut did_proceed = false;
+        for stmt in &block.stmts {
+            if !did_proceed && !stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+                continue;
+            }
+            block_stmts.push(stmt.clone());
+        }
+        Block {
+            brace_token: Default::default(),
+            stmts: block_stmts
+        }
+    }
 }
 
 /// Aspect matcher matches all structs/impls in particular modules and packages, and allows for
 /// matching based on the struct name.
 pub(crate) struct AspectMatcher {
     module_path: AntStringRequestMatcher,
-    struct_path: Ident
+    struct_path: Ident,
 }
 
 impl AspectMatcher {
     fn new(module_path: &PointCut, struct_path: Ident) -> Self {
         Self {
-            module_path: module_path.pointcut_expr.clone(), struct_path
+            module_path: module_path.pointcut_expr.clone(),
+            struct_path,
         }
     }
 }
 
 impl CodegenItem for MethodAdviceAspect {
-
     fn supports_item(item: &Item) -> bool where Self: Sized {
         match item {
             Item::Fn(item_fn) => {
@@ -179,7 +213,7 @@ impl MethodAdviceAspect {
 
 #[derive(Default, Clone)]
 pub struct AspectParser {
-    pub aspects: Vec<MethodAdviceAspect>
+    pub aspects: Vec<MethodAdviceAspect>,
 }
 
 impl AspectParser {
@@ -229,6 +263,5 @@ impl AspectParser {
             }
         }
     }
-
 }
 

@@ -25,6 +25,7 @@ use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 
 use knockoff_logging::{initialize_log, use_logging};
+use web_framework_shared::matcher::Matcher;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
@@ -84,31 +85,9 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer, path_dep
             app_container.add_fn_to_dep_types(fn_type);
         }
         Item::ForeignMod(_) => {}
-        Item::Impl(impl_found) => {
-            // TODO: add decorator for methods. The attribute will specify knockoff SpEL expression
-            //  and from this SpEL expression the authorization manager will be used.
-            //  More generally, the ability to add aspects to methods can be added somewhat trivially.
-            //  -- Unfortunately, it will be difficult (impossible?) to add "this" to the aspect? I
-            //  suppose you cauld try just calling self but that won't work because of hygiene /
-            //  it wouldn't really compile...? might compile actually... bc it's in the aug file
-            //  --- the best way will be to add the aspect as a field of the struct if the this param...
-            /// is required, and implement the Aspect interface for the struct if not. Then, you can
-            /// have access to self or just call the type beforehand..
-            // impl_found.items.iter().map(|i| {
-            //     match i {
-            //         ImplItem::Const(_) => {}
-            //         ImplItem::Method(method) => {
-            //             method.block
-            //         }
-            //         ImplItem::Type(_) => {}
-            //         ImplItem::Macro(_) => {}
-            //         ImplItem::Verbatim(_) => {}
-            //         ImplItem::__NonExhaustive => {}
-            //     }
-            // })
-            // }
+        Item::Impl(ref mut impl_found) => {
             log_message!("Found impl type {}.", impl_found.to_token_stream().clone());
-            app_container.create_update_impl(impl_found, path_depth.clone());
+            app_container.create_update_impl(impl_found, &mut path_depth.clone());
         }
         Item::Macro(macro_created) => {
         }
