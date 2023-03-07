@@ -25,4 +25,11 @@ impl SynHelper {
     pub fn get_str<'a, T: ToTokens>(ts: T) -> String {
         ts.to_token_stream().to_string().clone()
     }
+
+    pub fn get_proceed(name: String) -> String {
+        let name = name.split("proceed").collect::<Vec<&str>>();
+        let name = name[1].split("(").collect::<Vec<&str>>();
+        let name = name[0].to_owned();
+        name
+    }
 }

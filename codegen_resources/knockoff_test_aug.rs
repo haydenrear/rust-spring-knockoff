@@ -24,7 +24,7 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
 pub fn do_aspect(&self, one: One) -> String {
     println!("hello");
     println!("{}", self.two.clone());
-    let found = self.proceed(one);
+    let found = self.proceed_one_test(one);
     found
 }
 

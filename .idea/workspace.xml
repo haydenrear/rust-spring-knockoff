@@ -7,10 +7,12 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="method advice aspect w/ proceed">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="arbitrary suffix to fix collision.">
       <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,6 +91,7 @@
     "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
     "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs": "true",
     "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
     "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
     "project.structure.last.edited": "Modules",
@@ -132,8 +135,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test module_macro_lib::aspect::test::get_aspect" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::aspect::test::get_aspect -- --exact" />
+    <configuration name="Test syn_helper::test::test_get_name" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package codegen_utils --lib syn_helper::test::test_get_name -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -220,18 +223,18 @@
     <list>
       <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
-      <item itemvalue="Cargo.Test module_macro_lib::aspect::test::get_aspect" />
+      <item itemvalue="Cargo.Test syn_helper::test::test_get_name" />
       <item itemvalue="Cargo.Test test_module_macro_codegen::test_lib_parse" />
       <item itemvalue="Cargo.Test test_module_macro_codegen::test_parse_aspect" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test syn_helper::test::test_get_name" />
         <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
         <item itemvalue="Cargo.Test test_module_macro_codegen::test_lib_parse" />
         <item itemvalue="Cargo.Test test_module_macro_codegen::test_parse_aspect" />
         <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test module_macro_lib::aspect::test::get_aspect" />
       </list>
     </recent_temporary>
   </component>
@@ -295,42 +298,7 @@
       <workItem from="1677421523187" duration="35786000" />
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
-      <workItem from="1678022170942" duration="54088000" />
-    </task>
-    <task id="LOCAL-00049" summary="logging facade">
-      <created>1676305184436</created>
-      <option name="number" value="00049" />
-      <option name="presentableId" value="LOCAL-00049" />
-      <option name="project" value="LOCAL" />
-      <updated>1676305184436</updated>
-    </task>
-    <task id="LOCAL-00050" summary="logging facade">
-      <created>1676320134290</created>
-      <option name="number" value="00050" />
-      <option name="presentableId" value="LOCAL-00050" />
-      <option name="project" value="LOCAL" />
-      <updated>1676320134290</updated>
-    </task>
-    <task id="LOCAL-00051" summary="logging facade">
-      <created>1676321673533</created>
-      <option name="number" value="00051" />
-      <option name="presentableId" value="LOCAL-00051" />
-      <option name="project" value="LOCAL" />
-      <updated>1676321673533</updated>
-    </task>
-    <task id="LOCAL-00052" summary="Added way to dynamically change the DI">
-      <created>1676416881839</created>
-      <option name="number" value="00052" />
-      <option name="presentableId" value="LOCAL-00052" />
-      <option name="project" value="LOCAL" />
-      <updated>1676416881840</updated>
-    </task>
-    <task id="LOCAL-00053" summary="Updated logging">
-      <created>1676562905323</created>
-      <option name="number" value="00053" />
-      <option name="presentableId" value="LOCAL-00053" />
-      <option name="project" value="LOCAL" />
-      <updated>1676562905323</updated>
+      <workItem from="1678022170942" duration="59394000" />
     </task>
     <task id="LOCAL-00054" summary="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication.">
       <created>1677097877491</created>
@@ -640,7 +608,42 @@
       <option name="project" value="LOCAL" />
       <updated>1678214276384</updated>
     </task>
-    <option name="localTasksCounter" value="98" />
+    <task id="LOCAL-00098" summary="method advice aspect w/ proceed">
+      <created>1678215419054</created>
+      <option name="number" value="00098" />
+      <option name="presentableId" value="LOCAL-00098" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215419054</updated>
+    </task>
+    <task id="LOCAL-00099" summary="method advice aspect w/ proceed">
+      <created>1678215439823</created>
+      <option name="number" value="00099" />
+      <option name="presentableId" value="LOCAL-00099" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215439823</updated>
+    </task>
+    <task id="LOCAL-00100" summary="method advice aspect w/ proceed">
+      <created>1678215689822</created>
+      <option name="number" value="00100" />
+      <option name="presentableId" value="LOCAL-00100" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215689822</updated>
+    </task>
+    <task id="LOCAL-00101" summary="method advice aspect w/ proceed">
+      <created>1678215742715</created>
+      <option name="number" value="00101" />
+      <option name="presentableId" value="LOCAL-00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1678215742715</updated>
+    </task>
+    <task id="LOCAL-00102" summary="arbitrary suffix to fix collision.">
+      <created>1678224490457</created>
+      <option name="number" value="00102" />
+      <option name="presentableId" value="LOCAL-00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1678224490457</updated>
+    </task>
+    <option name="localTasksCounter" value="103" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -690,7 +693,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Updated logging" />
     <MESSAGE value="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication." />
     <MESSAGE value="refactored to make AuthenticationType dynamically provided." />
     <MESSAGE value="req. matcher" />
@@ -715,7 +717,8 @@
     <MESSAGE value="enum get rid of dyn" />
     <MESSAGE value="enum + macro to get rid of dyn" />
     <MESSAGE value="method advice aspect w/ proceed" />
-    <option name="LAST_COMMIT_MESSAGE" value="method advice aspect w/ proceed" />
+    <MESSAGE value="arbitrary suffix to fix collision." />
+    <option name="LAST_COMMIT_MESSAGE" value="arbitrary suffix to fix collision." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -726,7 +729,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>405</line>
+          <line>422</line>
           <option name="timeStamp" value="55" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -786,7 +789,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/codegen_utils/src/syn_helper/test.rs</url>
-          <line>40</line>
+          <line>50</line>
           <option name="timeStamp" value="173" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -796,17 +799,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs</url>
-          <line>153</line>
+          <line>154</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>68</line>
+          <line>69</line>
           <option name="timeStamp" value="180" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>63</line>
+          <line>64</line>
           <option name="timeStamp" value="187" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

@@ -26,6 +26,16 @@ fn test_get_attr_from_vec() {
 }
 
 #[test]
+fn test_get_name() {
+    let this_name = "let x = proceed_onetwothree(one, two, three)";
+    let proceed = SynHelper::get_proceed(this_name.to_string());
+    assert_eq!(proceed, "_onetwothree");
+    let this_name = "let x = proceed___onetwothree()";
+    let proceed = SynHelper::get_proceed(this_name.to_string());
+    assert_eq!(proceed, "___onetwothree");
+}
+
+#[test]
 fn test_knockoff_factories() {
     assert!(get_knockoff_factores_arg().is_some());
 }

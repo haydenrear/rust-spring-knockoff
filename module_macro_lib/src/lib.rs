@@ -18,6 +18,7 @@ pub mod module_macro_lib {
     pub mod default_impls;
     pub mod logging;
     pub mod aspect;
+    pub mod profile_tree_operation;
 }
 
 #[cfg(test)]

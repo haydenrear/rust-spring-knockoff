@@ -223,35 +223,8 @@ impl ParseContainer {
                 match i {
                     ImplItem::Method(ref mut method) => {
                         log_message!("Found method {}", SynHelper::get_str(method.clone()));
-                        let return_type = match &method.sig.output {
-                            ReturnType::Default => {
-                                None
-                            }
-                            ReturnType::Type(ty, ag) => {
-                                Some(ag.deref().clone())
-                            }
-                        };
-                        let args = method.sig.inputs.iter().flat_map(|i| {
-                            log_message!("Found fn_arg {}", SynHelper::get_str(i.clone()));
-                            match i {
-                                FnArg::Receiver(_) => {
-                                    vec![]
-                                }
-                                FnArg::Typed(t) => {
-                                    log_message!("Found pat: {}", t.pat.to_token_stream().to_string().clone());
-                                    match t.pat.deref().clone() {
-                                        Pat::Ident(ident) => {
-                                            log_message!("{} is the ident of the fn.", ident.ident.to_string().as_str());
-                                            vec![(ident.ident, t.ty.deref().clone())]
-                                        }
-                                        _ => {
-                                            vec![]
-                                        }
-                                    }
-                                }
-                            }
-                        }).collect::<Vec<(Ident, Type)>>();
-
+                        let return_type = Self::get_return_type(&method);
+                        let args = Self::get_args_info(method);
                         log_message!("Adding method advice aspect to: {}", SynHelper::get_str(method.clone()));
                         let mut next_path = path_depth.clone();
                         next_path.push(method.sig.ident.to_token_stream().to_string().clone());
@@ -264,9 +237,47 @@ impl ParseContainer {
             });
     }
 
+    fn get_args_info(method: &mut ImplItemMethod) -> Vec<(Ident, Type)> {
+        let args = method.sig.inputs.iter().flat_map(|i| {
+            log_message!("Found fn_arg {}", SynHelper::get_str(i.clone()));
+            match i {
+                FnArg::Receiver(_) => {
+                    vec![]
+                }
+                FnArg::Typed(t) => {
+                    log_message!("Found pat: {}", t.pat.to_token_stream().to_string().clone());
+                    match t.pat.deref().clone() {
+                        Pat::Ident(ident) => {
+                            log_message!("{} is the ident of the fn.", ident.ident.to_string().as_str());
+                            vec![(ident.ident, t.ty.deref().clone())]
+                        }
+                        _ => {
+                            vec![]
+                        }
+                    }
+                }
+            }
+        }).collect::<Vec<(Ident, Type)>>();
+        args
+    }
+
+    fn get_return_type(method: &&mut ImplItemMethod) -> Option<Type> {
+        let return_type = match &method.sig.output {
+            ReturnType::Default => {
+                None
+            }
+            ReturnType::Type(ty, ag) => {
+                Some(ag.deref().clone())
+            }
+        };
+        return_type
+    }
+
     fn do_aspect(&mut self, method: &mut ImplItemMethod, mut next_path: Vec<String>, args: Vec<(Ident, Type)>, bean_id: &String, return_type: Option<Type>) {
         log_message!("Doing aspect with {} aspects.", self.aspects.aspects.len());
+
         let method_before = method.clone();
+
         self.aspects.aspects.iter()
             .flat_map(|p| &p.method_advice_aspects)
             .filter(|a| {
@@ -295,6 +306,7 @@ impl ParseContainer {
                             method: Some(method_before.clone()),
                             args: args.clone(),
                             block: Some(method_before.block.clone()),
+                            method_after: Some(method.clone()),
                             return_type
                         })
                     });
@@ -314,11 +326,19 @@ impl ParseContainer {
     fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
         let before = a.before_advice.clone();
         log_message!("Adding statements to method.");
-        let stmts_to_check = method.block.stmts.clone();
-        let proceed_stmt = stmts_to_check.iter()
-            .filter(|p| p.to_token_stream().to_string().as_str().contains("proceed"))
-            .next();
         method.block.stmts.clear();
+        log_message!("Here is method block before: {}.", SynHelper::get_str(method.block.clone()));
+        Self::add_before_advice(method, before);
+        Self::add_after_advice(method, a);
+    }
+
+    fn add_after_advice(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
+        a.after_advice.clone()
+            .map(|after| after.stmts.iter()
+                .for_each(|b| method.block.stmts.push(b.clone())));
+    }
+
+    fn add_before_advice(method: &mut ImplItemMethod, before: Option<Block>) {
         before.map(|mut before| {
             log_message!("Adding statements {} to method.", SynHelper::get_str(before.clone()));
             let mut before_stmts = before.stmts;
@@ -326,11 +346,8 @@ impl ParseContainer {
                 log_message!("Adding statement {} to method.", SynHelper::get_str(before_stmts.get(i).unwrap().clone()));
                 method.block.stmts.insert(i, before_stmts.get(i).unwrap().to_owned())
             }
+            log_message!("Here are statements after: {}", SynHelper::get_str(method.block.clone()));
         });
-        proceed_stmt.map(|p| method.block.stmts.push(p.clone()));
-        a.after_advice.clone()
-            .map(|after| after.stmts.iter()
-                .for_each(|b| method.block.stmts.push(b.clone())));
     }
 
     pub fn add_item_struct(&mut self, item_impl: &mut ItemStruct, path_depth: Vec<String>) -> Option<String> {

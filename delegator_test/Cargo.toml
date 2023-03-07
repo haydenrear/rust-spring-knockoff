@@ -9,6 +9,7 @@ derive-syn-parse = "0.1.5"
 syn = {version = "1.0", features = ["full"]}
 quote = "1.0"
 dynpath = "0.1.4"
+paste = "1.0.12"
 
 [dependencies.module_macro]
 path = "../module_macro"
@@ -34,6 +35,8 @@ path = "../codegen_utils"
 
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}
+paste = "1.0.12"
+
 
 [env]
 KNOCKOFF_FACTORIES = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }
