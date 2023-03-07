@@ -6,7 +6,7 @@ use std::fmt::{Debug, Formatter, Pointer};
 use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
-use syn::{Attribute, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, TraitItem, Type, TypeArray, TypePath};
+use syn::{Attribute, Block, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, TraitItem, Type, TypeArray, TypePath};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -21,6 +21,7 @@ use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 use_logging!();
@@ -44,7 +45,18 @@ pub struct Bean {
     pub ident: Option<Ident>,
     pub fields: Vec<Fields>,
     pub bean_type: Option<BeanType>,
-    pub mutable: bool
+    pub mutable: bool,
+    pub aspect_info: Option<AspectInfo>
+}
+
+#[derive(Default, Clone)]
+pub struct AspectInfo {
+    pub(crate) method_advice_aspect: MethodAdviceAspectCodegen,
+    pub(crate) method: Option<ImplItemMethod>,
+    pub(crate) args: Vec<(Ident, Type)>,
+    /// This is the block before any aspects are added.
+    pub(crate) block: Option<Block>,
+    pub(crate) return_type: Option<Type>,
 }
 
 #[derive(Clone)]
@@ -289,7 +301,8 @@ impl Default for Bean {
             ident: None,
             fields: vec![],
             bean_type: None,
-            mutable: false
+            mutable: false,
+            aspect_info: None,
         }
     }
 }

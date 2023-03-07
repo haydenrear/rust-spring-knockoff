@@ -21,11 +21,11 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
 }
 
 #[aspect(**)]
-pub fn do_aspect(&self, join_point: ProceedingJoinPoint, arg: One) {
+pub fn do_aspect(&self, one: One) -> String {
     println!("hello");
     println!("{}", self.two.clone());
-    join_point.proceed();
-    "".to_string();
+    let found = self.proceed(one);
+    found
 }
 
 #[configuration(field_aug)]
@@ -75,7 +75,4 @@ pub mod authentication_type {
         }
     }
 
-}
-
-pub fn get_authentication_type() {
 }

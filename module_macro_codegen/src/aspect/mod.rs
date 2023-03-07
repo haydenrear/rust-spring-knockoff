@@ -317,21 +317,5 @@ impl AspectParser {
         }
     }
 
-    pub fn write_aspect(&self, type_for_aspect: Type, args_for_aspect: Option<Type>, aspect_fn: TokenStream) -> TokenStream {
-        if args_for_aspect.is_some() {
-            let args = args_for_aspect.unwrap();
-            quote! {
-                impl AspectWithArgs<#args> for #type_for_aspect {
-                    #aspect_fn
-                }
-            }
-        } else {
-            quote! {
-                impl Aspect for #type_for_aspect {
-                    #aspect_fn
-                }
-            }
-        }
-    }
 }
 

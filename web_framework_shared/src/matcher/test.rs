@@ -7,12 +7,14 @@ fn test_ant_path_request_matcher() {
     let first = create_request_matcher("/v1/test_one/**".to_string(), "/".to_string());
     let second = create_request_matcher("/v1/test_two/*".to_string(), "/".to_string());
     let third = create_request_matcher("/v1/test_three".to_string(), "/".to_string());
+    let fourth = create_request_matcher("/v1/test_one_hundred|test_four_hundred/one/two/**".to_string(), "/".to_string());
 
     let mut request_matchers = LinkedList::new();
 
     request_matchers.push_back(first);
     request_matchers.push_back(second);
     request_matchers.push_back(third);
+    request_matchers.push_back(fourth);
 
     let request_matcher = create_request_matchers(request_matchers);
 
@@ -21,6 +23,9 @@ fn test_ant_path_request_matcher() {
     assert!(request_matcher.matches(test_web_request("/v1/test_two".to_string())));
     assert!(request_matcher.matches(test_web_request("/v1/test_two/okay".to_string())));
     assert!(request_matcher.matches(test_web_request("/v1/test_two/two".to_string())));
+    assert!(request_matcher.matches(test_web_request("/v1/test_one_hundred/one/two/three_four".to_string())));
+    assert!(request_matcher.matches(test_web_request("/v1/test_four_hundred/one/two/three_four".to_string())));
+    assert!(request_matcher.matches(test_web_request("/v1/test_four_hundred/one/two".to_string())));
 
     assert_ne!(request_matcher.matches(test_web_request("/v1/test_two/okay/two/three".to_string())), true);
     assert_ne!(request_matcher.matches(test_web_request("/v1/test_three/okay/two/three".to_string())), true);

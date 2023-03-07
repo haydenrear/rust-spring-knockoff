@@ -62,7 +62,7 @@ pub fn parse_module(mut found: Item) -> TokenStream {
 pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
     item_found.content.iter_mut()
         .flat_map(|mut c| c.1.iter_mut())
-        .for_each(|i: &mut Item| parse_item(i, module_container, path_depth));
+        .for_each(|i: &mut Item| parse_item(i, module_container, &mut path_depth.clone()));
 }
 
 
