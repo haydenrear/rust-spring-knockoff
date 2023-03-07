@@ -26,8 +26,10 @@ use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
+use module_macro_codegen::module_extractor::ModuleParser;
 use module_macro_codegen::parser::LibParser;
 use web_framework_shared::matcher::Matcher;
+use crate::module_macro_lib::item_parser::{ItemEnumParser, ItemFnParser, ItemImplParser, ItemModParser, ItemParser, ItemStructParser, ItemTraitParser};
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
@@ -39,10 +41,10 @@ pub fn parse_module(mut found: Item) -> TokenStream {
             let mut container = ParseContainer::default();
             container.aspects = AspectParser::parse_aspects();
 
-            parse_item_recursive(
-                module_found,
+            ItemModParser::parse_item(
                 &mut container,
-                &mut vec![module_found.ident.to_string().clone()]
+                module_found,
+                vec![module_found.ident.to_string().clone()]
             );
 
             let container_tokens = container.build_to_token_stream();
@@ -57,12 +59,6 @@ pub fn parse_module(mut found: Item) -> TokenStream {
             return quote!(#found).into();
         }
     }
-}
-
-pub fn parse_item_recursive(item_found: &mut ItemMod, module_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
-    item_found.content.iter_mut()
-        .flat_map(|mut c| c.1.iter_mut())
-        .for_each(|i: &mut Item| parse_item(i, module_container, &mut path_depth.clone()));
 }
 
 
@@ -81,16 +77,15 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer, path_dep
         }
         Item::Enum(enum_type) => {
             log_message!("Found enum val {}.", enum_type.to_token_stream().clone());
-            app_container.add_item_enum(enum_type, path_depth.clone());
+            ItemEnumParser::parse_item(app_container, enum_type, path_depth.clone());
         }
         Item::Fn(fn_type) => {
             log_message!("Found fn type {}.", fn_type.to_token_stream().clone());
-            app_container.add_fn_to_dep_types(fn_type);
+            ItemFnParser::parse_item(app_container, fn_type, path_depth.clone());
         }
         Item::ForeignMod(_) => {}
         Item::Impl(ref mut impl_found) => {
-            log_message!("Found impl type {}.", impl_found.to_token_stream().clone());
-            app_container.create_update_impl(impl_found, &mut path_depth.clone());
+            ItemImplParser::parse_item(app_container, impl_found, path_depth.clone());
         }
         Item::Macro(macro_created) => {
         }
@@ -98,19 +93,17 @@ pub fn parse_item(i: &mut Item, mut app_container: &mut ParseContainer, path_dep
         Item::Mod(ref mut module) => {
             log_message!("Found module with name {} !!!", module.ident.to_string().clone());
             path_depth.push(module.ident.to_string().clone());
-            parse_item_recursive(module, app_container, path_depth);
+            ItemModParser::parse_item(app_container, module, path_depth.clone());
         }
         Item::Static(static_val) => {
             log_message!("Found static val {}.", static_val.to_token_stream().clone());
         }
         Item::Struct(ref mut item_struct) => {
-            app_container.initializer.field_augmenter.process(item_struct);
-            app_container.add_item_struct(item_struct, path_depth.clone());
-            log_message!("Found struct with name {} !!!", item_struct.ident.to_string().clone());
+            ItemStructParser::parse_item(app_container, item_struct, path_depth.clone());
         }
         Item::Trait(trait_created) => {
             log_message!("Trait created: {}", trait_created.ident.clone().to_string());
-            app_container.create_update_trait(trait_created);
+            ItemTraitParser::parse_item(app_container, trait_created, path_depth.clone());
         }
         Item::TraitAlias(_) => {}
         Item::Type(type_found) => {

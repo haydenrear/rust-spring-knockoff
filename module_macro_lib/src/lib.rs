@@ -19,6 +19,7 @@ pub mod module_macro_lib {
     pub mod logging;
     pub mod aspect;
     pub mod profile_tree_operation;
+    pub mod item_parser;
 }
 
 #[cfg(test)]

@@ -26,6 +26,7 @@ impl BeanParser {
     pub(crate) fn get_prototype_or_singleton(attr: &Vec<Attribute>, bean_type: Option<Type>, bean_type_ident: Option<Ident>) -> Option<BeanType> {
         ParseUtil::filter_att(attr, vec!["singleton", "prototype"])
             .and_then(|s| {
+
                 let qualifier = ParseUtil::strip_value_attr(s, vec!["#[singleton(", "#[prototype("]);
 
                 qualifier.iter()

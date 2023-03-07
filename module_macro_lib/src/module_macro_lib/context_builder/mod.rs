@@ -24,8 +24,9 @@ impl ContextBuilder {
     pub fn build_token_stream(parse_container: &mut ParseContainer) -> TokenStream {
         parse_container.log_app_container_info();
         parse_container.build_injectable();
-        ApplicationContextGenerator::create_context_generator(parse_container.injectable_types_map.clone())
-            .generate_token_stream()
+        ApplicationContextGenerator::create_context_generator(
+            &parse_container.injectable_types_map
+        ).generate_token_stream()
     }
 
 }

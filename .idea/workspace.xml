@@ -8,9 +8,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="arbitrary suffix to fix collision.">
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
     </list>
@@ -230,11 +235,11 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test_module_macro" />
         <item itemvalue="Cargo.Test syn_helper::test::test_get_name" />
         <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
         <item itemvalue="Cargo.Test test_module_macro_codegen::test_lib_parse" />
         <item itemvalue="Cargo.Test test_module_macro_codegen::test_parse_aspect" />
-        <item itemvalue="Cargo.Test test_module_macro" />
       </list>
     </recent_temporary>
   </component>
@@ -298,21 +303,7 @@
       <workItem from="1677421523187" duration="35786000" />
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
-      <workItem from="1678022170942" duration="59394000" />
-    </task>
-    <task id="LOCAL-00054" summary="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication.">
-      <created>1677097877491</created>
-      <option name="number" value="00054" />
-      <option name="presentableId" value="LOCAL-00054" />
-      <option name="project" value="LOCAL" />
-      <updated>1677097877491</updated>
-    </task>
-    <task id="LOCAL-00055" summary="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication.">
-      <created>1677097888255</created>
-      <option name="number" value="00055" />
-      <option name="presentableId" value="LOCAL-00055" />
-      <option name="project" value="LOCAL" />
-      <updated>1677097888255</updated>
+      <workItem from="1678022170942" duration="61531000" />
     </task>
     <task id="LOCAL-00056" summary="refactored to make AuthenticationType dynamically provided.">
       <created>1677346320625</created>
@@ -643,7 +634,21 @@
       <option name="project" value="LOCAL" />
       <updated>1678224490457</updated>
     </task>
-    <option name="localTasksCounter" value="103" />
+    <task id="LOCAL-00103" summary="arbitrary suffix to fix collision.">
+      <created>1678225217831</created>
+      <option name="number" value="00103" />
+      <option name="presentableId" value="LOCAL-00103" />
+      <option name="project" value="LOCAL" />
+      <updated>1678225217831</updated>
+    </task>
+    <task id="LOCAL-00104" summary="arbitrary suffix to fix collision.">
+      <created>1678225259852</created>
+      <option name="number" value="00104" />
+      <option name="presentableId" value="LOCAL-00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1678225259852</updated>
+    </task>
+    <option name="localTasksCounter" value="105" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -728,16 +733,6 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>422</line>
-          <option name="timeStamp" value="55" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs</url>
-          <line>60</line>
-          <option name="timeStamp" value="56" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs</url>
           <line>4</line>
           <option name="timeStamp" value="106" />
@@ -804,12 +799,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>69</line>
+          <line>70</line>
           <option name="timeStamp" value="180" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>64</line>
+          <line>65</line>
           <option name="timeStamp" value="187" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

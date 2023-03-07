@@ -51,7 +51,7 @@ impl TokenStreamGenerator for ApplicationContextGenerator {
 
 impl ApplicationContextGenerator {
 
-    pub fn create_context_generator(profile_tree: ProfileTree) -> Self {
+    pub fn create_context_generator(profile_tree: &ProfileTree) -> Self {
         let factory_generators = profile_tree.injectable_types.iter()
             .flat_map(|bean_def_type_profile| Self::create_factory_generators(&bean_def_type_profile))
             .collect::<Vec<Box<dyn TokenStreamGenerator>>>();
