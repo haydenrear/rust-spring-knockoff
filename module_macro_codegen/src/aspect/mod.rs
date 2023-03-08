@@ -1,10 +1,12 @@
 use std::any::Any;
 use std::borrow::BorrowMut;
+use std::cmp::Ordering;
 use std::default::Default;
 use std::env;
 use std::io::Error;
 use std::ops::{Deref, DerefMut};
 use std::process::id;
+use std::str::FromStr;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{Attribute, Block, FnArg, Item, ItemFn, PatType, Stmt, Type};
@@ -25,7 +27,28 @@ pub struct MethodAdviceAspectCodegen {
     pub before_advice: Option<Block>,
     pub after_advice: Option<Block>,
     pub pointcut: PointCut,
-    pub proceed_statement: Option<Stmt>
+    pub proceed_statement: Option<Stmt>,
+    pub order: usize
+}
+
+impl Eq for MethodAdviceAspectCodegen {}
+
+impl PartialEq<Self> for MethodAdviceAspectCodegen {
+    fn eq(&self, other: &Self) -> bool {
+        self.order.eq(&other.order)
+    }
+}
+
+impl PartialOrd<Self> for MethodAdviceAspectCodegen {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.order.partial_cmp(&other.order)
+    }
+}
+
+impl Ord for MethodAdviceAspectCodegen {
+    fn cmp(&self, other: &Self) -> Ordering {
+        todo!()
+    }
 }
 
 #[derive(Clone, Default)]
@@ -64,16 +87,7 @@ impl MethodAdviceAspectCodegen {
         Some(
             match item {
                 Item::Fn(item_fn) => {
-                    let proceed_statement = item_fn.block.stmts.iter()
-                        .filter(|b| b.to_token_stream().to_string().as_str().contains("proceed"))
-                        .map(|b| b.clone())
-                        .next();
-
-                    let mut pointcut_expr = item_fn.attrs.iter()
-                        .filter(|a| a.to_token_stream().to_string().as_str().contains("aspect"))
-                        .map(|aspect_attr| SynHelper::parse_attr_path_single(aspect_attr))
-                        .next()
-                        .unwrap();
+                    let (proceed_statement, mut pointcut_expr, order) = Self::get_aspect_metadata(item_fn);
 
                     pointcut_expr = pointcut_expr.map(|mut p| {
                         p.replace(" ", "")
@@ -91,7 +105,8 @@ impl MethodAdviceAspectCodegen {
                         before_advice: Some(Self::up_until_join_point(item_fn.block.deref())),
                         after_advice: Some(Self::after_join_point(item_fn.block.deref())),
                         pointcut: PointCut::new(pointcut_expr.unwrap()),
-                        proceed_statement
+                        proceed_statement,
+                        order,
                     }
                 }
                 _ => {
@@ -99,6 +114,31 @@ impl MethodAdviceAspectCodegen {
                 }
             }
         )
+    }
+
+    fn get_aspect_metadata(item_fn: &ItemFn) -> (Option<Stmt>, Option<String>, usize) {
+        let proceed_statement = item_fn.block.stmts.iter()
+            .filter(|b| b.to_token_stream().to_string().as_str().contains("proceed"))
+            .map(|b| b.clone())
+            .next();
+
+        let mut pointcut_expr = item_fn.attrs.iter()
+            .filter(|a| a.to_token_stream().to_string().as_str().contains("aspect"))
+            .map(|aspect_attr| SynHelper::parse_attr_path_single(aspect_attr))
+            .next()
+            .unwrap();
+
+        let mut order = item_fn.attrs.iter()
+            .filter(|a| a.to_token_stream().to_string().as_str().contains("ordered"))
+            .map(|aspect_attr| SynHelper::parse_attr_path_single(aspect_attr)
+                .map(|f| usize::from_str(f.as_str())
+                    .or::<usize>(Ok(0)).unwrap())
+            )
+            .next()
+            .unwrap()
+            .or(Some(0))
+            .unwrap();
+        (proceed_statement, pointcut_expr, order)
     }
 
     fn is_aspect(vec: &Vec<Attribute>) -> bool {
@@ -181,13 +221,14 @@ impl ParsedAspects {
 
     pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
         if item.len() > 0 {
+            let vec = item.iter()
+                .filter(|i| MethodAdviceAspectCodegen::supports_item(i))
+                .map(|i| MethodAdviceAspectCodegen::new(i))
+                .flatten()
+                .collect::<Vec<MethodAdviceAspectCodegen>>();
             return Some(
                 Self {
-                    method_advice_aspects: item.iter()
-                        .filter(|i| MethodAdviceAspectCodegen::supports_item(i))
-                        .map(|i| MethodAdviceAspectCodegen::new(i))
-                        .flatten()
-                        .collect::<Vec<MethodAdviceAspectCodegen>>()
+                    method_advice_aspects: vec
                 }
             );
         }

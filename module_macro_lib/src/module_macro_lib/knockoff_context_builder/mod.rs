@@ -104,6 +104,7 @@ impl ApplicationContextGenerator {
         let ts = quote! {
             use module_macro_lib::module_macro_lib::knockoff_context::{AbstractListableFactory, ApplicationContext, Profile, ContainsBeans};
             use std::sync::Mutex;
+            use paste::paste;
         };
         ts.into()
     }

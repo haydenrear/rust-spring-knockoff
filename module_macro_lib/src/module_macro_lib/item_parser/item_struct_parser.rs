@@ -48,7 +48,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                         .map(|_| true)
                         .or(Some(false))
                         .unwrap(),
-                    aspect_info: None,
+                    aspect_info: vec![],
                 };
                 parse_container.injectable_types_builder.insert(item_struct.ident.to_string().clone(), impl_found);
                 None

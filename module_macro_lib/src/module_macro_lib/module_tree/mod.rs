@@ -6,7 +6,7 @@ use std::fmt::{Debug, Formatter, Pointer};
 use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
-use syn::{Attribute, Block, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, TraitItem, Type, TypeArray, TypePath};
+use syn::{Attribute, Block, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, Stmt, TraitItem, Type, TypeArray, TypePath};
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
@@ -46,7 +46,7 @@ pub struct Bean {
     pub fields: Vec<Fields>,
     pub bean_type: Option<BeanType>,
     pub mutable: bool,
-    pub aspect_info: Option<AspectInfo>
+    pub aspect_info: Vec<AspectInfo>
 }
 
 #[derive(Default, Clone)]
@@ -55,10 +55,28 @@ pub struct AspectInfo {
     pub(crate) method: Option<ImplItemMethod>,
     pub(crate) args: Vec<(Ident, Type)>,
     /// This is the block before any aspects are added.
-    pub(crate) block: Option<Block>,
+    pub(crate) original_fn_logic: Option<Block>,
     pub(crate) return_type: Option<Type>,
     pub(crate) method_after: Option<ImplItemMethod>,
-    pub(crate) mutable: bool
+    pub(crate) mutable: bool,
+    pub(crate) advice_chain: Vec<MethodAdviceChain>
+}
+
+#[derive(Default, Clone)]
+pub struct MethodAdviceChain {
+    pub before_advice: Option<Block>,
+    pub after_advice: Option<Block>,
+    pub proceed_statement: Option<Stmt>
+}
+
+impl MethodAdviceChain {
+    pub(crate) fn new(method_advice: &MethodAdviceAspectCodegen) -> Self {
+        Self {
+            before_advice: method_advice.before_advice.clone(),
+            after_advice: method_advice.after_advice.clone(),
+            proceed_statement: method_advice.proceed_statement.clone(),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -304,7 +322,7 @@ impl Default for Bean {
             fields: vec![],
             bean_type: None,
             mutable: false,
-            aspect_info: None,
+            aspect_info: vec![],
         }
     }
 }

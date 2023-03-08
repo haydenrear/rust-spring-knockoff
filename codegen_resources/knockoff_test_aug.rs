@@ -21,6 +21,7 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
 }
 
 #[aspect(**)]
+#[ordered(0)]
 pub fn do_aspect(&self, one: One) -> String {
     println!("hello");
     println!("{}", self.two.clone());

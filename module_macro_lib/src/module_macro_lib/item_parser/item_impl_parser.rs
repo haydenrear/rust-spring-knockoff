@@ -67,7 +67,7 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                         .map(|_| true)
                         .or(Some(false))
                         .unwrap(),
-                    aspect_info: None,
+                    aspect_info: vec![],
                 };
                 parse_container.injectable_types_builder.insert(id.clone(), impl_found);
                 None

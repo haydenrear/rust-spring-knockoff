@@ -3,7 +3,7 @@ use crate::module_macro_lib::item_modifier::ItemModifier;
 use std::ops::Deref;
 use proc_macro2::{Ident, Span};
 use quote::{quote_spanned, ToTokens};
-use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, Pat, ReturnType, Type};
+use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, Pat, ReturnType, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
@@ -14,7 +14,7 @@ use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::module_tree::AspectInfo;
+use crate::module_macro_lib::module_tree::{AspectInfo, MethodAdviceChain};
 
 
 pub struct AspectModifier;
@@ -122,14 +122,18 @@ impl AspectModifier {
         return_type
     }
 
-    fn parse_aspect(&self, parse_container: &mut ParseContainer, method: &mut ImplItemMethod, path: Vec<String>, args: Vec<(Ident, Type)>, bean_id: &str, return_type: Option<Type>) {
-        log_message!("Doing aspect with {} aspects.", parse_container.aspects.aspects.len());
+    fn parse_aspect_ordering(&self,
+                             parse_container: &mut ParseContainer,
+                             method: &mut ImplItemMethod,
+                             path: &Vec<String>,
+                             bean_id: &str) -> Vec<MethodAdviceAspectCodegen> {
 
-        let method_before = method.clone();
-
-        parse_container.aspects.aspects.iter()
+        let mut advice = parse_container.aspects.aspects.iter()
             .flat_map(|p| &p.method_advice_aspects)
             .filter(|a| {
+                let mut path = path.clone();
+                path.push(bean_id.to_string().clone());
+                path.push(method.sig.ident.to_string().clone());
                 let point_cut_matcher = path.join(".");
                 log_message!("Checking if before advice {} and after advice {} matches {}.",
                     SynHelper::get_str(a.before_advice.clone().unwrap()),
@@ -138,29 +142,83 @@ impl AspectModifier {
                 );
                 a.pointcut.pointcut_expr.matches(point_cut_matcher.as_str())
             })
-            .for_each(|a| {
+            .collect::<Vec<&MethodAdviceAspectCodegen>>();
 
-                log_message!("Adding before advice aspect: {}.", SynHelper::get_str(a.before_advice.clone().unwrap()));
-                log_message!("Adding after advice aspect: {}.", SynHelper::get_str(a.after_advice.clone().unwrap()));
+        advice.sort();
 
-                Self::add_advice_to_stmts(method, &a);
-                Self::rewrite_block_new_span(method);
+        advice.iter().map(|a| a.to_owned().to_owned())
+            .collect::<Vec<MethodAdviceAspectCodegen>>()
+    }
 
-                let return_type = return_type.clone();
+    /// 1. figure out which methods each aspect will apply to, and which method have multiple aspects.
+    /// 2. Parse each method and it's associated aspects into a structure that is ordered by the ordering of the execution of the aspects,
+    ///     and in this structure add the proceed statement from the next aspect in the previous aspect, if any.
+    ///     - For the first aspect trait, it has a proceed call to the second, etc.
+    /// 3. In each aspect info bean, add these additional trait/methods and their associated code to be generated.
+    fn parse_aspect(&self, parse_container: &mut ParseContainer, method: &mut ImplItemMethod, path: Vec<String>, args: Vec<(Ident, Type)>, bean_id: &str, return_type: Option<Type>) {
+        log_message!("Doing aspect with {} aspects.", parse_container.aspects.aspects.len());
 
-                parse_container.injectable_types_builder.get_mut(bean_id)
-                    .map(|i| {
-                        i.aspect_info = Some(AspectInfo {
-                            method_advice_aspect: a.clone(),
-                            method: Some(method_before.clone()),
-                            args: args.clone(),
-                            block: Some(method_before.block.clone()),
-                            method_after: Some(method.clone()),
-                            return_type,
-                            mutable: Self::get_mutability(&method_before),
-                        })
-                    });
-            });
+        let mut ordering = self.parse_aspect_ordering(parse_container, method, &path, bean_id);
+
+        let chain = self.parse_into_chain(parse_container, method, args, bean_id, return_type, &mut ordering);
+
+        chain.map(|chain| {
+            parse_container.injectable_types_builder.get_mut(bean_id)
+                .map(|b| b.aspect_info.push(chain));
+        });
+
+    }
+
+    fn parse_into_chain(
+        &self, parse_container: &mut ParseContainer, method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str, return_type: Option<Type>,
+        codegen_items: &mut Vec<MethodAdviceAspectCodegen>) -> Option<AspectInfo> {
+        if codegen_items.len() == 0 {
+            return None;
+        }
+        let first = codegen_items.remove(0);
+        if codegen_items.len() == 0 {
+            return Self::create_advice(parse_container, method, args, bean_id, return_type, &method.clone(), first.clone(), first);
+        } else if codegen_items.len() >= 1 {
+            return codegen_items.last().map(|last| {
+                Self::create_advice(parse_container, method, args, bean_id, return_type, &method.clone(), last.clone(), first)
+                    .map(|mut aspect_info| {
+                        aspect_info.advice_chain = Self::create_method_advice_chain(codegen_items.clone());
+                        aspect_info
+                    })
+            }).flatten();
+        }
+        None
+    }
+
+    fn create_method_advice_chain(items: Vec<MethodAdviceAspectCodegen>) -> Vec<MethodAdviceChain> {
+        items.iter().map(|v| MethodAdviceChain::new(v))
+            .collect()
+    }
+
+    fn create_advice(parse_container: &mut ParseContainer, method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str,
+                     return_type: Option<Type>, method_before: &ImplItemMethod,
+                     last: MethodAdviceAspectCodegen, first: MethodAdviceAspectCodegen) -> Option<AspectInfo> {
+        log_message!("Adding before advice aspect: {}.", SynHelper::get_str(first.before_advice.clone().unwrap()));
+        log_message!("Adding after advice aspect: {}.", SynHelper::get_str(first.after_advice.clone().unwrap()));
+
+        Self::add_advice_to_stmts(method, &first);
+        Self::rewrite_block_new_span(method);
+
+        let return_type = return_type.clone();
+
+        parse_container.injectable_types_builder.get_mut(bean_id)
+            .map(|i| {
+                AspectInfo {
+                    method_advice_aspect: first.clone(),
+                    method: Some(method_before.clone()),
+                    args: args.clone(),
+                    original_fn_logic: Some(method_before.block.clone()),
+                    method_after: Some(method.clone()),
+                    return_type,
+                    mutable: Self::get_mutability(&method_before),
+                    advice_chain: vec![],
+                }
+            })
     }
 
     fn rewrite_block_new_span(method: &mut ImplItemMethod) {
