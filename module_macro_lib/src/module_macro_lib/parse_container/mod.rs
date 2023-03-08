@@ -28,9 +28,7 @@ use codegen_utils::syn_helper::SynHelper;
 use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser, BeanParser};
 use crate::module_macro_lib::context_builder::ContextBuilder;
-use crate::module_macro_lib::fn_parser::FnParser;
 use crate::module_macro_lib::initializer::ModuleMacroInitializer;
-use crate::module_macro_lib::module_parser::parse_item;
 use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType, AspectInfo};
 use crate::module_macro_lib::profile_tree::ProfileTree;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
@@ -39,6 +37,8 @@ use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use web_framework_shared::matcher::Matcher;
+use crate::module_macro_lib::item_modifier::DelegatingItemModifier;
+use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
@@ -53,7 +53,15 @@ pub struct ParseContainer {
     pub fns: HashMap<TypeId, ModulesFunctions>,
     pub profiles: Vec<Profile>,
     pub initializer: ModuleMacroInitializer,
-    pub aspects: AspectParser
+    pub aspects: AspectParser,
+    pub item_modifier: DelegatingItemModifier
+}
+
+impl Debug for ParseContainer {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        log_message!("hello");
+        Ok(())
+    }
 }
 
 impl ParseContainer {
@@ -147,140 +155,6 @@ impl ParseContainer {
             })
     }
 
-    pub(crate) fn add_method_advice_aspect(&mut self, item_impl: &mut ItemImpl, path_depth: &mut Vec<String>, bean_id: &String) {
-        log_message!("Adding method advice aspect to: {}", SynHelper::get_str(item_impl.clone()));
-        item_impl.items.iter_mut()
-            .for_each(|i| {
-                match i {
-                    ImplItem::Method(ref mut method) => {
-                        log_message!("Found method {}", SynHelper::get_str(method.clone()));
-                        let return_type = Self::get_return_type(&method);
-                        let args = Self::get_args_info(method);
-                        log_message!("Adding method advice aspect to: {}", SynHelper::get_str(method.clone()));
-                        let mut next_path = path_depth.clone();
-                        next_path.push(method.sig.ident.to_token_stream().to_string().clone());
-                        log_message!("{} is the method before the method advice aspect.", SynHelper::get_str(method.block.clone()));
-                        self.parse_aspect(method, next_path, args, bean_id, return_type);
-                        log_message!("{} is the method after the method advice aspect.", SynHelper::get_str(method.block.clone()));
-                    }
-                    _ => {}
-                }
-            });
-    }
-
-    fn get_args_info(method: &mut ImplItemMethod) -> Vec<(Ident, Type)> {
-        let args = method.sig.inputs.iter().flat_map(|i| {
-            log_message!("Found fn_arg {}", SynHelper::get_str(i.clone()));
-            match i {
-                FnArg::Receiver(_) => {
-                    vec![]
-                }
-                FnArg::Typed(t) => {
-                    log_message!("Found pat: {}", t.pat.to_token_stream().to_string().clone());
-                    match t.pat.deref().clone() {
-                        Pat::Ident(ident) => {
-                            log_message!("{} is the ident of the fn.", ident.ident.to_string().as_str());
-                            vec![(ident.ident, t.ty.deref().clone())]
-                        }
-                        _ => {
-                            vec![]
-                        }
-                    }
-                }
-            }
-        }).collect::<Vec<(Ident, Type)>>();
-        args
-    }
-
-    fn get_return_type(method: &&mut ImplItemMethod) -> Option<Type> {
-        let return_type = match &method.sig.output {
-            ReturnType::Default => {
-                None
-            }
-            ReturnType::Type(ty, ag) => {
-                Some(ag.deref().clone())
-            }
-        };
-        return_type
-    }
-
-    fn parse_aspect(&mut self, method: &mut ImplItemMethod, path: Vec<String>, args: Vec<(Ident, Type)>, bean_id: &String, return_type: Option<Type>) {
-        log_message!("Doing aspect with {} aspects.", self.aspects.aspects.len());
-
-        let method_before = method.clone();
-
-        self.aspects.aspects.iter()
-            .flat_map(|p| &p.method_advice_aspects)
-            .filter(|a| {
-                let point_cut_matcher = path.join(".");
-                log_message!("Checking if before advice {} and after advice {} matches {}.",
-                    SynHelper::get_str(a.before_advice.clone().unwrap()),
-                    SynHelper::get_str(a.after_advice.clone().unwrap()),
-                    point_cut_matcher.clone()
-                );
-                a.pointcut.pointcut_expr.matches(point_cut_matcher.as_str())
-            })
-            .for_each(|a| {
-
-                log_message!("Adding before advice aspect: {}.", SynHelper::get_str(a.before_advice.clone().unwrap()));
-                log_message!("Adding after advice aspect: {}.", SynHelper::get_str(a.after_advice.clone().unwrap()));
-
-                Self::add_advice_to_stmts(method, &a);
-                Self::rewrite_block_new_span(method);
-
-                let return_type = return_type.clone();
-
-                self.injectable_types_builder.get_mut(bean_id)
-                    .map(|i| {
-                        i.aspect_info = Some(AspectInfo {
-                            method_advice_aspect: a.clone(),
-                            method: Some(method_before.clone()),
-                            args: args.clone(),
-                            block: Some(method_before.block.clone()),
-                            method_after: Some(method.clone()),
-                            return_type,
-                        })
-                    });
-            });
-    }
-
-    fn rewrite_block_new_span(method: &mut ImplItemMethod) {
-        let method_block_after = method.block.clone();
-        let span = Span::call_site();
-        let with_new_span = quote_spanned! {span=>
-                                    #method_block_after
-                                }.into();
-        let parsed = parse::<Block>(with_new_span);
-        method.block = parsed.unwrap();
-    }
-
-    fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
-        let before = a.before_advice.clone();
-        log_message!("Here is method block before: {}.", SynHelper::get_str(method.block.clone()));
-        method.block.stmts.clear();
-        Self::add_before_advice(method, before);
-        a.proceed_statement.as_ref().map(|p| method.block.stmts.push(p.clone()));
-        Self::add_after_advice(method, a);
-        log_message!("Here is method block after: {}.", SynHelper::get_str(method.block.clone()));
-    }
-
-    fn add_after_advice(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
-        a.after_advice.clone()
-            .map(|after| after.stmts.iter()
-                .for_each(|b| method.block.stmts.push(b.clone())));
-    }
-
-    fn add_before_advice(method: &mut ImplItemMethod, before: Option<Block>) {
-        before.map(|mut before| {
-            log_message!("Adding statements {} to method.", SynHelper::get_str(before.clone()));
-            let mut before_stmts = before.stmts;
-            for i in 0..before_stmts.len() {
-                log_message!("Adding statement {} to method.", SynHelper::get_str(before_stmts.get(i).unwrap().clone()));
-                method.block.stmts.insert(i, before_stmts.get(i).unwrap().to_owned())
-            }
-            log_message!("Here are statements after: {}", SynHelper::get_str(method.block.clone()));
-        });
-    }
 
     fn set_fn_type_dep(&mut self, fn_found: &FunctionType) {
         for i_type in self.injectable_types_builder.iter_mut() {

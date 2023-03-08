@@ -8,7 +8,6 @@ pub mod module_macro_lib {
     pub mod module_tree;
     pub mod knockoff_context_builder;
     pub mod profile_tree;
-    pub mod fn_parser;
     pub mod util;
     pub mod bean_parser;
     pub mod context_builder;
@@ -20,7 +19,9 @@ pub mod module_macro_lib {
     pub mod aspect;
     pub mod profile_tree_operation;
     pub mod item_parser;
+    pub mod item_modifier;
 }
+
 
 #[cfg(test)]
 mod tests {

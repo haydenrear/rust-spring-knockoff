@@ -1,20 +1,37 @@
-use std::any::TypeId;
+use syn::{Attribute, ItemFn, ReturnType, Type};
+use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::ops::Deref;
 use quote::ToTokens;
-use syn::{Attribute, ItemFn, ReturnType, Type};
-use knockoff_logging::{initialize_log, use_logging};
-use crate::module_macro_lib::parse_container::ParseContainer;
+use codegen_utils::syn_helper::SynHelper;
+use crate::module_macro_lib::item_parser::ItemParser;
 use crate::module_macro_lib::module_tree::{FunctionType, ModulesFunctions};
-use crate::module_macro_lib::util::ParseUtil;
+use crate::module_macro_lib::parse_container::ParseContainer;
 
-pub struct FnParser;
-
+use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
+use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::logging::StandardLoggingFacade;
+use crate::module_macro_lib::util::ParseUtil;
 
-impl FnParser {
 
+pub struct ItemFnParser;
+
+impl ItemParser<ItemFn> for ItemFnParser {
+    fn parse_item(parse_container: &mut ParseContainer, item_fn: &mut ItemFn, path_depth: Vec<String>) {
+        Self::to_fn_type(item_fn.clone())
+            .map(|fn_found| {
+                parse_container.fns.insert(item_fn.clone().type_id().clone(), ModulesFunctions{ fn_found: fn_found.clone() });
+            })
+            .or_else(|| {
+                log_message!("Could not set fn type for fn named: {}", SynHelper::get_str(item_fn.sig.ident.clone()).as_str());
+                None
+            });
+    }
+}
+
+impl ItemFnParser {
     pub fn to_fn_type(fn_found: ItemFn) -> Option<FunctionType> {
         ParseUtil::filter_att(&fn_found.attrs, vec!["#[singleton(", "#[prototype("])
             .iter()
@@ -65,13 +82,11 @@ impl FnParser {
                     // if fn_qualifier.filter(|qual| qual == qualifier).is_some() {
                     //     return Some(module_fn_entry.1.fn_found.clone())
                     // }
-                    //TODO:
+                    // TODO:
                     return None;
                 }
             }
         }
         None
     }
-
-
 }

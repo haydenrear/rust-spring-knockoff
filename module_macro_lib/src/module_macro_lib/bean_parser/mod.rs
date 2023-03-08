@@ -8,7 +8,7 @@ use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
-use crate::module_macro_lib::fn_parser::FnParser;
+use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
 use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::module_tree::{AutowiredField, Bean, BeanDefinition, BeanPath, BeanPathParts, BeanType, DepType, FunctionType, ModulesFunctions};
 use crate::module_macro_lib::util::ParseUtil;
@@ -240,7 +240,7 @@ impl BeanDependencyParser {
                 None
             });
 
-            let bean_type = FnParser::get_fn_for_qualifier(
+            let bean_type = ItemFnParser::get_fn_for_qualifier(
                      fns,
                     autowired_qualifier.clone(),
                     Some(field_to_add.type_of_field.clone())
