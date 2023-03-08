@@ -22,10 +22,10 @@ use crate::logger::StandardLoggingFacade;
 pub struct MethodAdviceAspectCodegen {
     pub default: Option<TokenStream>,
     pub item: Option<Item>,
-    pub type_args: Vec<Type>,
     pub before_advice: Option<Block>,
     pub after_advice: Option<Block>,
     pub pointcut: PointCut,
+    pub proceed_statement: Option<Stmt>
 }
 
 #[derive(Clone, Default)]
@@ -48,21 +48,9 @@ impl PointCut {
 }
 
 impl MethodAdviceAspectCodegen {
-    pub(crate) fn create_aspect_matcher(&self) -> AspectMatcher {
-        Self::create_aspect(&self.pointcut, Ident::new("TestAspect", Span::call_site()))
-    }
 
     pub(crate) fn create_aspect(path: &PointCut, ident: Ident) -> AspectMatcher {
         AspectMatcher::new(path, ident)
-    }
-
-    fn is_pointcut_arg(pat_type: &PatType) -> bool {
-        let string = pat_type.ty.to_token_stream().to_string();
-        let type_string = string.as_str();
-        if !type_string.contains("JoinPoint") {
-            return true;
-        }
-        false
     }
 
     pub fn aspect_matches(bean_path: &Vec<String>, pointcut: &PointCut, bean_id: &String) -> bool {
@@ -76,20 +64,10 @@ impl MethodAdviceAspectCodegen {
         Some(
             match item {
                 Item::Fn(item_fn) => {
-                    let type_args = item_fn.sig.inputs.iter()
-                        .flat_map(|i| {
-                            match i {
-                                FnArg::Receiver(_) => {
-                                    vec![]
-                                }
-                                FnArg::Typed(typed) => {
-                                    if Self::is_pointcut_arg(typed) {
-                                        return vec![typed.ty.deref().clone()];
-                                    }
-                                    vec![]
-                                }
-                            }
-                        }).collect();
+                    let proceed_statement = item_fn.block.stmts.iter()
+                        .filter(|b| b.to_token_stream().to_string().as_str().contains("proceed"))
+                        .map(|b| b.clone())
+                        .next();
 
                     let mut pointcut_expr = item_fn.attrs.iter()
                         .filter(|a| a.to_token_stream().to_string().as_str().contains("aspect"))
@@ -105,13 +83,15 @@ impl MethodAdviceAspectCodegen {
                         pointcut_expr.clone().unwrap(), pointcut_expr.clone().unwrap().len()
                     );
 
+                    log_message!("here is the block for aspect: {}.", SynHelper::get_str(item_fn.block.clone()));
+
                     Self {
                         default: None,
                         item: Some(item.clone()),
-                        type_args,
                         before_advice: Some(Self::up_until_join_point(item_fn.block.deref())),
                         after_advice: Some(Self::after_join_point(item_fn.block.deref())),
                         pointcut: PointCut::new(pointcut_expr.unwrap()),
+                        proceed_statement
                     }
                 }
                 _ => {
@@ -131,14 +111,20 @@ impl MethodAdviceAspectCodegen {
     fn up_until_join_point(block: &Block) -> Block {
         let mut block_stmts = vec![];
         for stmt in &block.stmts {
-            if stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+            if stmt.to_token_stream().to_string().as_str().contains("proceed") {
+                log_message!("Found proceed!");
+                log_message!("Here are the before statements: ");
+                Self::log_statements(&mut block_stmts);
                 return Block {
                     brace_token: Default::default(),
                     stmts: block_stmts,
                 };
             }
+            log_message!("Adding {} statement", SynHelper::get_str(stmt));
             block_stmts.push(stmt.clone());
         }
+        log_message!("Here are the before statements: ");
+        Self::log_statements(&mut block_stmts);
         Block {
            brace_token: Default::default(),
            stmts: block_stmts
@@ -149,20 +135,29 @@ impl MethodAdviceAspectCodegen {
         let mut block_stmts = vec![];
         let mut did_proceed = false;
         for stmt in &block.stmts {
-            if stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+            if stmt.to_token_stream().to_string().as_str().contains("proceed") {
                 did_proceed = true;
             }
             if !did_proceed {
                 continue;
             }
-            if !stmt.to_token_stream().to_string().as_str().contains("proceed()") {
+            if !stmt.to_token_stream().to_string().as_str().contains("proceed") {
+                log_message!("Adding after statement: {}.", SynHelper::get_str(&stmt));
                 block_stmts.push(stmt.clone());
             }
         }
+        log_message!("Here are the after statements: ");
+        Self::log_statements(&mut block_stmts);
         Block {
             brace_token: Default::default(),
             stmts: block_stmts
         }
+    }
+
+    fn log_statements(block_stmts: &mut Vec<Stmt>) {
+        block_stmts.iter().for_each(|b| {
+            log_message!("Next statement: {}.", SynHelper::get_str(b));
+        });
     }
 }
 

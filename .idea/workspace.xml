@@ -7,16 +7,11 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="arbitrary suffix to fix collision.">
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="refactor items">
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/test_module_macro_codegen/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/test_module_macro_codegen/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -303,14 +298,7 @@
       <workItem from="1677421523187" duration="35786000" />
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
-      <workItem from="1678022170942" duration="61531000" />
-    </task>
-    <task id="LOCAL-00056" summary="refactored to make AuthenticationType dynamically provided.">
-      <created>1677346320625</created>
-      <option name="number" value="00056" />
-      <option name="presentableId" value="LOCAL-00056" />
-      <option name="project" value="LOCAL" />
-      <updated>1677346320625</updated>
+      <workItem from="1678022170942" duration="63361000" />
     </task>
     <task id="LOCAL-00057" summary="req. matcher">
       <created>1677348733541</created>
@@ -648,7 +636,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678225259852</updated>
     </task>
-    <option name="localTasksCounter" value="105" />
+    <task id="LOCAL-00105" summary="refactor items">
+      <created>1678232571512</created>
+      <option name="number" value="00105" />
+      <option name="presentableId" value="LOCAL-00105" />
+      <option name="project" value="LOCAL" />
+      <updated>1678232571513</updated>
+    </task>
+    <option name="localTasksCounter" value="106" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -698,7 +693,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="updated logging and towards codegen for web_framework to ultimately dynamically create AuthenticationItem - plug in different types of authentication." />
     <MESSAGE value="refactored to make AuthenticationType dynamically provided." />
     <MESSAGE value="req. matcher" />
     <MESSAGE value="add auth type" />
@@ -723,7 +717,8 @@
     <MESSAGE value="enum + macro to get rid of dyn" />
     <MESSAGE value="method advice aspect w/ proceed" />
     <MESSAGE value="arbitrary suffix to fix collision." />
-    <option name="LAST_COMMIT_MESSAGE" value="arbitrary suffix to fix collision." />
+    <MESSAGE value="refactor items" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor items" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

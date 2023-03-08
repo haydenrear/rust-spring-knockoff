@@ -11,8 +11,8 @@ fn test_parse_aspect() {
     let mut first = aspects.aspects.remove(0);
     assert_eq!(first.method_advice_aspects.len(), 1);
     let method_advice = first.method_advice_aspects.remove(0);
-    assert!(!method_advice.before_advice.clone().unwrap().to_token_stream().to_string().as_str().contains("proceed()"));
-    assert!(!method_advice.after_advice.clone().unwrap().to_token_stream().to_string().as_str().contains("proceed()"));
+    assert!(!method_advice.before_advice.clone().unwrap().to_token_stream().to_string().as_str().contains("proceed"));
+    assert!(!method_advice.after_advice.clone().unwrap().to_token_stream().to_string().as_str().contains("proceed"));
     assert!(method_advice.item.is_some());
     match method_advice.item.unwrap() {
         Item::Fn(fn_found) => {

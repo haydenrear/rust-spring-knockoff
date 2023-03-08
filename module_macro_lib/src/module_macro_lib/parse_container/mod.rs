@@ -238,7 +238,7 @@ impl ParseContainer {
                             args: args.clone(),
                             block: Some(method_before.block.clone()),
                             method_after: Some(method.clone()),
-                            return_type
+                            return_type,
                         })
                     });
             });
@@ -256,11 +256,12 @@ impl ParseContainer {
 
     fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
         let before = a.before_advice.clone();
-        log_message!("Adding statements to method.");
-        method.block.stmts.clear();
         log_message!("Here is method block before: {}.", SynHelper::get_str(method.block.clone()));
+        method.block.stmts.clear();
         Self::add_before_advice(method, before);
+        a.proceed_statement.as_ref().map(|p| method.block.stmts.push(p.clone()));
         Self::add_after_advice(method, a);
+        log_message!("Here is method block after: {}.", SynHelper::get_str(method.block.clone()));
     }
 
     fn add_after_advice(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {

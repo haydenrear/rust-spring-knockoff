@@ -54,7 +54,7 @@ impl AspectGenerator {
     }
 
     fn proceed_with_return_type(
-        suffix: String, method_name: &Ident, block: &Block, arg_idents: &Vec<&Ident>,
+        suffix: &String, method_name: &Ident, block: &Block, arg_idents: &Vec<&Ident>,
         arg_types: &Vec<&Type>, struct_type: &Type, return_type: &Type
     ) -> TokenStream {
         log_message!("Implementing aspect with suffix {} and method name {}.", suffix.as_str(), method_name.to_string().as_str());
@@ -79,7 +79,7 @@ impl AspectGenerator {
         aspect_tokens
     }
 
-    fn proceed_no_return_type(suffix: String, method_name: &Ident, block: &Block, arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>, struct_type: &Type) -> TokenStream {
+    fn proceed_no_return_type(suffix: &String, method_name: &Ident, block: &Block, arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>, struct_type: &Type) -> TokenStream {
         log_message!("Implementing aspect with suffix {} and method name {}.", suffix.as_str(), method_name.to_string().as_str());
         let aspect_tokens =
             quote! {
@@ -101,13 +101,13 @@ impl AspectGenerator {
         aspect_tokens
     }
 
-    fn get_suffix(method: &ImplItemMethod) -> String {
-        log_message!("Checking for proceed: {}", SynHelper::get_str(method));
-        method.block.stmts.iter()
-            .filter(|s| s.to_token_stream().to_string().contains("proceed"))
-            .next()
-            .map(|s| s.to_token_stream().to_string())
-            .map(|s| SynHelper::get_proceed(s))
+    fn get_suffix(method: &Option<Stmt>) -> String {
+        method
+            .as_ref()
+            .map(|m| {
+                log_message!("Checking for proceed: {}", SynHelper::get_str(m));
+                SynHelper::get_proceed(m.to_token_stream().to_string().clone())
+            })
             .or(Some("".to_string()))
             .map(|aspect_suffix| {
                 log_message!("{} is the proceed part to be used to create trait.", &aspect_suffix);
@@ -117,20 +117,20 @@ impl AspectGenerator {
     }
 
     fn implement_proceed_for_aspect_type(mut ts: &mut TokenStream, a: &(AspectInfo, Bean), block: &Block, arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>) {
-        let method = a.0.method_after.as_ref().unwrap();
-
+        let proceed_suffix = Self::get_suffix(&a.0.method_advice_aspect.proceed_statement);
+        let method_ident = &a.0.method.as_ref().unwrap().sig.ident;
         a.1.struct_type.as_ref().map(|struct_type| {
             a.0.return_type.as_ref().map(|return_type| {
                 let aspect_tokens = Self::proceed_with_return_type(
-                    Self::get_suffix(method), &method.sig.ident,
+                    &proceed_suffix, method_ident,
                     &block, &arg_idents, &arg_types,
                     struct_type, return_type
                 );
                 ts.append_all(aspect_tokens);
             }).or_else(|| {
                 let aspect_tokens = Self::proceed_no_return_type(
-                    Self::get_suffix(method),
-                    &method.sig.ident,
+                    &proceed_suffix,
+                    method_ident,
                     block, arg_idents,
                     arg_types, struct_type
                 );

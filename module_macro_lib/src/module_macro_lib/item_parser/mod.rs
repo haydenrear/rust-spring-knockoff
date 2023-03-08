@@ -74,7 +74,8 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                     bean_type: None,
                     mutable: SynHelper::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
                         .map(|_| true)
-                        .or(Some(false)).unwrap(),
+                        .or(Some(false))
+                        .unwrap(),
                     aspect_info: None,
                 };
                 parse_container.injectable_types_builder.insert(id.clone(), impl_found);
@@ -120,7 +121,8 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     bean_type: BeanParser::get_bean_type(&item_struct.attrs, None, Some(item_struct.ident.clone())),
                     mutable: SynHelper::get_attr_from_vec(&item_struct.attrs, vec!["mutable_bean"])
                         .map(|_| true)
-                        .or(Some(false)).unwrap(),
+                        .or(Some(false))
+                        .unwrap(),
                     aspect_info: None,
                 };
                 parse_container.injectable_types_builder.insert(item_struct.ident.to_string().clone(), impl_found);
