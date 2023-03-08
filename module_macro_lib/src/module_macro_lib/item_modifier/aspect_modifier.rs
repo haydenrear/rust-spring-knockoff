@@ -2,8 +2,8 @@ use crate::module_macro_lib::item_modifier::ItemModifier;
 
 use std::ops::Deref;
 use proc_macro2::{Ident, Span};
-use quote::{quote_spanned, ToTokens};
-use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, Pat, ReturnType, Stmt, Type};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, Pat, PatType, ReturnType, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
@@ -235,10 +235,63 @@ impl AspectModifier {
         let before = a.before_advice.clone();
         log_message!("Here is method block before: {}.", SynHelper::get_str(method.block.clone()));
         method.block.stmts.clear();
+
         Self::add_before_advice(method, before);
-        a.proceed_statement.as_ref().map(|p| method.block.stmts.push(p.clone()));
+        Self::add_proceed_stmt(method, a);
         Self::add_after_advice(method, a);
+
         log_message!("Here is method block after: {}.", SynHelper::get_str(method.block.clone()));
+    }
+
+    fn add_proceed_stmt(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
+        let stmt = Self::create_proceed_stmt_with_args(method, a);
+
+        if stmt.is_err() {
+            log_message!("Could not add proceed statement...");
+        }
+        stmt.ok().map(|p| {
+            log_message!("Adding proceed statement created: {}.", SynHelper::get_str(&p));
+            method.block.stmts.push(p.clone());
+        }).or_else(|| {
+            a.proceed_statement.as_ref().map(|p| method.block.stmts.push(p.clone()));
+            None
+        });
+    }
+
+    fn create_proceed_stmt_with_args(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) -> syn::Result<Stmt> {
+
+        let args = method.sig.inputs.iter().flat_map(|f| {
+            match f {
+                FnArg::Receiver(r) => {
+                    vec![]
+                }
+                FnArg::Typed(t) => {
+                    vec![t.pat.deref().clone()]
+                }
+            }
+        }).collect::<Vec<Pat>>();
+
+        let ident = Self::get_proceed_ident(a);
+
+        let proceed = quote! {
+            let found = self.#ident(#(#args),*);
+        };
+
+        log_message!("Adding proceed statement: {}.", SynHelper::get_str(&proceed));
+
+        parse::<Stmt>(proceed.into())
+    }
+
+    fn get_proceed_ident(a: &MethodAdviceAspectCodegen) -> Ident {
+        let proceed_suffix = a.proceed_statement.as_ref().map(|p| SynHelper::get_proceed(p.to_token_stream().to_string().clone()))
+            .or(Some("".to_string()))
+            .unwrap();
+
+        let mut proceed_stmt = "proceed".to_string();
+        proceed_stmt = proceed_stmt + proceed_suffix.as_str();
+        proceed_stmt = proceed_stmt.replace(" ", "");
+        let ident = Ident::new(proceed_stmt.as_str(), Span::call_site());
+        ident
     }
 
     fn add_after_advice(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {

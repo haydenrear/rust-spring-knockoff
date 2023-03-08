@@ -14,7 +14,7 @@ pub trait StringMatcher<'a>: Matcher<&'a str> {
 pub trait RequestMatcher: Matcher<WebRequest> {
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct AntStringRequestMatcher {
     to_match: String,
     splitter: String

@@ -73,7 +73,6 @@ impl ParseContainer {
     pub fn build_injectable(&mut self) {
         self.set_build_dep_types();
 
-        log_message!("{} is the number of injectable types.", &self.injectable_types_builder.values().len());
         self.injectable_types_map = ProfileTree::new(&mut self.injectable_types_builder);
         log_message!("{:?} is the debugged tree.", &self.injectable_types_map);
         log_message!("{} is the number of injectable types.", &self.injectable_types_map.injectable_types.values().len());

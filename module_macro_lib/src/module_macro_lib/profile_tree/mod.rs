@@ -12,7 +12,7 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct ProfileTree {
     /// for profile implementations.
     pub injectable_types: HashMap<Profile, Vec<BeanDefinitionType>>,

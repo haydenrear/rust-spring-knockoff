@@ -3,14 +3,15 @@ use std::borrow::BorrowMut;
 use std::cmp::Ordering;
 use std::default::Default;
 use std::env;
+use std::fmt::{Debug, Formatter};
 use std::io::Error;
 use std::ops::{Deref, DerefMut};
 use std::process::id;
 use std::str::FromStr;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{Attribute, Block, FnArg, Item, ItemFn, PatType, Stmt, Type};
-use codegen_utils::syn_helper::SynHelper;
+use syn::{Attribute, Block, FnArg, Item, ItemFn, parse, PatType, Stmt, Type};
+use codegen_utils::syn_helper::{debug_struct_field_opt_tokens, SynHelper};
 use knockoff_logging::use_logging;
 use web_framework_shared::matcher::{AntStringRequestMatcher, Matcher};
 use crate::parser::{CodegenItem, CodegenItemType, LibParser};
@@ -29,6 +30,20 @@ pub struct MethodAdviceAspectCodegen {
     pub pointcut: PointCut,
     pub proceed_statement: Option<Stmt>,
     pub order: usize
+}
+
+impl Debug for MethodAdviceAspectCodegen {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut debug_struct = f.debug_struct("MethodAdviceAspectCodegen");
+        debug_struct_field_opt_tokens(&mut debug_struct, &self.after_advice, "after_advice");
+        debug_struct_field_opt_tokens(&mut debug_struct, &self.before_advice, "before_advice");
+        debug_struct_field_opt_tokens(&mut debug_struct, &self.default, "default");
+        debug_struct_field_opt_tokens(&mut debug_struct, &self.proceed_statement, "proceed_statement");
+        debug_struct_field_opt_tokens(&mut debug_struct, &self.item, "item");
+        debug_struct.field("order", &self.order)
+            .field("pointcut", &self.pointcut)
+            .finish()
+    }
 }
 
 impl Eq for MethodAdviceAspectCodegen {}
@@ -56,7 +71,7 @@ pub struct ParsedAspects {
     pub method_advice_aspects: Vec<MethodAdviceAspectCodegen>
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct PointCut {
     pub pointcut_expr: AntStringRequestMatcher,
 }

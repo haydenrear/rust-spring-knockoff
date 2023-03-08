@@ -89,20 +89,6 @@ pub enum BeanDefinitionType {
     }
 }
 
-impl Debug for BeanDefinitionType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BeanDefinitionType::Abstract { bean, dep_type } => {
-                log_message!("{} is bean id.", bean.id.as_str());
-            }
-            BeanDefinitionType::Concrete { bean } => {
-                log_message!("{} is bean id.", bean.id.as_str());
-            }
-        };
-        Ok(())
-    }
-}
-
 #[derive(Clone)]
 pub struct BeanPath {
     pub(crate) path_segments: Vec<BeanPathParts>
@@ -282,7 +268,7 @@ pub struct DepType {
     pub bean_type_path: Option<BeanPath>
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum BeanType {
     // contains the identifier and the qualifier as string
     Singleton(BeanDefinition, Option<FunctionType>),

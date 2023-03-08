@@ -16,7 +16,7 @@ use crate::module_macro_lib::profile_tree::ProfileTree;
 
 
 pub struct AspectGenerator {
-    method_advice_aspects: Vec<(AspectInfo, Bean)>
+    pub(crate) method_advice_aspects: Vec<(AspectInfo, Bean)>
 }
 
 impl TokenStreamGenerator for AspectGenerator {
@@ -31,22 +31,22 @@ impl TokenStreamGenerator for AspectGenerator {
 }
 
 impl AspectGenerator {
-
     pub fn new(profile_tree: &ProfileTree) -> Self {
         let method_advice_aspects = profile_tree.injectable_types.iter()
             .flat_map(|i_type| {
-                i_type.1.iter().flat_map(|bean_def| {
-                    match bean_def {
-                        BeanDefinitionType::Abstract { bean, dep_type} => {
-                            vec![]
-                        }
-                        BeanDefinitionType::Concrete { bean } => {
-                            bean.aspect_info.iter()
-                                .flat_map(|a| vec![(a.clone(),bean.clone())])
-                                .collect::<Vec<(AspectInfo, Bean)>>()
-                        }
+                i_type.1
+            })
+            .flat_map(|bean_def| {
+                match bean_def {
+                    BeanDefinitionType::Abstract { bean, dep_type } => {
+                        vec![]
                     }
-                })
+                    BeanDefinitionType::Concrete { bean } => {
+                        bean.aspect_info.iter()
+                            .flat_map(|a| vec![(a.clone(), bean.clone())])
+                            .collect::<Vec<(AspectInfo, Bean)>>()
+                    }
+                }
             }).collect::<Vec<(AspectInfo, Bean)>>();
 
 
@@ -58,7 +58,7 @@ impl AspectGenerator {
     /// The function that was originally being called is placed in a trait, and then if there are
     /// additional functions to be called, (multiple advice) then in that one that is called a proceed
     /// statement is placed there.
-    fn implement_proceed_original_fn_logic(
+    pub(crate) fn implement_proceed_original_fn_logic(
         mut ts: &mut TokenStream, a: &(AspectInfo, Bean),
         block: &Block, arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>
     ) {
@@ -76,7 +76,7 @@ impl AspectGenerator {
     }
 
     pub fn implement_chain(
-        mut ts: &mut TokenStream, a: &(AspectInfo, Bean), block: &Block,
+        mut ts: &mut TokenStream, a: &(AspectInfo, Bean),
         arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>,
     ) {
         let mut proceed_suffix = "".to_string();
@@ -111,7 +111,15 @@ impl AspectGenerator {
         }
     }
 
-    fn implement(mut ts: &mut TokenStream, a: &(AspectInfo, Bean), arg_idents: &&Vec<&Ident>, arg_types: &&Vec<&Type>, proceed_suffix: &mut String, block_items: &mut Vec<TokenStream>, method_ident: &Ident) {
+    pub(crate) fn implement(
+        mut ts: &mut TokenStream,
+        a: &(AspectInfo, Bean),
+        arg_idents: &Vec<&Ident>,
+        arg_types: &Vec<&Type>,
+        proceed_suffix: &mut String,
+        block_items: &mut Vec<TokenStream>,
+        method_ident: &Ident
+    ) {
         a.1.struct_type.as_ref().map(|struct_type| {
             a.0.return_type.as_ref().map(|return_type| {
                 if a.0.mutable {
@@ -150,11 +158,11 @@ impl AspectGenerator {
         });
     }
 
-    fn implement_original_fn(mut ts: &mut TokenStream, a: &(AspectInfo, Bean)) {
+    pub(crate) fn implement_original_fn(mut ts: &mut TokenStream, a: &(AspectInfo, Bean)) {
         let block = a.0.original_fn_logic.as_ref().unwrap();
         let arg_idents = a.0.args.iter().map(|a| &a.0).collect::<Vec<&Ident>>();
         let arg_types = a.0.args.iter().map(|a| &a.1).collect::<Vec<&Type>>();
-        Self::implement_chain(ts, a, block, &arg_idents, &arg_types);
+        Self::implement_chain(ts, a, &arg_idents, &arg_types);
         Self::implement_proceed_original_fn_logic(&mut ts, a, block, &arg_idents, &arg_types);
     }
 

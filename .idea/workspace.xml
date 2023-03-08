@@ -7,18 +7,26 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="fix issue">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Fixed to add same args as function call.">
+      <change afterPath="$PROJECT_DIR$/codegen_resources/multiple_aspects_test.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/spring-knockoff.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/spring-knockoff.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/parse/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/parse/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/syn_helper/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/syn_helper/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/debug/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/debug/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_knockoff_boot_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/spring_knockoff_boot_macro/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/aspect/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/aspect/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,9 +131,43 @@
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_module_macro">
+  <component name="RunManager" selected="Cargo.Test module_macro_lib::item_modifier::test::test_multiple_aspects">
+    <configuration name="Test do_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package build_lib --lib do_test -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test matcher::test::test_ant_path_request_matcher" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework_shared --lib matcher::test::test_ant_path_request_matcher -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test module_macro_lib::item_modifier::test::test_multiple_aspects" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_modifier::test::test_multiple_aspects -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -175,40 +217,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_module_macro_codegen::test_lib_parse" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_codegen --lib test_module_macro_codegen::test_lib_parse -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test test_module_macro_codegen::test_parse_aspect" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_codegen --lib test_module_macro_codegen::test_parse_aspect -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="test --package rust-spring-knockoff --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -228,19 +236,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test do_test" />
+      <item itemvalue="Cargo.Test module_macro_lib::item_modifier::test::test_multiple_aspects" />
       <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
       <item itemvalue="Cargo.Test syn_helper::test::test_get_name" />
-      <item itemvalue="Cargo.Test test_module_macro_codegen::test_lib_parse" />
-      <item itemvalue="Cargo.Test test_module_macro_codegen::test_parse_aspect" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test module_macro_lib::item_modifier::test::test_multiple_aspects" />
+        <item itemvalue="Cargo.Test do_test" />
         <item itemvalue="Cargo.Test test_module_macro" />
         <item itemvalue="Cargo.Test syn_helper::test::test_get_name" />
         <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
-        <item itemvalue="Cargo.Test test_module_macro_codegen::test_lib_parse" />
-        <item itemvalue="Cargo.Test test_module_macro_codegen::test_parse_aspect" />
       </list>
     </recent_temporary>
   </component>
@@ -305,27 +313,6 @@
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
       <workItem from="1678022170942" duration="70052000" />
-    </task>
-    <task id="LOCAL-00059" summary="req. matcher">
-      <created>1677349031900</created>
-      <option name="number" value="00059" />
-      <option name="presentableId" value="LOCAL-00059" />
-      <option name="project" value="LOCAL" />
-      <updated>1677349031900</updated>
-    </task>
-    <task id="LOCAL-00060" summary="add auth type">
-      <created>1677356111040</created>
-      <option name="number" value="00060" />
-      <option name="presentableId" value="LOCAL-00060" />
-      <option name="project" value="LOCAL" />
-      <updated>1677356111040</updated>
-    </task>
-    <task id="LOCAL-00061" summary="add auth type">
-      <created>1677437793571</created>
-      <option name="number" value="00061" />
-      <option name="presentableId" value="LOCAL-00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1677437793572</updated>
     </task>
     <task id="LOCAL-00062" summary="configuration mod">
       <created>1677455175676</created>
@@ -649,7 +636,28 @@
       <option name="project" value="LOCAL" />
       <updated>1678234428441</updated>
     </task>
-    <option name="localTasksCounter" value="108" />
+    <task id="LOCAL-00108" summary="multiple method advice aspect aspect">
+      <created>1678306626292</created>
+      <option name="number" value="00108" />
+      <option name="presentableId" value="LOCAL-00108" />
+      <option name="project" value="LOCAL" />
+      <updated>1678306626292</updated>
+    </task>
+    <task id="LOCAL-00109" summary="multiple method advice aspect aspect">
+      <created>1678306671588</created>
+      <option name="number" value="00109" />
+      <option name="presentableId" value="LOCAL-00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1678306671588</updated>
+    </task>
+    <task id="LOCAL-00110" summary="Fixed to add same args as function call.">
+      <created>1678311102153</created>
+      <option name="number" value="00110" />
+      <option name="presentableId" value="LOCAL-00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1678311102154</updated>
+    </task>
+    <option name="localTasksCounter" value="111" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -699,8 +707,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="req. matcher" />
-    <MESSAGE value="add auth type" />
     <MESSAGE value="configuration mod" />
     <MESSAGE value="sec" />
     <MESSAGE value="dao auth provider" />
@@ -724,7 +730,9 @@
     <MESSAGE value="arbitrary suffix to fix collision." />
     <MESSAGE value="refactor items" />
     <MESSAGE value="fix issue" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix issue" />
+    <MESSAGE value="multiple method advice aspect aspect" />
+    <MESSAGE value="Fixed to add same args as function call." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed to add same args as function call." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -785,33 +793,33 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/codegen_utils/src/syn_helper/test.rs</url>
-          <line>50</line>
+          <line>49</line>
           <option name="timeStamp" value="173" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/codegen_utils/src/syn_helper/test.rs</url>
-          <line>22</line>
+          <line>21</line>
           <option name="timeStamp" value="174" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs</url>
-          <line>172</line>
+          <line>158</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>71</line>
+          <line>23</line>
           <option name="timeStamp" value="180" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>66</line>
-          <option name="timeStamp" value="187" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs</url>
           <line>42</line>
           <option name="timeStamp" value="203" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/test.rs</url>
+          <line>69</line>
+          <option name="timeStamp" value="204" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
