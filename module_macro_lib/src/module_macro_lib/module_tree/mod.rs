@@ -57,7 +57,8 @@ pub struct AspectInfo {
     /// This is the block before any aspects are added.
     pub(crate) block: Option<Block>,
     pub(crate) return_type: Option<Type>,
-    pub method_after: Option<ImplItemMethod>,
+    pub(crate) method_after: Option<ImplItemMethod>,
+    pub(crate) mutable: bool
 }
 
 #[derive(Clone)]

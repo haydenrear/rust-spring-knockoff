@@ -24,9 +24,11 @@ impl ItemModifier for AspectModifier {
         match item {
             Item::Impl(item_impl) => {
                 log_message!("Doing modification for {}.", SynHelper::get_str(&item_impl));
+                let mut path_depth = path_depth.clone();
+                path_depth.push(item_impl.self_ty.to_token_stream().to_string().clone());
                 self.add_method_advice_aspect(
                     parse_container, item_impl,
-                    &mut path_depth.clone(),
+                    &mut path_depth,
                     item_impl.self_ty.to_token_stream().to_string().as_str()
                 );
             }
@@ -69,10 +71,10 @@ impl AspectModifier {
     }
 
     fn get_args_info(method: &mut ImplItemMethod) -> Vec<(Ident, Type)> {
-        let args = method.sig.inputs.iter().flat_map(|i| {
+       method.sig.inputs.iter().flat_map(|i| {
             log_message!("Found fn_arg {}", SynHelper::get_str(i.clone()));
             match i {
-                FnArg::Receiver(_) => {
+                FnArg::Receiver(r) => {
                     vec![]
                 }
                 FnArg::Typed(t) => {
@@ -88,8 +90,24 @@ impl AspectModifier {
                     }
                 }
             }
-        }).collect::<Vec<(Ident, Type)>>();
-        args
+        }).collect::<Vec<(Ident, Type)>>()
+    }
+
+    fn get_mutability(method: &ImplItemMethod) -> bool {
+        method.sig.inputs.iter().any(|i| {
+            log_message!("Found fn_arg {}", SynHelper::get_str(i.clone()));
+            match i {
+                FnArg::Receiver(r) => {
+                    if r.mutability.is_some() {
+                        return true;
+                    }
+                    false
+                }
+                FnArg::Typed(t) => {
+                    false
+                }
+            }
+        })
     }
 
     fn get_return_type(method: &&mut ImplItemMethod) -> Option<Type> {
@@ -139,6 +157,7 @@ impl AspectModifier {
                             block: Some(method_before.block.clone()),
                             method_after: Some(method.clone()),
                             return_type,
+                            mutable: Self::get_mutability(&method_before),
                         })
                     });
             });

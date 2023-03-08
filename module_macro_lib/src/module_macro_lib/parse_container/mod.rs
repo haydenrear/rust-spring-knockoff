@@ -37,7 +37,7 @@ use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use web_framework_shared::matcher::Matcher;
-use crate::module_macro_lib::item_modifier::DelegatingItemModifier;
+use crate::module_macro_lib::item_modifier::delegating_modifier::DelegatingItemModifier;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
 initialize_log!();

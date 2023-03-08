@@ -40,7 +40,10 @@ impl ItemModifier for DelegatingItemModifier {
         });
         match item {
             Item::Mod(ref mut item_mod) => {
-                path_depth.push(item_mod.ident.to_string().clone());
+                let mod_ident = item_mod.ident.to_string().clone();
+                if !path_depth.contains(&mod_ident) {
+                    path_depth.push(mod_ident);
+                }
                 item_mod.content.iter_mut().for_each(|c| {
                     for item in c.1.iter_mut() {
                         self.modify_item(parse_container, item, path_depth.clone())
