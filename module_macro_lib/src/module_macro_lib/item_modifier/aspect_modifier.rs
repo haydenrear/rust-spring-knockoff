@@ -3,7 +3,7 @@ use crate::module_macro_lib::item_modifier::ItemModifier;
 use std::ops::Deref;
 use proc_macro2::{Ident, Span};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, Pat, PatType, ReturnType, Stmt, Type};
+use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, parse2, Pat, PatType, ReturnType, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
@@ -235,7 +235,7 @@ impl AspectModifier {
         let with_new_span = quote_spanned! {span=>
             #method_block_after
         }.into();
-        let parsed = parse::<Block>(with_new_span);
+        let parsed = parse2::<Block>(with_new_span);
         method.block = parsed.unwrap();
     }
 
@@ -298,11 +298,12 @@ impl AspectModifier {
 
         log_message!("Adding proceed statement: {}.", SynHelper::get_str(&proceed));
 
-        parse::<Stmt>(proceed.into())
+        parse2::<Stmt>(proceed.into())
     }
 
     fn get_proceed_ident(a: &MethodAdviceAspectCodegen) -> Ident {
-        let proceed_suffix = a.proceed_statement.as_ref().map(|p| SynHelper::get_proceed(p.to_token_stream().to_string().clone()))
+        let proceed_suffix = a.proceed_statement.as_ref()
+            .map(|p| SynHelper::get_proceed(p.to_token_stream().to_string().clone()))
             .or(Some("".to_string()))
             .unwrap();
 

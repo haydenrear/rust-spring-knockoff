@@ -44,7 +44,30 @@ use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 pub fn parse_module(mut found: Item) -> TokenStream {
+    create_initial_parse_container(&mut found).as_mut()
+        .map(|created| {
+            let container = do_container_modifications(&mut found, created);
 
+            let container_tokens = container.build_to_token_stream();
+
+            return quote!(
+                #container_tokens
+                #found
+            ).into();
+        })
+        .or(Some(quote!(#found).into()))
+        .unwrap()
+
+}
+
+pub(crate) fn do_container_modifications<'a>(mut found: &'a mut Item, created: &'a mut (ParseContainer, String)) -> &'a mut ParseContainer {
+    let item_modifier = DelegatingItemModifier::new();
+    let container = &mut created.0;
+    item_modifier.modify_item(container, &mut found, vec![created.1.clone()]);
+    container
+}
+
+pub(crate) fn create_initial_parse_container(mut found: &mut Item) -> Option<(ParseContainer, String)> {
     let mut created = match &mut found {
         Item::Mod(ref mut module_found) => {
             let mut container = ParseContainer::default();
@@ -59,32 +82,12 @@ pub fn parse_module(mut found: Item) -> TokenStream {
             log_message!("{} is module.", module_found.ident.to_string().as_str());
             log_message!("{:?} is module.", &container);
 
-
             Some((container, module_found.ident.to_string().clone()))
-
         }
         _ => {
             None
         }
     };
-
-    if created.is_some() {
-
-        let item_modifier = DelegatingItemModifier::new();
-        let mut unwrapped = created.unwrap();
-        let container = &mut unwrapped.0;
-        item_modifier.modify_item(container, &mut found, vec![unwrapped.1]);
-        let container_tokens = container.build_to_token_stream();
-
-        return quote!(
-            #container_tokens
-            #found
-        ).into();
-    }
-
-    quote!(
-        #found
-    ).into()
-
+    created
 }
 

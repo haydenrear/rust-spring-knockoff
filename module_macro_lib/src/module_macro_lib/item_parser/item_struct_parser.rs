@@ -18,7 +18,6 @@ pub struct ItemStructParser;
 impl ItemParser<ItemStruct> for ItemStructParser {
     fn parse_item(parse_container: &mut ParseContainer, item_struct: &mut ItemStruct, path_depth: Vec<String>) {
         log_message!("adding type with name {}", item_struct.ident.clone().to_token_stream().to_string());
-        log_message!("adding type with name {}", item_struct.to_token_stream().to_string().clone());
 
         parse_container.initializer.field_augmenter.process(item_struct);
 

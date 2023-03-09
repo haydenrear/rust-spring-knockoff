@@ -1041,6 +1041,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "knockoff_proc_macro_tests"
+version = "0.1.0"
+dependencies = [
+ "derive-syn-parse",
+ "dynpath",
+ "module_macro",
+ "module_macro_codegen",
+ "module_macro_lib",
+ "module_macro_shared",
+ "paste",
+ "proc-macro2",
+ "quote",
+ "spring_knockoff_boot_macro",
+ "syn",
+]
+
+[[package]]
 name = "knockoff_security"
 version = "0.1.0"
 dependencies = [
@@ -1436,9 +1453,9 @@ checksum = "dc375e1527247fe1a97d8b7156678dfe7c1af2fc075c9a4db3690ecd2a148068"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.43"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a2ca2c61bc9f3d74d2886294ab7b9853abd9c1ad903a3ac7815c58989bb7bab"
+checksum = "5d727cae5b39d21da60fa540906919ad737832fe0b1c165da3a34d6548c849d6"
 dependencies = [
  "unicode-ident",
 ]

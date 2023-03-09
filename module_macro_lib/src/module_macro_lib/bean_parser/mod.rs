@@ -26,7 +26,6 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 impl BeanDependencyParser {
 
-
     pub(crate) fn get_bean_type_opt(attr: &Vec<Attribute>) -> Option<BeanType> {
         SynHelper::get_attr_from_vec(attr, vec!["singleton"])
             .map(|singleton_qualifier| BeanType::Singleton)
