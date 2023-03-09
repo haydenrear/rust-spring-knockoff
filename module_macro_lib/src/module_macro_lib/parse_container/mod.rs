@@ -197,14 +197,20 @@ impl ParseContainer {
                     .map(|mutable_field| {
                         log_message!("Adding mutable field and autowired field for {}.", field.to_token_stream().to_string().as_str());
                         AutowiredField{
-                            qualifier: Some(autowired_field),
+                            qualifier: Some(autowired_field.clone()),
                             lazy: false,
                             field: field.clone(),
                             type_of_field: field.ty.clone(),
                             mutable: true,
                         }
                     })
-                    .or(None)
+                    .or(Some(AutowiredField{
+                        qualifier: Some(autowired_field),
+                        lazy: false,
+                        field: field.clone(),
+                        type_of_field: field.ty.clone(),
+                        mutable: false,
+                    }))
             }).unwrap_or_else(|| {
                 log_message!("Could not create autowired field of type {}.", field.ty.to_token_stream().to_string().clone());
                 None

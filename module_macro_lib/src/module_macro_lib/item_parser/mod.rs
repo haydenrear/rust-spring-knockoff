@@ -24,6 +24,8 @@ pub mod item_struct_parser;
 pub mod item_mod_parser;
 pub mod item_trait_parser;
 pub mod item_fn_parser;
+#[cfg(test)]
+pub mod test;
 
 pub trait ItemParser<T: ToTokens> {
     fn parse_item(parse_container: &mut ParseContainer, item: &mut T, path_depth: Vec<String>);
