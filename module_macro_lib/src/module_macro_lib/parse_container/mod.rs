@@ -159,30 +159,7 @@ impl ParseContainer {
         for i_type in self.injectable_types_builder.iter_mut() {
             for dep_type in i_type.1.deps_map.iter_mut() {
                 if dep_type.bean_type.is_none() {
-                    match &fn_found {
-                        FunctionType::Singleton(fn_type, qualifier, type_found) => {
-                            dep_type.bean_type = Some(
-                                BeanType::Singleton(
-                                    BeanDefinition {
-                                        qualifier: qualifier.clone(),
-                                        bean_type_type: type_found.clone(),
-                                        bean_type_ident: None
-                                    },
-                                    Some(fn_found.clone()))
-                            );
-                        }
-                        FunctionType::Prototype(fn_type, qualifier, type_found) => {
-                            dep_type.bean_type = Some(
-                                BeanType::Prototype(
-                                    BeanDefinition {
-                                        qualifier: qualifier.clone(),
-                                        bean_type_type: type_found.clone(),
-                                        bean_type_ident: None
-                                    },
-                                    Some(fn_found.clone())
-                                ));
-                        }
-                    };
+                    dep_type.bean_type = Some(fn_found.bean_type.clone());
                 }
             }
         }
@@ -218,14 +195,7 @@ impl ParseContainer {
     }
 
     pub fn get_type_from_fn_type(fn_type: &FunctionType) -> Option<Type> {
-        match fn_type {
-            FunctionType::Singleton(_, _, ty) => {
-                ty.clone()
-            }
-            FunctionType::Prototype(_, _, ty) => {
-                ty.clone()
-            }
-        }
+        fn_type.fn_type.clone()
     }
 
 

@@ -28,6 +28,14 @@ impl SynHelper {
             .flatten()
     }
 
+    pub fn get_attr_from_vec_ref(autowired_attr: &Vec<&Attribute>, matcher_str: &Vec<&str>) -> Option<String> {
+        autowired_attr.iter()
+            .filter(|a| matcher_str.iter().any(|m| Self::get_str(a).as_str().contains(*m)))
+            .next()
+            .map(|a| SynHelper::parse_attr_path_single(a).or(Some("".to_string())))
+            .flatten()
+    }
+
     pub fn get_str<'a, T: ToTokens>(ts: T) -> String {
         ts.to_token_stream().to_string().clone()
     }

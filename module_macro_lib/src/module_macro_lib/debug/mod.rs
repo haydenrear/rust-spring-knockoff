@@ -13,42 +13,11 @@ use crate::module_macro_lib::profile_tree::ProfileTree;
 
 impl Debug for FunctionType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FunctionType::Singleton(a,b, c) => {
-                let debug_struct = &mut f.debug_struct("FunctionType::Singleton");
-                debug_struct.field("function_type(FunctionType::Singleton)", &a.to_token_stream().to_string().as_str());
-                syn_helper::debug_struct_field_opt(debug_struct, &b, "qualifier");
-                syn_helper::debug_struct_field_opt_tokens(debug_struct, &c, "singleton type")
-            }
-            FunctionType::Prototype(a, b, c) => {
-                let debug_struct = &mut f.debug_struct("FunctionType::Prototype");
-                debug_struct.field("function_type(FunctionType::Prototype)", &a.to_token_stream().to_string().as_str());
-                syn_helper::debug_struct_field_opt(debug_struct, &b, "qualifier");
-                syn_helper::debug_struct_field_opt_tokens(debug_struct, &c, "singleton type")
-            }
-        };
-        Ok(())
-    }
-}
-
-impl Debug for BeanType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            BeanType::Singleton(a, function_type) => {
-                let debug_struct = &mut f.debug_struct("BeanType::Singleton");
-                syn_helper::debug_struct_field_opt(debug_struct, &a.qualifier, "qualifier");
-                syn_helper::debug_struct_field_opt_tokens(debug_struct, &a.bean_type_type, "bean_type_dep");
-                syn_helper::debug_struct_field_opt_tokens(debug_struct, &a.bean_type_ident, "bean_type_ident");
-                syn_helper::debug_debug_struct_field_opt(debug_struct, function_type, "BeanType::Singleton(_, FunctionType)");
-            }
-            BeanType::Prototype(a, function_type) => {
-                let debug_struct = &mut f.debug_struct("BeanType::Prototype");
-                syn_helper::debug_struct_field_opt(debug_struct, &a.qualifier, "qualifier");
-                syn_helper::debug_struct_field_opt_tokens(debug_struct, &a.bean_type_type, "bean_type_dep");
-                syn_helper::debug_struct_field_opt_tokens(debug_struct, &a.bean_type_ident, "bean_type_ident");
-                syn_helper::debug_debug_struct_field_opt(debug_struct, function_type, "BeanType::Prototype(_, FunctionType)");
-            }
-        };
+        let debug_struct = &mut f.debug_struct("FunctionType");
+        syn_helper::debug_struct_field_opt(debug_struct, &self.qualifier, "qualifier");
+        syn_helper::debug_struct_field_opt_tokens(debug_struct, &self.fn_type, "singleton type");
+        debug_struct.field("item_fn", &self.item_fn.to_token_stream().to_string().as_str());
+        debug_struct.field("bean_type", &self.bean_type);
         Ok(())
     }
 }

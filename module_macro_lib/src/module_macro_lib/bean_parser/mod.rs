@@ -23,105 +23,17 @@ use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 impl BeanParser {
-    pub(crate) fn get_prototype_or_singleton(attr: &Vec<Attribute>, bean_type: Option<Type>, bean_type_ident: Option<Ident>) -> Option<BeanType> {
-        ParseUtil::filter_att(attr, vec!["singleton", "prototype"])
-            .and_then(|s| {
-
-                let qualifier = ParseUtil::strip_value_attr(s, vec!["#[singleton(", "#[prototype("]);
-
-                qualifier.iter()
-                    .for_each(|qual| {
-                        log_message!("Found bean with qualifier {}.", qual);
-                    });
-
-                log_message!("Found bean with attr {}.", s.to_token_stream().to_string().as_str());
-                if s.path.to_token_stream().to_string().as_str().contains("singleton") {
-                    return Some(BeanType::Singleton(BeanDefinition{
-                        qualifier: qualifier,
-                        bean_type_type: bean_type,
-                        bean_type_ident
-                    }, None))
-                        .map(|bean_type| {
-                            log_message!("Found singleton bean: {:?}.", bean_type);
-                            bean_type
-                        })
-                } else if s.path.to_token_stream().to_string().as_str().contains("prototype") {
-                    return Some(BeanType::Prototype(BeanDefinition{
-                        qualifier: qualifier,
-                        bean_type_type: bean_type,
-                        bean_type_ident
-                    }, None))
-                        .map(|bean_type| {
-                            log_message!("Found singleton bean: {:?}.", bean_type);
-                            bean_type
-                        })
-                }
-                None
+    pub(crate) fn get_bean_type_opt(attr: &Vec<Attribute>) -> Option<BeanType> {
+        SynHelper::get_attr_from_vec(attr, vec!["singleton"])
+            .map(|singleton_qualifier| BeanType::Singleton)
+            .or_else(|| {
+                SynHelper::get_attr_from_vec(attr, vec!["prototype"])
+                    .map(|singleton_qualifier| BeanType::Prototype)
             })
     }
 
-
-    pub fn get_bean_type_from_factory_fn(attrs: Vec<Attribute>, module_fn: ModulesFunctions) -> Option<BeanType> {
-        if attrs.iter().any(|attr| {
-            let attr_str = attr.to_token_stream().to_string();
-            attr_str.contains("bean") || attr_str.contains("singleton") || attr_str.contains("prototype")
-        }) {
-            return attrs.iter().flat_map(|attr| {
-                let qualifier = ParseUtil::strip_value(attr.path.to_token_stream().to_string().as_str(), vec!["#[singleton(", "#[prototype("]);
-                if attr.to_token_stream().to_string().contains("singleton") {
-                    return Some(
-                        BeanType::Singleton(
-                            BeanDefinition{
-                                qualifier,
-                                bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn.fn_found),
-                                bean_type_ident: None
-                            },
-                            Some(module_fn.fn_found.clone())
-                        ));
-                } else if attr.to_token_stream().to_string().contains("prototype") {
-                    return Some(BeanType::Prototype(
-                        BeanDefinition{
-                            qualifier,
-                            bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn.fn_found),
-                            bean_type_ident: None
-                        },
-                        Some(module_fn.fn_found.clone())
-                    ));
-                }
-                None
-            }).next()
-        }
-        None
-    }
-
-    pub fn get_bean_type_from_qual(qualifier: Option<String>, type_type: Option<Type>, module_fn: FunctionType) -> Option<BeanType> {
-        match &module_fn {
-            FunctionType::Singleton(_, qualifier_found, _) => {
-                return Some(
-                    BeanType::Singleton(
-                        BeanDefinition{
-                            qualifier: qualifier_found.clone(),
-                            bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn),
-                            bean_type_ident: None
-                        },
-                        Some(module_fn)
-                    ));
-            }
-            FunctionType::Prototype(_, qualifier_found, _) => {
-                return Some(BeanType::Prototype(
-                    BeanDefinition{
-                        qualifier: qualifier_found.clone(),
-                        bean_type_type: ParseContainer::get_type_from_fn_type(&module_fn),
-                        bean_type_ident: None
-                    },
-                    Some(module_fn)
-                ));
-            }
-        }
-    }
-
     pub fn get_bean_type(attr: &Vec<Attribute>, bean_type: Option<Type>, bean_type_ident: Option<Ident>) -> Option<BeanType> {
-        Self::get_prototype_or_singleton(attr, bean_type, bean_type_ident)
+        Self::get_bean_type_opt(attr)
             .map(|bean_type| {
                 log_message!("{:?} is the bean type", bean_type);
                 bean_type
@@ -215,23 +127,23 @@ impl BeanDependencyParser {
 
     pub fn add_type_dep(
         mut dep_impl: Bean,
-        field_to_add: AutowiredField,
+        bean_info: AutowiredField,
         lifetime: Option<Lifetime>,
         array_type: Option<TypeArray>,
         injectable_types_builder: &HashMap<String, Bean>,
         fns: &HashMap<TypeId, ModulesFunctions>,
-        bean_dep_path: Option<BeanPath>
+        bean_type_path: Option<BeanPath>
     ) -> Bean
     {
         log_message!("Adding dependency for {}.", dep_impl.id.clone());
 
-        let autowired_qualifier = field_to_add.clone()
+        let autowired_qualifier = bean_info.clone()
             .qualifier
-            .or(Some(field_to_add.type_of_field.to_token_stream().to_string().clone()));
+            .or(Some(bean_info.type_of_field.to_token_stream().to_string().clone()));
 
         if autowired_qualifier.is_some() {
 
-            log_message!("Adding dependency {} for bean with id {}.",  SynHelper::get_str(field_to_add.field.clone()), dep_impl.id.clone());
+            log_message!("Adding dependency {} for bean with id {}.",  SynHelper::get_str(bean_info.field.clone()), dep_impl.id.clone());
 
             dep_impl.ident.clone().map(|ident| {
                 log_message!("Adding dependency to struct with id {} to struct_impl of name {}", ident.to_string().clone(), dep_impl.id.clone());
@@ -240,38 +152,40 @@ impl BeanDependencyParser {
                 None
             });
 
-            let bean_type = ItemFnParser::get_fn_for_qualifier(
-                     fns,
-                    autowired_qualifier.clone(),
-                    Some(field_to_add.type_of_field.clone())
-                ).map(|fn_type| {
-                    BeanParser::get_bean_type_from_qual(autowired_qualifier, None, fn_type)
-                })
-                .or(None);
+            let bean_type = bean_info.qualifier.as_ref()
+                .map(|q| injectable_types_builder.get(q))
+                .map(|b| b.map(|b| {
+                    b.bean_type.clone().or(Some(BeanType::Singleton))
+                }))
+                .flatten()
+                .flatten()
+                .or_else(|| {
+                    fns.values().filter(|fns| &fns.fn_found.qualifier == &bean_info.qualifier)
+                        .map(|m| m.fn_found.bean_type.clone())
+                        .next()
+                });
 
             if bean_type.is_some() {
                 dep_impl
                     .deps_map
                     .push(DepType {
-                        bean_info: field_to_add,
+                        bean_info,
                         lifetime,
-                        bean_type: bean_type.flatten(),
+                        bean_type,
                         array_type,
-                        bean_type_path: bean_dep_path,
+                        bean_type_path,
                     });
             } else {
                 dep_impl
                     .deps_map
                     .push(DepType {
-                        bean_info: field_to_add,
+                        bean_info,
                         lifetime,
                         bean_type: None,
                         array_type,
-                        bean_type_path: bean_dep_path,
+                        bean_type_path,
                     });
             }
-
-
         }
 
         dep_impl

@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::ops::Deref;
-use std::ptr::slice_from_raw_parts;
 use std::sync::{Arc, Mutex};
 use syn::{Attribute, Block, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnnamed, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Path, QSelf, Stmt, TraitItem, Type, TypeArray, TypePath};
 use syn::__private::str;
@@ -234,9 +233,11 @@ pub struct ModulesFunctions {
 }
 
 #[derive(Clone)]
-pub enum FunctionType {
-    Singleton(ItemFn, Option<String>, Option<Type>),
-    Prototype(ItemFn, Option<String>, Option<Type>)
+pub struct FunctionType {
+    pub(crate) item_fn: ItemFn,
+    pub(crate) qualifier: Option<String>,
+    pub(crate) fn_type: Option<Type>,
+    pub(crate) bean_type: BeanType
 }
 
 #[derive(Clone)]
@@ -268,11 +269,19 @@ pub struct DepType {
     pub bean_type_path: Option<BeanPath>
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum BeanType {
     // contains the identifier and the qualifier as string
-    Singleton(BeanDefinition, Option<FunctionType>),
-    Prototype(BeanDefinition, Option<FunctionType>)
+    Singleton, Prototype
+}
+
+impl BeanType {
+    fn new(name: &str) -> Self {
+        if name.to_lowercase() == "singleton" {
+            return BeanType::Singleton;
+        }
+        BeanType::Prototype
+    }
 }
 
 
@@ -281,6 +290,7 @@ pub struct BeanDefinition {
     pub qualifier: Option<String>,
     pub bean_type_type: Option<Type>,
     pub bean_type_ident: Option<Ident>,
+    pub bean_type: BeanType
 }
 
 #[derive(Clone)]

@@ -27,7 +27,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                 struct_impl.struct_found = Some(item_struct.clone());
                 struct_impl.ident =  Some(item_struct.ident.clone());
                 struct_impl.fields = vec![item_struct.fields.clone()];
-                struct_impl.bean_type = BeanParser::get_bean_type(&item_struct.attrs, None, Some(item_struct.ident.clone()));
+                struct_impl.bean_type = BeanParser::get_bean_type_opt(&item_struct.attrs);
                 struct_impl.id = item_struct.ident.clone().to_string();
             })
             .or_else(|| {
@@ -43,7 +43,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     profile: vec![],
                     ident: Some(item_struct.ident.clone()),
                     fields: vec![item_struct.fields.clone()],
-                    bean_type: BeanParser::get_bean_type(&item_struct.attrs, None, Some(item_struct.ident.clone())),
+                    bean_type: BeanParser::get_bean_type_opt(&item_struct.attrs),
                     mutable: SynHelper::get_attr_from_vec(&item_struct.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false))
