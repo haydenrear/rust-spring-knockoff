@@ -29,6 +29,15 @@ pub fn do_aspect(&self, one: One) -> String {
     found
 }
 
+#[aspect(**)]
+#[ordered(1)]
+pub fn do_aspect_again(&self, one: One) -> String {
+    println!("hello");
+    println!("{}", self.two.clone());
+    let found = self.proceed_one_test_two(one);
+    found
+}
+
 #[configuration(field_aug)]
 pub mod field_aug_configuration {
 

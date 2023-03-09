@@ -7,14 +7,8 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Fixed to add same args as function call.">
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/test.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/http_method/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/http_method/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Fixed aspect logic and ensured args all the same in the whole chain.">
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +113,7 @@
       <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared_codegen" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test module_macro_lib::item_parser::test::test_parser">
+  <component name="RunManager" selected="Cargo.Test test_module_macro">
     <configuration name="Test matcher::test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework_shared --lib matcher::test" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -139,23 +133,6 @@
     </configuration>
     <configuration name="Test matcher::test::do_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework_shared --lib matcher::test::do_test -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test matcher::test::test_ant_path_request_matcher" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework_shared --lib matcher::test::test_ant_path_request_matcher -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -205,6 +182,23 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="test --package rust-spring-knockoff --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -228,15 +222,15 @@
       <item itemvalue="Cargo.Test matcher::test::do_test" />
       <item itemvalue="Cargo.Test module_macro_lib::item_modifier::test::test_multiple_aspects" />
       <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parser" />
-      <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
+      <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test_module_macro" />
         <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parser" />
         <item itemvalue="Cargo.Test module_macro_lib::item_modifier::test::test_multiple_aspects" />
         <item itemvalue="Cargo.Test matcher::test::do_test" />
         <item itemvalue="Cargo.Test matcher::test" />
-        <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
       </list>
     </recent_temporary>
   </component>
@@ -301,34 +295,6 @@
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
       <workItem from="1678022170942" duration="70052000" />
-    </task>
-    <task id="LOCAL-00063" summary="configuration mod">
-      <created>1677467233552</created>
-      <option name="number" value="00063" />
-      <option name="presentableId" value="LOCAL-00063" />
-      <option name="project" value="LOCAL" />
-      <updated>1677467233552</updated>
-    </task>
-    <task id="LOCAL-00064" summary="configuration mod">
-      <created>1677467302093</created>
-      <option name="number" value="00064" />
-      <option name="presentableId" value="LOCAL-00064" />
-      <option name="project" value="LOCAL" />
-      <updated>1677467302093</updated>
-    </task>
-    <task id="LOCAL-00065" summary="configuration mod">
-      <created>1677467712746</created>
-      <option name="number" value="00065" />
-      <option name="presentableId" value="LOCAL-00065" />
-      <option name="project" value="LOCAL" />
-      <updated>1677467712746</updated>
-    </task>
-    <task id="LOCAL-00066" summary="sec">
-      <created>1677515641875</created>
-      <option name="number" value="00066" />
-      <option name="presentableId" value="LOCAL-00066" />
-      <option name="project" value="LOCAL" />
-      <updated>1677515641875</updated>
     </task>
     <task id="LOCAL-00067" summary="dao auth provider">
       <created>1677525130657</created>
@@ -645,7 +611,35 @@
       <option name="project" value="LOCAL" />
       <updated>1678329426681</updated>
     </task>
-    <option name="localTasksCounter" value="112" />
+    <task id="LOCAL-00112" summary="Fixed bug">
+      <created>1678333017718</created>
+      <option name="number" value="00112" />
+      <option name="presentableId" value="LOCAL-00112" />
+      <option name="project" value="LOCAL" />
+      <updated>1678333017718</updated>
+    </task>
+    <task id="LOCAL-00113" summary="Fixed bug">
+      <created>1678333036012</created>
+      <option name="number" value="00113" />
+      <option name="presentableId" value="LOCAL-00113" />
+      <option name="project" value="LOCAL" />
+      <updated>1678333036013</updated>
+    </task>
+    <task id="LOCAL-00114" summary="Removed duplicated BeanType">
+      <created>1678342873797</created>
+      <option name="number" value="00114" />
+      <option name="presentableId" value="LOCAL-00114" />
+      <option name="project" value="LOCAL" />
+      <updated>1678342873797</updated>
+    </task>
+    <task id="LOCAL-00115" summary="Fixed aspect logic and ensured args all the same in the whole chain.">
+      <created>1678386629461</created>
+      <option name="number" value="00115" />
+      <option name="presentableId" value="LOCAL-00115" />
+      <option name="project" value="LOCAL" />
+      <updated>1678386629461</updated>
+    </task>
+    <option name="localTasksCounter" value="116" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -695,10 +689,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="configuration mod" />
-    <MESSAGE value="sec" />
-    <MESSAGE value="dao auth provider" />
-    <MESSAGE value="security" />
     <MESSAGE value="authentication" />
     <MESSAGE value="registration" />
     <MESSAGE value="aspect started" />
@@ -720,7 +710,11 @@
     <MESSAGE value="fix issue" />
     <MESSAGE value="multiple method advice aspect aspect" />
     <MESSAGE value="Fixed to add same args as function call." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed to add same args as function call." />
+    <MESSAGE value="Fixed bug" />
+    <MESSAGE value="Removed duplicated BeanType" />
+    <MESSAGE value="Fixed aspect logic" />
+    <MESSAGE value="Fixed aspect logic and ensured args all the same in the whole chain." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed aspect logic and ensured args all the same in the whole chain." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -791,12 +785,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs</url>
-          <line>158</line>
+          <line>157</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/lib.rs</url>
-          <line>23</line>
+          <line>22</line>
           <option name="timeStamp" value="180" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

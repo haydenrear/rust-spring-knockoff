@@ -1,7 +1,7 @@
 use syn::ItemStruct;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
-use crate::module_macro_lib::bean_parser::BeanParser;
+use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::ItemParser;
 use crate::module_macro_lib::module_tree::Bean;
 use crate::module_macro_lib::parse_container::ParseContainer;
@@ -27,7 +27,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                 struct_impl.struct_found = Some(item_struct.clone());
                 struct_impl.ident =  Some(item_struct.ident.clone());
                 struct_impl.fields = vec![item_struct.fields.clone()];
-                struct_impl.bean_type = BeanParser::get_bean_type_opt(&item_struct.attrs);
+                struct_impl.bean_type = BeanDependencyParser::get_bean_type_opt(&item_struct.attrs);
                 struct_impl.id = item_struct.ident.clone().to_string();
             })
             .or_else(|| {
@@ -43,7 +43,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     profile: vec![],
                     ident: Some(item_struct.ident.clone()),
                     fields: vec![item_struct.fields.clone()],
-                    bean_type: BeanParser::get_bean_type_opt(&item_struct.attrs),
+                    bean_type: BeanDependencyParser::get_bean_type_opt(&item_struct.attrs),
                     mutable: SynHelper::get_attr_from_vec(&item_struct.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false))

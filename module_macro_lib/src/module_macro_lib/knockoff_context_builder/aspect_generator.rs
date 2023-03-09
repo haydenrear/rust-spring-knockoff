@@ -4,6 +4,7 @@ use syn::{Block, Expr, ImplItemMethod, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
+use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use crate::module_macro_lib::module_tree::{AspectInfo, Bean, BeanDefinitionType};
 
@@ -31,6 +32,7 @@ impl TokenStreamGenerator for AspectGenerator {
 }
 
 impl AspectGenerator {
+
     pub fn new(profile_tree: &ProfileTree) -> Self {
         let method_advice_aspects = profile_tree.injectable_types.iter()
             .flat_map(|i_type| {
@@ -55,9 +57,10 @@ impl AspectGenerator {
         }
     }
 
-    /// The function that was originally being called is placed in a trait, and then if there are
-    /// additional functions to be called, (multiple advice) then in that one that is called a proceed
-    /// statement is placed there.
+    /// When there is multiple advice, the last advice in the chain will call the original function logic,
+    /// which means that the original function logic will be implemented in a trait with the name of
+    /// the proceed statement in the last advice of the chain.
+    ///
     pub(crate) fn implement_proceed_original_fn_logic(
         mut ts: &mut TokenStream, a: &(AspectInfo, Bean),
         block: &Block, arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>
@@ -67,14 +70,23 @@ impl AspectGenerator {
         if a.0.advice_chain.len() == 0 {
             proceed_suffix = Self::get_suffix(&a.0.method_advice_aspect.proceed_statement);
         } else {
-            proceed_suffix = Self::get_suffix(&a.0.advice_chain.last().as_ref().unwrap().proceed_statement)
+            proceed_suffix = Self::get_suffix(&a.0.advice_chain.last().as_ref().unwrap().proceed_statement);
+            log_message!("{} is the last proceed statement suffix.", proceed_suffix);
         }
 
         let method_ident = &a.0.method.as_ref().unwrap().sig.ident;
 
+
         Self::implement(ts, a, &arg_idents, &arg_types, &mut proceed_suffix, &mut vec![block.to_token_stream().clone()], method_ident);
     }
 
+    /// The proceed statement in the advice is calling a function on a trait that contains
+    /// the logic for the next advice. Therefore, when implementing that trait for the
+    /// next advice, you must use the suffix of the proceed statement in the previous link
+    /// in the advice chain.
+    /// ** The first link in the chain, which is the original function call,
+    /// and the last advice in the chain, which is the original function logic, do not need
+    /// to be implemented. **
     pub fn implement_chain(
         mut ts: &mut TokenStream, a: &(AspectInfo, Bean),
         arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>,
@@ -84,26 +96,37 @@ impl AspectGenerator {
         let advice_chain_len = a.0.advice_chain.len();
         if advice_chain_len > 0 {
             for next_chain in a.0.advice_chain.iter() {
+                log_message!("{:?} is the next in the method advice chain.", next_chain);
                 let mut block_items = vec![];
 
                 next_chain.before_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+
                 next_chain.proceed_statement.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+
                 next_chain.after_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
 
-                if proceed_suffix == "" {
-                    proceed_suffix = SynHelper::get_proceed(a.0.method_advice_aspect.proceed_statement.as_ref().unwrap().to_token_stream().to_string().clone());
-                } else if counter < advice_chain_len - 1 {
-                    proceed_suffix = a.0.advice_chain[counter + 1].proceed_statement.as_ref()
+                // if proceed_suffix == "" {
+                //     proceed_suffix = SynHelper::get_proceed(a.0.method_advice_aspect.proceed_statement.as_ref().unwrap().to_token_stream().to_string().clone());
+                //     log_message!("Implementing initial: {}.", &proceed_suffix);
+                // } else
+                if counter > 0 {
+                    proceed_suffix = a.0.advice_chain[counter - 1].proceed_statement.as_ref()
                         .map(|s| SynHelper::get_proceed(s.to_token_stream().to_string().clone()))
                         .or(Some("".to_string()))
                         .unwrap();
+                    log_message!("Implementing next: {}.", &proceed_suffix);
+                }
+                else {
+                    proceed_suffix = SynHelper::get_proceed(a.0.method_advice_aspect.proceed_statement.as_ref().unwrap().to_token_stream().to_string().clone());
+                    log_message!("Implementing initial: {}.", &proceed_suffix);
                 }
 
                 if proceed_suffix.len() == 0 {
-                    break;
+                    continue;
                 }
 
                 let method_ident = &a.0.method.as_ref().unwrap().sig.ident;
+
 
                 Self::implement(ts, a, &arg_idents, &arg_types, &mut proceed_suffix, &mut block_items, method_ident);
                 counter += 1;
@@ -120,6 +143,7 @@ impl AspectGenerator {
         block_items: &mut Vec<TokenStream>,
         method_ident: &Ident
     ) {
+
         a.1.struct_type.as_ref().map(|struct_type| {
             a.0.return_type.as_ref().map(|return_type| {
                 if a.0.mutable {

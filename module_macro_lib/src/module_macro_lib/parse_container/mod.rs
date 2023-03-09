@@ -26,7 +26,7 @@ use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use codegen_utils::syn_helper::SynHelper;
 use crate::FieldAugmenterImpl;
-use crate::module_macro_lib::bean_parser::{BeanDependencyParser, BeanParser};
+use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::context_builder::ContextBuilder;
 use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType, AspectInfo};

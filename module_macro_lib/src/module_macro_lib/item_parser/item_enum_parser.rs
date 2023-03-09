@@ -1,6 +1,6 @@
 use syn::{Fields, ItemEnum};
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::bean_parser::BeanParser;
+use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::ItemParser;
 use crate::module_macro_lib::module_tree::Bean;
 use crate::module_macro_lib::parse_container::ParseContainer;
@@ -37,7 +37,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                     profile: vec![],
                     ident: Some(enum_to_add.ident.clone()),
                     fields: enum_fields,
-                    bean_type: BeanParser::get_bean_type_opt(&enum_to_add.attrs),
+                    bean_type: BeanDependencyParser::get_bean_type_opt(&enum_to_add.attrs),
                     mutable: SynHelper::get_attr_from_vec(&enum_to_add.attrs, vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),

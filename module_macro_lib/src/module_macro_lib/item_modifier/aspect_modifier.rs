@@ -150,11 +150,6 @@ impl AspectModifier {
             .collect::<Vec<MethodAdviceAspectCodegen>>()
     }
 
-    /// 1. figure out which methods each aspect will apply to, and which method have multiple aspects.
-    /// 2. Parse each method and it's associated aspects into a structure that is ordered by the ordering of the execution of the aspects,
-    ///     and in this structure add the proceed statement from the next aspect in the previous aspect, if any.
-    ///     - For the first aspect trait, it has a proceed call to the second, etc.
-    /// 3. In each aspect info bean, add these additional trait/methods and their associated code to be generated.
     fn parse_aspect(&self, parse_container: &mut ParseContainer, method: &mut ImplItemMethod, path: Vec<String>, args: Vec<(Ident, Type)>, bean_id: &str, return_type: Option<Type>) {
         log_message!("Doing aspect with {} aspects.", parse_container.aspects.aspects.len());
 
@@ -175,29 +170,42 @@ impl AspectModifier {
         if codegen_items.len() == 0 {
             return None;
         }
-        let first = codegen_items.remove(0);
-        if codegen_items.len() == 0 {
-            return Self::create_advice(parse_container, method, args, bean_id, return_type, &method.clone(), first.clone(), first);
-        } else if codegen_items.len() >= 1 {
-            return codegen_items.last().map(|last| {
-                Self::create_advice(parse_container, method, args, bean_id, return_type, &method.clone(), last.clone(), first)
-                    .map(|mut aspect_info| {
-                        aspect_info.advice_chain = Self::create_method_advice_chain(codegen_items.clone());
-                        aspect_info
-                    })
-            }).flatten();
-        }
-        None
+        Self::create_advice(
+            parse_container, method, args, bean_id,
+            return_type, &method.clone(),
+            codegen_items.remove(0)
+        )
     }
 
-    fn create_method_advice_chain(items: Vec<MethodAdviceAspectCodegen>) -> Vec<MethodAdviceChain> {
-        items.iter().map(|v| MethodAdviceChain::new(v))
+    fn create_method_advice_chain(items: &mut Vec<MethodAdviceAspectCodegen>, aspect_info: &AspectInfo) -> Vec<MethodAdviceChain> {
+        items.iter()
+            .map(|mut m| Self::update_proceed_stmt_with_args(aspect_info, m))
+            .map(|v| MethodAdviceChain::new(&v))
             .collect()
     }
 
+    fn update_proceed_stmt_with_args(aspect_info: &AspectInfo, mut m: &MethodAdviceAspectCodegen) -> MethodAdviceAspectCodegen {
+        let new_proceed = m.proceed_statement.as_ref()
+            .map(|p| SynHelper::get_proceed(p.to_token_stream().to_string().clone()))
+            .map(|p_suffix| AspectModifier::create_proceed_ident_from_str(&p_suffix))
+            .map(|proceed_ident|
+                AspectModifier::create_new_proceed_stmt(
+                &aspect_info.args
+                        .iter()
+                        .map(|a| a.0.clone())
+                        .collect::<Vec<Ident>>(), proceed_ident)
+            )
+            .map(|n| n.ok())
+            .flatten();
+        let mut m = m.to_owned();
+        m.proceed_statement = new_proceed;
+        m
+    }
+
     fn create_advice(parse_container: &mut ParseContainer, method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str,
-                     return_type: Option<Type>, method_before: &ImplItemMethod,
-                     last: MethodAdviceAspectCodegen, first: MethodAdviceAspectCodegen) -> Option<AspectInfo> {
+                     return_type: Option<Type>, method_before: &ImplItemMethod, first: MethodAdviceAspectCodegen
+    ) -> Option<AspectInfo> {
+
         log_message!("Adding before advice aspect: {}.", SynHelper::get_str(first.before_advice.clone().unwrap()));
         log_message!("Adding after advice aspect: {}.", SynHelper::get_str(first.after_advice.clone().unwrap()));
 
@@ -225,8 +233,8 @@ impl AspectModifier {
         let method_block_after = method.block.clone();
         let span = Span::call_site();
         let with_new_span = quote_spanned! {span=>
-                                    #method_block_after
-                                }.into();
+            #method_block_after
+        }.into();
         let parsed = parse::<Block>(with_new_span);
         method.block = parsed.unwrap();
     }
@@ -273,6 +281,17 @@ impl AspectModifier {
 
         let ident = Self::get_proceed_ident(a);
 
+        Self::create_new_proceed_stmt(&args, ident)
+    }
+
+    pub(crate) fn create_new_proceed_stmt<T: ToTokens>(args: &Vec<T>, ident: Ident) -> syn::Result<Stmt> {
+        /// Important because every call to the function should contain all of the arguments of
+        /// the original functions with all of the original names of the arguments to the functions.
+        /// Then, at any level to the aspect all arguments are there, instead of calling the aspect
+        /// at some n level deep with all the args and not having one of them there. Additionally,
+        /// the move rules apply for this to work as long as the args continue to be passed in just as
+        /// the first (this one)
+        /// ** the first one is the only one that needs to be changed **
         let proceed = quote! {
             let found = self.#ident(#(#args),*);
         };
@@ -287,6 +306,10 @@ impl AspectModifier {
             .or(Some("".to_string()))
             .unwrap();
 
+        Self::create_proceed_ident_from_str(&proceed_suffix)
+    }
+
+    pub(crate) fn create_proceed_ident_from_str(proceed_suffix: &String) -> Ident {
         let mut proceed_stmt = "proceed".to_string();
         proceed_stmt = proceed_stmt + proceed_suffix.as_str();
         proceed_stmt = proceed_stmt.replace(" ", "");

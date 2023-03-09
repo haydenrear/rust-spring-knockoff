@@ -16,12 +16,4 @@ use module_macro_codegen::parser::{CodegenItem, CodegenItems, LibParser};
 
 use_logging!();
 
-/// There is a way to allow for the user to make changes to the method argument as in method
-/// advice in the following steps:
-/// 1. Relocate the original method to an aspect function in the same struct called proceed.
-///     - You need to take out the function idents of the original function and use those same
-///         names for the function args.
-pub struct AspectAdviceAdder;
-
-
 

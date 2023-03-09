@@ -229,7 +229,8 @@ impl Debug for BeanPathParts {
 Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
  **/
 pub struct ModulesFunctions {
-    pub fn_found: FunctionType
+    pub fn_found: FunctionType,
+    pub path: Vec<String>
 }
 
 #[derive(Clone)]
