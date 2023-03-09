@@ -146,7 +146,8 @@ impl AspectModifier {
 
         advice.sort();
 
-        advice.iter().map(|a| a.to_owned().to_owned())
+        advice.iter()
+            .map(|a| a.to_owned().to_owned())
             .collect::<Vec<MethodAdviceAspectCodegen>>()
     }
 
@@ -155,7 +156,8 @@ impl AspectModifier {
 
         let mut ordering = self.parse_aspect_ordering(parse_container, method, &path, bean_id);
 
-        let chain = self.parse_into_chain(parse_container, method, args, bean_id, return_type, &mut ordering);
+        let chain = Self::parse_aspect_info(parse_container, method, args, bean_id, return_type, &mut ordering)
+            .map(|mut a| Self::parse_advice_chain(&mut ordering, &mut a));
 
         chain.map(|chain| {
             parse_container.injectable_types_builder.get_mut(bean_id)
@@ -164,24 +166,26 @@ impl AspectModifier {
 
     }
 
-    fn parse_into_chain(
-        &self, parse_container: &mut ParseContainer, method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str, return_type: Option<Type>,
+    fn parse_aspect_info(
+        parse_container: &mut ParseContainer, method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str, return_type: Option<Type>,
         codegen_items: &mut Vec<MethodAdviceAspectCodegen>) -> Option<AspectInfo> {
         if codegen_items.len() == 0 {
             return None;
         }
+
         Self::create_advice(
             parse_container, method, args, bean_id,
             return_type, &method.clone(),
-            codegen_items.remove(0)
+            codegen_items.remove(0),
         )
     }
 
-    fn create_method_advice_chain(items: &mut Vec<MethodAdviceAspectCodegen>, aspect_info: &AspectInfo) -> Vec<MethodAdviceChain> {
-        items.iter()
+    fn parse_advice_chain(items: &mut Vec<MethodAdviceAspectCodegen>, aspect_info: &mut AspectInfo) -> AspectInfo {
+        aspect_info.advice_chain = items.iter()
             .map(|mut m| Self::update_proceed_stmt_with_args(aspect_info, m))
             .map(|v| MethodAdviceChain::new(&v))
-            .collect()
+            .collect();
+        aspect_info.to_owned()
     }
 
     fn update_proceed_stmt_with_args(aspect_info: &AspectInfo, mut m: &MethodAdviceAspectCodegen) -> MethodAdviceAspectCodegen {
@@ -206,8 +210,14 @@ impl AspectModifier {
                      return_type: Option<Type>, method_before: &ImplItemMethod, first: MethodAdviceAspectCodegen
     ) -> Option<AspectInfo> {
 
-        log_message!("Adding before advice aspect: {}.", SynHelper::get_str(first.before_advice.clone().unwrap()));
-        log_message!("Adding after advice aspect: {}.", SynHelper::get_str(first.after_advice.clone().unwrap()));
+        log_message!(
+            "Adding before advice aspect: {}.",
+            SynHelper::get_str(first.before_advice.clone().unwrap())
+        );
+        log_message!(
+            "Adding after advice aspect: {}.",
+            SynHelper::get_str(first.after_advice.clone().unwrap())
+        );
 
         Self::add_advice_to_stmts(method, &first);
         Self::rewrite_block_new_span(method);

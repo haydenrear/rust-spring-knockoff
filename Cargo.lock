@@ -1041,23 +1041,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "knockoff_proc_macro_tests"
-version = "0.1.0"
-dependencies = [
- "derive-syn-parse",
- "dynpath",
- "module_macro",
- "module_macro_codegen",
- "module_macro_lib",
- "module_macro_shared",
- "paste",
- "proc-macro2",
- "quote",
- "spring_knockoff_boot_macro",
- "syn",
-]
-
-[[package]]
 name = "knockoff_security"
 version = "0.1.0"
 dependencies = [

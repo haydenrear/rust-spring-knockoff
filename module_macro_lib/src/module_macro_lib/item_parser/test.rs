@@ -29,6 +29,9 @@ fn test_parse_module() {
     assert_eq!(container.aspects.aspects[0].method_advice_aspects.len(), 2);
     let beans_with_aspects = get_concrete_beans_with_aspects(container);
     assert_eq!(beans_with_aspects.len(), 1);
+    assert_eq!(beans_with_aspects[0].aspect_info.len(), 1);
+    println!("\n\n{:?} is the aspect info.\n\n", &beans_with_aspects[0].aspect_info[0]);
+    assert_eq!(beans_with_aspects[0].aspect_info[0].advice_chain.len(), 1);
 }
 
 #[test]
