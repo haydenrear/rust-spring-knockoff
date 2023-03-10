@@ -11,7 +11,7 @@ use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
 use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::{BeanFactoryGenerator, FactoryBeanBeanFactoryGenerator};
-use crate::module_macro_lib::knockoff_context_builder::factory_generator::{AbstractFactoryGenerator, ConcreteFactoryGenerator, FactoryGenerator};
+use crate::module_macro_lib::knockoff_context_builder::factory_generator::{FactoryGen, FactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
 initialize_log!();
@@ -37,7 +37,7 @@ impl TokenStreamGenerator for ApplicationContextGenerator {
         let mut ts = TokenStream::default();
         ts.append_all(Self::context_imports());
         ts.append_all(ApplicationContextGenerator::init_bean_factory());
-        ts.append_all(ConcreteFactoryGenerator::impl_listable_factory());
+        ts.append_all(FactoryGen::impl_listable_factory());
         self.write_generators(&mut ts);
         ts.append_all(
             Self::finish_abstract_factory(
@@ -74,8 +74,7 @@ impl ApplicationContextGenerator {
 
     fn create_factory_generators(from: &(&Profile, &Vec<BeanDefinitionType>)) -> Vec<Box<dyn TokenStreamGenerator>> {
         vec![
-            ConcreteFactoryGenerator::new_factory_generator(from.0.clone(), from.1.clone()),
-            AbstractFactoryGenerator::new_factory_generator(from.0.clone(), from.1.clone())
+            FactoryGen::new_factory_generator(from.0.clone(), from.1.clone())
         ]
     }
 

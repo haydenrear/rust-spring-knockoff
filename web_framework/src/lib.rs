@@ -30,9 +30,19 @@ pub struct Gen<T: ?Sized>{
     inner: Arc<T>
 
 }
+
 pub struct Gen2<T: ?Sized>{
     inner: Arc<T>,
     phantom: PhantomGuy<T>
+}
+
+impl <T: ?Sized> Clone for Gen2<T> {
+    fn clone(&self) -> Self {
+        Gen2 {
+            inner: self.inner.clone(),
+            phantom: self.phantom.clone()
+        }
+    }
 }
 
 pub struct Gen2Mutex<T: ?Sized>{
@@ -40,9 +50,16 @@ pub struct Gen2Mutex<T: ?Sized>{
     pub phantom: PhantomGuy<T>
 }
 
-
 pub struct PhantomGuy<T: ?Sized> {
     phantom: PhantomData<T>
+}
+
+impl <T: ?Sized> Clone for PhantomGuy<T> {
+    fn clone(&self) -> Self {
+        Self {
+            phantom: self.phantom.clone()
+        }
+    }
 }
 
 pub struct MapContainer {
@@ -58,6 +75,7 @@ impl MapContainer {
     }
 }
 
+#[derive(Clone)]
 pub struct Two {
 
 }
@@ -151,7 +169,13 @@ fn test_downcast() {
         inner: Arc::new((One{})),
         phantom: PhantomGuy { phantom: Default::default() },
     };
-    let new_any = gen_2.to_any();
+
+    let gen_2_cloned = gen_2.clone();
+    assert_eq!(gen_2.type_id().clone(), gen_2_cloned.type_id().clone());
+
+    let new_any = gen_2.clone().to_any();
+
+    assert_ne!(new_any.type_id().clone(), gen_2.clone().type_id());
 
     let mutex = Arc::new(Mutex::new(One {}));
     let mutex = mutex.clone() as Arc<dyn Any + Send + Sync + 'static>;
