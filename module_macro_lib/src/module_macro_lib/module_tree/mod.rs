@@ -29,6 +29,8 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
+pub mod test;
+
 #[derive(Clone)]
 pub struct Bean {
     pub struct_type: Option<Type>,
@@ -93,6 +95,15 @@ pub struct BeanPath {
     pub(crate) path_segments: Vec<BeanPathParts>
 }
 
+impl BeanPath {
+    pub(crate) fn is_mutable(&self) -> bool {
+        self.path_segments.iter().any(|p| p.is_mutable())
+    }
+    pub(crate) fn is_not_mutable(&self) -> bool {
+        self.path_segments.iter().all(|p| !p.is_mutable())
+    }
+}
+
 impl BeanPathParts {
     pub fn is_mutable(&self) -> bool {
         match self {
@@ -125,6 +136,7 @@ impl BeanPathParts {
 }
 
 impl BeanPath {
+
     pub fn get_autowirable_type(&self) -> Option<Type> {
         log_message!("Found {} path segments.", self.path_segments.len());
         self.path_segments.iter().for_each(|f| {
@@ -163,6 +175,52 @@ impl BeanPath {
                 None
             }
         }
+    }
+
+    pub fn bean_path_part_matches(&self, ty: &Type) -> bool {
+        log_message!("Found {} path segments.", self.path_segments.len());
+        self.path_segments.iter().for_each(|f| {
+            log_message!("{:?} is the bean path part", f.clone());
+        });
+        match &self.path_segments.clone()[..] {
+            [ BeanPathParts::MutexType{ mutex_type_inner_type, outer_type}, BeanPathParts::GenType {inner} ] => {
+                log_message!("Found mutex type with type {} and gen type {}.", SynHelper::get_str(mutex_type_inner_type.clone()), SynHelper::get_str(inner.clone()));
+                Self::are_types_equal(ty, inner)
+            }
+            [  BeanPathParts::ArcType{ arc_inner_types , outer_type}, BeanPathParts::GenType { inner }] => {
+                log_message!("Found arc type with type {} and gen type {}.", SynHelper::get_str(arc_inner_types.clone()).as_str(), SynHelper::get_str(inner.clone()));
+                Self::are_types_equal(ty, inner)
+            }
+            [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out}, BeanPathParts::MutexType { mutex_type_inner_type, outer_type} ] => {
+                log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
+                Self::are_types_equal(ty, mutex_type_inner_type)
+            }
+            [ BeanPathParts::FnType { input_types, return_type }  ] => {
+                log_message!("Found fn and mutex type with type {}.", SynHelper::get_str(return_type.clone()).as_str());
+                return_type.as_ref().map(|r| Self::are_types_equal(r, ty))
+                    .or(Some(false))
+                    .unwrap()
+            }
+            [ BeanPathParts::QSelfType { q_self } ] => {
+                log_message!("Found qself type with type {}.", SynHelper::get_str(q_self.clone()).as_str());
+                Self::are_types_equal(ty, q_self)
+            }
+            [ BeanPathParts::BindingType { associated_type } ] => {
+                log_message!("Found binding type with type {}.", SynHelper::get_str(associated_type.clone()).as_str());
+                false
+            }
+            [ BeanPathParts::GenType { inner } ] => {
+                log_message!("Found gen type with type {}.", SynHelper::get_str(inner.clone()).as_str());
+                Self::are_types_equal(ty, inner)
+            }
+            [..] => {
+                false
+            }
+        }
+    }
+
+    fn are_types_equal(ty: &Type, inner: &Type) -> bool {
+        inner.to_token_stream().to_string().as_str() == ty.to_token_stream().to_string().as_str()
     }
 }
 
@@ -245,7 +303,8 @@ pub struct FunctionType {
 pub struct AutowireType {
     pub item_impl: ItemImpl,
     pub profile: Vec<Profile>,
-    pub path_depth: Vec<String>
+    pub path_depth: Vec<String>,
+    pub qualifiers: Vec<String>
 }
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash, Debug)]
@@ -267,7 +326,8 @@ pub struct DepType {
     pub lifetime: Option<Lifetime>,
     pub bean_type: Option<BeanType>,
     pub array_type: Option<TypeArray>,
-    pub bean_type_path: Option<BeanPath>
+    pub bean_type_path: Option<BeanPath>,
+    pub is_abstract: Option<bool>
 }
 
 #[derive(Clone, Debug)]

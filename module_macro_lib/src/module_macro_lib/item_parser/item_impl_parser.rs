@@ -1,9 +1,9 @@
-use syn::ItemImpl;
+use syn::{Attribute, ItemImpl};
 use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
 use crate::module_macro_lib::item_parser::ItemParser;
-use crate::module_macro_lib::module_tree::{AutowireType, Bean};
+use crate::module_macro_lib::module_tree::{AutowireType, Bean, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 pub struct ItemImplParser;
@@ -24,6 +24,14 @@ impl ItemImplParser{
         path_depth.push(trait_impl.join("|"));
     }
 
+    fn get_profile(attrs: &Vec<Attribute>) -> Option<String> {
+        SynHelper::get_attr_from_vec(attrs, vec!["profile"])
+    }
+
+    fn get_qualifier(attrs: &Vec<Attribute>) -> Option<String> {
+        SynHelper::get_attr_from_vec(attrs, vec!["qualifier"])
+    }
+
 }
 
 impl ItemParser<ItemImpl> for ItemImplParser {
@@ -33,13 +41,33 @@ impl ItemParser<ItemImpl> for ItemImplParser {
 
         Self::add_path(&mut path_depth, &item_impl);
 
+        let profile = Self::get_profile(&item_impl.attrs)
+            .map(|profile| profile.split(", ")
+                .map(|profile| profile.to_string())
+                .map(|mut profile| profile.replace(" ", ""))
+                .map(|profile| Profile {profile})
+                .collect::<Vec<Profile>>()
+            )
+            .or(Some(vec![]))
+            .unwrap();
+
+        let qualifiers = Self::get_qualifier(&item_impl.attrs)
+            .map(|profile| profile.split(", ")
+                .map(|profile| profile.to_string())
+                .map(|mut profile| profile.replace(" ", ""))
+                .collect::<Vec<String>>()
+            )
+            .or(Some(vec![]))
+            .unwrap();
+
         &mut parse_container.injectable_types_builder.get_mut(&id)
             .map(|bean: &mut Bean| {
                 bean.traits_impl.push(
                     AutowireType {
                         item_impl: item_impl.clone(),
-                        profile: vec![],
-                        path_depth: path_depth.clone()
+                        profile: profile.clone(),
+                        path_depth: path_depth.clone(),
+                        qualifiers: qualifiers.clone()
                     }
                 );
             })
@@ -50,8 +78,9 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                     traits_impl: vec![
                         AutowireType {
                             item_impl: item_impl.clone(),
-                            profile: vec![],
-                            path_depth: path_depth.clone()
+                            profile: profile.clone(),
+                            path_depth: path_depth.clone(),
+                            qualifiers: qualifiers.clone()
                         }
                     ],
                     enum_found: None,

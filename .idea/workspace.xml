@@ -7,13 +7,13 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="aspect decorator bug - not parse into chain">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="profile factory start">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,23 +136,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test module_macro_lib::item_parser::test::test_method_advice_aspects" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_parser::test::test_method_advice_aspects -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test module_macro_lib::item_parser::test::test_parse_module" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_parser::test::test_parse_module -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -170,8 +153,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test module_macro_lib::item_parser::test::test_parser" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::item_parser::test::test_parser -- --exact" />
+    <configuration name="Test module_macro_lib::module_tree::test::test_bean_path" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::module_tree::test::test_bean_path -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test_downcast" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework --lib test_downcast -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -223,19 +223,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test module_macro_lib::module_tree::test::test_bean_path" />
+      <item itemvalue="Cargo.Test test_downcast" />
       <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_injectable_types" />
-      <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_method_advice_aspects" />
       <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parse_module" />
-      <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parser" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test_downcast" />
         <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test module_macro_lib::module_tree::test::test_bean_path" />
         <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parse_module" />
         <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_injectable_types" />
-        <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_method_advice_aspects" />
-        <item itemvalue="Cargo.Test module_macro_lib::item_parser::test::test_parser" />
       </list>
     </recent_temporary>
   </component>
@@ -300,41 +300,7 @@
       <workItem from="1677594170028" duration="82713000" />
       <workItem from="1677938837220" duration="21272000" />
       <workItem from="1678022170942" duration="70052000" />
-    </task>
-    <task id="LOCAL-00070" summary="authentication">
-      <created>1677617328787</created>
-      <option name="number" value="00070" />
-      <option name="presentableId" value="LOCAL-00070" />
-      <option name="project" value="LOCAL" />
-      <updated>1677617328787</updated>
-    </task>
-    <task id="LOCAL-00071" summary="registration">
-      <created>1677624566442</created>
-      <option name="number" value="00071" />
-      <option name="presentableId" value="LOCAL-00071" />
-      <option name="project" value="LOCAL" />
-      <updated>1677624566442</updated>
-    </task>
-    <task id="LOCAL-00072" summary="aspect started">
-      <created>1677641248896</created>
-      <option name="number" value="00072" />
-      <option name="presentableId" value="LOCAL-00072" />
-      <option name="project" value="LOCAL" />
-      <updated>1677641248896</updated>
-    </task>
-    <task id="LOCAL-00073" summary="aspect started">
-      <created>1677722197810</created>
-      <option name="number" value="00073" />
-      <option name="presentableId" value="LOCAL-00073" />
-      <option name="project" value="LOCAL" />
-      <updated>1677722197810</updated>
-    </task>
-    <task id="LOCAL-00074" summary="refactored">
-      <created>1677861748360</created>
-      <option name="number" value="00074" />
-      <option name="presentableId" value="LOCAL-00074" />
-      <option name="project" value="LOCAL" />
-      <updated>1677861748360</updated>
+      <workItem from="1678458623911" duration="19007000" />
     </task>
     <task id="LOCAL-00075" summary="refactored">
       <created>1677865900231</created>
@@ -644,7 +610,42 @@
       <option name="project" value="LOCAL" />
       <updated>1678403367080</updated>
     </task>
-    <option name="localTasksCounter" value="119" />
+    <task id="LOCAL-00119" summary="testing multiple aspect">
+      <created>1678411220064</created>
+      <option name="number" value="00119" />
+      <option name="presentableId" value="LOCAL-00119" />
+      <option name="project" value="LOCAL" />
+      <updated>1678411220064</updated>
+    </task>
+    <task id="LOCAL-00120" summary="profile factory start">
+      <created>1678467907193</created>
+      <option name="number" value="00120" />
+      <option name="presentableId" value="LOCAL-00120" />
+      <option name="project" value="LOCAL" />
+      <updated>1678467907194</updated>
+    </task>
+    <task id="LOCAL-00121" summary="profile factory start">
+      <created>1678477960418</created>
+      <option name="number" value="00121" />
+      <option name="presentableId" value="LOCAL-00121" />
+      <option name="project" value="LOCAL" />
+      <updated>1678477960418</updated>
+    </task>
+    <task id="LOCAL-00122" summary="profile factory start">
+      <created>1678484657378</created>
+      <option name="number" value="00122" />
+      <option name="presentableId" value="LOCAL-00122" />
+      <option name="project" value="LOCAL" />
+      <updated>1678484657378</updated>
+    </task>
+    <task id="LOCAL-00123" summary="profile factory start">
+      <created>1678497410244</created>
+      <option name="number" value="00123" />
+      <option name="presentableId" value="LOCAL-00123" />
+      <option name="project" value="LOCAL" />
+      <updated>1678497410244</updated>
+    </task>
+    <option name="localTasksCounter" value="124" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -694,8 +695,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="aspect started" />
-    <MESSAGE value="refactored to add ability to have same name modules and recursive modules" />
     <MESSAGE value="refactored" />
     <MESSAGE value="updated" />
     <MESSAGE value="mutable bean definition" />
@@ -719,7 +718,9 @@
     <MESSAGE value="Fixed aspect logic and ensured args all the same in the whole chain." />
     <MESSAGE value="updated to proc-macro2 for testing." />
     <MESSAGE value="aspect decorator bug - not parse into chain" />
-    <option name="LAST_COMMIT_MESSAGE" value="aspect decorator bug - not parse into chain" />
+    <MESSAGE value="testing multiple aspect" />
+    <MESSAGE value="profile factory start" />
+    <option name="LAST_COMMIT_MESSAGE" value="profile factory start" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -790,7 +791,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs</url>
-          <line>157</line>
+          <line>169</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

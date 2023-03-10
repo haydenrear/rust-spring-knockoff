@@ -5,13 +5,13 @@ use quote::{quote, TokenStreamExt, ToTokens};
 use syn::__private::TokenStream2;
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile, BeanDefinitionType};
+use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile, BeanDefinitionType, AutowireType};
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
 use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::{BeanFactoryGenerator, FactoryBeanBeanFactoryGenerator};
-use crate::module_macro_lib::knockoff_context_builder::factory_generator::{AbstractFactoryGenerator, ConcreteFactoryGenerator, FactoryGenerator};
+use crate::module_macro_lib::knockoff_context_builder::factory_generator::{FactoryGen, FactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
 initialize_log!();
@@ -37,7 +37,7 @@ impl TokenStreamGenerator for ApplicationContextGenerator {
         let mut ts = TokenStream::default();
         ts.append_all(Self::context_imports());
         ts.append_all(ApplicationContextGenerator::init_bean_factory());
-        ts.append_all(ConcreteFactoryGenerator::impl_listable_factory());
+        ts.append_all(FactoryGen::impl_listable_factory());
         self.write_generators(&mut ts);
         ts.append_all(
             Self::finish_abstract_factory(
@@ -74,29 +74,49 @@ impl ApplicationContextGenerator {
 
     fn create_factory_generators(from: &(&Profile, &Vec<BeanDefinitionType>)) -> Vec<Box<dyn TokenStreamGenerator>> {
         vec![
-            ConcreteFactoryGenerator::new_factory_generator(from.0.clone(), from.1.clone()),
-            AbstractFactoryGenerator::new_factory_generator(from.0.clone(), from.1.clone())
+            FactoryGen::new_factory_generator(from.0.clone(), from.1.clone())
         ]
     }
 
     fn create_bean_factory_generators(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<Box<dyn TokenStreamGenerator>> {
         FactoryBeanBeanFactoryGenerator::new_bean_factory_generators(
-            &from.iter().flat_map(|f| f.1)
-                .map(|b| {
-                    match b {
-                        BeanDefinitionType::Abstract { bean, dep_type } => {
-                            (bean.id.clone(), bean.clone())
-                        }
-                        BeanDefinitionType::Concrete { bean } => {
-                            (bean.id.clone(), bean.clone())
-                        }
-                    }
-                })
-                .collect::<HashMap<String, Bean>>()
-                .values()
-                .map(|b| b.clone())
-                .collect()
+            &Self::get_concrete_beans(&from),
+            &Self::get_abstract_beans(&from)
         )
+    }
+
+    fn get_abstract_beans(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<(Bean, AutowireType, Profile)> {
+        from.iter().flat_map(|f|
+            f.1.iter()
+            .flat_map(|b| {
+                match b {
+                    BeanDefinitionType::Abstract { bean, dep_type } => {
+                        vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
+                    }
+                    BeanDefinitionType::Concrete { .. } => {
+                        vec![]
+                    }
+                }
+            })
+        ).collect()
+    }
+
+    fn get_concrete_beans(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<Bean> {
+        from.iter().flat_map(|f| f.1)
+            .flat_map(|b| {
+                match b {
+                    BeanDefinitionType::Abstract { .. } => {
+                        vec![]
+                    }
+                    BeanDefinitionType::Concrete { bean } => {
+                        vec![(bean.id.clone(), bean.clone())]
+                    }
+                }
+            })
+            .collect::<HashMap<String, Bean>>()
+            .values()
+            .map(|b| b.to_owned())
+            .collect()
     }
 
 
@@ -113,12 +133,6 @@ impl ApplicationContextGenerator {
         let ts = quote! {
             pub fn get_type_id_from_gen<T: ?Sized + 'static>() -> TypeId {
                 TypeId::of::<T>()
-            }
-
-            pub enum BeanDefinitionType<T: ?Sized> {
-                Prototype(PrototypeBeanDefinition<T>),
-                Singleton(BeanDefinition<T>),
-                MutableSingleton(MutableBeanDefinition<T>)
             }
 
             #[derive(Debug)]
@@ -175,31 +189,31 @@ impl ApplicationContextGenerator {
                 }
             }
 
-            pub trait BeanFactory<T: 'static + Send + Sync + ?Sized> {
+            pub trait BeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
                 fn get_bean(&self) -> BeanDefinition<T>;
             }
 
-            pub trait PrototypeBeanFactory<T: 'static + Send + Sync + ?Sized> {
+            pub trait PrototypeBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
                 fn get_bean(&self) -> PrototypeBeanDefinition<T>;
             }
 
-            pub trait MutableBeanFactory<T: 'static + Send + Sync + ?Sized> {
+            pub trait MutableBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
                 fn get_bean(&self) -> MutableBeanDefinition<T>;
             }
 
-            pub trait MutableFactoryBean<T: 'static + Send + Sync + ?Sized> {
+            pub trait MutableFactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
                 fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<T>;
                 fn get_bean_type_id(&self) -> TypeId;
                 fn is_singleton() -> bool;
             }
 
-            pub trait FactoryBean<T: 'static + Send + Sync + ?Sized> {
+            pub trait FactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
                 fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<T>;
                 fn get_bean_type_id(&self) -> TypeId;
                 fn is_singleton() -> bool;
             }
 
-            pub trait PrototypeFactoryBean<T: 'static + Send + Sync + ?Sized> {
+            pub trait PrototypeFactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
                 fn get_prototype_bean(&self) -> PrototypeBeanDefinition<T>;
                 fn get_bean_type_id() -> TypeId;
             }

@@ -23,6 +23,8 @@ pub trait AbstractListableFactory<P: Profile> {
     fn new() -> Self;
     fn get_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<T>>;
     fn get_mutable_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Mutex<T>>>;
+    fn get_dyn_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Box<T>>>;
+    fn get_mutable_dyn_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Mutex<Box<T>>>>;
     fn get_beans(&self) -> Vec<Arc<dyn Any + Send + Sync>>;
     fn get_mutable_beans(&self) -> Vec<Arc<dyn Any + Send + Sync>>;
 }

@@ -149,6 +149,7 @@ impl BeanDependencyParser {
                         bean_type,
                         array_type,
                         bean_type_path,
+                        is_abstract: None,
                     });
             } else {
                 dep_impl
@@ -159,6 +160,7 @@ impl BeanDependencyParser {
                         bean_type: None,
                         array_type,
                         bean_type_path,
+                        is_abstract: None,
                     });
             }
         }
