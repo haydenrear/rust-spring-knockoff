@@ -55,6 +55,7 @@ pub trait FactoryGenerator: {
             types.push(bean.struct_type.clone().unwrap());
         }
     }
+
 }
 
 pub struct AbstractFactoryGenerator {
@@ -201,22 +202,22 @@ impl ConcreteFactoryGenerator {
                         mutable_bean_definitions
                     };
                     #(
-                        let next_bean_definition = <BeanDefinition<#singleton_idents >>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn BeanFactory<#singleton_idents, #profile_name>>::get_bean(&listable_bean_factory);
                         println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <BeanDefinition<#singleton_types>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn BeanFactory<#singleton_types, #profile_name>>::get_bean(&listable_bean_factory);
                         println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <MutableBeanDefinition<Mutex<#mutable_idents>>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_idents>, #profile_name>>::get_bean(&listable_bean_factory);
                         println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <MutableBeanDefinition<Mutex<#mutable_types>>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_types>, #profile_name>>::get_bean(&listable_bean_factory);
                         println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*

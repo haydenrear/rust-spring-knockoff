@@ -3,8 +3,9 @@ use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use proc_macro2::Ident;
 use quote::ToTokens;
+use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, DepType, InjectableTypeKey, Profile};
+use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, BeanPath, BeanPathParts, DepType, InjectableTypeKey, Profile};
 
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
@@ -45,6 +46,12 @@ impl ProfileTree {
                 }
             });
 
+        let bean_ids = beans.values()
+            .flat_map(|s| s.struct_type.as_ref()
+                .map(|s| vec![s.clone()]).or(Some(vec![])).unwrap()
+            )
+            .collect::<Vec<Type>>();
+
         log_message!("{} is the number of beans parsed in profile tree.", beans.len());
 
         for mut i_type in beans.iter_mut() {
@@ -60,6 +67,19 @@ impl ProfileTree {
                             log_message!("Making {} mutable field for {}.", d.bean_info.type_of_field.to_token_stream().to_string().as_str(), i_type.0.as_str());
                             d.bean_info.mutable = true;
                         }
+
+                        if bean_ids.iter().any(|b|
+                            d.bean_type_path
+                                .as_ref()
+                                .filter(|d|
+                                    d.bean_path_part_matches(b)
+                                ).is_some()
+                        ) {
+                            d.is_abstract = Some(false)
+                        } else {
+                            d.is_abstract = Some(true)
+                        }
+
                     })
             });
 
