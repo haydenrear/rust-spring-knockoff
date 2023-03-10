@@ -26,7 +26,8 @@ pub fn do_aspect(&self, one: One) -> String {
     println!("hello");
     println!("{}", self.two.clone());
     let found = self.proceed_one_test(one);
-    found
+    let mut three_four = "three four ".to_string() + found.as_str();
+    three_four
 }
 
 #[aspect(**)]
@@ -35,7 +36,9 @@ pub fn do_aspect_again(&self, one: One) -> String {
     println!("hello");
     println!("{}", self.two.clone());
     let found = self.proceed_one_test_two(one);
-    found
+    let mut zero = " zero".to_string();
+    zero = found + zero.as_str();
+    zero
 }
 
 #[configuration(field_aug)]

@@ -23,10 +23,10 @@ impl Found for Four {
 
 
 impl One {
-    fn one_two_three(&self, one: One, two: One) -> String {
+    pub fn one_two_three(&self, one: One) -> String {
         print!("testing...");
         print!("{} is one", one.two.to_string());
-        "".to_string()
+        "two one".to_string()
     }
 }
 

@@ -43,16 +43,20 @@ fn test_module_macro() {
 
     let one_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
     let two_found: Option<Arc<Ten>> = listable.get_bean_definition::<Ten>();
+
     assert!(two_found.is_some());
     assert!(one_found.is_some());
 
     let four_found: Option<Arc<Four>> = listable.get_bean_definition::<Four>();
     let one_found_again: Option<Arc<One>> = listable.get_bean_definition::<One>();
-    assert!(four_found.is_some());
-    assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id(), one_found_again.unwrap().deref().type_id());
 
+    assert!(four_found.is_some());
+    assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id(), one_found_again.as_ref().unwrap().deref().type_id());
+    assert!(one_found_again.as_ref().is_some());
+    assert_eq!(one_found_again.unwrap().one_two_three(One{ two: "".to_string(), a: "".to_string() }), "three four two one zero".to_string());
 
     let app_ctx = AppCtx::new();
+
 }
 
 fn create_with_extra_field() {

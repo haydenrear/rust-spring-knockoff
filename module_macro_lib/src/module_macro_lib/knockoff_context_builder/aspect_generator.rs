@@ -6,7 +6,7 @@ use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
 use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use crate::module_macro_lib::module_tree::{AspectInfo, Bean, BeanDefinitionType};
+use crate::module_macro_lib::module_tree::{AspectInfo, Bean, BeanDefinitionType, MethodAdviceChain};
 
 use_logging!();
 initialize_log!();
@@ -91,45 +91,37 @@ impl AspectGenerator {
         mut ts: &mut TokenStream, a: &(AspectInfo, Bean),
         arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>,
     ) {
-        let mut proceed_suffix = "".to_string();
-        let mut counter = 0;
         let advice_chain_len = a.0.advice_chain.len();
         if advice_chain_len > 0 {
-            for next_chain in a.0.advice_chain.iter() {
-                log_message!("{:?} is the next in the method advice chain.", next_chain);
-                let mut block_items = vec![];
+            let mut proceed_suffix = "".to_string();
+            for advice_index in 0..a.0.advice_chain.len() {
+                a.0.advice_chain.get(advice_index).map(|next_chain| {
+                    log_message!("{:?} is the next in the method advice chain.", next_chain);
+                    let mut block_items = vec![];
 
-                next_chain.before_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+                    next_chain.before_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
 
-                next_chain.proceed_statement.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+                    next_chain.proceed_statement.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
 
-                next_chain.after_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+                    next_chain.after_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
 
-                // if proceed_suffix == "" {
-                //     proceed_suffix = SynHelper::get_proceed(a.0.method_advice_aspect.proceed_statement.as_ref().unwrap().to_token_stream().to_string().clone());
-                //     log_message!("Implementing initial: {}.", &proceed_suffix);
-                // } else
-                if counter > 0 {
-                    proceed_suffix = a.0.advice_chain[counter - 1].proceed_statement.as_ref()
-                        .map(|s| SynHelper::get_proceed(s.to_token_stream().to_string().clone()))
-                        .or(Some("".to_string()))
-                        .unwrap();
-                    log_message!("Implementing next: {}.", &proceed_suffix);
-                }
-                else {
-                    proceed_suffix = SynHelper::get_proceed(a.0.method_advice_aspect.proceed_statement.as_ref().unwrap().to_token_stream().to_string().clone());
-                    log_message!("Implementing initial: {}.", &proceed_suffix);
-                }
+                    if advice_index > 0 {
+                        proceed_suffix = a.0.advice_chain[advice_index - 1].proceed_statement.as_ref()
+                            .map(|s| SynHelper::get_proceed(s.to_token_stream().to_string().clone()))
+                            .or(Some("".to_string()))
+                            .unwrap();
+                        log_message!("Implementing next: {}.", &proceed_suffix);
+                    } else {
+                        proceed_suffix = SynHelper::get_proceed(a.0.method_advice_aspect.proceed_statement.as_ref().unwrap().to_token_stream().to_string().clone());
+                        log_message!("Implementing initial: {}.", &proceed_suffix);
+                    }
 
-                if proceed_suffix.len() == 0 {
-                    continue;
-                }
+                    if proceed_suffix.len() != 0 {
+                        let method_ident = &a.0.method.as_ref().unwrap().sig.ident;
+                        Self::implement(ts, a, &arg_idents, &arg_types, &mut proceed_suffix, &mut block_items, method_ident);
+                    }
 
-                let method_ident = &a.0.method.as_ref().unwrap().sig.ident;
-
-
-                Self::implement(ts, a, &arg_idents, &arg_types, &mut proceed_suffix, &mut block_items, method_ident);
-                counter += 1;
+                });
             }
         }
     }
