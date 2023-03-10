@@ -96,7 +96,7 @@ impl FactoryGenerator for FactoryGen {
                     vec![ProviderBean {bean: bean.clone(), dep_type: None}]
                 }
                 BeanDefinitionType::Abstract { bean, dep_type } => {
-                    vec![ProviderBean {bean: bean.clone(), dep_type: Some(dep_type.clone())}]
+                    vec![]
                 }
             }
         }).collect::<Vec<ProviderBean>>();
