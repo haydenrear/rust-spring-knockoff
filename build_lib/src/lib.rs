@@ -65,6 +65,9 @@ impl Module {
     }
 }
 
+/// This can probably be replaced with just parsing the modules and generating the
+/// code based on it, instead of having to relocate the modules. Then, code complete will
+/// be provided without any further.
 pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
 
     log_message!("Starting to replace modules.");

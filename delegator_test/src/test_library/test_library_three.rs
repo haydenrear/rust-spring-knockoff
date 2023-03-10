@@ -6,16 +6,12 @@ pub mod test_library_four;
 
 pub mod test_library_five;
 
-pub trait Found {
+pub trait Found: Send + Sync {
 }
 
 #[singleton("hello_string")]
 fn this_one() -> Option<&'static str> {
     Some("hello")
-}
-
-impl Found for One {
-
 }
 
 impl Found for Four {

@@ -31,9 +31,13 @@ pub struct Gen<T: ?Sized>{
 
 }
 
-pub struct Gen2<T: ?Sized>{
+pub struct Gen2<T: ?Sized + 'static>{
     inner: Arc<T>,
     phantom: PhantomGuy<T>
+}
+
+pub trait OneTwoTrait<T>{
+    fn find(&self) -> Arc<T>;
 }
 
 impl <T: ?Sized> Clone for Gen2<T> {
@@ -177,9 +181,10 @@ fn test_downcast() {
 
     assert_ne!(new_any.type_id().clone(), gen_2.clone().type_id());
 
-    let mutex = Arc::new(Mutex::new(One {}));
+    let mutex = Arc::new(Mutex::new(Box::new(One {})));
     let mutex = mutex.clone() as Arc<dyn Any + Send + Sync + 'static>;
-    let m = mutex.downcast::<Mutex<One>>().unwrap();
+    let m = mutex.downcast::<Mutex<Box<One>>>().unwrap();
+
 }
 
 fn add_to<'a>() -> HashMap<TypeId, Gen<dyn Any + Send + Sync>> {

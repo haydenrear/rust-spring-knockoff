@@ -85,20 +85,20 @@ impl ApplicationContextGenerator {
         )
     }
 
-    fn get_abstract_beans(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<(Bean, AutowireType)> {
-        from.iter().flat_map(|f| f.1)
+    fn get_abstract_beans(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<(Bean, AutowireType, Profile)> {
+        from.iter().flat_map(|f|
+            f.1.iter()
             .flat_map(|b| {
                 match b {
                     BeanDefinitionType::Abstract { bean, dep_type } => {
-                        vec![(bean.to_owned(), dep_type.to_owned())]
+                        vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
                     }
                     BeanDefinitionType::Concrete { .. } => {
                         vec![]
                     }
                 }
             })
-            .map(|b| b)
-            .collect()
+        ).collect()
     }
 
     fn get_concrete_beans(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<Bean> {
