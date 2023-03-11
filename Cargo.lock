@@ -1209,6 +1209,7 @@ dependencies = [
  "paste",
  "proc-macro2",
  "quote",
+ "rand",
  "serde",
  "spring_knockoff_boot_macro",
  "syn",

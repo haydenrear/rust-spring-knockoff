@@ -91,7 +91,13 @@ impl ApplicationContextGenerator {
             .flat_map(|b| {
                 match b {
                     BeanDefinitionType::Abstract { bean, dep_type } => {
-                        vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
+                        dep_type.item_impl.trait_.as_ref().map(|trait_type| {
+                            log_message!("Found abstract bean with id: {} and abstract type: {}.",
+                            &bean.id, SynHelper::get_str(&dep_type.item_impl.trait_.as_ref().unwrap().1));
+                            vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
+                        })
+                            .or(Some(vec![]))
+                            .unwrap()
                     }
                     BeanDefinitionType::Concrete { .. } => {
                         vec![]
@@ -185,12 +191,23 @@ impl ApplicationContextGenerator {
                 }
 
                 fn get_bean_type_id(&self) -> TypeId {
-                    self.inner.deref().type_id().clone()
+                    self.inner.type_id().clone()
                 }
             }
 
             pub trait BeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(&self) -> BeanDefinition<T>;
+                type U;
+                fn get_bean(&self) -> BeanDefinition<Self::U>;
+            }
+
+            pub trait BeanContainer<T: 'static + Send + Sync + ?Sized> {
+                type U;
+                fn fetch_bean(&self) -> Option<Arc<Self::U>>;
+            }
+
+            pub trait BeanContainerProfile<T: 'static + Send + Sync + ?Sized, P: Profile> {
+                type U;
+                fn fetch_bean_profile(&self) -> Option<Arc<Self::U>>;
             }
 
             pub trait PrototypeBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
@@ -198,17 +215,20 @@ impl ApplicationContextGenerator {
             }
 
             pub trait MutableBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(&self) -> MutableBeanDefinition<T>;
+                type U;
+                fn get_bean(&self) -> MutableBeanDefinition<Self::U>;
             }
 
             pub trait MutableFactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<T>;
+                type U;
+                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Self::U>;
                 fn get_bean_type_id(&self) -> TypeId;
                 fn is_singleton() -> bool;
             }
 
             pub trait FactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<T>;
+                type U;
+                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<Self::U>;
                 fn get_bean_type_id(&self) -> TypeId;
                 fn is_singleton() -> bool;
             }
@@ -293,9 +313,16 @@ impl ApplicationContextGenerator {
                 fn get_bean_by_type_id<T,P>(&self, type_id: TypeId) -> Option<Arc<T>>
                 where P: Profile, T: 'static + Send + Sync
                 {
-                    self.factories.get(&P::name())
-                        .unwrap()
-                        .get_bean_definition::<T>()
+                    let factory = self.factories.get(&P::name())
+                        .unwrap();
+
+                    factory.singleton_bean_definitions.get(&type_id)
+                        .map(|bean_def| bean_def.inner.clone().downcast::<T>().ok())
+                        .flatten()
+                        .or_else(|| factory.mutable_bean_definitions.get(&type_id)
+                                .map(|bean_def| bean_def.inner.clone().downcast::<T>().ok())
+                                .flatten()
+                        )
                 }
 
                 fn get_bean_by_qualifier<T,P>(&self, qualifier: String) -> Option<Arc<T>>

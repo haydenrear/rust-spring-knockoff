@@ -34,10 +34,30 @@ impl ItemImplParser{
 
 }
 
+pub fn matches_ignore_traits(matches_ignore_traits: &str) -> bool {
+    vec!["Default", "Debug"].iter().any(|i| matches_ignore_traits.contains(i))
+}
+
+pub fn is_ignore_trait(item_impl: &ItemImpl) -> bool {
+    if item_impl.trait_.as_ref().filter(|t| matches_ignore_traits(&SynHelper::get_str(t.1.to_token_stream().to_string().as_str())))
+        .is_some() {
+        log_message!("Ignoring {}.", SynHelper::get_str(&item_impl));
+        return true;
+    }
+    false
+}
+
 impl ItemParser<ItemImpl> for ItemImplParser {
     fn parse_item(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl, mut path_depth: Vec<String>) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
-        log_message!("Doing create update impl.");
+        log_message!("Doing create update impl for id: {}", id);
+        item_impl.trait_.as_ref().map(|t| {
+            log_message!("Doing create update impl for trait impl: {}", SynHelper::get_str(&t.1));
+        });
+
+        if is_ignore_trait(&item_impl) {
+            return;
+        }
 
         Self::add_path(&mut path_depth, &item_impl);
 
