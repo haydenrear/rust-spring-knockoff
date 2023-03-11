@@ -1,4 +1,4 @@
-use syn::ItemStruct;
+use syn::{ItemStruct, parse2, Type};
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
@@ -11,7 +11,7 @@ use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 
 pub struct ItemStructParser;
 
@@ -30,8 +30,13 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                 struct_impl.id = item_struct.ident.clone().to_string();
             })
             .or_else(|| {
+                let item_struct_ident = &item_struct.ident;
+                let self_ty = quote! {
+                    #item_struct_ident
+                };
+                let struct_type = parse2::<Type>(self_ty);
                 let mut impl_found = Bean {
-                    struct_type: None,
+                    struct_type: struct_type.ok(),
                     struct_found: Some(item_struct.clone()),
                     traits_impl: vec![],
                     enum_found: None,

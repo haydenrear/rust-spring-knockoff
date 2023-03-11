@@ -66,6 +66,12 @@ impl <T: ?Sized> Clone for PhantomGuy<T> {
     }
 }
 
+pub trait OneTrait : Send + Sync{
+
+}
+
+impl OneTrait for One {}
+
 pub struct MapContainer {
     values: HashMap<TypeId, Gen<dyn Any + Send + Sync>>
 }
@@ -184,6 +190,8 @@ fn test_downcast() {
     let mutex = Arc::new(Mutex::new(Box::new(One {})));
     let mutex = mutex.clone() as Arc<dyn Any + Send + Sync + 'static>;
     let m = mutex.downcast::<Mutex<Box<One>>>().unwrap();
+
+    let a = Arc::new(One{});
 
 }
 

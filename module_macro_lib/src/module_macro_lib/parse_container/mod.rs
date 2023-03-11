@@ -82,7 +82,7 @@ impl ParseContainer {
             })
             .for_each(|v| {
                 log_message!("{:?} is the bean definition.", v.clone());
-            })
+            });
 
     }
 
@@ -167,6 +167,8 @@ impl ParseContainer {
 
 
     pub fn get_autowired_field_dep(field: Field) -> Option<AutowiredField> {
+        let qualifier = SynHelper::get_attr_from_vec(&field.attrs, vec!["profile"]);
+        let profile = SynHelper::get_attr_from_vec(&field.attrs, vec!["qualifier"]);
         SynHelper::get_attr_from_vec(&field.attrs, vec!["autowired"])
             .map(|autowired_field| {
                 log_message!("Attempting to add autowired field for {}.", field.to_token_stream().to_string().as_str());
@@ -174,18 +176,22 @@ impl ParseContainer {
                     .map(|mutable_field| {
                         log_message!("Adding mutable field and autowired field for {}.", field.to_token_stream().to_string().as_str());
                         AutowiredField{
-                            qualifier: Some(autowired_field.clone()),
+                            qualifier: Some(autowired_field.clone()).or(qualifier.clone()),
+                            profile: profile.clone(),
                             lazy: false,
                             field: field.clone(),
                             type_of_field: field.ty.clone(),
+                            concrete_type_of_field_bean_type: None,
                             mutable: true,
                         }
                     })
                     .or(Some(AutowiredField{
-                        qualifier: Some(autowired_field),
+                        qualifier: Some(autowired_field).or(qualifier),
+                        profile: profile.clone(),
                         lazy: false,
                         field: field.clone(),
                         type_of_field: field.ty.clone(),
+                        concrete_type_of_field_bean_type: None,
                         mutable: false,
                     }))
             }).unwrap_or_else(|| {

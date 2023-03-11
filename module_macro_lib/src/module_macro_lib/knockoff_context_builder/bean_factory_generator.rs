@@ -29,18 +29,21 @@ pub struct BeanFactoryInfo {
 #[derive(Clone)]
 pub struct FieldInfo {
     field_type: Type,
+    concrete_field_type: Type,
     field_ident: Ident
 }
 
 #[derive(Clone)]
 pub struct MutableFieldInfo {
     field_type: Type,
+    concrete_field_type: Type,
     field_ident: Ident
 }
 
 #[derive(Clone)]
 pub struct AbstractFieldInfo {
     field_type: Type,
+    concrete_field_type: Type,
     field_ident: Ident,
     autowire_type: AutowiredField,
     qualifier: Option<String>,
@@ -50,6 +53,7 @@ pub struct AbstractFieldInfo {
 #[derive(Clone)]
 pub struct MutableAbstractFieldInfo {
     field_type: Type,
+    concrete_field_type: Type,
     field_ident: Ident,
     autowire_type: AutowiredField,
     qualifier: Option<String>,
@@ -58,30 +62,12 @@ pub struct MutableAbstractFieldInfo {
 
 pub trait BeanFactoryGenerator: TokenStreamGenerator {
 
-    fn create_concrete_bean_factories_for_bean<T: ToTokens>(
-        field_types: &Vec<Type>,
-        field_ident: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_field_ident: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_ident: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_field_ident: &Vec<Ident>,
-        struct_type: &T
+    fn create_concrete_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
     ) -> TokenStream;
 
-    fn create_abstract_bean_factories_for_bean<T: ToTokens, U: ToTokens>(
-        field_types: &Vec<Type>,
-        field_ident: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_field_ident: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_ident: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_field_ident: &Vec<Ident>,
-        abstract_type: &T,
-        concrete_type: &U,
-        profile: Profile
+    fn create_abstract_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
     ) -> TokenStream;
 
     fn new_bean_factory_generators(concrete_beans: &Vec<Bean>, abstract_beans: &Vec<(Bean, AutowireType, Profile)>) -> Vec<Box<dyn TokenStreamGenerator>> {
@@ -154,6 +140,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
             .map(|type_path| type_path.get_autowirable_type())
             .flatten()
             .map(|field_type| MutableFieldInfo {
+                concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
                 field_type,
                 field_ident: dep_type.bean_info.field.ident.clone().unwrap(),
             })
@@ -166,6 +153,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
             .map(|type_path| type_path.get_autowirable_type())
             .flatten()
             .map(|field_type| FieldInfo {
+                concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
                 field_type,
                 field_ident: dep_type.bean_info.field.ident.clone().unwrap(),
             })
@@ -179,6 +167,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
                 .map(|type_path| type_path.get_autowirable_type())
                 .flatten()
                 .map(|field_type| AbstractFieldInfo {
+                    concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
                     field_type,
                     autowire_type: dep_type.bean_info.clone(),
                     qualifier: dep_type.bean_info.qualifier.clone(),
@@ -197,6 +186,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
                 .map(|type_path| type_path.get_autowirable_type())
                 .flatten()
                 .map(|field_type| MutableAbstractFieldInfo {
+                    concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
                     field_type,
                     autowire_type: dep_type.bean_info.clone(),
                     qualifier: dep_type.bean_info.qualifier.clone(),
@@ -240,74 +230,16 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
 
         self.get_concrete_factories().iter()
             .for_each(|b| {
-                let (field_types, field_idents,
-                    mutable_field_idents, mutable_field_types,
-                    abstract_field_ident, abstract_field_types,
-                    mutable_abstract_field_ident, mutable_abstract_field_types)
-                        = Self::get_field_types(b);
-                if b.ident_type.is_some() {
-                    ts.append_all(Self::create_concrete_bean_factories_for_bean(
-                        &field_types,
-                        &field_idents,
-                        &mutable_field_types,
-                        &mutable_field_idents,
-                        &abstract_field_types,
-                        &abstract_field_ident,
-                        &mutable_abstract_field_types,
-                        &mutable_abstract_field_ident,
-                        &b.ident_type.clone().unwrap(),
-                    ));
-                } else if b.concrete_type.is_some() {
-                    ts.append_all(Self::create_concrete_bean_factories_for_bean(
-                        &field_types,
-                        &field_idents,
-                        &mutable_field_types,
-                        &mutable_field_idents,
-                        &abstract_field_types,
-                        &abstract_field_ident,
-                        &mutable_abstract_field_types,
-                        &mutable_abstract_field_ident,
-                        &b.concrete_type.clone().unwrap(),
-                    ));
-                }
+                ts.append_all(Self::create_concrete_bean_factories_for_bean(b));
             });
 
         self.get_abstract_factories().iter()
             .for_each(|b| {
-                let (field_types, field_idents,
-                    mutable_field_idents, mutable_field_types,
-                    abstract_field_ident, abstract_field_types,
-                    mutable_abstract_field_ident, mutable_abstract_field_types)
-                    = Self::get_field_types(b);
                 if !b.abstract_type.is_none() {
                     if b.ident_type.is_some() {
-                        ts.append_all(Self::create_abstract_bean_factories_for_bean(
-                            &field_types,
-                            &field_idents,
-                            &mutable_field_types,
-                            &mutable_field_idents,
-                            &abstract_field_types,
-                            &abstract_field_ident,
-                            &mutable_abstract_field_types,
-                            &mutable_abstract_field_ident,
-                            &b.abstract_type.clone().unwrap(),
-                            &b.ident_type.clone().unwrap(),
-                            b.profile.clone().unwrap()
-                        ));
+                        ts.append_all(Self::create_abstract_bean_factories_for_bean(b));
                     } else if b.concrete_type.is_some() {
-                        ts.append_all(Self::create_abstract_bean_factories_for_bean(
-                            &field_types,
-                            &field_idents,
-                            &mutable_field_types,
-                            &mutable_field_idents,
-                            &abstract_field_types,
-                            &abstract_field_ident,
-                            &mutable_abstract_field_types,
-                            &mutable_abstract_field_ident,
-                            &b.abstract_type.clone().unwrap(),
-                            &b.concrete_type.clone().unwrap(),
-                            b.profile.clone().unwrap()
-                        ));
+                        ts.append_all(Self::create_abstract_bean_factories_for_bean(b));
                     }
                 }
             });
@@ -315,24 +247,38 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         ts
     }
 
-    fn get_field_types(b: &BeanFactoryInfo) -> (Vec<Type>, Vec<Ident>, Vec<Ident>, Vec<Type>, Vec<Ident>, Vec<Type>, Vec<Ident>, Vec<Type>) {
-        let field_types = b.fields.iter().map(|f| f.field_type.clone())
+    fn get_field_types(b: &BeanFactoryInfo) -> (Vec<Type>, Vec<Ident>, Vec<Type>, Vec<Ident>, Vec<Type>, Vec<Type>, Vec<Ident>, Vec<Type>, Vec<Type>, Vec<Ident>, Vec<Type>, Vec<Type>) {
+        let field_types = b.fields.iter()
+            .map(|f| f.field_type.clone())
             .collect::<Vec<Type>>();
-        let field_idents = b.fields.iter().map(|f| f.field_ident.clone())
+        let field_idents = b.fields.iter()
+            .map(|f| f.field_ident.clone())
             .collect::<Vec<Ident>>();
+        let field_concrete = b.fields.iter()
+            .map(|f| f.concrete_field_type.clone())
+            .collect::<Vec<Type>>();
         let mutable_field_idents = b.mutable_fields.iter().map(|f| f.field_ident.clone())
             .collect::<Vec<Ident>>();
         let mutable_field_types = b.mutable_fields.iter().map(|f| f.field_type.clone())
+            .collect::<Vec<Type>>();
+        let mutable_field_concrete = b.mutable_fields.iter().map(|f| f.concrete_field_type.clone())
             .collect::<Vec<Type>>();
         let abstract_field_ident = b.abstract_fields.iter().map(|f| f.field_ident.clone())
             .collect::<Vec<Ident>>();
         let abstract_field_types = b.abstract_fields.iter().map(|f| f.field_type.clone())
             .collect::<Vec<Type>>();
+        let abstract_field_concrete = b.abstract_fields.iter().map(|f| f.concrete_field_type.clone())
+            .collect::<Vec<Type>>();
         let mutable_abstract_field_ident = b.mutable_abstract_fields.iter().map(|f| f.field_ident.clone())
             .collect::<Vec<Ident>>();
         let mutable_abstract_field_types = b.mutable_abstract_fields.iter().map(|f| f.field_type.clone())
             .collect::<Vec<Type>>();
-        (field_types, field_idents, mutable_field_idents, mutable_field_types, abstract_field_ident, abstract_field_types, mutable_abstract_field_ident, mutable_abstract_field_types)
+        let mutable_abstract_field_concrete = b.mutable_abstract_fields.iter().map(|f| f.concrete_field_type.clone())
+            .collect::<Vec<Type>>();
+        (field_types, field_idents, field_concrete,
+         mutable_field_idents, mutable_field_types, mutable_field_concrete,
+         abstract_field_ident, abstract_field_types, abstract_field_concrete,
+         mutable_abstract_field_ident, mutable_abstract_field_types, mutable_abstract_field_concrete)
     }
 
 
@@ -366,161 +312,132 @@ impl TokenStreamGenerator for MutableBeanFactoryGenerator {
 
 impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
 
-    fn create_concrete_bean_factories_for_bean<T: ToTokens>(
-        field_types: &Vec<Type>,
-        field_idents: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_identifiers: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_idents: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_idents: &Vec<Ident>,
-        struct_type: &T
-    ) -> TokenStream {
-        log_message!("Creating mutable bean factory for {}.", &struct_type.to_token_stream().to_string());
-        log_message!("Creating mutable bean factory with the following mutable field types: ");
-        mutable_field_types.iter().for_each(|m| {
-            log_message!("{} is the mutable field type.", SynHelper::get_str(m.clone()));
-        });
-        log_message!("Creating mutable bean factory with the following field types: ");
-        field_types.iter().for_each(|m| {
-            log_message!("{} is the mutable field type.", SynHelper::get_str(m.clone()));
-        });
+    fn create_concrete_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
+    ) -> TokenStream{
         let default_profile = Ident::new(Profile::default().profile.as_str(), Span::call_site());
         let injectable_code = quote! {
 
-                impl MutableBeanFactory<Mutex<#struct_type>, #default_profile> for ListableBeanFactory {
-                    fn get_bean(&self) -> MutableBeanDefinition<Mutex<#struct_type>> {
-                        let this_component = <MutableBeanDefinition<Mutex<#struct_type>>>::get_bean(&self);
-                        this_component
-                    }
-                }
-
-                impl MutableFactoryBean<Mutex<#struct_type>, #default_profile> for MutableBeanDefinition<Mutex<#struct_type>> {
-
-                    fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Mutex<#struct_type>> {
-                        let mut inner = #struct_type::default();
-                        #(
-                            let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types, #default_profile>>::get_bean(listable_bean_factory);
-                            let arc_bean_def: Arc<#field_types> = bean_def.inner;
-                            inner.#field_idents = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #default_profile>>::get_bean(
-                                    listable_bean_factory
-                                );
-                            let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
-                            inner.#mutable_identifiers = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: BeanDefinition<Box<dyn #abstract_field_types>>
-                                = <ListableBeanFactory as BeanFactory<Box<dyn #abstract_field_types>, #default_profile>>::get_bean(listable_bean_factory);
-                            let arc_bean_def: Arc<Box<dyn #abstract_field_types>> = bean_def.inner;
-                            inner.#abstract_field_idents = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #default_profile>>::get_bean(
-                                    listable_bean_factory
-                                );
-                            let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
-                            inner.#abstract_mutable_idents = arc_bean_def.clone();
-                        )*
-                        Self {
-                            inner: Arc::new(Mutex::new(inner))
-                        }
-                    }
-
-                    fn get_bean_type_id(&self) -> TypeId {
-                        self.inner.deref().type_id().clone()
-                    }
-
-                    fn is_singleton() -> bool {
-                        true
-                    }
-
-                }
+                // impl MutableBeanFactory<Mutex<#struct_type>, #default_profile> for ListableBeanFactory {
+                //     fn get_bean(&self) -> MutableBeanDefinition<Mutex<#struct_type>> {
+                //         let this_component = <MutableBeanDefinition<Mutex<#struct_type>>>::get_bean(&self);
+                //         this_component
+                //     }
+                // }
+                //
+                // impl MutableFactoryBean<Mutex<#struct_type>, #default_profile> for MutableBeanDefinition<Mutex<#struct_type>> {
+                //
+                //     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Mutex<#struct_type>> {
+                //         let mut inner = #struct_type::default();
+                //         #(
+                //             let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types, #default_profile>>::get_bean(listable_bean_factory);
+                //             let arc_bean_def: Arc<#field_types> = bean_def.inner;
+                //             inner.#field_idents = arc_bean_def.clone();
+                //         )*
+                //         #(
+                //             let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
+                //                 = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #default_profile>>::get_bean(
+                //                     listable_bean_factory
+                //                 );
+                //             let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
+                //             inner.#mutable_identifiers = arc_bean_def.clone();
+                //         )*
+                //         #(
+                //             let bean_def: BeanDefinition<Box<dyn #abstract_field_types>>
+                //                 = <ListableBeanFactory as BeanFactory<Box<dyn #abstract_field_types>, #default_profile>>::get_bean(listable_bean_factory);
+                //             let arc_bean_def: Arc<Box<dyn #abstract_field_types>> = bean_def.inner;
+                //             inner.#abstract_field_idents = arc_bean_def.clone();
+                //         )*
+                //         #(
+                //             let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
+                //                 = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #default_profile>>::get_bean(
+                //                     listable_bean_factory
+                //                 );
+                //             let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
+                //             inner.#abstract_mutable_idents = arc_bean_def.clone();
+                //         )*
+                //         Self {
+                //             inner: Arc::new(Mutex::new(inner))
+                //         }
+                //     }
+                //
+                //     fn get_bean_type_id(&self) -> TypeId {
+                //         self.inner.deref().type_id().clone()
+                //     }
+                //
+                //     fn is_singleton() -> bool {
+                //         true
+                //     }
+                //
+                // }
 
         };
 
         injectable_code.into()
     }
 
-    fn create_abstract_bean_factories_for_bean<T: ToTokens, U: ToTokens>(
-        field_types: &Vec<Type>,
-        field_idents: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_identifiers: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_idents: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_identifiers: &Vec<Ident>,
-        abstract_type: &T,
-        concrete_type: &U,
-        profile: Profile
+    fn create_abstract_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
     ) -> TokenStream {
-        log_message!("Creating abstract mutable bean factory for concrete type {} and abstract type {}.",
-            SynHelper::get_str(concrete_type),
-            SynHelper::get_str(abstract_type)
-        );
 
-        let profile_ident = Ident::new(profile.profile.as_str(), Span::call_site());
+        let profile_ident = Ident::new(bean_factory_info.profile.as_ref().unwrap().profile.as_str(), Span::call_site());
 
+        /// If you implement the dyn factory by returning the concrete type, then you save the bean
+        /// as the concrete type. You can then implement the same way to get the type id easily.
         let injectable_code = quote! {
 
-                impl MutableBeanFactory<Mutex<Box<dyn #abstract_type>>, #profile_ident> for ListableBeanFactory {
-                    fn get_bean(&self) -> MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
-                        <MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>>>::get_bean(&self)
-                    }
-                }
-
-                impl MutableFactoryBean<Mutex<Box<dyn #abstract_type>>, #profile_ident> for MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
-
-                    fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
-                        let mut inner = #concrete_type::default();
-                        #(
-                            let bean_def: BeanDefinition<#field_types>
-                                = <ListableBeanFactory as BeanFactory<#field_types, #profile_ident>>::get_bean(listable_bean_factory);
-                            let arc_bean_def: Arc<#field_types> = bean_def.inner;
-                            inner.#field_idents = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #profile_ident>>::get_bean(
-                                    listable_bean_factory
-                                );
-                            let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
-                            inner.#mutable_identifiers = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: BeanDefinition<Box<dyn #abstract_field_types>>
-                                = <ListableBeanFactory as BeanFactory<Box<dyn #abstract_field_types>, #profile_ident>>::get_bean(listable_bean_factory);
-                            let arc_bean_def: Arc<Box<dyn #abstract_field_types>> = bean_def.inner;
-                            inner.#abstract_field_idents = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #profile_ident>>::get_bean(
-                                    listable_bean_factory
-                                );
-                            let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
-                            inner.#abstract_mutable_identifiers = arc_bean_def.clone();
-                        )*
-                        Self {
-                            inner: Arc::new(Mutex::new(Box::new(inner)))
-                        }
-                    }
-
-                    fn get_bean_type_id(&self) -> TypeId {
-                        self.inner.deref().type_id().clone()
-                    }
-
-                    fn is_singleton() -> bool {
-                        true
-                    }
-
-                }
+                // impl MutableBeanFactory<Mutex<Box<dyn #abstract_type>>, #profile_ident> for ListableBeanFactory {
+                //     fn get_bean(&self) -> MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
+                //         <MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>>>::get_bean(&self)
+                //     }
+                // }
+                //
+                // impl MutableFactoryBean<Mutex<Box<dyn #abstract_type>>, #profile_ident> for MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
+                //
+                //     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
+                //         let mut inner = #concrete_type::default();
+                //         #(
+                //             let bean_def: BeanDefinition<#field_types>
+                //                 = <ListableBeanFactory as BeanFactory<#field_types, #profile_ident>>::get_bean(listable_bean_factory);
+                //             let arc_bean_def: Arc<#field_types> = bean_def.inner;
+                //             inner.#field_idents = arc_bean_def.clone();
+                //         )*
+                //         #(
+                //             let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
+                //                 = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #profile_ident>>::get_bean(
+                //                     listable_bean_factory
+                //                 );
+                //             let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
+                //             inner.#mutable_identifiers = arc_bean_def.clone();
+                //         )*
+                //         #(
+                //             let bean_def: BeanDefinition<Box<dyn #abstract_field_types>>
+                //                 = <ListableBeanFactory as BeanFactory<Box<dyn #abstract_field_types>, #profile_ident>>::get_bean(listable_bean_factory);
+                //             let arc_bean_def: Arc<Box<dyn #abstract_field_types>> = bean_def.inner;
+                //             inner.#abstract_field_idents = arc_bean_def.clone();
+                //         )*
+                //         #(
+                //             let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
+                //                 = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #profile_ident>>::get_bean(
+                //                     listable_bean_factory
+                //                 );
+                //             let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
+                //             inner.#abstract_mutable_identifiers = arc_bean_def.clone();
+                //         )*
+                //         Self {
+                //             inner: Arc::new(Mutex::new(Box::new(inner)))
+                //         }
+                //     }
+                //
+                //     fn get_bean_type_id(&self) -> TypeId {
+                //         self.inner.deref().type_id().clone()
+                //     }
+                //
+                //     fn is_singleton() -> bool {
+                //         true
+                //     }
+                //
+                // }
 
         };
 
@@ -555,24 +472,30 @@ impl TokenStreamGenerator for FactoryBeanBeanFactoryGenerator {
 }
 
 impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
-    fn create_concrete_bean_factories_for_bean<T: ToTokens>(
-        field_types: &Vec<Type>,
-        field_idents: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_identifiers: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_idents: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_idents: &Vec<Ident>,
-        struct_type: &T
-    ) -> TokenStream {
-        log_message!("Creating bean factory for {}.", &struct_type.to_token_stream().to_string());
+    fn create_concrete_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
+    ) -> TokenStream{
+
+        let (field_types, field_idents, concrete_field,
+            mutable_identifiers, mutable_field_types, concrete_mutable_type,
+            abstract_field_idents, abstract_field_types, concrete_abstract_types,
+            abstract_mutable_idents, abstract_mutable_field_types, concrete_mutable_abstract)
+            = Self::get_field_types(bean_factory_info);
+
+        log_message!("Building container");
+
+        let struct_type: Ident = bean_factory_info.concrete_type
+            .as_ref()
+            .map(|t| Ident::new(t.to_token_stream().to_string().as_str(), Span::call_site()))
+            .or(bean_factory_info.ident_type.clone())
+            .unwrap();
 
         let default_profile = Ident::new(Profile::default().profile.as_str(), Span::call_site());
 
         let injectable_code = quote! {
 
                 impl BeanFactory<#struct_type, #default_profile> for ListableBeanFactory {
+                    type U = #struct_type;
                     fn get_bean(&self) -> BeanDefinition<#struct_type> {
                         let this_component = <BeanDefinition<#struct_type>>::get_bean(&self);
                         this_component
@@ -580,11 +503,11 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
                 }
 
                 impl FactoryBean<#struct_type, #default_profile> for BeanDefinition<#struct_type> {
-
+                    type U = #struct_type;
                     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<#struct_type> {
                         let mut inner = #struct_type::default();
                         #(
-                            let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types, #default_profile>>::get_bean(listable_bean_factory);
+                            let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types, #default_profile, U = #concrete_field>>::get_bean(listable_bean_factory);
                             let arc_bean_def: Arc<#field_types> = bean_def.inner;
                             inner.#field_idents = arc_bean_def.clone();
                         )*
@@ -594,20 +517,20 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
                             let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
                             inner.#mutable_identifiers = arc_bean_def.clone();
                         )*
-                        #(
-                            let bean_def: BeanDefinition<Box<dyn #abstract_field_types>>
-                                = <ListableBeanFactory as BeanFactory<Box<dyn #abstract_field_types>, #default_profile>>::get_bean(listable_bean_factory);
-                            let arc_bean_def: Arc<Box<dyn #abstract_field_types>> = bean_def.inner;
-                            inner.#abstract_field_idents = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #default_profile>>::get_bean(
-                                    listable_bean_factory
-                                );
-                            let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
-                            inner.#abstract_mutable_idents = arc_bean_def.clone();
-                        )*
+                        // #(
+                        //     let bean_def: BeanDefinition<Box<dyn #abstract_field_types>>
+                        //         = <ListableBeanFactory as BeanFactory<Box<dyn #abstract_field_types>, #default_profile>>::get_bean(listable_bean_factory);
+                        //     let arc_bean_def: Arc<Box<dyn #abstract_field_types>> = bean_def.inner;
+                        //     inner.#abstract_field_idents = arc_bean_def.clone();
+                        // )*
+                        // #(
+                        //     let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
+                        //         = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #default_profile>>::get_bean(
+                        //             listable_bean_factory
+                        //         );
+                        //     let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
+                        //     inner.#abstract_mutable_idents = arc_bean_def.clone();
+                        // )*
                         Self {
                             inner: Arc::new(inner)
                         }
@@ -628,66 +551,85 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
         injectable_code.into()
     }
 
-    fn create_abstract_bean_factories_for_bean<T: ToTokens, U: ToTokens>(
-        field_types: &Vec<Type>,
-        field_idents: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_identifiers: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_idents: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_identifiers: &Vec<Ident>,
-        abstract_type: &T,
-        concrete_type: &U,
-        profile: Profile
+    fn create_abstract_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
     ) -> TokenStream {
-        log_message!("Creating bean factory for {}.", &concrete_type.to_token_stream().to_string());
 
-        let profile_ident = Ident::new(profile.profile.as_str(), Span::call_site());
+        let (field_types, field_idents, concrete_field,
+            mutable_identifiers, mutable_field_types, concrete_mutable_type,
+            abstract_field_idents, abstract_field_types, concrete_abstract_types,
+            abstract_mutable_idents, abstract_mutable_field_types, concrete_mutable_abstract)
+            = Self::get_field_types(bean_factory_info);
+
+        log_message!("Building container");
+
+        let struct_type: Ident = bean_factory_info.concrete_type
+            .as_ref()
+            .map(|t| Ident::new(t.to_token_stream().to_string().as_str(), Span::call_site()))
+            .or(bean_factory_info.ident_type.clone())
+            .unwrap();
+
+        let abstract_type: &Path = bean_factory_info.abstract_type.as_ref().unwrap();
+
+        let profile_ident = Ident::new(Profile::default().profile.as_str(), Span::call_site());
 
         let injectable_code = quote! {
 
-                impl BeanFactory<Box<dyn #abstract_type>, #profile_ident> for ListableBeanFactory {
-                    fn get_bean(&self) -> BeanDefinition<Box<dyn #abstract_type>> {
-                       <BeanDefinition<Box<dyn #abstract_type>>>::get_bean(&self)
+                impl BeanFactory<dyn #abstract_type, #profile_ident> for ListableBeanFactory {
+                    type U = #struct_type;
+                    fn get_bean(&self) -> BeanDefinition<#struct_type> {
+                       let bean_def: BeanDefinition<#struct_type> = <BeanDefinition<dyn #abstract_type> as FactoryBean<dyn #abstract_type, #profile_ident>>::get_bean(&self);
+                        bean_def
                     }
                 }
 
-                impl FactoryBean<Box<dyn #abstract_type>, #profile_ident> for BeanDefinition<Box<dyn #abstract_type>> {
+                impl GetAbstractBean<dyn #abstract_type> for ListableBeanFactory {
+                    type U = #struct_type;
+                    fn get_abstract_bean(&self) -> Option<Arc<Self::U>> {
+                        self.singleton_bean_definitions.get(&TypeId::of::<dyn #abstract_type>())
+                            .map(|s| s.inner.clone().downcast::<Self::U>().ok())
+                            .flatten()
+                    }
+                }
 
-                    fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<Box<dyn #abstract_type>> {
-                        let mut inner = #concrete_type::default();
+                impl FactoryBean<dyn #abstract_type, #profile_ident> for BeanDefinition<dyn #abstract_type> {
+                    type U = #struct_type;
+
+                    fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<#struct_type> {
+                        let mut inner = #struct_type::default();
                         #(
                             let bean_def: BeanDefinition<#field_types>
                                 = <ListableBeanFactory as BeanFactory<#field_types, #profile_ident>>::get_bean(listable_bean_facory);
                             let arc_bean_def: Arc<#field_types> = bean_def.inner;
                             inner.#field_idents = arc_bean_def.clone();
                         )*
+                        // #(
+                        //     let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
+                        //         = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #profile_ident>>::get_bean(
+                        //             listable_bean_factory
+                        //         );
+                        //     let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
+                        //     inner.#mutable_identifiers = arc_bean_def.clone();
+                        // )*
                         #(
-                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #profile_ident>>::get_bean(
-                                    listable_bean_factory
-                                );
-                            let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
-                            inner.#mutable_identifiers = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: BeanDefinition<Box<dyn #abstract_field_types>>
-                                = <ListableBeanFactory as BeanFactory<Box<dyn #abstract_field_types>, #profile_ident>>::get_bean(listable_bean_factory);
-                            let arc_bean_def: Arc<Box<dyn #abstract_field_types>> = bean_def.inner;
+                            let bean_def: BeanDefinition<dyn #abstract_field_types>
+                                = <ListableBeanFactory as BeanFactory<dyn #abstract_field_types, #profile_ident>>::get_bean(listable_bean_factory);
+                            let arc_bean_def: Arc<dyn #abstract_field_types> = bean_def.inner;
                             inner.#abstract_field_idents = arc_bean_def.clone();
                         )*
-                        #(
-                            let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #profile_ident>>::get_bean(
-                                    listable_bean_factory
-                                );
-                            let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
-                            inner.#abstract_mutable_identifiers = arc_bean_def.clone();
-                        )*
-                        Self {
-                            inner: Arc::new(Box::new(inner))
-                        }
+                        // #(
+                        //     let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
+                        //         = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #profile_ident>>::get_bean(
+                        //             listable_bean_factory
+                        //         );
+                        //     let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
+                        //     inner.#abstract_mutable_identifiers = arc_bean_def.clone();
+                        // )*
+                        let bean_def = BeanDefinition {
+                            inner: Arc::new(inner)
+                        };
+
+                        bean_def
                     }
 
                     fn get_bean_type_id(&self) -> TypeId {
@@ -747,63 +689,44 @@ impl TokenStreamGenerator for PrototypeBeanFactoryGenerator {
 }
 
 impl BeanFactoryGenerator for PrototypeBeanFactoryGenerator {
-    fn create_concrete_bean_factories_for_bean<T: ToTokens>(
-        field_types: &Vec<Type>,
-        field_idents: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_identifiers: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_ident: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_field_ident: &Vec<Ident>,
-        struct_type: &T
+    fn create_concrete_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
     ) -> TokenStream {
-        log_message!("Creating prototype bean factory for {} with the following mutable field types", &struct_type.to_token_stream().to_string());
         let default_profile = Ident::new(Profile::default().profile.as_str(), Span::call_site());
         let injectable_code = quote! {
-
-                impl PrototypeFactoryBean<#struct_type, #default_profile> for ListableBeanFactory {
-
-                    fn get_prototype_bean(&self) -> PrototypeBeanDefinition<#struct_type> {
-                        let mut inner = #struct_type::default();
-                        #(
-                            let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types, #default_profile>>::get_bean(&self);
-                            let arc_bean_def: Arc<#field_types> = bean_def.inner;
-                            inner.#field_idents = arc_bean_def.clone();
-                        )*
-                        #(
-                            let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #default_profile>>::get_bean(&self);
-                            let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
-                            inner.#mutable_identifiers = arc_bean_def.clone();
-                        )*
-                        PrototypeBeanDefinition {
-                            inner: Arc::new(inner)
-                        }
-                    }
-
-                    fn get_bean_type_id() -> TypeId {
-                        TypeId::of::<#struct_type>().clone()
-                    }
-
-                }
+                //
+                // impl PrototypeFactoryBean<#struct_type, #default_profile> for ListableBeanFactory {
+                //
+                //     fn get_prototype_bean(&self) -> PrototypeBeanDefinition<#struct_type> {
+                //         let mut inner = #struct_type::default();
+                //         #(
+                //             let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types, #default_profile>>::get_bean(&self);
+                //             let arc_bean_def: Arc<#field_types> = bean_def.inner;
+                //             inner.#field_idents = arc_bean_def.clone();
+                //         )*
+                //         #(
+                //             let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
+                //                 = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #default_profile>>::get_bean(&self);
+                //             let arc_bean_def: Arc<Mutex<#mutable_field_types>> = bean_def.inner;
+                //             inner.#mutable_identifiers = arc_bean_def.clone();
+                //         )*
+                //         PrototypeBeanDefinition {
+                //             inner: Arc::new(inner)
+                //         }
+                //     }
+                //
+                //     fn get_bean_type_id() -> TypeId {
+                //         TypeId::of::<#struct_type>().clone()
+                //     }
+                //
+                // }
 
         };
 
         injectable_code.into()
     }
-    fn create_abstract_bean_factories_for_bean<T: ToTokens, U: ToTokens>(
-        field_types: &Vec<Type>,
-        field_ident: &Vec<Ident>,
-        mutable_field_types: &Vec<Type>,
-        mutable_field_ident: &Vec<Ident>,
-        abstract_field_types: &Vec<Type>,
-        abstract_field_ident: &Vec<Ident>,
-        abstract_mutable_field_types: &Vec<Type>,
-        abstract_mutable_field_ident: &Vec<Ident>,
-        abstract_type: &T,
-        concrete_type: &U,
-        profile: Profile
+    fn create_abstract_bean_factories_for_bean(
+        bean_factory_info: &BeanFactoryInfo
     ) -> TokenStream {
         // log_message!("Creating bean factory with the following mutable field types: ");
         // mutable_field_types.iter().for_each(|m| {

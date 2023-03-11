@@ -190,7 +190,13 @@ impl ApplicationContextGenerator {
             }
 
             pub trait BeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(&self) -> BeanDefinition<T>;
+                type U;
+                fn get_bean(&self) -> BeanDefinition<Self::U>;
+            }
+
+            pub trait GetAbstractBean<T: 'static + Send + Sync + ?Sized> {
+                type U;
+                fn get_abstract_bean(&self) -> Option<Arc<Self::U>>;
             }
 
             pub trait PrototypeBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
@@ -208,7 +214,8 @@ impl ApplicationContextGenerator {
             }
 
             pub trait FactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<T>;
+                type U;
+                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<Self::U>;
                 fn get_bean_type_id(&self) -> TypeId;
                 fn is_singleton() -> bool;
             }

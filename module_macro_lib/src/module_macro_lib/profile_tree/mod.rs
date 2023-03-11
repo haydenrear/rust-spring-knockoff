@@ -3,9 +3,10 @@ use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use proc_macro2::Ident;
 use quote::ToTokens;
+use syn::Meta::Path;
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, BeanPath, BeanPathParts, DepType, InjectableTypeKey, Profile};
+use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, BeanPath, BeanPathParts, BeanType, DepType, InjectableTypeKey, Profile};
 
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
@@ -48,11 +49,37 @@ impl ProfileTree {
 
         let bean_ids = beans.values()
             .flat_map(|s| s.struct_type.as_ref()
-                .map(|s| vec![s.clone()]).or(Some(vec![])).unwrap()
+                .map(|s| vec![s.clone()])
+                .or(Some(vec![]))
+                .unwrap()
             )
             .collect::<Vec<Type>>();
 
+        // let abstract_bean_types = beans.values()
+        //     .flat_map(|s| s.traits_impl.iter())
+        //     .flat_map(|t| t.item_impl.trait_.map(|t| vec![t.1]).or(Some(vec![])).unwrap())
+        //     .collect::<Vec<syn::Path>>();
+
+        let beans_implement_types = beans.iter().flat_map(|b| {
+            b.1.traits_impl.iter()
+                .flat_map(|t| t.item_impl.trait_.as_ref().map(|trait_impl| vec![trait_impl.1.clone()]).or(Some(vec![])).unwrap())
+                .map(|t| (t.to_token_stream().to_string(), b.1.struct_type.as_ref().unwrap().clone()))
+        }).collect::<HashMap<String, Type>>();
+
         log_message!("{} is the number of beans parsed in profile tree.", beans.len());
+        let temp_beans = beans
+            .clone();
+        let beans_to_types = temp_beans
+            .iter()
+            .flat_map(|a| a.1.struct_type.as_ref()
+                .map(|struct_type| vec![(a.0, struct_type.clone())])
+                .or_else(||{
+                    log_message!("{} did not have a struct type assigned.", a.0);
+                    Some(vec![])
+                })
+                .unwrap()
+            )
+            .collect::<HashMap<&String, Type>>();
 
         for mut i_type in beans.iter_mut() {
 
@@ -71,13 +98,26 @@ impl ProfileTree {
                         if bean_ids.iter().any(|b|
                             d.bean_type_path
                                 .as_ref()
-                                .filter(|d|
-                                    d.bean_path_part_matches(b)
-                                ).is_some()
+                                .filter(|d| d.bean_path_part_matches(b))
+                                .is_some()
                         ) {
-                            d.is_abstract = Some(false)
+                            d.is_abstract = Some(false);
+
                         } else {
-                            d.is_abstract = Some(true)
+                            d.is_abstract = Some(true);
+                            d.bean_info.qualifier.as_ref().map(|q| beans_to_types.get(&q)
+                                .map(|type_to_set| {
+                                    d.bean_info.concrete_type_of_field_bean_type = Some(type_to_set.clone());
+                                })
+                            ).or_else(|| {
+                                d.bean_type_path.as_ref().map(|b| {
+                                    beans_implement_types.get(&b.get_inner_type_id())
+                                        .map(|inner_type| {
+                                            d.bean_info.concrete_type_of_field_bean_type = Some(inner_type.clone());
+                                        });
+                                });
+                                None
+                            });
                         }
 
                     })
