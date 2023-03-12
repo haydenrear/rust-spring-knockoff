@@ -96,12 +96,15 @@ pub struct BeanPath {
 }
 
 impl BeanPath {
+
     pub(crate) fn is_mutable(&self) -> bool {
         self.path_segments.iter().any(|p| p.is_mutable())
     }
+
     pub(crate) fn is_not_mutable(&self) -> bool {
         self.path_segments.iter().all(|p| !p.is_mutable())
     }
+
 }
 
 impl BeanPathParts {
@@ -142,39 +145,11 @@ impl BeanPath {
         self.path_segments.iter().for_each(|f| {
             log_message!("{:?} is the bean path part", f.clone());
         });
-        match &self.path_segments.clone()[..] {
-            [ BeanPathParts::MutexType{ mutex_type_inner_type, outer_type}, BeanPathParts::GenType {inner} ] => {
-                log_message!("Found mutex type with type {} and gen type {}.", SynHelper::get_str(mutex_type_inner_type.clone()), SynHelper::get_str(inner.clone()));
-                Some(inner.clone())
-            }
-            [  BeanPathParts::ArcType{ arc_inner_types , outer_type}, BeanPathParts::GenType { inner }] => {
-                log_message!("Found arc type with type {} and gen type {}.", SynHelper::get_str(arc_inner_types.clone()).as_str(), SynHelper::get_str(inner.clone()));
-                Some(inner.clone())
-            }
-            [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out}, BeanPathParts::MutexType { mutex_type_inner_type, outer_type} ] => {
-                log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
-                Some(mutex_type_inner_type.clone())
-            }
-            [ BeanPathParts::FnType { input_types, return_type }  ] => {
-                log_message!("Found fn and mutex type with type {}.", SynHelper::get_str(return_type.clone()).as_str());
-                return_type.clone()
-            }
-            [ BeanPathParts::QSelfType { q_self } ] => {
-                log_message!("Found qself type with type {}.", SynHelper::get_str(q_self.clone()).as_str());
-                Some(q_self.clone())
-            }
-            [ BeanPathParts::BindingType { associated_type } ] => {
-                log_message!("Found binding type with type {}.", SynHelper::get_str(associated_type.clone()).as_str());
-                Some(associated_type.clone())
-            }
-            [ BeanPathParts::GenType { inner } ] => {
-                log_message!("Found gen type with type {}.", SynHelper::get_str(inner.clone()).as_str());
-                Some(inner.clone())
-            }
-            [..] => {
-                None
-            }
-        }
+        self.get_inner_type()
+    }
+
+    fn are_types_equal(ty: &Type, inner: &Type) -> bool {
+        inner.to_token_stream().to_string().as_str() == ty.to_token_stream().to_string().as_str()
     }
 
     pub fn bean_path_part_matches(&self, ty: &Type) -> bool {
@@ -186,47 +161,54 @@ impl BeanPath {
         self.path_segments.iter().for_each(|f| {
             log_message!("{:?} is the bean path part", f.clone());
         });
+        self.get_inner_type()
+            .map(|t| t.to_token_stream().to_string())
+            .or(Some("".to_string()))
+            .unwrap()
+    }
+
+    pub fn get_inner_type(&self) -> Option<Type> {
+        log_message!("Found {} path segments.", self.path_segments.len());
+        self.path_segments.iter().for_each(|f| {
+            log_message!("{:?} is the bean path part", f.clone());
+        });
         match &self.path_segments.clone()[..] {
             [ BeanPathParts::MutexType{ mutex_type_inner_type, outer_type}, BeanPathParts::GenType {inner} ] => {
                 log_message!("Found mutex type with type {} and gen type {}.", SynHelper::get_str(mutex_type_inner_type.clone()), SynHelper::get_str(inner.clone()));
-                return inner.to_token_stream().to_string();
+                return Some(inner.clone());
             }
             [  BeanPathParts::ArcType{ arc_inner_types , outer_type}, BeanPathParts::GenType { inner }] => {
                 log_message!("Found arc type with type {} and gen type {}.", SynHelper::get_str(arc_inner_types.clone()).as_str(), SynHelper::get_str(inner.clone()));
-                return inner.to_token_stream().to_string();
+                return Some(inner.clone());
             }
             [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out}, BeanPathParts::MutexType { mutex_type_inner_type, outer_type} ] => {
                 log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
-                return mutex_type_inner_type.to_token_stream().to_string();
+                return Some(mutex_type_inner_type.clone());
             }
             [ BeanPathParts::FnType { input_types, return_type }  ] => {
                 log_message!("Found fn and mutex type with type {}.", SynHelper::get_str(return_type.clone()).as_str());
-                return return_type.as_ref().map(|r| r.to_token_stream().to_string())
-                    .or(Some("".to_string()))
-                    .unwrap();
+                return return_type.clone();
             }
             [ BeanPathParts::QSelfType { q_self } ] => {
                 log_message!("Found qself type with type {}.", SynHelper::get_str(q_self.clone()).as_str());
-                return q_self.to_token_stream().to_string();
+                return Some(q_self.clone());
             }
             [ BeanPathParts::BindingType { associated_type } ] => {
                 log_message!("Found binding type with type {}.", SynHelper::get_str(associated_type.clone()).as_str());
-                return "".to_string();
+                return None;
             }
             [ BeanPathParts::GenType { inner } ] => {
                 log_message!("Found gen type with type {}.", SynHelper::get_str(inner.clone()).as_str());
-                return inner.to_token_stream().to_string()
+                return Some(inner.clone())
             }
             [..] => {
-                return String::default();
+                log_message!("Bean type path did not match any conditions.");
+                return None;
             }
         }
     }
-
-    fn are_types_equal(ty: &Type, inner: &Type) -> bool {
-        inner.to_token_stream().to_string().as_str() == ty.to_token_stream().to_string().as_str()
-    }
 }
+
 
 #[derive(Clone)]
 pub enum BeanPathParts {
@@ -415,5 +397,7 @@ pub struct InjectableTypeKey {
 pub enum GetBeanResultError {
     BeanNotInContext, BeanDependenciesNotSatisfied
 }
+
+
 
 

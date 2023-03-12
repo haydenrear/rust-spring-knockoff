@@ -2,17 +2,26 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use proc_macro2::Ident;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::Meta::Path;
-use syn::Type;
+use syn::{parse2, Type};
 use codegen_utils::syn_helper::SynHelper;
+use concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, BeanPath, BeanPathParts, BeanType, DepType, InjectableTypeKey, Profile};
 
 use knockoff_logging::{initialize_log, use_logging};
+use mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
+use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
+use crate::module_macro_lib::profile_tree::profile_tree_modifier::ProfileTreeModifier;
+
+pub mod profile_tree_modifier;
+pub mod mutable_profile_tree_modifier;
+pub mod concrete_profile_tree_modifier;
+pub mod profile_profile_tree_modifier;
 
 #[derive(Clone, Default, Debug)]
 pub struct ProfileTree {
@@ -33,126 +42,21 @@ impl ProfileTree {
 
         let default_profile = Profile::default();
 
-        let mutable_field_types: Vec<String> = beans.values()
-            .filter(|b| b.mutable)
-            .map(|b| b.ident.to_token_stream().to_string().clone())
-            .collect::<Vec<String>>();
-
-        beans.clone().iter()
-            .flat_map(|b| b.1.deps_map.iter())
-            .for_each(|dep| {
-                log_message!("Checking if dep type {} is already mutable.", SynHelper::get_str(dep.bean_info.field.clone()).as_str());
-                if dep.bean_info.mutable {
-                    log_message!("Dep type {} is already mutable.", SynHelper::get_str(dep.bean_info.field.clone()).as_str());
-                }
-            });
-
-        let bean_ids = beans.values()
-            .flat_map(|s| s.struct_type.as_ref()
-                .map(|s| vec![s.clone()])
-                .or(Some(vec![]))
-                .unwrap()
-            )
-            .collect::<Vec<Type>>();
-
-        // let abstract_bean_types = beans.values()
-        //     .flat_map(|s| s.traits_impl.iter())
-        //     .flat_map(|t| t.item_impl.trait_.map(|t| vec![t.1]).or(Some(vec![])).unwrap())
-        //     .collect::<Vec<syn::Path>>();
-
-        let beans_implement_types = beans.iter().flat_map(|b| {
-            b.1.traits_impl.iter()
-                .flat_map(|t| t.item_impl.trait_.as_ref().map(|trait_impl| vec![trait_impl.1.clone()]).or(Some(vec![])).unwrap())
-                .map(|t| (t.to_token_stream().to_string(), b.1.struct_type.as_ref().unwrap().clone()))
-        }).collect::<HashMap<String, Type>>();
+        let concrete_type_modifier = ConcreteTypeProfileTreeModifier::new(&beans);
+        let mutable_type_modifier = MutableProfileTreeModifier::new(&beans);
+        let profile_profile_tree_modifier = ProfileProfileTreeModifier::new(&beans);
 
         log_message!("{} is the number of beans parsed in profile tree.", beans.len());
-        let temp_beans = beans
-            .clone();
-        let beans_to_types = temp_beans
-            .iter()
-            .flat_map(|a| a.1.struct_type.as_ref()
-                .map(|struct_type| vec![(a.0, struct_type.clone())])
-                .or_else(||{
-                    log_message!("{} did not have a struct type assigned.", a.0);
-                    Some(vec![])
-                })
-                .unwrap()
-            )
-            .collect::<HashMap<&String, Type>>();
 
         for mut i_type in beans.iter_mut() {
 
-            mutable_field_types.iter().for_each(|i| {
-                log_message!("Making {} mutable field.", i.as_str());
-                i_type.1.deps_map.iter_mut()
-                    .filter(|d| d.bean_info.type_of_field.to_token_stream().to_string() == i.clone())
-                    .for_each(|d| {
-                        if d.bean_info.mutable {
-                            log_message!("Dep type {} is already mutable.", SynHelper::get_str(d.bean_info.field.clone()).as_str());
-                        } else {
-                            log_message!("Making {} mutable field for {}.", d.bean_info.type_of_field.to_token_stream().to_string().as_str(), i_type.0.as_str());
-                            d.bean_info.mutable = true;
-                        }
-
-                        if bean_ids.iter().any(|b|
-                            d.bean_type_path
-                                .as_ref()
-                                .filter(|d| d.bean_path_part_matches(b))
-                                .is_some()
-                        ) {
-                            d.is_abstract = Some(false);
-
-                        } else {
-                            d.is_abstract = Some(true);
-                            d.bean_info.qualifier.as_ref().map(|q| beans_to_types.get(&q)
-                                .map(|type_to_set| {
-                                    d.bean_info.concrete_type_of_field_bean_type = Some(type_to_set.clone());
-                                })
-                            ).or_else(|| {
-                                d.bean_type_path.as_ref().map(|b| {
-                                    beans_implement_types.get(&b.get_inner_type_id())
-                                        .map(|inner_type| {
-                                            d.bean_info.concrete_type_of_field_bean_type = Some(inner_type.clone());
-                                        });
-                                });
-                                None
-                            });
-                        }
-
-                    })
-            });
+            concrete_type_modifier.modify_bean(i_type.1, &mut profile_tree);
+            mutable_type_modifier.modify_bean(i_type.1, &mut profile_tree);
+            profile_profile_tree_modifier.modify_bean(i_type.1, &mut profile_tree);
 
             log_message!("Adding {} to type.", i_type.1.id.clone());
 
-            if i_type.1.profile.len() == 0 {
-                log_message!("Adding {} to default_impls.", i_type.1.id.clone());
-                profile_tree.add_to_profile_concrete(i_type.1, &default_profile);
-            }
 
-            i_type.1.profile.iter()
-                .filter(|p| p.profile != default_profile.profile)
-                .for_each(|profile| {
-                    log_message!("Adding {} to profile {}.", i_type.0.clone(), profile.profile.as_str());
-                    profile_tree.add_to_profile_concrete(i_type.1, profile);
-                });
-            log_message!("{} is the number after.", profile_tree.injectable_types.get(&default_profile).unwrap().len());
-
-            i_type.1.traits_impl.iter()
-                .for_each(|trait_type| {
-                    if trait_type.profile.len() == 0 {
-                        log_message!("Creating abstract bean definition.");
-                        profile_tree.add_to_profile_abstract(i_type.1, &default_profile, trait_type.clone());
-                    } else {
-                        trait_type.profile
-                            .iter()
-                            .filter(|p| p.profile != default_profile.profile)
-                            .for_each(|profile| {
-                                log_message!("Adding to profile {}", profile.profile.as_str());
-                                profile_tree.add_to_profile_abstract(i_type.1, &profile, trait_type.clone());
-                            })
-                    }
-                });
         }
 
         log_message!("{:?} is the debugged profile tree.", &profile_tree);
@@ -212,3 +116,4 @@ impl ProfileTree {
         injectable_types
     }
 }
+

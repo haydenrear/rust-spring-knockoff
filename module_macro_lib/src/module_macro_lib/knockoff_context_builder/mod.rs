@@ -313,6 +313,10 @@ impl ApplicationContextGenerator {
                     factory.singleton_bean_definitions.get(&type_id)
                         .map(|bean_def| bean_def.inner.clone().downcast::<T>().ok())
                         .flatten()
+                        .or_else(|| factory.mutable_bean_definitions.get(&type_id)
+                                .map(|bean_def| bean_def.inner.clone().downcast::<T>().ok())
+                                .flatten()
+                        )
                 }
 
                 fn get_bean_by_qualifier<T,P>(&self, qualifier: String) -> Option<Arc<T>>
