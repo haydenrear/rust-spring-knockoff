@@ -185,7 +185,7 @@ impl ApplicationContextGenerator {
                 }
 
                 fn get_bean_type_id(&self) -> TypeId {
-                    self.inner.deref().type_id().clone()
+                    self.inner.type_id().clone()
                 }
             }
 
@@ -194,9 +194,14 @@ impl ApplicationContextGenerator {
                 fn get_bean(&self) -> BeanDefinition<Self::U>;
             }
 
-            pub trait GetAbstractBean<T: 'static + Send + Sync + ?Sized> {
+            pub trait BeanContainer<T: 'static + Send + Sync + ?Sized> {
                 type U;
-                fn get_abstract_bean(&self) -> Option<Arc<Self::U>>;
+                fn fetch_bean(&self) -> Option<Arc<Self::U>>;
+            }
+
+            pub trait BeanContainerProfile<T: 'static + Send + Sync + ?Sized, P: Profile> {
+                type U;
+                fn fetch_bean_profile(&self) -> Option<Arc<Self::U>>;
             }
 
             pub trait PrototypeBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
@@ -302,9 +307,12 @@ impl ApplicationContextGenerator {
                 fn get_bean_by_type_id<T,P>(&self, type_id: TypeId) -> Option<Arc<T>>
                 where P: Profile, T: 'static + Send + Sync
                 {
-                    self.factories.get(&P::name())
-                        .unwrap()
-                        .get_bean_definition::<T>()
+                    let factory = self.factories.get(&P::name())
+                        .unwrap();
+
+                    factory.singleton_bean_definitions.get(&type_id)
+                        .map(|bean_def| bean_def.inner.clone().downcast::<T>().ok())
+                        .flatten()
                 }
 
                 fn get_bean_by_qualifier<T,P>(&self, qualifier: String) -> Option<Arc<T>>

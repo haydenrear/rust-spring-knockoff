@@ -342,6 +342,24 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
                     }
                 }
 
+                impl BeanContainer<Mutex<#struct_type>> for ListableBeanFactory {
+                    type U = Mutex<#struct_type>;
+                    fn fetch_bean(&self) -> Option<Arc<Self::U>> {
+                        self.mutable_bean_definitions.get(&TypeId::of::<Mutex<Arc<#struct_type>>>())
+                            .map(|s| s.inner.clone().downcast::<Self::U>().ok())
+                            .flatten()
+                    }
+                }
+
+                impl BeanContainerProfile<Mutex<#struct_type>, #default_profile> for ListableBeanFactory {
+                    type U = Mutex<#struct_type>;
+                    fn fetch_bean_profile(&self) -> Option<Arc<Self::U>> {
+                        self.mutable_bean_definitions.get(&TypeId::of::<Mutex<Arc<#struct_type>>>())
+                            .map(|s| s.inner.clone().downcast::<Self::U>().ok())
+                            .flatten()
+                    }
+                }
+
                 impl MutableFactoryBean<Mutex<#struct_type>, #default_profile> for MutableBeanDefinition<Mutex<#struct_type>> {
                     type U = Mutex<#struct_type>;
                     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Mutex<#struct_type>> {
@@ -426,9 +444,18 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
                     }
                 }
 
-                impl GetAbstractBean<Mutex<dyn #abstract_type>> for ListableBeanFactory {
+                impl BeanContainer<Mutex<dyn #abstract_type>> for ListableBeanFactory {
                     type U = Mutex<#concrete_type>;
-                    fn get_abstract_bean(&self) -> Option<Arc<Self::U>> {
+                    fn fetch_bean(&self) -> Option<Arc<Self::U>> {
+                        self.mutable_bean_definitions.get(&TypeId::of::<Mutex<Arc<dyn #abstract_type>>>())
+                            .map(|s| s.inner.clone().downcast::<Self::U>().ok())
+                            .flatten()
+                    }
+                }
+
+                impl BeanContainerProfile<Mutex<dyn #abstract_type>, #profile_ident> for ListableBeanFactory {
+                    type U = Mutex<#concrete_type>;
+                    fn fetch_bean_profile(&self) -> Option<Arc<Self::U>> {
                         self.mutable_bean_definitions.get(&TypeId::of::<Mutex<Arc<dyn #abstract_type>>>())
                             .map(|s| s.inner.clone().downcast::<Self::U>().ok())
                             .flatten()
@@ -546,6 +573,25 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
                     }
                 }
 
+
+                impl BeanContainer<#struct_type> for ListableBeanFactory {
+                    type U = #struct_type;
+                    fn fetch_bean(&self) -> Option<Arc<Self::U>> {
+                        self.singleton_bean_definitions.get(&TypeId::of::<Arc<#struct_type>>())
+                            .map(|s| s.inner.clone().downcast::<Self::U>().ok())
+                            .flatten()
+                    }
+                }
+
+                impl BeanContainerProfile<#struct_type, #default_profile> for ListableBeanFactory {
+                    type U = Mutex<#struct_type>;
+                    fn fetch_bean_profile(&self) -> Option<Arc<Self::U>> {
+                        self.singleton_bean_definitions.get(&TypeId::of::<Arc<#struct_type>>())
+                            .map(|s| s.inner.clone().downcast::<Self::U>().ok())
+                            .flatten()
+                    }
+                }
+
                 impl FactoryBean<#struct_type, #default_profile> for BeanDefinition<#struct_type> {
                     type U = #struct_type;
                     fn get_bean(listable_bean_factory: &ListableBeanFactory) -> BeanDefinition<#struct_type> {
@@ -627,9 +673,19 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
                     }
                 }
 
-                impl GetAbstractBean<dyn #abstract_type> for ListableBeanFactory {
+                impl BeanContainer<dyn #abstract_type> for ListableBeanFactory {
                     type U = #struct_type;
-                    fn get_abstract_bean(&self) -> Option<Arc<Self::U>> {
+                    fn fetch_bean(&self) -> Option<Arc<Self::U>> {
+                        let type_id = TypeId::of::<Arc<dyn #abstract_type>>();
+                        self.singleton_bean_definitions.get(&type_id)
+                            .map(|s| s.inner.clone().downcast::<Self::U>().ok())
+                            .flatten()
+                    }
+                }
+
+                impl BeanContainerProfile<dyn #abstract_type, #profile_ident> for ListableBeanFactory {
+                    type U = #struct_type;
+                    fn fetch_bean_profile(&self) -> Option<Arc<Self::U>> {
                         let type_id = TypeId::of::<Arc<dyn #abstract_type>>();
                         self.singleton_bean_definitions.get(&type_id)
                             .map(|s| s.inner.clone().downcast::<Self::U>().ok())

@@ -34,7 +34,7 @@ pub trait FactoryGenerator: {
                 /// type for the abstract.
                 fn add_bean_definition<T: 'static + Send + Sync>(&mut self, bean_defin: BeanDefinition<T>) {
                     self.singleton_bean_definitions.insert(
-                        bean_defin.get_bean_type_id().clone(),
+                        bean_defin.get_bean_type_id(),
                         bean_defin.to_any()
                     );
                 }
@@ -59,7 +59,7 @@ pub trait FactoryGenerator: {
                 /// type for the abstract.
                 fn add_mutable_bean_definition<T: 'static + Send + Sync>(&mut self, bean_defin: MutableBeanDefinition<T>) {
                     self.mutable_bean_definitions.insert(
-                        bean_defin.get_bean_type_id().clone(),
+                        bean_defin.get_bean_type_id(),
                         bean_defin.to_any()
                     );
                 }
@@ -192,35 +192,6 @@ impl FactoryGen {
                     listable_bean_factory
                 }
 
-                fn get_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<T>> {
-                    let type_id = TypeId::of::<T>();
-                    if self.contains_bean_type(&type_id) {
-                        println!("Contains bean type!");
-                        let downcast_result = self.singleton_bean_definitions[&type_id]
-                            .inner.clone().downcast::<T>();
-                        if downcast_result.is_ok() {
-                            return Some(downcast_result.unwrap().clone());
-                        }
-                        return None;
-                    }
-                    println!("Does not contain bean type..");
-                    None
-                }
-
-                fn get_mutable_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Mutex<T>>> {
-                    let type_id = TypeId::of::<T>();
-                    if self.contains_mutable_bean_type(&type_id) {
-                        println!("Contains bean type!");
-                        let downcast_result = self.mutable_bean_definitions[&type_id]
-                            .inner.clone().downcast::<Mutex<T>>();
-                        if downcast_result.is_ok() {
-                            return Some(downcast_result.unwrap().clone());
-                        }
-                        return None;
-                    }
-                    println!("Does not contain bean type..");
-                    None
-                }
 
                 fn get_beans(&self) -> Vec<Arc<dyn Any + Send + Sync>> {
                     let mut beans_vec = vec![];

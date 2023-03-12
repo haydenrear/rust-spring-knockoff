@@ -26,7 +26,7 @@ pub fn do_aspect(&self, one: One) -> String {
     println!("hello");
     println!("{}", self.two.clone());
     let found = self.proceed_one_test(one);
-    let mut three_four = "three four ".to_string() + found.as_str();
+    let mut three_four = "four three ".to_string() + found.as_str();
     three_four
 }
 
