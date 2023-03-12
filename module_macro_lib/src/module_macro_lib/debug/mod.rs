@@ -22,6 +22,15 @@ impl Debug for FunctionType {
     }
 }
 
+impl Debug for BeanPath {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str("BeanPath").unwrap();
+        f.debug_list()
+            .entries(&self.path_segments)
+            .finish()
+    }
+}
+
 impl Debug for Bean {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let mut debug_struct = f.debug_struct("Bean");
@@ -39,13 +48,6 @@ impl Debug for Bean {
     }
 }
 
-impl Debug for BeanPath {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-       f.debug_struct("BeanPath")
-           .field("path_segments", &self.path_segments)
-           .finish()
-    }
-}
 
 impl Debug for DepType {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

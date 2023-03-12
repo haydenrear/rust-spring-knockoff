@@ -6,6 +6,7 @@ use crate::module_macro_lib::module_tree::Bean;
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
+
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::profile_tree::ProfileTree;

@@ -132,9 +132,18 @@ impl BeanDependencyParser {
             log_message!("Adding dependency {} for bean with id {}.",  SynHelper::get_str(bean_info.field.clone()), dep_impl.id.clone());
 
             dep_impl.ident.clone().map(|ident| {
-                log_message!("Adding dependency to struct with id {} to struct_impl of name {}", ident.to_string().clone(), dep_impl.id.clone());
+                log_message!("Adding dependency to struct with id {} to struct_impl of name {}", ident.to_string().clone(), SynHelper::get_str(&bean_info.type_of_field));
             }).or_else(|| {
                 log_message!("Could not find ident for {} when attempting to add dependency to struct.", dep_impl.id.clone());
+                None
+            });
+            bean_type_path.as_ref().map(|ident| {
+                log_message!("Checking if has inner...");
+                ident.get_inner_type().as_ref().map(|inner| {
+                    log_message!("Adding dependency to struct with id {} to struct_impl with inner type {}", &dep_impl.id, SynHelper::get_str(inner));
+                })
+            }).or_else(|| {
+                log_message!("Could not find inner type for dependency for {}.", dep_impl.id.clone());
                 None
             });
 

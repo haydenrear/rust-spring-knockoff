@@ -23,6 +23,7 @@ pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;
 pub mod profile_profile_tree_modifier;
 
+
 #[derive(Clone, Default, Debug)]
 pub struct ProfileTree {
     /// for profile implementations.
@@ -55,7 +56,6 @@ impl ProfileTree {
             profile_profile_tree_modifier.modify_bean(i_type.1, &mut profile_tree);
 
             log_message!("Adding {} to type.", i_type.1.id.clone());
-
 
         }
 
