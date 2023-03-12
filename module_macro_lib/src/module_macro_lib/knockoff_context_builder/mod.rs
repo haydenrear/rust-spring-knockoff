@@ -204,11 +204,13 @@ impl ApplicationContextGenerator {
             }
 
             pub trait MutableBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(&self) -> MutableBeanDefinition<T>;
+                type U;
+                fn get_bean(&self) -> MutableBeanDefinition<Self::U>;
             }
 
             pub trait MutableFactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<T>;
+                type U;
+                fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Self::U>;
                 fn get_bean_type_id(&self) -> TypeId;
                 fn is_singleton() -> bool;
             }

@@ -40,7 +40,15 @@ pub trait FactoryGenerator: {
                 }
 
                 fn add_bean_definition_type_id<T: 'static + Send + Sync>(&mut self, bean_defin: BeanDefinition<T>, type_id: TypeId) {
+                    println!("Adding bean definition type id.");
                     self.singleton_bean_definitions.insert(
+                        type_id,
+                        bean_defin.to_any()
+                    );
+                }
+
+                fn add_mutable_bean_definition_type_id<T: 'static + Send + Sync>(&mut self, bean_defin: MutableBeanDefinition<T>, type_id: TypeId) {
+                    self.mutable_bean_definitions.insert(
                         type_id,
                         bean_defin.to_any()
                     );
@@ -172,8 +180,9 @@ impl FactoryGen {
                         listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_paths>>, #profile_name>>::get_bean(&listable_bean_factory);
-                        listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
+                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<dyn #abstract_mutable_paths>, #profile_name>>::get_bean(&listable_bean_factory);
+                        let type_id = TypeId::of::<Arc<Mutex<dyn #abstract_paths>>>();
+                        listable_bean_factory.add_mutable_bean_definition_type_id(next_bean_definition, type_id);
                     )*
                     #(
                         let next_bean_definition = <dyn BeanFactory<dyn #abstract_paths, #profile_name, U = #abstract_paths_concrete>>::get_bean(&listable_bean_factory);
@@ -204,36 +213,6 @@ impl FactoryGen {
                         println!("Contains bean type!");
                         let downcast_result = self.mutable_bean_definitions[&type_id]
                             .inner.clone().downcast::<Mutex<T>>();
-                        if downcast_result.is_ok() {
-                            return Some(downcast_result.unwrap().clone());
-                        }
-                        return None;
-                    }
-                    println!("Does not contain bean type..");
-                    None
-                }
-
-                fn get_dyn_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Box<T>>> {
-                    let type_id = TypeId::of::<T>();
-                    if self.contains_bean_type(&type_id) {
-                        println!("Contains bean type!");
-                        let downcast_result = self.singleton_bean_definitions[&type_id]
-                            .inner.clone().downcast::<Box<T>>();
-                        if downcast_result.is_ok() {
-                            return Some(downcast_result.unwrap().clone());
-                        }
-                        return None;
-                    }
-                    println!("Does not contain bean type..");
-                    None
-                }
-
-                fn get_mutable_dyn_bean_definition<T: 'static + Send + Sync>(&self) -> Option<Arc<Mutex<Box<T>>>> {
-                    let type_id = TypeId::of::<T>();
-                    if self.contains_mutable_bean_type(&type_id) {
-                        println!("Contains bean type!");
-                        let downcast_result = self.mutable_bean_definitions[&type_id]
-                            .inner.clone().downcast::<Mutex<Box<T>>>();
                         if downcast_result.is_ok() {
                             return Some(downcast_result.unwrap().clone());
                         }

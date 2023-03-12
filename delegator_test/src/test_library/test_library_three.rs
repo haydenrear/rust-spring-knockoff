@@ -29,9 +29,9 @@ impl One {
 #[derive(Default, Debug)]
 #[singleton(Four)]
 pub struct Four {
-    // #[autowired]
-    // #[mutable_bean]
-    // pub one: Arc<Mutex<One>>,
+    #[autowired]
+    #[mutable_bean]
+    pub one: Arc<Mutex<One>>,
     #[autowired]
     pub test_one: Arc<One>,
     pub two: String,

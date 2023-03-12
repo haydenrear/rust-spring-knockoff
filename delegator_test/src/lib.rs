@@ -51,9 +51,12 @@ fn test_module_macro() {
     let one_found_again: Option<Arc<One>> = listable.get_bean_definition::<One>();
 
     assert!(four_found.is_some());
-    // assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id(), one_found_again.as_ref().unwrap().deref().type_id());
-    // assert!(one_found_again.as_ref().is_some());
-    // assert_eq!(one_found_again.unwrap().one_two_three(One{ two: "".to_string(), a: "".to_string() }), "three four two one zero".to_string());
+    assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id(), one_found_again.as_ref().unwrap().deref().type_id());
+    assert!(one_found_again.as_ref().is_some());
+    assert_eq!(one_found_again.unwrap().one_two_three(One{ two: "".to_string(), a: "".to_string() }), "three four two one zero".to_string());
+
+    let found = GetAbstractBean::<dyn Found>::get_abstract_bean(&listable);
+    assert!(found.is_some());
 
     let app_ctx = AppCtx::new();
 

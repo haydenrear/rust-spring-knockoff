@@ -193,6 +193,14 @@ fn test_downcast() {
 
     let a = Arc::new(One{});
 
+    let gen2: Gen2<Mutex<dyn OneTrait>> = Gen2 {
+        inner: Arc::new(Mutex::new(One {})),
+        phantom: PhantomGuy {phantom: Default::default()},
+    };
+
+
+
+
 }
 
 fn add_to<'a>() -> HashMap<TypeId, Gen<dyn Any + Send + Sync>> {
