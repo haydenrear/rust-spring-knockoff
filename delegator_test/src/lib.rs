@@ -31,6 +31,8 @@ pub mod test_library {
 
     pub mod test_library_three;
 
+
+
 }
 
 
@@ -41,6 +43,9 @@ fn test_module_macro() {
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
 
+    let four_found_again: Option<Arc<Four>> = BeanContainer::<Four>::fetch_bean(&listable);
+    four_found_again.unwrap().one.lock().unwrap().two = "another".to_string();
+
     let one_found: Option<Arc<Ten>> = BeanContainer::<Ten>::fetch_bean(&listable);
     let two_found: Option<Arc<Ten>> = BeanContainer::<Ten>::fetch_bean(&listable);
 
@@ -49,9 +54,12 @@ fn test_module_macro() {
 
     let four_found: Option<Arc<Four>> = BeanContainer::<Four>::fetch_bean(&listable);
     let one_found_again: Option<Arc<One>> = BeanContainer::<One>::fetch_bean(&listable);
+    assert!(four_found.as_ref().is_some());
+    assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id().clone(), one_found_again.as_ref().unwrap().deref().type_id());
 
-    assert!(four_found.is_some());
-    assert_eq!(four_found.unwrap().one.lock().unwrap().deref().type_id(), one_found_again.as_ref().unwrap().deref().type_id());
+    let four_found_third: Option<Arc<Four>> = BeanContainer::<Four>::fetch_bean(&listable);
+    assert_eq!(four_found_third.unwrap().one.lock().unwrap().two, "another".to_string());
+
     assert!(one_found_again.as_ref().is_some());
     assert_eq!(one_found_again.unwrap().one_two_three(One{ two: "".to_string(), a: "".to_string() }), "four three two one zero".to_string());
 
@@ -59,6 +67,9 @@ fn test_module_macro() {
     assert!(found.is_some());
     let found = BeanContainerProfile::<dyn Found, DefaultProfile>::fetch_bean_profile(&listable);
     assert!(found.is_some());
+
+    let once_found: Option<Arc<Once>> = BeanContainer::<Once>::fetch_bean(&listable);
+    assert!(once_found.is_some());
 
     let app_ctx = AppCtx::new();
 
@@ -74,7 +85,4 @@ fn create_with_extra_field() {
         two: String::default()
     };
 
-    let mut once = Once {
-        a: String::from("hello"),
-    };
 }

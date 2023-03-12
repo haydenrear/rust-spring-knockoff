@@ -161,22 +161,22 @@ impl FactoryGen {
                     };
                     #(
                         let next_bean_definition = <dyn BeanFactory<#singleton_idents, #profile_name, U = #singleton_idents>>::get_bean(&listable_bean_factory);
-                        println!("Adding next bean definition {:?}.", next_bean_definition);
+                        // println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
                         let next_bean_definition = <dyn BeanFactory<#singleton_types, #profile_name, U = #singleton_idents>>::get_bean(&listable_bean_factory);
-                        println!("Adding next bean definition {:?}.", next_bean_definition);
+                        // println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
                         let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_idents>, #profile_name>>::get_bean(&listable_bean_factory);
-                        println!("Adding next bean definition {:?}.", next_bean_definition);
+                        // println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     #(
                         let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_types>, #profile_name>>::get_bean(&listable_bean_factory);
-                        println!("Adding next bean definition {:?}.", next_bean_definition);
+                        // println!("Adding next bean definition {:?}.", next_bean_definition);
                         listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     #(

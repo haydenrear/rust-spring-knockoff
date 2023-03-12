@@ -3,11 +3,13 @@ use crate::module_macro_lib::item_modifier::ItemModifier;
 use std::ops::Deref;
 use proc_macro2::{Ident, Span};
 use quote::{quote, quote_spanned, ToTokens};
+use rand::Rng;
 use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, parse2, Pat, PatType, ReturnType, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
 use web_framework_shared::matcher::Matcher;
+use crate::module_macro_lib::item_parser::item_impl_parser::{is_ignore_trait, matches_ignore_traits};
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 use_logging!();
@@ -51,19 +53,22 @@ impl ItemModifier for AspectModifier {
 impl AspectModifier {
 
     pub(crate) fn add_method_advice_aspect(&self, parse_container: &mut ParseContainer, item_impl: &mut ItemImpl, path_depth: &mut Vec<String>, bean_id: &str) {
+        if is_ignore_trait(&item_impl) {
+            return;
+        }
         item_impl.items.iter_mut()
             .for_each(|i| {
                 match i {
                     ImplItem::Method(ref mut method) => {
-                        log_message!("Found method {}", SynHelper::get_str(method.clone()));
-                        let return_type = Self::get_return_type(&method);
-                        let args = Self::get_args_info(method);
-                        log_message!("Adding method advice aspect to: {}", SynHelper::get_str(method.clone()));
-                        let mut next_path = path_depth.clone();
-                        next_path.push(method.sig.ident.to_token_stream().to_string().clone());
-                        log_message!("{} is the method before the method advice aspect.", SynHelper::get_str(method.block.clone()));
-                        self.parse_aspect(parse_container, method, next_path, args, bean_id, return_type);
-                        log_message!("{} is the method after the method advice aspect.", SynHelper::get_str(method.block.clone()));
+                            log_message!("Found method {}", SynHelper::get_str(method.clone()));
+                            let return_type = Self::get_return_type(&method);
+                            let args = Self::get_args_info(method);
+                            log_message!("Adding method advice aspect to: {}", SynHelper::get_str(method.clone()));
+                            let mut next_path = path_depth.clone();
+                            next_path.push(method.sig.ident.to_token_stream().to_string().clone());
+                            log_message!("{} is the method before the method advice aspect.", SynHelper::get_str(method.block.clone()));
+                            self.parse_aspect(parse_container, method, next_path, args, bean_id, return_type);
+                            log_message!("{} is the method after the method advice aspect.", SynHelper::get_str(method.block.clone()));
                     }
                     _ => {}
                 }
@@ -176,38 +181,26 @@ impl AspectModifier {
         Self::create_advice(
             parse_container, method, args, bean_id,
             return_type, &method.clone(),
-            codegen_items.remove(0),
+            &mut codegen_items.remove(0),
         )
     }
 
     fn parse_advice_chain(items: &mut Vec<MethodAdviceAspectCodegen>, aspect_info: &mut AspectInfo) -> AspectInfo {
-        aspect_info.advice_chain = items.iter()
-            .map(|mut m| Self::update_proceed_stmt_with_args(aspect_info, m))
+        aspect_info.advice_chain = items.iter_mut()
+            .map(|mut m| Self::update_proceed_stmt_with_args(aspect_info, &mut m))
             .map(|v| MethodAdviceChain::new(&v))
             .collect();
         aspect_info.to_owned()
     }
 
-    fn update_proceed_stmt_with_args(aspect_info: &AspectInfo, mut m: &MethodAdviceAspectCodegen) -> MethodAdviceAspectCodegen {
-        let new_proceed = m.proceed_statement.as_ref()
-            .map(|p| SynHelper::get_proceed(p.to_token_stream().to_string().clone()))
-            .map(|p_suffix| AspectModifier::create_proceed_ident_from_str(&p_suffix))
-            .map(|proceed_ident|
-                AspectModifier::create_new_proceed_stmt(
-                &aspect_info.args
-                        .iter()
-                        .map(|a| a.0.clone())
-                        .collect::<Vec<Ident>>(), proceed_ident)
-            )
-            .map(|n| n.ok())
-            .flatten();
-        let mut m = m.to_owned();
-        m.proceed_statement = new_proceed;
-        m
+    fn update_proceed_stmt_with_args(aspect_info: &AspectInfo, mut m: &mut MethodAdviceAspectCodegen) -> MethodAdviceAspectCodegen {
+        let _ = AspectModifier::create_proceed_stmt_with_args(&aspect_info.method.as_ref().unwrap(), &mut m).ok()
+            .map(|new_proceed| m.proceed_statement = Some(new_proceed));
+        m.to_owned()
     }
 
     fn create_advice(parse_container: &mut ParseContainer, method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str,
-                     return_type: Option<Type>, method_before: &ImplItemMethod, first: MethodAdviceAspectCodegen
+                     return_type: Option<Type>, method_before: &ImplItemMethod, first: &mut MethodAdviceAspectCodegen
     ) -> Option<AspectInfo> {
 
         log_message!(
@@ -219,7 +212,7 @@ impl AspectModifier {
             SynHelper::get_str(first.after_advice.clone().unwrap())
         );
 
-        Self::add_advice_to_stmts(method, &first);
+        Self::add_advice_to_stmts(method, first);
         Self::rewrite_block_new_span(method);
 
         let return_type = return_type.clone();
@@ -249,7 +242,7 @@ impl AspectModifier {
         method.block = parsed.unwrap();
     }
 
-    fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
+    fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &mut MethodAdviceAspectCodegen) {
         let before = a.before_advice.clone();
         log_message!("Here is method block before: {}.", SynHelper::get_str(method.block.clone()));
         method.block.stmts.clear();
@@ -261,7 +254,7 @@ impl AspectModifier {
         log_message!("Here is method block after: {}.", SynHelper::get_str(method.block.clone()));
     }
 
-    fn add_proceed_stmt(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) {
+    fn add_proceed_stmt(method: &mut ImplItemMethod, a: &mut MethodAdviceAspectCodegen) {
         let stmt = Self::create_proceed_stmt_with_args(method, a);
 
         if stmt.is_err() {
@@ -276,7 +269,7 @@ impl AspectModifier {
         });
     }
 
-    fn create_proceed_stmt_with_args(method: &mut ImplItemMethod, a: &MethodAdviceAspectCodegen) -> syn::Result<Stmt> {
+    fn create_proceed_stmt_with_args(method: &ImplItemMethod, a: &mut MethodAdviceAspectCodegen) -> syn::Result<Stmt> {
 
         let args = method.sig.inputs.iter().flat_map(|f| {
             match f {
@@ -289,9 +282,13 @@ impl AspectModifier {
             }
         }).collect::<Vec<Pat>>();
 
-        let ident = Self::get_proceed_ident(a);
+        let ident = Self::get_proceed_ident(method);
 
         Self::create_new_proceed_stmt(&args, ident)
+            .map(|proceed_stmt| {
+                a.proceed_statement = Some(proceed_stmt.clone());
+                proceed_stmt
+            })
     }
 
     pub(crate) fn create_new_proceed_stmt<T: ToTokens>(args: &Vec<T>, ident: Ident) -> syn::Result<Stmt> {
@@ -311,13 +308,20 @@ impl AspectModifier {
         parse2::<Stmt>(proceed.into())
     }
 
-    fn get_proceed_ident(a: &MethodAdviceAspectCodegen) -> Ident {
-        let proceed_suffix = a.proceed_statement.as_ref()
-            .map(|p| SynHelper::get_proceed(p.to_token_stream().to_string().clone()))
-            .or(Some("".to_string()))
-            .unwrap();
-
+    fn get_proceed_ident(method: &ImplItemMethod) -> Ident {
+        let proceed_suffix= Self::create_proceed_suffix(&method.sig.ident);
         Self::create_proceed_ident_from_str(&proceed_suffix)
+    }
+
+    pub(crate) fn create_proceed_suffix(method_sig: &Ident) -> String {
+        let mut ident = String::default();
+        ident += method_sig.to_string().as_str();
+        let mut rng = rand::thread_rng();
+        for _ in 0..10 {
+            let x = rng.gen_range(b'A'..b'Z') as char;
+            ident.push(x);
+        }
+        ident
     }
 
     pub(crate) fn create_proceed_ident_from_str(proceed_suffix: &String) -> Ident {

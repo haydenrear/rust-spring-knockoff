@@ -91,7 +91,13 @@ impl ApplicationContextGenerator {
             .flat_map(|b| {
                 match b {
                     BeanDefinitionType::Abstract { bean, dep_type } => {
-                        vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
+                        dep_type.item_impl.trait_.as_ref().map(|trait_type| {
+                            log_message!("Found abstract bean with id: {} and abstract type: {}.",
+                            &bean.id, SynHelper::get_str(&dep_type.item_impl.trait_.as_ref().unwrap().1));
+                            vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
+                        })
+                            .or(Some(vec![]))
+                            .unwrap()
                     }
                     BeanDefinitionType::Concrete { .. } => {
                         vec![]
