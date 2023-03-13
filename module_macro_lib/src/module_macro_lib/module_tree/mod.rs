@@ -324,7 +324,7 @@ pub struct AutowireType {
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash, Debug)]
 pub struct Profile {
-    pub(crate) profile: String,
+    pub profile: String,
 }
 
 impl Default for Profile {

@@ -20,6 +20,7 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::marker::PhantomData;
 use syn::parse::Parser;
+use module_macro_lib::module_macro_lib::module_tree::Profile as ModuleProfile;
 use spring_knockoff_boot_macro::initializer;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
@@ -73,8 +74,19 @@ fn test_module_macro() {
     let mutable_bean_one = BeanContainer::<Mutex<Box<dyn Found>>>::fetch_bean(&listable);
     assert!(mutable_bean_one.is_some());
 
-    let app_ctx = AppCtx::new();
+}
 
+#[test]
+fn test_app_ctx() {
+    let app_ctx = AppCtx::new();
+    assert_eq!(app_ctx.profiles.len(), 1);
+    assert!(app_ctx.profiles.iter().any(|p| p == &ModuleProfile::default().profile));
+    let found = app_ctx.get_bean::<One>();
+    assert!(found.is_some());
+    let found = app_ctx.get_bean_for_profile::<One, DefaultProfile>();
+    assert!(found.is_some());
+    let found = app_ctx.get_bean_for_profile::<Mutex<Box<dyn Found>>, DefaultProfile>();
+    assert!(found.is_some());
 }
 
 fn create_with_extra_field() {

@@ -14,6 +14,7 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
+//TODO: the fields here may screw things up. Enum is not ready to be autowired...
 impl ItemParser<ItemEnum> for ItemEnumParser {
     fn parse_item(parse_container: &mut ParseContainer, enum_to_add: &mut ItemEnum, path_depth: Vec<String>) {
         log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());

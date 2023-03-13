@@ -304,38 +304,6 @@ impl FactoryGen {
         }
     }
 
-    // Add all the abstract dependencies to make sure we're not missing any.
-    fn get_all_dep_fields(mut abstract_mutable_types: &mut Vec<Type>, mut abstract_types: &mut Vec<Type>, bean: &Bean) {
-        bean.deps_map.iter()
-            .filter(|dep_type| dep_type.is_abstract.is_some() && *dep_type.is_abstract.as_ref().unwrap())
-            .flat_map(|bean_dep| {
-                bean_dep.bean_type_path.as_ref().map(|bean_path| {
-                    bean_path.get_inner_type()
-                })
-                    .flatten()
-                    .map(|bean_type| (bean_type, bean_dep.bean_info.mutable))
-            })
-            .for_each(|b_type| {
-                let path_ok = b_type.0;
-                let is_mutable = b_type.1;
-                log_message!("Checking if {} should be added to path.", SynHelper::get_str(&path_ok));
-                if is_mutable && !contains(&path_ok, &abstract_mutable_types) {
-                    log_message!("Adding {} to abstract mutable paths.", SynHelper::get_str(&path_ok));
-                    return abstract_mutable_types.push(path_ok)
-                } else if !is_mutable && !contains(&path_ok, &abstract_types) {
-                    log_message!("Adding {} to abstract paths.", SynHelper::get_str(&path_ok));
-                    abstract_types.push(path_ok)
-                }
-
-                fn contains(path: &Type, to_compare: &Vec<Type>) -> bool {
-                    to_compare.iter()
-                        .any(|c|
-                            &c.to_token_stream().to_string() == &path.to_token_stream().to_string()
-                        )
-                }
-            });
-    }
-
     fn add_to_ident_type(mut singleton_idents: &mut Vec<Ident>,
                          mut singleton_types: &mut Vec<Type>,
                          mut mutable_types: &mut Vec<Type>,

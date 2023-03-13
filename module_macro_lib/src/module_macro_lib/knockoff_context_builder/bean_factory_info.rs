@@ -1,5 +1,9 @@
+use std::rc::Rc;
+use std::sync::Arc;
 use proc_macro2::{Ident, Span};
-use syn::{Path, Type};
+use quote::ToTokens;
+use syn::{Field, Fields, Path, Type};
+use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::module_tree::{AutowiredField, AutowireType, Bean, DepType, Profile};
 
 use knockoff_logging::{initialize_log, use_logging};
@@ -12,10 +16,11 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 #[derive(Clone, Default)]
 pub struct BeanFactoryInfo {
-    pub(crate) fields: Vec<FieldInfo>,
+    pub(crate) fields: Vec<AutowirableFieldTypeInfo>,
     pub(crate) mutable_fields: Vec<MutableFieldInfo>,
     pub(crate) abstract_fields: Vec<AbstractFieldInfo>,
     pub(crate) mutable_abstract_fields: Vec<MutableAbstractFieldInfo>,
+    pub(crate) default_field_info: Vec<DefaultFieldInfo>,
     pub(crate) concrete_type: Option<Type>,
     pub(crate) abstract_type: Option<Path>,
     pub(crate) ident_type: Option<Ident>,
@@ -23,7 +28,20 @@ pub struct BeanFactoryInfo {
 }
 
 #[derive(Clone)]
-pub struct FieldInfo {
+pub struct AutowirableFieldTypeInfo {
+    field_type: Type,
+    concrete_field_type: Type,
+    field_ident: Ident
+}
+
+#[derive(Clone)]
+pub struct DefaultFieldInfo {
+    pub(crate) field_type: Type,
+    pub(crate) field_ident: Ident
+}
+
+#[derive(Clone)]
+pub struct DefaultFieldTypeInfo {
     field_type: Type,
     concrete_field_type: Type,
     field_ident: Ident
@@ -57,9 +75,18 @@ pub struct MutableAbstractFieldInfo {
 }
 
 impl BeanFactoryInfo {
+
     pub(crate) fn get_profile_ident(&self) -> Ident {
         self.profile.as_ref().map(|p| Ident::new(p.profile.as_str(), Span::call_site()))
             .or(Some(Ident::new(Profile::default().profile.as_str(), Span::call_site())))
+            .unwrap()
+    }
+
+    pub(crate) fn get_concrete_type(&self) -> Ident {
+        self.concrete_type
+            .as_ref()
+            .map(|t| Ident::new(t.to_token_stream().to_string().as_str(), Span::call_site()))
+            .or(self.ident_type.as_ref().map(|i| i.clone()))
             .unwrap()
     }
 
@@ -70,6 +97,7 @@ impl BeanFactoryInfo {
                                       Vec<Ident>, Vec<Type>,
                                       Vec<Type>, Vec<Ident>,
                                       Vec<Type>, Vec<Type>) {
+
         let field_types = self.fields.iter()
             .map(|f| f.field_type.clone())
             .collect::<Vec<Type>>();
@@ -117,13 +145,12 @@ pub trait BeanFactoryInfoFactory<T> {
 
     fn create_bean_factory_info(bean: &T) -> Vec<BeanFactoryInfo>;
 
-
     fn get_mutable_singleton_field_ids(token_type: &Bean) -> Vec<MutableFieldInfo> {
         Self::get_field_ids::<MutableFieldInfo>(token_type, &Self::create_mutable_dep_type)
     }
 
-    fn get_singleton_field_ids(bean: &Bean) -> Vec<FieldInfo> {
-        Self::get_field_ids::<FieldInfo>(bean, &Self::create_dep_type)
+    fn get_singleton_field_ids(bean: &Bean) -> Vec<AutowirableFieldTypeInfo> {
+        Self::get_field_ids::<AutowirableFieldTypeInfo>(bean, &Self::create_dep_type)
     }
 
     fn get_abstract_field_ids(bean: &Bean) -> Vec<AbstractFieldInfo> {
@@ -135,6 +162,23 @@ pub trait BeanFactoryInfoFactory<T> {
             bean,
             &Self::create_mutable_abstract_dep_type
         )
+    }
+
+    fn get_default_fields(bean: &Bean) -> Vec<DefaultFieldInfo> {
+        if bean.fields.len() > 1 {
+            panic!("Type had more than one set of fields Enum is not ready to be autowired!");
+        }
+        match &bean.fields[0] {
+            Fields::Named(n) => {
+                n.named.iter()
+                    .filter(|f| SynHelper::get_attr_from_vec(&f.attrs, vec!["autowired"]).is_none())
+                    .map(|f| DefaultFieldInfo{ field_type: f.ty.clone(), field_ident: f.ident.as_ref().unwrap().clone() } )
+                    .collect::<Vec<DefaultFieldInfo>>()
+            }
+            _ => {
+                vec![]
+            }
+        }
     }
 
     fn create_mutable_dep_type(dep_type: &DepType) -> Option<MutableFieldInfo> {
@@ -153,7 +197,7 @@ pub trait BeanFactoryInfoFactory<T> {
             })
     }
 
-    fn create_dep_type(dep_type: &DepType) -> Option<FieldInfo> {
+    fn create_dep_type(dep_type: &DepType) -> Option<AutowirableFieldTypeInfo> {
         if dep_type.is_abstract.is_some() && *dep_type.is_abstract.as_ref().unwrap() {
             return None;
         }
@@ -162,7 +206,7 @@ pub trait BeanFactoryInfoFactory<T> {
             .filter(|d| d.is_not_mutable())
             .map(|type_path| type_path.get_autowirable_type())
             .flatten()
-            .map(|field_type| FieldInfo {
+            .map(|field_type| AutowirableFieldTypeInfo {
                 concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
                 field_type,
                 field_ident: dep_type.bean_info.field.ident.clone().unwrap(),
@@ -247,6 +291,7 @@ impl BeanFactoryInfoFactory<Bean> for ConcreteBeanFactoryInfo {
         let fields = Self::get_singleton_field_ids(bean);
         let mutable_abstract_fields = Self::get_abstract_mutable_field_ids(&bean);
         let abstract_fields = Self::get_abstract_field_ids(&bean);
+        let default_field_info = Self::get_default_fields(&bean);
 
         bean.profile.iter()
             .map(|p| BeanFactoryInfo {
@@ -254,6 +299,7 @@ impl BeanFactoryInfoFactory<Bean> for ConcreteBeanFactoryInfo {
                 mutable_fields: mutable_fields.clone(),
                 abstract_fields: abstract_fields.clone(),
                 mutable_abstract_fields: mutable_abstract_fields.clone(),
+                default_field_info: default_field_info.clone(),
                 concrete_type: bean.struct_type.clone(),
                 abstract_type: None,
                 ident_type: bean.ident.clone(),
@@ -274,6 +320,7 @@ impl BeanFactoryInfoFactory<(Bean, AutowireType, Profile)> for AbstractBeanFacto
         let fields = Self::get_singleton_field_ids(&bean);
         let mutable_abstract_fields = Self::get_abstract_mutable_field_ids(&bean);
         let abstract_fields = Self::get_abstract_field_ids(&bean);
+        let default_field_info = Self::get_default_fields(&bean_type.0);
 
         vec![
             BeanFactoryInfo {
@@ -281,6 +328,7 @@ impl BeanFactoryInfoFactory<(Bean, AutowireType, Profile)> for AbstractBeanFacto
                 mutable_fields,
                 abstract_fields,
                 mutable_abstract_fields,
+                default_field_info,
                 concrete_type: bean.struct_type.clone(),
                 abstract_type,
                 ident_type: bean.ident.clone(),
