@@ -48,7 +48,7 @@ impl Default for Once {
         Self {
             a: String::default(),
             test_dyn_one: Arc::new(Four::default()) as Arc<dyn Found>,
-            // test_dyn_one_mutex: Arc::new(Mutex::new(Box::new(Four::default()) as Box<dyn Found>)),
+            test_dyn_one_mutex: Arc::new(Mutex::new(Box::new(Four::default()) as Box<dyn Found>)),
         }
     }
 }
@@ -57,8 +57,8 @@ impl Default for Once {
 pub struct Once {
     #[autowired]
     pub test_dyn_one: Arc<dyn Found>,
-    // #[autowired]
-    // #[mutable_bean]
-    // pub test_dyn_one_mutex: Arc<Mutex<Box<dyn Found>>>,
+    #[autowired]
+    #[mutable_bean]
+    pub test_dyn_one_mutex: Arc<Mutex<Box<dyn Found>>>,
 }
 

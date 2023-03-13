@@ -19,4 +19,6 @@ pub mod module_macro_lib {
     pub mod aspect;
     pub mod item_parser;
     pub mod item_modifier;
+    #[cfg(test)]
+    pub mod test;
 }

@@ -10,7 +10,9 @@ use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile, BeanDefiniti
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
 use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
+use crate::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::{BeanFactoryGenerator, FactoryBeanBeanFactoryGenerator};
+use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
 use crate::module_macro_lib::knockoff_context_builder::factory_generator::{FactoryGen, FactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
@@ -23,12 +25,16 @@ pub mod factory_generator;
 pub mod bean_factory_generator;
 pub mod token_stream_generator;
 pub mod aspect_generator;
+pub mod bean_factory_info;
+pub mod bean_constructor_generator;
+pub mod bean_factory;
 
 #[derive(Default)]
 pub struct ApplicationContextGenerator {
     factory_generators: Vec<Box<dyn TokenStreamGenerator>>,
     bean_factory_generators: Vec<Box<dyn TokenStreamGenerator>>,
     aspect_generators: Vec<Box<dyn TokenStreamGenerator>>,
+    constructor_generator: Vec<Box<dyn TokenStreamGenerator>>,
     profiles: Vec<Profile>,
 }
 
@@ -52,20 +58,39 @@ impl TokenStreamGenerator for ApplicationContextGenerator {
 impl ApplicationContextGenerator {
 
     pub fn create_context_generator(profile_tree: &ProfileTree) -> Self {
-        let factory_generators = profile_tree.injectable_types.iter()
-            .flat_map(|bean_def_type_profile| Self::create_factory_generators(&bean_def_type_profile))
-            .collect::<Vec<Box<dyn TokenStreamGenerator>>>();
-        let bean_factory_generators = Self::create_bean_factory_generators(&profile_tree.injectable_types);
+        let concrete_bean_factory_info = Self::get_concrete_beans(&profile_tree.injectable_types).iter()
+            .flat_map(|b| ConcreteBeanFactoryInfo::create_bean_factory_info(b))
+            .collect::<Vec<BeanFactoryInfo>>();
+        let abstract_bean_factory_info = Self::get_abstract_beans(&profile_tree.injectable_types).iter()
+            .flat_map(|b| AbstractBeanFactoryInfo::create_bean_factory_info(b))
+            .collect::<Vec<BeanFactoryInfo>>();
+
+        let factory_generators = Self::factory_generators(profile_tree);
+        let bean_factory_generators = Self::create_bean_factory_generators(
+            concrete_bean_factory_info.clone(), abstract_bean_factory_info
+        );
+        let constructor_generator = vec![BeanConstructorGenerator::create_bean_constructor_generator(
+            concrete_bean_factory_info.clone()
+        )];
+
         let profiles = profile_tree.injectable_types.keys()
             .map(|p| p.clone())
             .collect();
         let aspect_generators = vec![Self::create_aspect_generator(&profile_tree)];
+
         Self {
             factory_generators,
             bean_factory_generators,
             profiles,
-            aspect_generators
+            aspect_generators,
+            constructor_generator,
         }
+    }
+
+    fn factory_generators(profile_tree: &ProfileTree) -> Vec<Box<dyn TokenStreamGenerator>> {
+        profile_tree.injectable_types.iter()
+            .flat_map(|bean_def_type_profile| Self::create_factory_generators(&bean_def_type_profile))
+            .collect::<Vec<Box<dyn TokenStreamGenerator>>>()
     }
 
     fn create_aspect_generator(from: &ProfileTree) -> Box<dyn TokenStreamGenerator> {
@@ -78,10 +103,10 @@ impl ApplicationContextGenerator {
         ]
     }
 
-    fn create_bean_factory_generators(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<Box<dyn TokenStreamGenerator>> {
+    fn create_bean_factory_generators(concrete: Vec<BeanFactoryInfo>, abstract_beans: Vec<BeanFactoryInfo>) -> Vec<Box<dyn TokenStreamGenerator>> {
         FactoryBeanBeanFactoryGenerator::new_bean_factory_generators(
-            &Self::get_concrete_beans(&from),
-            &Self::get_abstract_beans(&from)
+            concrete,
+            abstract_beans,
         )
     }
 
@@ -303,19 +328,17 @@ impl ApplicationContextGenerator {
 
         let injectable_code = quote! {
 
+            use module_macro_lib::module_macro_lib::module_tree::Profile as KnockoffProfile;
+
             pub struct AppCtx {
-                factories: HashMap<String,ListableBeanFactory>,
-                profiles: Vec<String>
+                pub(crate) factories: HashMap<String,ListableBeanFactory>,
+                pub(crate) profiles: Vec<String>,
+                pub(crate) default_profile: String
             }
 
-            impl ApplicationContext for AppCtx {
-
-                fn get_bean_by_type_id<T,P>(&self, type_id: TypeId) -> Option<Arc<T>>
-                where P: Profile, T: 'static + Send + Sync
-                {
-                    let factory = self.factories.get(&P::name())
-                        .unwrap();
-
+            impl AppCtx {
+                fn get_bean_for_factory<T: Any + Send + Sync>(factory: &ListableBeanFactory) -> Option<Arc<T>> {
+                    let type_id = TypeId::of::<Arc<T>>();
                     factory.singleton_bean_definitions.get(&type_id)
                         .map(|bean_def| bean_def.inner.clone().downcast::<T>().ok())
                         .flatten()
@@ -324,22 +347,20 @@ impl ApplicationContextGenerator {
                                 .flatten()
                         )
                 }
+            }
 
-                fn get_bean_by_qualifier<T,P>(&self, qualifier: String) -> Option<Arc<T>>
-                where P: Profile, T: 'static + Send + Sync
-                {
-                    None
+            impl ApplicationContext for AppCtx {
+
+                fn get_bean<T: Any + Send + Sync>(&self) -> Option<Arc<T>> {
+                    self.factories.get(&self.default_profile)
+                        .map(|factory| AppCtx::get_bean_for_factory::<T>(factory))
+                        .flatten()
                 }
 
-                fn get_bean<T,P>(&self) -> Option<Arc<T>>
-                where P: Profile, T: 'static + Send + Sync
-                {
-                    None
-                }
-
-                fn get_beans(&self) -> Vec<Arc<dyn Any + Send + Sync>>
-                {
-                    vec![]
+                fn get_bean_for_profile<T: Any + Send + Sync, P: Profile>(&self) -> Option<Arc<T>> {
+                    self.factories.get(&P::name())
+                        .map(|factory| AppCtx::get_bean_for_factory::<T>(factory))
+                        .flatten()
                 }
 
                 fn new() -> Self {
@@ -354,7 +375,8 @@ impl ApplicationContextGenerator {
                     )*
                     Self {
                         factories,
-                        profiles
+                        profiles,
+                        default_profile: KnockoffProfile::default().profile
                     }
                 }
 
@@ -376,6 +398,10 @@ impl ApplicationContextGenerator {
         self.aspect_generators.iter()
             .for_each(|aspect_generator|
                 ts.append_all(aspect_generator.generate_token_stream())
+            );
+        self.constructor_generator.iter()
+            .for_each(|constructor_gen|
+                ts.append_all(constructor_gen.generate_token_stream())
             );
     }
 }

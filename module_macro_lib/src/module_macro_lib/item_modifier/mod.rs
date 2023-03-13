@@ -18,9 +18,6 @@ use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 pub mod aspect_modifier;
 pub mod delegating_modifier;
 
-#[cfg(test)]
-pub mod test;
-
 pub trait ItemModifier {
     fn modify_item(&self, parse_container: &mut ParseContainer, item: &mut Item, path_depth: Vec<String>);
     fn supports_item(&self, item: &Item) -> bool;

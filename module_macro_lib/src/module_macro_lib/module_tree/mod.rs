@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use std::any::{Any, TypeId};
+use std::cmp::Ordering;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::fmt::{Debug, Formatter, Pointer};
@@ -29,8 +30,6 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
-pub mod test;
-
 #[derive(Clone)]
 pub struct Bean {
     pub struct_type: Option<Type>,
@@ -48,6 +47,46 @@ pub struct Bean {
     pub bean_type: Option<BeanType>,
     pub mutable: bool,
     pub aspect_info: Vec<AspectInfo>
+}
+
+impl Eq for Bean {}
+
+impl PartialEq<Self> for Bean {
+    fn eq(&self, other: &Self) -> bool {
+        self.id.eq(&other.id)
+    }
+}
+
+impl PartialOrd<Self> for Bean {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.id.partial_cmp(&other.id)
+    }
+}
+
+impl Ord for Bean {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.id.cmp(&other.id)
+    }
+}
+
+impl Eq for AutowireType {}
+
+impl PartialEq<Self> for AutowireType {
+    fn eq(&self, other: &Self) -> bool {
+        self.item_impl.to_token_stream().to_string().eq(&other.item_impl.to_token_stream().to_string())
+    }
+}
+
+impl PartialOrd<Self> for AutowireType {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.item_impl.to_token_stream().to_string().partial_cmp(&other.item_impl.to_token_stream().to_string())
+    }
+}
+
+impl Ord for AutowireType {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.item_impl.to_token_stream().to_string().cmp(&other.item_impl.to_token_stream().to_string())
+    }
 }
 
 #[derive(Default, Clone)]
@@ -80,7 +119,7 @@ impl MethodAdviceChain {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum BeanDefinitionType {
     Abstract {
         bean: Bean,
@@ -178,6 +217,12 @@ impl BeanPath {
         log_message!("Found {} path segments for {:?}.", self.path_segments.len(), &self);
         // TODO: Fix this - not matching for Box (dyn Mutable)
         match &self.path_segments.clone()[..] {
+            [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out},
+              BeanPathParts::MutexType { mutex_type_inner_type, outer_type},
+              BeanPathParts::GenType { inner } ] => {
+                log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
+                return Some(inner.clone());
+            }
             [ BeanPathParts::MutexType{ mutex_type_inner_type, outer_type}, BeanPathParts::GenType {inner} ] => {
                 log_message!("Found mutex type with type {} and gen type {}.", SynHelper::get_str(mutex_type_inner_type.clone()), SynHelper::get_str(inner.clone()));
                 return Some(inner.clone());
@@ -188,6 +233,10 @@ impl BeanPath {
             }
             [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out}, BeanPathParts::MutexType { mutex_type_inner_type, outer_type} ] => {
                 log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
+                return Some(mutex_type_inner_type.clone());
+            }
+            [ BeanPathParts::MutexType { mutex_type_inner_type, outer_type }  ] => {
+                log_message!("Found fn and mutex type with type {}.", SynHelper::get_str(mutex_type_inner_type).as_str());
                 return Some(mutex_type_inner_type.clone());
             }
             [ BeanPathParts::FnType { input_types, return_type }  ] => {
@@ -249,52 +298,6 @@ pub enum BeanPathParts {
     }
 }
 
-impl Debug for BeanPathParts {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BeanPathParts::ArcType { arc_inner_types, outer_type  } => {
-                let mut debug_struct = f.debug_struct("ArcType");
-                debug_struct.field("arc_inner_types", &SynHelper::get_str(arc_inner_types).as_str());
-                debug_struct.field("outer_type", &SynHelper::get_str(outer_type).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::ArcMutexType { arc_mutex_inner_type, outer_type } => {
-                let mut debug_struct = f.debug_struct("ArcMutexType");
-                debug_struct.field("arc_mutex_inner_type", &SynHelper::get_str(arc_mutex_inner_type).as_str());
-                debug_struct.field("outer_type", &SynHelper::get_str(outer_type).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::MutexType { mutex_type_inner_type, outer_type } => {
-                let mut debug_struct = f.debug_struct("MutexType");
-                debug_struct.field("mutex_type_inner_type", &SynHelper::get_str(mutex_type_inner_type).as_str());
-                debug_struct.field("outer_type", &SynHelper::get_str(outer_type).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::FnType { input_types, return_type } => {
-                let mut debug_struct = f.debug_struct("FnType");
-                debug_struct.field("input_types", &SynHelper::get_str(input_types.iter().map(|t| t.to_token_stream().to_string()).collect::<Vec<String>>().join(", ")).as_str());
-                debug_struct.field("return_type", &SynHelper::get_str(return_type).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::QSelfType { q_self } => {
-                let mut debug_struct = f.debug_struct("QSelfType");
-                debug_struct.field("q_self", &SynHelper::get_str(q_self).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::BindingType { associated_type } => {
-                let mut debug_struct = f.debug_struct("BindingType");
-                debug_struct.field("associated_type", &SynHelper::get_str(associated_type).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::GenType { inner } => {
-                let mut debug_struct = f.debug_struct("GenType");
-                debug_struct.field("inner", &SynHelper::get_str(inner).as_str());
-                debug_struct.finish()
-            }
-        }
-    }
-}
-
 /**
 Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
  **/
@@ -321,7 +324,7 @@ pub struct AutowireType {
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash, Debug)]
 pub struct Profile {
-    pub(crate) profile: String,
+    pub profile: String,
 }
 
 impl Default for Profile {

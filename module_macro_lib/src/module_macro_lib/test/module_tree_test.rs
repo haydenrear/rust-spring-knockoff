@@ -1,9 +1,12 @@
 use quote::{quote, ToTokens};
 use syn::{parse2, Type};
+use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
-use crate::module_macro_lib::module_tree::{BeanPath, BeanPathParts};
+use crate::module_macro_lib::module_tree::BeanPathParts;
 
 struct One;
+trait OneTrait {}
+impl OneTrait for One {}
 
 #[test]
 fn test_arc_mutex_bean_path_parsing() {
@@ -13,26 +16,53 @@ fn test_arc_mutex_bean_path_parsing() {
     let arc_mutex_type = quote! {
         Arc<Mutex<One>>
     };
+    let dyn_type = quote! {
+        Arc<dyn OneTrait>
+    };
+    let dyn_mutex_type = quote! {
+        Arc<Mutex<Box<dyn OneTrait>>>
+    };
 
     let parsed_mutex = parse2::<syn::TypePath>(mutex_type);
     let parsed_arc_mutex= parse2::<syn::TypePath>(arc_mutex_type);
+    let parsed_dyn_type = parse2::<syn::TypePath>(dyn_type);
+    let parsed_dyn_mutex_type= parse2::<syn::TypePath>(dyn_mutex_type);
 
     assert!(parsed_mutex.is_ok());
     assert!(parsed_arc_mutex.is_ok());
+    assert!(parsed_dyn_type.is_ok());
+    assert!(parsed_dyn_mutex_type.is_ok());
 
     let parsed_arc_mutex = BeanDependencyPathParser::parse_type_path(parsed_arc_mutex.unwrap());
     let parsed_mutex = BeanDependencyPathParser::parse_type_path(parsed_mutex.unwrap());
+    let parsed_dyn_typ = BeanDependencyPathParser::parse_type_path(parsed_dyn_type.unwrap());
+    let parsed_dyn_mutex_type = BeanDependencyPathParser::parse_type_path(parsed_dyn_mutex_type.unwrap());
 
     assert_eq!(parsed_mutex.path_segments.len(), 1);
     assert_eq!(parsed_arc_mutex.path_segments.len(), 2);
+    assert_eq!(parsed_dyn_typ.path_segments.len(), 1);
+    assert_eq!(parsed_dyn_mutex_type.path_segments.len(), 3);
+
+    let inner_one = quote! { One };
+    let inner_dyn = quote! { dyn OneTrait };
+
+    let one_found = parse2::<Type>(inner_one).unwrap();
+    let dyn_found = parse2::<Type>(inner_dyn).unwrap();
+
+    assert_eq!(SynHelper::get_str(&one_found), SynHelper::get_str(&parsed_arc_mutex.get_inner_type().unwrap()));
+    assert_eq!(SynHelper::get_str(&one_found), SynHelper::get_str(&parsed_mutex.get_inner_type().unwrap()));
+    assert_eq!(SynHelper::get_str(&dyn_found), SynHelper::get_str(&parsed_dyn_typ.get_inner_type().unwrap()));
+    assert_eq!(SynHelper::get_str(&dyn_found), SynHelper::get_str(&parsed_dyn_mutex_type.get_inner_type().unwrap()));
 
     let path = &parsed_mutex.path_segments[0];
     match path {
         BeanPathParts::MutexType {mutex_type_inner_type, outer_type} => {
             assert_eq!(mutex_type_inner_type.to_token_stream().to_string(), "One");
             assert_ne!(outer_type.segments.len(), 0);
-            outer_type.segments.iter().any(|seg| seg.to_token_stream().to_string().contains("Mutex"));
-            outer_type.segments.iter().any(|seg| seg.to_token_stream().to_string().contains("One"));
+            outer_type.segments.iter()
+                .any(|seg| seg.to_token_stream().to_string().contains("Mutex"));
+            outer_type.segments.iter()
+                .any(|seg| seg.to_token_stream().to_string().contains("One"));
         }
         _ => {
             assert!(false);

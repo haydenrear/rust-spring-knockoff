@@ -23,7 +23,6 @@ pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;
 pub mod profile_profile_tree_modifier;
 
-
 #[derive(Clone, Default, Debug)]
 pub struct ProfileTree {
     /// for profile implementations.
@@ -70,10 +69,11 @@ impl ProfileTree {
         self.injectable_types.get_mut(profile)
             .map(|beans_to_add| {
                 log_message!("Adding {} to {} profiles.", &i_type.id, profile.profile.as_str());
-                beans_to_add.push(Self::create_bean_definition_concrete(i_type.clone()))
+                let concrete_type = Self::create_bean_definition_concrete(i_type.clone());
+                if !beans_to_add.contains(&concrete_type) {
+                    beans_to_add.push(concrete_type)
+                }
             });
-
-
     }
 
     fn create_bean_definition_concrete(bean: Bean) -> BeanDefinitionType {
@@ -92,8 +92,12 @@ impl ProfileTree {
 
     fn add_to_profile_abstract(&mut self, i_type: &Bean, profile: &Profile, dep_type: AutowireType){
         self.injectable_types.get_mut(profile)
-            .map(|beans_to_add|
-                beans_to_add.push(Self::create_bean_definition_abstract(i_type.clone(), dep_type))
+            .map(|beans_to_add| {
+                    let bean_def_type = Self::create_bean_definition_abstract(i_type.clone(), dep_type);
+                    if !beans_to_add.contains(&bean_def_type) {
+                        beans_to_add.push(bean_def_type)
+                    }
+                }
             );
     }
 
