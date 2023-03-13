@@ -178,6 +178,13 @@ impl BeanPath {
         log_message!("Found {} path segments for {:?}.", self.path_segments.len(), &self);
         // TODO: Fix this - not matching for Box (dyn Mutable)
         match &self.path_segments.clone()[..] {
+            [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out},
+              BeanPathParts::MutexType { mutex_type_inner_type, outer_type},
+              BeanPathParts::GenType { inner }
+            ] => {
+                log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
+                return Some(inner.clone());
+            }
             [ BeanPathParts::MutexType{ mutex_type_inner_type, outer_type}, BeanPathParts::GenType {inner} ] => {
                 log_message!("Found mutex type with type {} and gen type {}.", SynHelper::get_str(mutex_type_inner_type.clone()), SynHelper::get_str(inner.clone()));
                 return Some(inner.clone());

@@ -344,8 +344,8 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
             .or(bean_factory_info.ident_type.clone())
             .unwrap();
 
-        // let abstract_type = bean_factory_info.abstract_type.as_ref().unwrap();
         let default_profile = Ident::new(Profile::default().profile.as_str(), Span::call_site());
+
         let injectable_code = quote! {
 
                 impl MutableBeanFactory<Mutex<#struct_type>, #default_profile> for ListableBeanFactory {
@@ -397,11 +397,10 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
                             inner.#abstract_field_idents = arc_bean_def;
                         )*
                         #(
-                            let bean_def: MutableBeanDefinition<Mutex<dyn #abstract_mutable_field_types>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<dyn #abstract_mutable_field_types>, #default_profile>>::get_bean(
+                            let bean_def = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<#abstract_mutable_field_types>>, #default_profile>>::get_bean(
                                     listable_bean_factory
                                 );
-                            let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
+                            let arc_bean_def: Arc<Mutex<Box<#abstract_mutable_field_types>>> = bean_def.inner;
                             inner.#abstract_mutable_identifiers = arc_bean_def.clone();
                         )*
                         Self {
@@ -451,14 +450,14 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
         let injectable_code = quote! {
 
             impl MutableBeanFactory<Mutex<Box<dyn #abstract_type>>, #profile_ident> for ListableBeanFactory {
-                type U = Mutex<Box<#concrete_type>>;
+                type U = Mutex<Box<dyn #abstract_type>>;
                 fn get_bean(&self) -> MutableBeanDefinition<Self::U> {
                     <MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>>>::get_bean(&self)
                 }
             }
 
             impl BeanContainer<Mutex<Box<dyn #abstract_type>>> for ListableBeanFactory {
-                type U = Mutex<Box<#concrete_type>>;
+                type U = Mutex<Box<dyn #abstract_type>>;
                 fn fetch_bean(&self) -> Option<Arc<Self::U>> {
                     self.mutable_bean_definitions.get(&TypeId::of::<Arc<Mutex<Box<dyn #abstract_type>>>>())
                         .map(|s| s.inner.clone().downcast::<Self::U>().ok())
@@ -469,14 +468,14 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
             impl BeanContainerProfile<Mutex<Box<dyn #abstract_type>>, #profile_ident> for ListableBeanFactory {
                 type U = Mutex<Box<#concrete_type>>;
                 fn fetch_bean_profile(&self) -> Option<Arc<Self::U>> {
-                    self.mutable_bean_definitions.get(&TypeId::of::<Mutex<Arc<Box<dyn #abstract_type>>>>())
+                    self.mutable_bean_definitions.get(&TypeId::of::<Arc<Mutex<Box<dyn #abstract_type>>>>())
                         .map(|s| s.inner.clone().downcast::<Self::U>().ok())
                         .flatten()
                 }
             }
 
             impl MutableFactoryBean<Mutex<Box<dyn #abstract_type>>, #profile_ident> for MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
-                type U = Mutex<Box<#concrete_type>>;
+                type U = Mutex<Box<dyn #abstract_type>>;
                 fn get_bean(listable_bean_factory: &ListableBeanFactory) -> MutableBeanDefinition<Self::U> {
                     let mut inner = #concrete_type::default();
                     #(
@@ -498,15 +497,14 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
                         inner.#abstract_field_idents = arc_bean_def.inner.clone();
                     )*
                     #(
-                        let bean_def: MutableBeanDefinition<Mutex<Box<dyn #abstract_mutable_field_types>>>
-                            = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<dyn #abstract_mutable_field_types>, #profile_ident>>::get_bean(
+                        let bean_def = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<#abstract_mutable_field_types>, #profile_ident>>::get_bean(
                                 listable_bean_factory
                             );
-                        let arc_bean_def: Arc<Mutex<Box<dyn #abstract_mutable_field_types>>> = bean_def.inner;
+                        let arc_bean_def: Arc<Mutex<Box<#abstract_mutable_field_types>>> = bean_def.inner;
                         inner.#abstract_mutable_identifiers = arc_bean_def.clone();
                     )*
                     let m = MutableBeanDefinition {
-                        inner: Arc::new(Mutex::new(Box::new(inner)))
+                        inner: Arc::new(Mutex::new(Box::new(inner) as Box<dyn #abstract_type>))
                     };
                     m
                 }
@@ -629,12 +627,10 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
                             inner.#abstract_field_idents = arc_bean_def.inner.clone();
                         )*
                         #(
-                            let bean_def: MutableBeanDefinition<Mutex<dyn #abstract_mutable_field_types>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<dyn #abstract_mutable_field_types>, #default_profile>>::get_bean(
+                            let bean_def = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<#abstract_mutable_field_types>>, #default_profile>>::get_bean(
                                     listable_bean_factory
                                 );
-                            let arc_bean_def: Arc<Mutex<dyn #abstract_mutable_field_types>> = bean_def.inner;
-                            inner.#abstract_mutable_idents = arc_bean_def.clone();
+                            inner.#abstract_mutable_idents = bean_def.inner;
                         )*
                         Self {
                             inner: Arc::new(inner)
@@ -733,12 +729,11 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
                             inner.#abstract_field_idents = arc_bean_def;
                         )*
                         #(
-                            let bean_def: MutableBeanDefinition<Mutex<dyn #abstract_mutable_field_types>>
-                                = <ListableBeanFactory as MutableBeanFactory<Mutex<dyn #abstract_mutable_field_types>, #profile_ident>>::get_bean(
+                            let bean_def: MutableBeanDefinition<Mutex<Box<#abstract_mutable_field_types>>>
+                                = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<#abstract_mutable_field_types>>, #profile_ident>>::get_bean(
                                     listable_bean_factory
                                 );
-                            let arc_bean_def: Arc<Mutex<dyn #abstract_mutable_field_types>> = bean_def.inner;
-                            inner.#abstract_mutable_idents = arc_bean_def.clone();
+                            inner.#abstract_mutable_idents = bean_def.inner.clone();
                         )*
                         let bean_def = BeanDefinition {
                             inner: Arc::new(inner)

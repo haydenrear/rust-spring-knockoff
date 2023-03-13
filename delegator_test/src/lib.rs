@@ -71,6 +71,9 @@ fn test_module_macro() {
     let once_found: Option<Arc<Once>> = BeanContainer::<Once>::fetch_bean(&listable);
     assert!(once_found.is_some());
 
+    let mutable_bean_one = BeanContainer::<Mutex<Box<dyn Found>>>::fetch_bean(&listable);
+    assert!(mutable_bean_one.is_some());
+
     let app_ctx = AppCtx::new();
 
 }
