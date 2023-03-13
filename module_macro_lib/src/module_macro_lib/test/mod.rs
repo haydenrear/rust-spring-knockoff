@@ -1,78 +1,21 @@
-use std::collections::HashMap;
+use syn::Item;
 use std::env;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-use proc_macro2::TokenStream;
-use quote::ToTokens;
-use syn::{Item, ItemMod, parse_macro_input};
 use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
-use knockoff_logging::log_message;
 use module_macro_codegen::aspect::AspectParser;
-use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
-use crate::module_macro_lib::item_modifier::delegating_modifier::DelegatingItemModifier;
-use crate::module_macro_lib::item_modifier::ItemModifier;
 use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
 use crate::module_macro_lib::item_parser::ItemParser;
-use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
-use crate::module_macro_lib::module_parser::{create_initial_parse_container, do_container_modifications, parse_module};
-use crate::module_macro_lib::module_tree::{AspectInfo, AutowireType, Bean, BeanDefinitionType, DepType, Profile};
+use crate::module_macro_lib::module_parser::{create_initial_parse_container, do_container_modifications};
+use crate::module_macro_lib::module_tree::{AutowireType, Bean, BeanDefinitionType, DepType, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
 
-#[test]
-fn test_parse_module() {
-    let (mut module_item, mut container_tup) = get_container_tup();
-    let container = do_container_modifications(&mut module_item, &mut container_tup);
-    container.build_to_token_stream();
-    assert_aspect_info_container(container);
-    assert_eq!(container.aspects.aspects[0].method_advice_aspects.len(), 2);
-    let beans_with_aspects = get_concrete_beans_with_aspects(container);
-    assert_eq!(beans_with_aspects.len(), 1);
-    assert_eq!(beans_with_aspects[0].aspect_info.len(), 1);
-    assert_eq!(beans_with_aspects[0].aspect_info[0].advice_chain.len(), 1);
-}
+pub mod module_tree_test;
+pub mod profile_tree_test;
+pub mod item_parser_test;
 
-#[test]
-fn test_method_advice_aspects() {
-    let container_opt = get_parse_container();
-    let mut container = container_opt.unwrap();
-    assert_aspect_info_container(&mut container);
-}
+fn get_parse_container(module_app: &str, factories: &str) -> Option<ParseContainer> {
 
-#[test]
-fn test_injectable_types() {
-
-    let container_opt = get_parse_container();
-
-    assert!(container_opt.is_some());
-
-    let mut container = container_opt.unwrap();
-
-    container.build_to_token_stream();
-
-
-    assert_eq!(container.injectable_types_map.injectable_types.len(), 1);
-
-    let bean_defs = container.injectable_types_map.injectable_types.get(&Profile::default());
-    assert!(bean_defs.is_some());
-
-    let concrete_bean_types = get_concrete_bean_types(bean_defs);
-    assert_eq!(concrete_bean_types.len(), 4);
-
-    let concrete_beans = get_concrete_beans(bean_defs.unwrap());
-    let one_beans = concrete_beans.iter().filter(|b| b.id.clone() == "One".to_string())
-        .collect::<Vec<&Bean>>();
-    assert_eq!(one_beans.len(), 1);
-
-    let one_num_deps = get_deps_map(concrete_beans, "Four");
-
-    assert_eq!(one_num_deps.len(), 2);
-}
-
-fn get_parse_container() -> Option<ParseContainer> {
-
-    if let Some(Item::Mod(ref mut item_mod)) = get_module_item() {
+    if let Some(Item::Mod(ref mut item_mod)) = get_module_item(module_app, factories) {
         let mut container = ParseContainer::default();
         container.aspects = AspectParser::parse_aspects();
 
@@ -86,12 +29,13 @@ fn get_parse_container() -> Option<ParseContainer> {
 
         return Some(container);
     }
+
     assert!(false);
     None
 }
 
-fn get_container_tup() -> (Item, (ParseContainer, String)) {
-    let module_item = get_module_item();
+fn get_container_tup(module_app: &str, factories: &str) -> (Item, (ParseContainer, String)) {
+    let module_item = get_module_item(module_app, factories);
     assert!(module_item.is_some());
     let mut module_item = module_item.unwrap();
     let mut parse_container = create_initial_parse_container(&mut module_item);
@@ -117,9 +61,9 @@ fn assert_aspect_info_container(container: &mut ParseContainer) {
 }
 
 
-fn get_module_item() -> Option<Item> {
-    set_knockoff_factories();
-    let mut syn_file = SynHelper::open_from_base_dir("codegen_resources/spring-knockoff.rs");
+fn get_module_item(module_app: &str, factories: &str) -> Option<Item> {
+    set_knockoff_factories(factories);
+    let mut syn_file = SynHelper::open_from_base_dir(module_app);
     syn_file.items.get(0).cloned()
 }
 
@@ -143,6 +87,19 @@ fn get_concrete_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<Bean> {
             }
         }
     }).collect::<Vec<Bean>>()
+}
+
+fn get_abstract_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<(Bean, AutowireType)> {
+    concrete_beans.iter().flat_map(|b| {
+        match b {
+            BeanDefinitionType::Abstract { bean, dep_type } => {
+                vec![(bean.clone(), dep_type.clone())]
+            }
+            BeanDefinitionType::Concrete { bean } => {
+                vec![]
+            }
+        }
+    }).collect::<Vec<(Bean, AutowireType)>>()
 }
 
 fn get_concrete_bean_types(bean_defs: Option<&Vec<BeanDefinitionType>>) -> Vec<&BeanDefinitionType> {
@@ -169,13 +126,12 @@ fn get_concrete_beans_with_aspects(container: &mut ParseContainer) -> Vec<Bean> 
         .collect::<Vec<Bean>>()
 }
 
-fn set_knockoff_factories() {
+fn set_knockoff_factories(module_app: &str) {
     env::var("PROJECT_BASE_DIRECTORY")
         .ok()
         .or(Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/".to_string()))
         .map(|mut p| {
-            p = p + "codegen_resources/multiple_aspects_test.rs";
+            p = p + module_app;
             env::set_var("KNOCKOFF_FACTORIES", p.as_str());
         });
 }
-

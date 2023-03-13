@@ -16,7 +16,6 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
-
 pub trait FactoryGenerator: {
 
     fn generate_factory_tokens(&self) -> TokenStream;
@@ -78,8 +77,6 @@ pub trait FactoryGenerator: {
             types.push(bean.struct_type.clone().unwrap());
         }
     }
-
-
 }
 
 pub struct FactoryGen {
@@ -104,7 +101,9 @@ impl FactoryGenerator for FactoryGen {
         Self::new_listable_bean_factory(&self.beans, &self.profile)
     }
 
-    fn new_factory_generator(profile: Profile, bean_definitions: Vec<BeanDefinitionType>) -> Box<dyn TokenStreamGenerator> where Self: Sized {
+    fn new_factory_generator(profile: Profile, bean_definitions: Vec<BeanDefinitionType>)
+        -> Box<dyn TokenStreamGenerator> where Self: Sized
+    {
         let beans = bean_definitions.iter().flat_map(|b| {
             match b {
                 BeanDefinitionType::Concrete { bean } => {
@@ -145,7 +144,6 @@ impl FactoryGen {
         abstract_mutable_paths.iter().for_each(|a_path| {
             log_message!("{} is the abstract mutable path to create.", SynHelper::get_str(&a_path));
         });
-
 
         let new_listable_bean_factory = quote! {
 
@@ -230,16 +228,6 @@ impl FactoryGen {
             Vec<Path>, Vec<Type>
         ) {
 
-
-        let mut abstract_types: Vec<Type> = vec![];
-        let mut abstract_mutable_types: Vec<Type> = vec![];
-
-        beans_to_provide.iter()
-            .map(|b| &b.bean)
-            .for_each(|bean| Self::get_all_dep_fields(&mut abstract_mutable_types, &mut abstract_types, bean));
-
-        // TODO: verify abstract_paths has all abstract_types and mutable
-
         let mut singleton_idents = vec![];
         let mut singleton_types = vec![];
         let mut mutable_types = vec![];
@@ -291,7 +279,14 @@ impl FactoryGen {
          abstract_paths, abstract_paths_concrete)
     }
 
-    fn add_abstract_trait_paths_for_bean(mut abstract_mutable_paths: &mut Vec<Path>, mut abstract_mutable_concrete: &mut Vec<Type>, mut abstract_paths: &mut Vec<Path>, mut abstract_paths_concrete: &mut Vec<Type>, bean: &Bean, autowire_type: &AutowireType) {
+    fn add_abstract_trait_paths_for_bean(
+        mut abstract_mutable_paths: &mut Vec<Path>,
+        mut abstract_mutable_concrete: &mut Vec<Type>,
+        mut abstract_paths: &mut Vec<Path>,
+        mut abstract_paths_concrete: &mut Vec<Type>,
+        bean: &Bean,
+        autowire_type: &AutowireType
+    ) {
         if bean.mutable {
             autowire_type.item_impl.trait_.as_ref()
                 .map(|t| {
@@ -333,7 +328,10 @@ impl FactoryGen {
                 }
 
                 fn contains(path: &Type, to_compare: &Vec<Type>) -> bool {
-                    to_compare.iter().any(|c| &c.to_token_stream().to_string() == &path.to_token_stream().to_string())
+                    to_compare.iter()
+                        .any(|c|
+                            &c.to_token_stream().to_string() == &path.to_token_stream().to_string()
+                        )
                 }
             });
     }

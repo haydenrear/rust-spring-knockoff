@@ -23,6 +23,7 @@ pub mod factory_generator;
 pub mod bean_factory_generator;
 pub mod token_stream_generator;
 pub mod aspect_generator;
+pub mod bean_factory_info;
 
 #[derive(Default)]
 pub struct ApplicationContextGenerator {

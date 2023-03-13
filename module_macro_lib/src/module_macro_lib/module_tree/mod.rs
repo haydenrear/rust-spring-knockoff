@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use std::any::{Any, TypeId};
+use std::cmp::Ordering;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, LinkedList};
 use std::fmt::{Debug, Formatter, Pointer};
@@ -29,8 +30,6 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
-pub mod test;
-
 #[derive(Clone)]
 pub struct Bean {
     pub struct_type: Option<Type>,
@@ -48,6 +47,46 @@ pub struct Bean {
     pub bean_type: Option<BeanType>,
     pub mutable: bool,
     pub aspect_info: Vec<AspectInfo>
+}
+
+impl Eq for Bean {}
+
+impl PartialEq<Self> for Bean {
+    fn eq(&self, other: &Self) -> bool {
+        self.id.eq(&other.id)
+    }
+}
+
+impl PartialOrd<Self> for Bean {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.id.partial_cmp(&other.id)
+    }
+}
+
+impl Ord for Bean {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.id.cmp(&other.id)
+    }
+}
+
+impl Eq for AutowireType {}
+
+impl PartialEq<Self> for AutowireType {
+    fn eq(&self, other: &Self) -> bool {
+        self.item_impl.to_token_stream().to_string().eq(&other.item_impl.to_token_stream().to_string())
+    }
+}
+
+impl PartialOrd<Self> for AutowireType {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.item_impl.to_token_stream().to_string().partial_cmp(&other.item_impl.to_token_stream().to_string())
+    }
+}
+
+impl Ord for AutowireType {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.item_impl.to_token_stream().to_string().cmp(&other.item_impl.to_token_stream().to_string())
+    }
 }
 
 #[derive(Default, Clone)]
@@ -80,7 +119,7 @@ impl MethodAdviceChain {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum BeanDefinitionType {
     Abstract {
         bean: Bean,
@@ -194,6 +233,10 @@ impl BeanPath {
             }
             [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out}, BeanPathParts::MutexType { mutex_type_inner_type, outer_type} ] => {
                 log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
+                return Some(mutex_type_inner_type.clone());
+            }
+            [ BeanPathParts::MutexType { mutex_type_inner_type, outer_type }  ] => {
+                log_message!("Found fn and mutex type with type {}.", SynHelper::get_str(mutex_type_inner_type).as_str());
                 return Some(mutex_type_inner_type.clone());
             }
             [ BeanPathParts::FnType { input_types, return_type }  ] => {
