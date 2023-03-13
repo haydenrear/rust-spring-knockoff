@@ -43,11 +43,11 @@ impl ProfileProfileTreeModifier {
                 } else {
                     trait_type.profile
                         .iter()
-                        .filter(|p| p.profile != self.default_profile.profile)
                         .for_each(|profile| {
                             log_message!("Adding to profile {}", profile.profile.as_str());
                             profile_tree.add_to_profile_abstract(dep_type, &profile, trait_type.clone());
                         })
+
                 }
             });
     }
@@ -59,7 +59,6 @@ impl ProfileProfileTreeModifier {
         }
 
         dep_type.profile.iter()
-            .filter(|p| p.profile != self.default_profile.profile)
             .for_each(|profile| {
                 log_message!("Adding {} to profile {}.", dep_type.id.as_str(), profile.profile.as_str());
                 profile_tree.add_to_profile_concrete(dep_type, profile);

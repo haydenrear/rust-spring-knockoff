@@ -5,10 +5,10 @@ use proc_macro2::Ident;
 use syn::{ItemFn, Type};
 use quote::ToTokens;
 use codegen_utils::syn_helper;
-use codegen_utils::syn_helper::{debug_struct_field_opt, debug_struct_field_opt_tokens};
+use codegen_utils::syn_helper::{debug_struct_field_opt, debug_struct_field_opt_tokens, SynHelper};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
 use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
-use crate::module_macro_lib::module_tree::{AspectInfo, AutowiredField, AutowireType, Bean, BeanDefinition, BeanDefinitionType, BeanPath, BeanType, DepType, FunctionType, MethodAdviceChain, Trait};
+use crate::module_macro_lib::module_tree::{AspectInfo, AutowiredField, AutowireType, Bean, BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType, DepType, FunctionType, MethodAdviceChain, Trait};
 use crate::module_macro_lib::profile_tree::ProfileTree;
 
 impl Debug for FunctionType {
@@ -148,6 +148,52 @@ impl Debug for AspectGenerator {
         f.debug_list()
             .entries(&self.method_advice_aspects);
         Ok(())
+    }
+}
+
+impl Debug for BeanPathParts {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BeanPathParts::ArcType { arc_inner_types, outer_type  } => {
+                let mut debug_struct = f.debug_struct("ArcType");
+                debug_struct.field("arc_inner_types", &SynHelper::get_str(arc_inner_types).as_str());
+                debug_struct.field("outer_type", &SynHelper::get_str(outer_type).as_str());
+                debug_struct.finish()
+            }
+            BeanPathParts::ArcMutexType { arc_mutex_inner_type, outer_type } => {
+                let mut debug_struct = f.debug_struct("ArcMutexType");
+                debug_struct.field("arc_mutex_inner_type", &SynHelper::get_str(arc_mutex_inner_type).as_str());
+                debug_struct.field("outer_type", &SynHelper::get_str(outer_type).as_str());
+                debug_struct.finish()
+            }
+            BeanPathParts::MutexType { mutex_type_inner_type, outer_type } => {
+                let mut debug_struct = f.debug_struct("MutexType");
+                debug_struct.field("mutex_type_inner_type", &SynHelper::get_str(mutex_type_inner_type).as_str());
+                debug_struct.field("outer_type", &SynHelper::get_str(outer_type).as_str());
+                debug_struct.finish()
+            }
+            BeanPathParts::FnType { input_types, return_type } => {
+                let mut debug_struct = f.debug_struct("FnType");
+                debug_struct.field("input_types", &SynHelper::get_str(input_types.iter().map(|t| t.to_token_stream().to_string()).collect::<Vec<String>>().join(", ")).as_str());
+                debug_struct.field("return_type", &SynHelper::get_str(return_type).as_str());
+                debug_struct.finish()
+            }
+            BeanPathParts::QSelfType { q_self } => {
+                let mut debug_struct = f.debug_struct("QSelfType");
+                debug_struct.field("q_self", &SynHelper::get_str(q_self).as_str());
+                debug_struct.finish()
+            }
+            BeanPathParts::BindingType { associated_type } => {
+                let mut debug_struct = f.debug_struct("BindingType");
+                debug_struct.field("associated_type", &SynHelper::get_str(associated_type).as_str());
+                debug_struct.finish()
+            }
+            BeanPathParts::GenType { inner } => {
+                let mut debug_struct = f.debug_struct("GenType");
+                debug_struct.field("inner", &SynHelper::get_str(inner).as_str());
+                debug_struct.finish()
+            }
+        }
     }
 }
 

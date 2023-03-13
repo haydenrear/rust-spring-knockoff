@@ -198,6 +198,7 @@ impl FactoryGen {
                         let type_id = TypeId::of::<Arc<dyn #abstract_paths>>();
                         listable_bean_factory.add_bean_definition_type_id(next_bean_definition, type_id);
                     )*
+
                     listable_bean_factory
                 }
 
@@ -237,6 +238,7 @@ impl FactoryGen {
             .map(|b| &b.bean)
             .for_each(|bean| Self::get_all_dep_fields(&mut abstract_mutable_types, &mut abstract_types, bean));
 
+        // TODO: verify abstract_paths has all abstract_types and mutable
 
         let mut singleton_idents = vec![];
         let mut singleton_types = vec![];

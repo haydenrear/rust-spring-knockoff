@@ -2,7 +2,7 @@ use syn::{Attribute, ItemImpl};
 use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
-use crate::module_macro_lib::item_parser::ItemParser;
+use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
 use crate::module_macro_lib::module_tree::{AutowireType, Bean, Profile};
 use crate::module_macro_lib::parse_container::ParseContainer;
 
@@ -108,7 +108,7 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                     deps_map: vec![],
                     id: id.clone(),
                     path_depth: vec![],
-                    profile: vec![],
+                    profile: get_profiles(&item_impl.attrs),
                     ident: None,
                     fields: vec![],
                     bean_type: None,

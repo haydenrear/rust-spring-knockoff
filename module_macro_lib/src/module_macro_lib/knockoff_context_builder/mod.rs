@@ -310,6 +310,12 @@ impl ApplicationContextGenerator {
 
             impl ApplicationContext for AppCtx {
 
+                /// TODO - add Prototype
+                /// 1. Have a separate method for prototype beans
+                /// 2. Add type parameters - prototype and singleton
+                ///         - and maybe also mutable and nonmutable
+                /// 3. Add a map of prototype bean factories that you then use to create
+                /// 4. Just use the get_prototype_bean of the listable bean factory...
                 fn get_bean_by_type_id<T,P>(&self, type_id: TypeId) -> Option<Arc<T>>
                 where P: Profile, T: 'static + Send + Sync
                 {

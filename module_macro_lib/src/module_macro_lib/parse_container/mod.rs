@@ -45,6 +45,7 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
 
 
+
 #[derive(Default)]
 pub struct ParseContainer {
     pub injectable_types_builder: HashMap<String, Bean>,
