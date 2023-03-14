@@ -135,6 +135,6 @@ fn set_knockoff_factories(module_app: &str) {
         .or(Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/".to_string()))
         .map(|mut p| {
             p = p + module_app;
-            env::set_var("KNOCKOFF_FACTORIES", p.as_str());
+            env::set_var("AUG_FILE", p.as_str());
         });
 }

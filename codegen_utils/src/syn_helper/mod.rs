@@ -56,7 +56,7 @@ impl SynHelper {
     }
 
     pub fn open_factories_file_syn() -> Option<syn::File> {
-        Self::open_syn_file_from_env("KNOCKOFF_FACTORIES")
+        Self::open_syn_file_from_env("AUG_FILE")
     }
 
     pub fn open_syn_file_from_env(key: &str) -> Option<syn::File> {

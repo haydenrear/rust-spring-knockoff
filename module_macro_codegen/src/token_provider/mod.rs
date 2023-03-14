@@ -1,12 +1,20 @@
 use std::any::Any;
 use std::collections::LinkedList;
+use std::{env, fs};
+use std::fs::File;
+use std::io::{Read, Write};
 use std::ops::Deref;
 use std::os::unix::raw::time_t;
-use proc_macro2::TokenStream;
+use std::path::Path;
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use syn::{Attribute, Item, ItemMod};
+use serde::{Deserialize, Serialize};
+use syn::{Attribute, Item, ItemMod, parse2, parse_str};
+use syn::punctuated::Pair::Punctuated;
+use toml::{Table, Value};
+use factories_parser::FactoriesParser;
 use knockoff_logging::{initialize_log, use_logging};
 use crate::codegen_items;
 use crate::parser::{CodegenItem, CodegenItems, CodegenItemType, get_codegen_item, LibParser};
@@ -17,9 +25,24 @@ initialize_log!();
 use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 
-#[derive(Default, Clone)]
+pub mod factories_parser;
+
+#[derive(Clone)]
 pub struct TokenProvider {
-    codegen_items: Vec<Item>,
+    providers: Vec<TokenProviderItem>,
+}
+
+#[derive(Clone)]
+pub struct TokenProviderItem {
+    name: String,
+    provider_path: syn::Path,
+    provider_ident: Ident
+}
+
+impl Default for TokenProvider {
+    fn default() -> Self {
+        FactoriesParser::parse_factories()
+    }
 }
 
 /// Basic idea is to provide the user with the parsed ProfileTree and then have them generate tokens
@@ -28,11 +51,6 @@ pub struct TokenProvider {
 impl TokenProvider {
 
     pub(crate) fn new(item: &Vec<Item>) -> Option<Self> {
-        if TokenProvider::supports_item(item) {
-            return Some(Self {
-                codegen_items: Self::get_codegen_items(item)
-            });
-        }
         None
     }
 
@@ -61,8 +79,6 @@ impl TokenProvider {
         }).collect::<Vec<Item>>();
 
         codegen
-
-
     }
 
     fn mod_attr_has_supports(vec: &Vec<Attribute>) -> bool {
@@ -77,17 +93,7 @@ impl TokenProvider {
 impl CodegenItem for TokenProvider {
 
     fn supports_item(item: &Vec<Item>) -> bool {
-        item.iter().any(|item| {
-            match item {
-                Item::Mod(mod_found) => {
-                    log_message!("{} is name of a codegen token provider module.", mod_found.ident.to_token_stream().to_string().as_str());
-                    return Self::mod_attr_has_supports(&mod_found.attrs);
-                }
-                _ => {
-                    false
-                }
-            }
-        })
+        false
     }
 
     fn supports(&self, item: &Vec<Item>) -> bool {
@@ -95,32 +101,34 @@ impl CodegenItem for TokenProvider {
     }
 
     fn get_codegen(&self) -> Option<String> {
-        if self.codegen_items.len() <= 0 {
+        if self.providers.len() <= 0 {
             return None;
         }
-        self.codegen_items.iter().map(|c| {
-            match c {
-                Item::Mod(item_mod) => {
-
-                }
-                _ => {
-
-                }
-            }
-        });
+        // self.providers.iter().map(|c| {
+        //     match c {
+        //         Item::Mod(item_mod) => {
+        //
+        //         }
+        //         _ => {
+        //
+        //         }
+        //     }
+        // });
         Some(
             quote! {
-                pub struct DelegatingTokenProvider;
-                impl TokenStreamProvider for DelegatingTokenProvider {
 
-                    fn new(items: &ProfileTree) -> Self {
-                        todo!()
-                    }
-
-                    fn get_token_stream(&self) -> TokenStream {
-                        todo!()
-                    }
-                }
+                // pub struct HandlerMappingTokenStreamProvider;
+                //
+                // impl TokenStreamProvider for DelegatingTokenProvider {
+                //
+                //     fn new(items: &ProfileTree) -> Self {
+                //         todo!()
+                //     }
+                //
+                //     fn get_token_stream(&self) -> TokenStream {
+                //         todo!()
+                //     }
+                // }
             }.to_string()
         )
     }

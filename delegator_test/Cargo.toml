@@ -39,4 +39,4 @@ paste = "1.0.12"
 
 
 [env]
-KNOCKOFF_FACTORIES = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }
+AUG_FILE = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }

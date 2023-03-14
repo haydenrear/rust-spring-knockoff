@@ -340,7 +340,7 @@ impl AspectParser {
 
     pub fn parse_method_advice_aspects() -> Vec<ParsedAspects> {
         log_message!("Parsing aspects.");
-        env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
+        env::var("AUG_FILE").map(|aug_file| {
             log_message!("Found knockoff factories file {}. Parsing aspects.", aug_file.as_str());
             LibParser::parse_codegen_items(&aug_file)
                 .iter()
