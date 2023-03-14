@@ -4,9 +4,11 @@ use proc_macro2::{Ident, Span};
 use quote::ToTokens;
 use syn::{Field, Fields, Path, Type};
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::module_tree::{AutowiredField, AutowireType, Bean, DepType, Profile};
+use module_macro_shared::bean::Bean;
 
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
+use module_macro_shared::profile_tree::ProfileBuilder;
 use_logging!();
 initialize_log!();
 
@@ -24,7 +26,7 @@ pub struct BeanFactoryInfo {
     pub(crate) concrete_type: Option<Type>,
     pub(crate) abstract_type: Option<Path>,
     pub(crate) ident_type: Option<Ident>,
-    pub(crate) profile: Option<Profile>
+    pub(crate) profile: Option<ProfileBuilder>
 }
 
 #[derive(Clone)]
@@ -78,7 +80,7 @@ impl BeanFactoryInfo {
 
     pub(crate) fn get_profile_ident(&self) -> Ident {
         self.profile.as_ref().map(|p| Ident::new(p.profile.as_str(), Span::call_site()))
-            .or(Some(Ident::new(Profile::default().profile.as_str(), Span::call_site())))
+            .or(Some(Ident::new(ProfileBuilder::default().profile.as_str(), Span::call_site())))
             .unwrap()
     }
 
@@ -303,7 +305,7 @@ impl BeanFactoryInfoFactory<Bean> for ConcreteBeanFactoryInfo {
                 concrete_type: bean.struct_type.clone(),
                 abstract_type: None,
                 ident_type: bean.ident.clone(),
-                profile: Some(Profile::default()),
+                profile: Some(ProfileBuilder::default()),
             })
             .collect::<Vec<BeanFactoryInfo>>()
     }
@@ -311,8 +313,8 @@ impl BeanFactoryInfoFactory<Bean> for ConcreteBeanFactoryInfo {
 
 pub struct AbstractBeanFactoryInfo;
 
-impl BeanFactoryInfoFactory<(Bean, AutowireType, Profile)> for AbstractBeanFactoryInfo {
-    fn create_bean_factory_info(bean_type: &(Bean, AutowireType, Profile)) -> Vec<BeanFactoryInfo> {
+impl BeanFactoryInfoFactory<(Bean, AutowireType, ProfileBuilder)> for AbstractBeanFactoryInfo {
+    fn create_bean_factory_info(bean_type: &(Bean, AutowireType, ProfileBuilder)) -> Vec<BeanFactoryInfo> {
 
         let bean = bean_type.0.to_owned();
         let abstract_type = bean_type.1.to_owned().item_impl.trait_.map(|t| t.1);

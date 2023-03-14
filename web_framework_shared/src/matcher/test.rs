@@ -9,12 +9,12 @@ fn test_ant_path_request_matcher() {
     let third = create_request_matcher("/v1/test_three".to_string(), "/".to_string());
     let fourth = create_request_matcher("/v1/test_one_hundred|test_four_hundred/one/two/**".to_string(), "/".to_string());
 
-    let mut request_matchers = LinkedList::new();
+    let mut request_matchers = vec![];
 
-    request_matchers.push_back(first);
-    request_matchers.push_back(second);
-    request_matchers.push_back(third);
-    request_matchers.push_back(fourth);
+    request_matchers.push(first);
+    request_matchers.push(second);
+    request_matchers.push(third);
+    request_matchers.push(fourth);
 
     let request_matcher = create_request_matchers(request_matchers);
 
@@ -42,7 +42,7 @@ fn create_request_matcher(to_match: String, splitter: String) -> AntStringReques
     return AntStringRequestMatcher::new(to_match, splitter)
 }
 
-fn create_request_matchers(request_matchers: LinkedList<AntStringRequestMatcher>) -> AntPathRequestMatcher {
+fn create_request_matchers(request_matchers: Vec<AntStringRequestMatcher>) -> AntPathRequestMatcher {
     AntPathRequestMatcher::new(request_matchers)
 }
 

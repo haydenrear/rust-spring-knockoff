@@ -1,22 +1,19 @@
 use std::collections::HashMap;
-use crate::module_macro_lib::module_tree::{Bean, Profile};
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::profile_tree::profile_tree_modifier::ProfileTreeModifier;
-use crate::module_macro_lib::profile_tree::ProfileTree;
+use module_macro_shared::profile_tree::ProfileTree;
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_shared::profile_tree::ProfileBuilder;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 pub struct ProfileProfileTreeModifier {
-    default_profile: Profile
+    default_profile: ProfileBuilder
 }
 
-impl ProfileTreeModifier<Profile> for ProfileProfileTreeModifier {
-    fn create_arg(profile_tree_items: &HashMap<String, Bean>) -> Profile {
-        Profile::default()
-    }
-
+impl ProfileTreeModifier for ProfileProfileTreeModifier {
     fn modify_bean(&self, dep_type: &mut Bean, profile_tree: &mut ProfileTree) {
         self.add_concrete_to_profile(dep_type, profile_tree);
         log_message!("{} is the number of beans in the default profile after adding only the concrete beans.",
@@ -30,6 +27,12 @@ impl ProfileTreeModifier<Profile> for ProfileProfileTreeModifier {
         Self {
             default_profile: Self::create_arg(profile_tree_items)
         }
+    }
+}
+
+impl ProfileProfileTreeModifier {
+    fn create_arg(profile_tree_items: &HashMap<String, Bean>) -> ProfileBuilder {
+        ProfileBuilder::default()
     }
 }
 

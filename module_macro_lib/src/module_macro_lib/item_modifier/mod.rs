@@ -12,7 +12,7 @@ use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::module_tree::AspectInfo;
+use module_macro_shared::aspect::AspectInfo;
 use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 
 pub mod aspect_modifier;

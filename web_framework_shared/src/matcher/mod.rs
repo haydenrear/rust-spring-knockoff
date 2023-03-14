@@ -101,11 +101,11 @@ impl Matcher<WebRequest> for AntPathRequestMatcher {
 
 pub struct AntPathRequestMatcher {
     //TODO: add bloom filter and contains
-    request_matchers: LinkedList<AntStringRequestMatcher>
+    request_matchers: Vec<AntStringRequestMatcher>
 }
 
 impl AntPathRequestMatcher {
-    pub fn new(request_matchers: LinkedList<AntStringRequestMatcher> ) -> Self {
+    pub fn new(request_matchers: Vec<AntStringRequestMatcher> ) -> Self {
         Self {
             request_matchers
         }

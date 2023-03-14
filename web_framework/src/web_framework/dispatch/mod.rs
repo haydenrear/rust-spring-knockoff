@@ -35,7 +35,12 @@ impl Dispatcher {
                         .convert_extract(&request)
                         .filter(|e| action.matches(&e))
                         .and_then(|metadata| {
-                            action.do_action(metadata, &found.message, &request, response, &application_context.request_context, application_context)
+                            action.do_action(
+                                metadata, &found.message,
+                                &request, response,
+                                &application_context.request_context,
+                                application_context
+                            )
                         })
                         .and_then(|action_response| {
                             let media_type = request.headers.get("mediatype").cloned()

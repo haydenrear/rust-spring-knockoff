@@ -5,10 +5,12 @@ use syn::token::Mut;
 use syn::{Path, Type};
 use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use crate::module_macro_lib::module_tree::{AutowiredField, AutowireType, Bean, BeanPath, DepType, Profile};
+use module_macro_shared::bean::{Bean, BeanPath};
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
 
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
+use module_macro_shared::profile_tree::ProfileBuilder;
 use_logging!();
 initialize_log!();
 

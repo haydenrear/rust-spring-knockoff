@@ -87,13 +87,6 @@ pub mod filter {
         Html
     }
 
-    pub trait DispatcherContainer {
-        fn dispatcher<Response, Request>(
-            &self,
-            method: HttpMethod,
-        ) -> &'static dyn Action<Request, Response>;
-    }
-
     pub trait Action<Request, Response>: Send + Sync
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,

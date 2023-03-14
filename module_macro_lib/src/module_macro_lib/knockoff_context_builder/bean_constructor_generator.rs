@@ -1,10 +1,11 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt};
 use syn::Type;
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType};
-use crate::module_macro_lib::profile_tree::ProfileTree;
+use module_macro_shared::bean::BeanDefinitionType;
+use module_macro_shared::profile_tree::ProfileTree;
 
 pub struct BeanConstructorGenerator {
     beans_to_create_constructor_for: Vec<BeanFactoryInfo>

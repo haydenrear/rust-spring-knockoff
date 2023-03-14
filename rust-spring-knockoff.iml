@@ -37,6 +37,8 @@
       <sourceFolder url="file://$MODULE_DIR$/codegen_utils/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test_app_2/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_proc_macro_tests/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/handler_mapping/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/token_stream_provider/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

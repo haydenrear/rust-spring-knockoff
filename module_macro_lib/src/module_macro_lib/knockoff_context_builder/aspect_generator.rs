@@ -4,16 +4,18 @@ use syn::{Block, Expr, ImplItemMethod, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
+use module_macro_shared::aspect::{AspectInfo, MethodAdviceChain};
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use crate::module_macro_lib::module_tree::{AspectInfo, Bean, BeanDefinitionType, MethodAdviceChain};
+use module_macro_shared::bean::BeanDefinitionType;
 
 use_logging!();
 initialize_log!();
 
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-use crate::module_macro_lib::profile_tree::ProfileTree;
+use module_macro_shared::profile_tree::ProfileTree;
 
 
 pub struct AspectGenerator {
@@ -75,7 +77,6 @@ impl AspectGenerator {
         }
 
         let method_ident = &a.0.method.as_ref().unwrap().sig.ident;
-
 
         Self::implement(ts, a, &arg_idents, &arg_types, &mut proceed_suffix, &mut vec![block.to_token_stream().clone()], method_ident);
     }

@@ -1,0 +1,4 @@
+[token_provider.handler_mapping]
+provider_path = "handler_mapping::HandlerMappingBuilder"
+provider_name = "HandlerMappingTokenProvider"
+mod_name = "handler_mapping_token_provider"

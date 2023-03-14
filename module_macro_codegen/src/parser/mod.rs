@@ -21,13 +21,15 @@ initialize_log!();
 use crate::logger::executor;
 use crate::logger::StandardLoggingFacade;
 use crate::module_extractor::ModuleParser;
+use crate::token_provider::TokenProvider;
 
 codegen_items!(
     (AuthenticationTypeCodegen, AuthenticationType),
     (ParsedAspects, Aspect),
     (FieldAug, FieldAug),
     (ModuleParser, Module),
-    (Initializer, ContextInitializer)
+    (Initializer, ContextInitializer),
+    (TokenProvider, TokenProvider)
 );
 
 #[test]
