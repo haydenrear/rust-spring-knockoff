@@ -10,3 +10,6 @@ syn = {version = "1.0", features = ["full"]}
 async-std = "1.11.0"
 serde_json = "1.0.87"
 serde = { version = "1.0", features = ["derive"] }
+proc-macro2 = "1.0.52"
+derive-syn-parse = "0.1.5"
+circular = "0.3.0"

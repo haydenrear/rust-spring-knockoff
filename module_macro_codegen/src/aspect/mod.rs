@@ -134,7 +134,10 @@ impl MethodAdviceAspectCodegen {
     fn get_aspect_metadata(item_fn: &ItemFn) -> (Option<Stmt>, Option<String>, usize) {
         let proceed_statement = item_fn.block.stmts.iter()
             .filter(|b| b.to_token_stream().to_string().as_str().contains("proceed"))
-            .map(|b| b.clone())
+            .map(|b| {
+                log_message!("{} is the proceed statement.", SynHelper::get_str(b));
+                b.clone()
+            })
             .next();
 
         let mut pointcut_expr = item_fn.attrs.iter()
@@ -158,9 +161,7 @@ impl MethodAdviceAspectCodegen {
 
     fn is_aspect(vec: &Vec<Attribute>) -> bool {
         vec.iter()
-            .any(|attr|
-                attr.to_token_stream().to_string().as_str().contains("aspect")
-            )
+            .any(|attr| attr.to_token_stream().to_string().as_str().contains("aspect"))
     }
 
     fn up_until_join_point(block: &Block) -> Block {
@@ -340,7 +341,7 @@ impl AspectParser {
 
     pub fn parse_method_advice_aspects() -> Vec<ParsedAspects> {
         log_message!("Parsing aspects.");
-        env::var("KNOCKOFF_FACTORIES").map(|aug_file| {
+        env::var("AUG_FILE").map(|aug_file| {
             log_message!("Found knockoff factories file {}. Parsing aspects.", aug_file.as_str());
             LibParser::parse_codegen_items(&aug_file)
                 .iter()

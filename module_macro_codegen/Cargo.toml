@@ -12,9 +12,14 @@ syn = {version = "1.0", features = ["full"]}
 derive-syn-parse = "0.1.5"
 lazy_static = "1.4.0"
 serde = "1.0.137"
-base64 = "0.13.0"
+base64 = "0.21.0"
 executors = "0.9.0"
 rand = "0.8.5"
+toml = "0.7.3"
+
+[build-dependencies]
+lazy_static = "1.4.0"
+executors = "0.9.0"
 
 [dependencies.knockoff_security]
 path = "../knockoff_security"
@@ -27,6 +32,8 @@ path = "../spring_knockoff_boot_macro"
 [dependencies.codegen_utils]
 path = "../codegen_utils"
 
+[build-dependencies.knockoff_logging]
+path = "../knockoff_logging"
 [build-dependencies.spring_knockoff_boot_macro]
 path = "../spring_knockoff_boot_macro"
 [build-dependencies.knockoff_security]
@@ -35,3 +42,5 @@ path = "../knockoff_security"
 path = "../web_framework_shared"
 [build-dependencies.codegen_utils]
 path = "../codegen_utils"
+[build-dependencies.factories_codegen]
+path = "../factories_codegen"

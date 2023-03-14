@@ -3,10 +3,13 @@ use std::env;
 use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_codegen::aspect::AspectParser;
+use module_macro_shared::bean::Bean;
+use module_macro_shared::dependency::DepType;
+use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
 use crate::module_macro_lib::item_parser::ItemParser;
 use crate::module_macro_lib::module_parser::{create_initial_parse_container, do_container_modifications};
-use crate::module_macro_lib::module_tree::{Bean, BeanDefinitionType, DepType, Profile};
+use module_macro_shared::bean::BeanDefinitionType;
 use crate::module_macro_lib::parse_container::ParseContainer;
 use crate::module_macro_lib::test::{assert_aspect_info_container, get_abstract_beans, get_concrete_bean_types, get_concrete_beans, get_concrete_beans_with_aspects, get_container_tup, get_deps_map, get_parse_container};
 
@@ -51,9 +54,9 @@ fn test_injectable_types() {
     container.build_to_token_stream();
 
 
-    assert_eq!(container.injectable_types_map.injectable_types.len(), 1);
+    assert_eq!(container.profile_tree.injectable_types.len(), 1);
 
-    let bean_defs = container.injectable_types_map.injectable_types.get(&Profile::default());
+    let bean_defs = container.profile_tree.injectable_types.get(&ProfileBuilder::default());
     assert!(bean_defs.is_some());
 
     let concrete_bean_types = get_concrete_bean_types(bean_defs);

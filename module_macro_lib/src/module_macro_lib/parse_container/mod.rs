@@ -9,48 +9,55 @@ use std::ops::Deref;
 use std::ptr::slice_from_raw_parts;
 use std::slice::Iter;
 use std::str::pattern::Pattern;
-use std::sync::{Arc};
+use std::sync::Arc;
 use proc_macro2::{Span, TokenStream};
-use syn::{parse_macro_input, DeriveInput, Data, Fields, Field, Item, ItemMod, ItemStruct, FieldsNamed, FieldsUnnamed, ItemImpl, ImplItem, ImplItemMethod, parse_quote, parse, Type, ItemTrait, Attribute, ItemFn, Path, TraitItem, Lifetime, TypePath, QSelf, TypeArray, ItemEnum, ReturnType, Stmt, Expr, Block, FnArg, PatType, Pat};
+use syn::{Attribute, Block, Data, DeriveInput, Expr, Field, Fields, FieldsNamed, FieldsUnnamed, FnArg, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Pat, Path, PatType, QSelf, ReturnType, Stmt, TraitItem, Type, TypeArray, TypePath};
 use syn::__private::{str, TokenStream as ts};
 use syn::parse::Parser;
 use syn::spanned::Spanned;
 use syn::{
+    Ident,
     LitStr,
     Token,
-    Ident,
     token::Paren,
 };
-use quote::{quote, format_ident, IdentFragment, ToTokens, quote_token, TokenStreamExt, quote_spanned};
+use quote::{format_ident, IdentFragment, quote, quote_spanned, quote_token, TokenStreamExt, ToTokens};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use codegen_utils::syn_helper::SynHelper;
 use crate::FieldAugmenterImpl;
-use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
+use crate::module_macro_lib::bean_parser::BeanDependencyParser;
 use crate::module_macro_lib::context_builder::ContextBuilder;
 use crate::module_macro_lib::initializer::ModuleMacroInitializer;
-use crate::module_macro_lib::module_tree::{Bean, Trait, Profile, DepType, BeanType, BeanDefinition, AutowiredField, AutowireType, InjectableTypeKey, ModulesFunctions, FunctionType, BeanDefinitionType, AspectInfo};
-use crate::module_macro_lib::profile_tree::ProfileTree;
+use crate::module_macro_lib::module_tree::{BeanDefinition, FunctionType, InjectableTypeKey, ModulesFunctions, Trait};
+use crate::module_macro_lib::profile_tree::ProfileTreeBuilder;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
-use knockoff_logging::{initialize_log, use_logging, create_logger_expr};
+use knockoff_logging::{create_logger_expr, initialize_log, use_logging};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
+use module_macro_shared::aspect::AspectInfo;
+use module_macro_shared::bean::{Bean, BeanDefinitionType, BeanType};
+use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
-use web_framework_shared::matcher::Matcher;
+use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
 use crate::module_macro_lib::item_modifier::delegating_modifier::DelegatingItemModifier;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
+use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
+use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
+use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
+use crate::module_macro_lib::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 
 #[derive(Default)]
 pub struct ParseContainer {
     pub injectable_types_builder: HashMap<String, Bean>,
-    pub injectable_types_map: ProfileTree,
+    pub profile_tree: ProfileTree,
     pub traits: HashMap<String, Trait>,
     pub fns: HashMap<TypeId, ModulesFunctions>,
-    pub profiles: Vec<Profile>,
+    pub profiles: Vec<ProfileBuilder>,
     pub initializer: ModuleMacroInitializer,
     pub aspects: AspectParser,
     pub item_modifier: DelegatingItemModifier
@@ -72,16 +79,16 @@ impl ParseContainer {
     pub fn build_injectable(&mut self) {
         self.set_build_dep_types();
 
-        self.injectable_types_map = ProfileTree::new(&mut self.injectable_types_builder);
-        log_message!("{:?} is the debugged tree.", &self.injectable_types_map);
-        log_message!("{} is the number of injectable types.", &self.injectable_types_map.injectable_types.values().len());
-        log_message!("Here is the profile tree: ");
-        self.injectable_types_map.injectable_types.values().flat_map(|b| {
-                b.iter()
-            })
-            .for_each(|v| {
-                log_message!("{:?} is the bean definition.", v.clone());
-            });
+        let modifiers = vec![
+            Box::new(ConcreteTypeProfileTreeModifier::new(&self.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
+            Box::new(MutableProfileTreeModifier::new(&self.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
+            Box::new(ProfileProfileTreeModifier::new(&self.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
+        ];
+
+        self.profile_tree = ProfileTreeBuilder::build_profile_tree(&mut self.injectable_types_builder, modifiers);
+
+        log_message!("{} is the number of injectable types in the profile tree.", &self.profile_tree.injectable_types.values().len());
+        log_message!("{:?} is the parsed and modified profile tree.", &self.profile_tree);
 
     }
 

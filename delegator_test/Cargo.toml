@@ -10,6 +10,7 @@ syn = {version = "1.0", features = ["full"]}
 quote = "1.0"
 dynpath = "0.1.4"
 paste = "1.0.12"
+proc-macro2 = "1.0.52"
 
 [dependencies.module_macro]
 path = "../module_macro"
@@ -19,7 +20,15 @@ path = "../module_macro_lib"
 path = "../module_macro_shared"
 [dependencies.spring_knockoff_boot_macro]
 path = "../spring_knockoff_boot_macro"
+[dependencies.token_stream_provider]
+path = "../token_stream_provider"
+[dependencies.web_framework]
+path = "../web_framework"
 
+[build-dependencies.web_framework]
+path = "../web_framework"
+[build-dependencies.token_stream_provider]
+path = "../token_stream_provider"
 [build-dependencies.spring_knockoff_boot_macro]
 path = "../spring_knockoff_boot_macro"
 [build-dependencies.build_lib]
@@ -39,4 +48,4 @@ paste = "1.0.12"
 
 
 [env]
-KNOCKOFF_FACTORIES = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }
+AUG_FILE = {value = "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs" }

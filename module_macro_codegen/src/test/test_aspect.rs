@@ -26,7 +26,7 @@ fn test_parse_aspect() {
 
 #[test]
 fn test_lib_parse() {
-    let knockoff_files = env::var("KNOCKOFF_FACTORIES");
+    let knockoff_files = env::var("AUG_FILE");
     assert!(knockoff_files.is_ok());
     let parsed = LibParser::parse_codegen_items(knockoff_files.unwrap().as_str());
     assert_ne!(parsed.len(), 0);

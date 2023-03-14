@@ -1,22 +1,23 @@
 use core::slice::Chunks;
-use std::collections::{LinkedList};
+use std::collections::LinkedList;
 use std::error::Error;
 use std::future::Future;
 use std::intrinsics::write_bytes;
 use std::io::Write;
 use std::ops::Deref;
 use std::pin::Pin;
-use std::task::{Context, Poll};
-use async_std::stream::{Stream};
+use async_std::stream::Stream;
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
-use crate::web_framework::context::{ApplicationContext, RequestContext};
+use crate::web_framework::context::{Context, RequestHelpers};
 use serde::{Deserialize, Serialize};
+use web_framework_shared::dispatch_server::Handler;
 use crate::web_framework::convert::Registration;
-use crate::web_framework::dispatch::{Dispatcher};
-use crate::web_framework::filter::filter::{Action};
-use crate::web_framework::request::request::WebResponse;
+use crate::web_framework::dispatch::FilterExecutor;
+use web_framework_shared::request::WebResponse;
 use web_framework_shared::request::WebRequest;
+use crate::web_framework::request_context::RequestContext;
+use crate::web_framework::session::session::HttpSession;
 
 pub trait Adapter<T,U> {
     fn from(&self, t: T) -> U;
@@ -47,7 +48,7 @@ pub trait RequestExecutor<'a, RequestType, ResponseType, ResponseWriterType>
         ResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default,
         ResponseWriterType: Copy + Clone
 {
-    fn do_request(&self, response_writer_type: RequestType) -> ResponseType;
+    fn do_request(&self, response_writer_type: RequestType, request_context: &mut RequestContext) -> ResponseType;
 }
 
 #[async_trait]
@@ -127,7 +128,7 @@ pub struct RequestExecutorImpl<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub ctx: ApplicationContext<Request, Response>,
+    pub ctx: Context<Request, Response>,
 }
 
 impl <Request, Response> Clone for RequestExecutorImpl<Request, Response>
@@ -145,16 +146,16 @@ impl <Request, Response> Clone for RequestExecutorImpl<Request, Response>
 
 #[async_trait]
 impl <'a, Request, Response> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>
-for RequestExecutorImpl< Request, Response>
+for RequestExecutorImpl<Request, Response>
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-    fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
+    fn do_request(&self, mut web_request: WebRequest, request_context: &mut RequestContext) -> WebResponse {
         let mut response = WebResponse::default();
         self.ctx.filter_registry
             .fiter_chain
-            .do_filter(&web_request, &mut response, &self.ctx);
+            .do_filter(&web_request, &mut response, &self.ctx, request_context);
         response
     }
 }

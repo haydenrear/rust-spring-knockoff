@@ -7,19 +7,23 @@ use data_framework::Entity;
 use knockoff_security::knockoff_security::user_request_account::{AccountData, UserAccount, UserSession};
 use web_framework::{create_message_converter, default_message_converters};
 use web_framework::web_framework::convert::{EndpointRequestExtractor, MessageConverter, Registration};
-use web_framework::web_framework::dispatch::Dispatcher;
-use web_framework::web_framework::filter::filter::{Action, DelegatingFilterProxy, Filter};
-use web_framework::web_framework::request::request::WebResponse;
+use web_framework::web_framework::dispatch::FilterExecutor;
+use web_framework::web_framework::filter::filter::{Filter, FilterChain};
+use web_framework_shared::request::WebResponse;
 use web_framework::web_framework::security::user_details::PersistenceUserDetailsService;
 use web_framework::web_framework::http::RequestExecutorImpl;
-use web_framework::web_framework::context::{ApplicationContext, RequestContext};
+use web_framework::web_framework::context::{Context, RequestHelpers};
 use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder, RequestContextBuilder};
 use web_framework::web_framework::message::MessageType;
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use module_macro_lib::AuthenticationTypeConverterImpl;
 use mongo_repo::{Db, MongoRepo};
+use web_framework::web_framework::request_context::RequestContext;
 use web_framework::web_framework::security::authentication::{AuthenticationProvider, AuthenticationToken, DaoAuthenticationProvider};
 use web_framework::web_framework::security::password::NoOpPasswordEncoder;
+use web_framework::web_framework::session::session::HttpSession;
+use web_framework_shared::authority::GrantedAuthority;
+use web_framework_shared::dispatch_server::Handler;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TestUserAccount;
@@ -46,15 +50,18 @@ impl UserAccount for TestUserAccount {
     }
 }
 
+#[test]
+fn test(){}
+
 #[tokio::main]
 async fn main() {
     let filter: Filter<Example, Example> = Filter::new(
-        Box::new(TestAction::default()), None
+        Arc::new(TestAction::default()), None, Arc::new(FilterExecutor::default())
     );
     let mut filter_registrar = FilterRegistrarBuilder {
         filters: Arc::new(Mutex::new(vec![])),
         already_built: false,
-        fiter_chain: Arc::new(DelegatingFilterProxy::default())
+        fiter_chain: Arc::new(FilterChain::default())
     };
 
     default_message_converters!();
@@ -96,12 +103,12 @@ async fn main() {
     r.do_run();
 
     let filter1: Filter<Example1, Example1> = Filter::new(
-        Box::new(TestAction::default()), None
+        Arc::new(TestAction::default()), None, Arc::new(FilterExecutor::default())
     );
     let mut filter_registrar1 = FilterRegistrarBuilder {
         filters: Arc::new(Mutex::new(vec![])),
         already_built: false,
-        fiter_chain: Arc::new(DelegatingFilterProxy::default())
+        fiter_chain: Arc::new(FilterChain::default())
     };
     filter_registrar1.register(filter1);
     let ctx_builder1 = ApplicationContextBuilder::<Example1, Example1> {
@@ -125,7 +132,7 @@ async fn main() {
         }))),
         authentication_converters: Some(Arc::new(AuthenticationConverterRegistryBuilder {
             converters: Arc::new(Mutex::new(vec![])),
-            authentication_type_converter: Arc::new(Mutex::new(Some(Box::new(&AuthenticationTypeConverterImpl {}))))
+            authentication_type_converter: Arc::new(Mutex::new(Some(Box::new(AuthenticationTypeConverterImpl {}))))
         })),
     };
 
@@ -165,20 +172,19 @@ struct TestJson {
 }
 
 struct TestAction1;
-impl Action<Example1, Example1> for TestAction {
+impl Handler<Example1, Example1, RequestContext, Context<Example1, Example1>> for TestAction {
     fn do_action(
         &self,
-        metadata: EndpointMetadata,
         request: &Option<Example1>,
         web_request: &WebRequest,
         response: &mut WebResponse,
-        context: &RequestContext<Example1, Example1>,
-        ctx: &ApplicationContext<Example1, Example1>
+        ctx: &Context<Example1, Example1>,
+        request_context: &mut RequestContext
     ) -> Option<Example1> {
         Some(Example1::default())
     }
 
-    fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+    fn authentication_granted(&self, token: &Vec<GrantedAuthority>) -> bool {
         true
     }
 
@@ -186,27 +192,23 @@ impl Action<Example1, Example1> for TestAction {
         true
     }
 
-    fn clone(&self) -> Box<dyn Action<Example1, Example1>> {
-        Box::new(TestAction::default())
-    }
 }
 
 
 struct TestAction;
-impl Action<Example, Example> for TestAction {
+impl Handler<Example, Example, RequestContext, Context<Example, Example>> for TestAction {
     fn do_action(
         &self,
-        metadata: EndpointMetadata,
         request: &Option<Example>,
         web_request: &WebRequest,
         response: &mut WebResponse,
-        context: &RequestContext<Example, Example>,
-        ctx: &ApplicationContext<Example, Example>
+        ctx: &Context<Example, Example>,
+        request_context: &mut RequestContext
     ) -> Option<Example> {
         Some(Example::default())
     }
 
-    fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+    fn authentication_granted(&self, token: &Vec<GrantedAuthority>) -> bool {
         true
     }
 
@@ -214,9 +216,6 @@ impl Action<Example, Example> for TestAction {
         true
     }
 
-    fn clone(&self) -> Box<dyn Action<Example, Example>> {
-        Box::new(TestAction::default())
-    }
 }
 
 impl Clone for TestAction {

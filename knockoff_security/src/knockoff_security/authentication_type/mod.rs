@@ -3,6 +3,7 @@ use std::fmt::{Display, Formatter};
 use std::string::FromUtf8Error;
 use base64::{DecodeError, Engine as _, engine::general_purpose};
 use serde::{Deserialize, Serialize};
+use web_framework_shared::authority::GrantedAuthority;
 use web_framework_shared::request::WebRequest;
 use web_framework_shared::convert::Converter;
 
@@ -351,16 +352,5 @@ impl UsernamePassword {
     }
 
 
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
-pub struct GrantedAuthority {
-    pub authority: String,
-}
-
-impl GrantedAuthority {
-    pub fn get_authority<'a>(&'a self) -> &'a str {
-        &self.authority
-    }
 }
 

@@ -8,6 +8,7 @@ use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, parse2,
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
+use module_macro_shared::aspect::{AspectInfo, MethodAdviceChain};
 use web_framework_shared::matcher::Matcher;
 use crate::module_macro_lib::item_parser::item_impl_parser::{is_ignore_trait, matches_ignore_traits};
 use crate::module_macro_lib::parse_container::ParseContainer;
@@ -16,7 +17,6 @@ use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::module_tree::{AspectInfo, MethodAdviceChain};
 
 
 pub struct AspectModifier;

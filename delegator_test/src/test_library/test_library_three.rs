@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use spring_knockoff_boot_macro::{autowired, bean, singleton};
+use spring_knockoff_boot_macro::{autowired, bean, singleton, request_body, controller, get_mapping};
 use crate::*;
 
 pub mod test_library_four;
@@ -18,7 +18,8 @@ impl Found for Four {
 }
 
 impl One {
-    pub fn one_two_three(&self, one: One) -> String {
+    #[get_mapping(/v1/dummy/request)]
+    pub fn one_two_three(&self, #[request_body] one: One) -> String {
         print!("testing...");
         print!("{} is one", one.two.to_string());
         "two one".to_string()

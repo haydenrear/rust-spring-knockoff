@@ -3,7 +3,7 @@ use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use crate::module_macro_lib::module_tree::Bean;
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
@@ -41,7 +41,6 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     traits_impl: vec![],
                     enum_found: None,
                     path_depth: path_depth.clone(),
-                    attr: vec![],
                     deps_map: vec![],
                     id: item_struct.ident.clone().to_string(),
                     profile: get_profiles(&item_struct.attrs),

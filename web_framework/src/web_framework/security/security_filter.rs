@@ -2,28 +2,33 @@ use std::ptr::write_bytes;
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use knockoff_security::knockoff_security::authentication_type::AuthenticationConversionError;
-use module_macro_lib::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
+use authentication_gen::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
+use web_framework_shared::authority::GrantedAuthority;
 use web_framework_shared::convert::Converter;
-use crate::web_framework::context::{ApplicationContext, RequestContext};
-use crate::web_framework::filter::filter::{Action, DelegatingFilterProxy, Filter};
-use crate::web_framework::request::request::WebResponse;
+use web_framework_shared::dispatch_server::Handler;
+use crate::web_framework::context::{Context, RequestHelpers};
+use crate::web_framework::filter::filter::{Filter, FilterChain};
+use web_framework_shared::request::WebResponse;
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use crate::web_framework::convert::AuthenticationConverterRegistry;
+use crate::web_framework::dispatch::FilterExecutor;
+use crate::web_framework::request_context::RequestContext;
 use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
+use crate::web_framework::session::session::HttpSession;
 
 pub struct SecurityFilterChain<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
-    pub(crate) filters: Arc<DelegatingFilterProxy<Request, Response>>,
+    pub(crate) filters: Arc<FilterChain<Request, Response>>,
 }
 
 impl <Request, Response> SecurityFilterChain<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
-    pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext<Request, Response>) {
-        self.filters.do_filter(request, response, ctx);
+    pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &Context<Request, Response>, request_context: &mut RequestContext) {
+        self.filters.do_filter(request, response, ctx, request_context);
     }
 }
 
@@ -66,6 +71,7 @@ impl UsernamePasswordAuthenticationFilter
     pub fn username_password_filter<Request, Response>(
         converter: Arc<AuthenticationConverterRegistry>,
         authentication_manager: Arc<DelegatingAuthenticationManager>,
+        dispatcher: Arc<FilterExecutor>,
         order: Option<u8>
     ) -> Filter<Request, Response>
         where
@@ -73,32 +79,32 @@ impl UsernamePasswordAuthenticationFilter
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
         Filter::new(
-            Box::new(
+            Arc::new(
                 Self { converter, authentication_manager }
             ),
-            order
+            order,
+            dispatcher
         )
     }
 }
 
-impl <Request, Response> Action<Request, Response> for UsernamePasswordAuthenticationFilter
+impl <Request, Response> Handler<Request, Response, RequestContext, Context<Request, Response>> for UsernamePasswordAuthenticationFilter
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
 {
     fn do_action(
-            &self,
-            metadata: EndpointMetadata,
-            request: &Option<Request>,
-            web_request: &WebRequest,
-            response: &mut WebResponse,
-            context: &RequestContext<Request, Response>,
-            application_context: &ApplicationContext<Request, Response>
+        &self,
+        request: &Option<Request>,
+        web_request: &WebRequest,
+        response: &mut WebResponse,
+        application_context: &Context<Request, Response>,
+        request_context: &mut RequestContext
         ) -> Option<Response> {
 
         self.try_convert_to_authentication(web_request)
             .map(|auth| {
-                response.session.security_context_holder.auth_token = Some(auth.to_owned());
+                request_context.http_session.security_context_holder.auth_token = Some(auth.to_owned());
                 auth
             })
             .expect("Panic experienced while authenticating user.");
@@ -106,7 +112,7 @@ where
         None
     }
 
-    fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
+    fn authentication_granted(&self, token: &Vec<GrantedAuthority>) -> bool {
         true
     }
 
@@ -114,10 +120,4 @@ where
         todo!()
     }
 
-    fn clone(&self) -> Box<dyn Action<Request, Response>> {
-        Box::new(Self {
-            converter: self.converter.clone(),
-            authentication_manager: self.authentication_manager.clone()
-        })
-    }
 }

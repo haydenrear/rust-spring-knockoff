@@ -29,7 +29,6 @@ use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
 use module_macro_codegen::module_extractor::ModuleParser;
 use module_macro_codegen::parser::LibParser;
-use web_framework_shared::matcher::Matcher;
 use crate::module_macro_lib::item_modifier::delegating_modifier::DelegatingItemModifier;
 use crate::module_macro_lib::item_modifier::ItemModifier;
 use crate::module_macro_lib::item_parser::item_enum_parser::ItemEnumParser;

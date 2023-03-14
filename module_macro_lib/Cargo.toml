@@ -33,6 +33,8 @@ path = "../spring_knockoff_boot_macro"
 path = "../module_macro_codegen"
 [dependencies.codegen_utils]
 path = "../codegen_utils"
+[dependencies.knockoff_providers_gen]
+path = "../target/knockoff_providers_gen"
 
 [build-dependencies.codegen_utils]
 path = "../codegen_utils"

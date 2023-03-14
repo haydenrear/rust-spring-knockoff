@@ -37,6 +37,16 @@
       <sourceFolder url="file://$MODULE_DIR$/codegen_utils/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test_app_2/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_proc_macro_tests/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aspect/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/factories_codegen/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/handler_mapping/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/matcher/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/shared_aspect/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test_another/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test_final/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test_something/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/token_stream_provider/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/authentication_gen/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

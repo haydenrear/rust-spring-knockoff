@@ -1,4 +1,5 @@
 use std::collections::LinkedList;
+use derive_syn_parse::Parse;
 use crate::request::WebRequest;
 
 #[cfg(test)]
@@ -11,7 +12,7 @@ pub trait Matcher<T> {
 pub trait StringMatcher<'a>: Matcher<&'a str> {
 }
 
-pub trait RequestMatcher: Matcher<WebRequest> {
+pub trait RequestMatcher: for<'a> Matcher<&'a WebRequest> {
 }
 
 #[derive(Clone, Default, Debug)]
@@ -23,7 +24,7 @@ pub struct AntStringRequestMatcher {
 impl AntStringRequestMatcher {
     pub fn new(to_match: String, splitter: String) -> Self {
         Self {
-            to_match, splitter
+            to_match: to_match.to_string(), splitter
         }
     }
 
@@ -92,20 +93,32 @@ impl Matcher<&str> for AntStringRequestMatcher {
 impl StringMatcher<'_> for AntStringRequestMatcher {
 }
 
-impl Matcher<WebRequest> for AntPathRequestMatcher {
-    fn matches(&self, to_match: WebRequest) -> bool {
+impl  Matcher<&'_ WebRequest> for AntPathRequestMatcher {
+    fn matches(&self, to_match: &WebRequest) -> bool {
         self.request_matchers.iter()
-            .any(|r| r.matches(&to_match.metadata.base_uri))
+            .any(|r| r.matches(&&&to_match.metadata.base_uri))
     }
 }
 
+#[derive(Clone)]
 pub struct AntPathRequestMatcher {
     //TODO: add bloom filter and contains
-    request_matchers: LinkedList<AntStringRequestMatcher>
+    request_matchers: Vec<AntStringRequestMatcher>
 }
 
 impl AntPathRequestMatcher {
-    pub fn new(request_matchers: LinkedList<AntStringRequestMatcher> ) -> Self {
+    pub fn new(to_match: &str, splitter: &str) -> Self {
+        let request_matchers = to_match.split(splitter).map(|to_match|
+            AntStringRequestMatcher::new(
+                to_match.to_string(),
+                " ".to_string(),
+            ))
+            .collect::<Vec<AntStringRequestMatcher>>();
+        Self {
+            request_matchers
+        }
+    }
+    pub fn new_from_request_matcher(request_matchers: Vec<AntStringRequestMatcher> ) -> Self {
         Self {
             request_matchers
         }

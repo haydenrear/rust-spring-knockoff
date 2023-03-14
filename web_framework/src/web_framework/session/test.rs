@@ -21,7 +21,6 @@ async fn test_insert_save() {
     let to_save = HttpSession::new(
         String::from("10"),
         None,
-        WebApplication::default(),
         SessionData::default(),
     );
     let saved_id = http_session_repo.save(&to_save).await;

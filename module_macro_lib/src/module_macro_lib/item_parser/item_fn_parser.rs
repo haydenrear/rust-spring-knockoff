@@ -5,15 +5,16 @@ use std::ops::Deref;
 use quote::ToTokens;
 use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::item_parser::ItemParser;
-use crate::module_macro_lib::module_tree::{BeanType, FunctionType, ModulesFunctions};
+use crate::module_macro_lib::module_tree::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_shared::bean::BeanType;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-use crate::module_macro_lib::module_tree::BeanPathParts::FnType;
+use module_macro_shared::bean::BeanPathParts::FnType;
 use crate::module_macro_lib::util::ParseUtil;
 
 

@@ -1,0 +1,15 @@
+[token_provider]
+[token_provider.handler_mapping]
+provider_path = "handler_mapping::HandlerMappingBuilder"
+provider_ident = "HandlerMappingTokenProvider"
+path = "../../handler_mapping"
+[token_provider.handler_mapping.dependencies.web_framework]
+path = "../../web_framework"
+name = "web_framework"
+[token_provider.handler_mapping.dependencies.web_framework_shared]
+path = "../../web_framework_shared"
+name = "web_framework_shared"
+[token_provider.handler_mapping.dependencies.proc-macro2]
+name = "proc-macro2"
+version = "1.0"
+

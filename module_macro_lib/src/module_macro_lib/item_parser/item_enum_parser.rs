@@ -2,7 +2,7 @@ use syn::{Fields, ItemEnum};
 use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use crate::module_macro_lib::module_tree::Bean;
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::parse_container::ParseContainer;
 use quote::ToTokens;
 
@@ -33,7 +33,6 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                     struct_found: None,
                     traits_impl: vec![],
                     enum_found: Some(enum_to_add.clone()),
-                    attr: vec![],
                     deps_map: vec![],
                     id: enum_to_add.ident.clone().to_string(),
                     profile: get_profiles(&enum_to_add.attrs),

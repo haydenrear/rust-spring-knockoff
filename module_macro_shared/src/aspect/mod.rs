@@ -1,62 +1,39 @@
-use syn::{Item, Path, PathArguments, PathSegment, Type};
-use proc_macro2::TokenStream;
-use quote::quote;
+use syn::{Block, ImplItemMethod, Stmt, Type};
+use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
+use proc_macro2::Ident;
 
-#[cfg(test)]
-pub mod test;
+use knockoff_logging::{initialize_log, use_logging};
+use_logging!();
+initialize_log!();
+use crate::logging::executor;
+use crate::logging::StandardLoggingFacade;
 
-pub trait AspectMatcher {
-    fn does_match(&self, item: Item, package: AspectAwarePackage) -> bool;
+#[derive(Default, Clone)]
+pub struct MethodAdviceChain {
+    pub before_advice: Option<Block>,
+    pub after_advice: Option<Block>,
+    pub proceed_statement: Option<Stmt>
 }
 
-pub struct ProceedingJoinPoint;
-
-pub enum JoinPoint<T, ARGS> {
-    ProceedingJoinPointReturn(Box<dyn ProceedingJoinPointReturn<T, ARGS>>),
-    ProceedingJoinPointReturnNoArgs(Box<dyn ProceedingJoinPointReturnNoArgs<T, ARGS>>),
-    ProceedingJoinPointNoReturnArgs(Box<dyn ProceedingJoinPointNoReturnArgs<ARGS>>)
-}
-
-pub trait ProceedingJoinPointReturn<T, ARGS> {
-    fn proceed(&self, args: ARGS) -> T;
-}
-
-pub trait ProceedingJoinPointReturnNoArgs<T, ARGS> {
-    fn proceed(&self, args: ARGS) -> T;
-}
-
-pub trait ProceedingJoinPointNoReturnArgs<ARGS> {
-    fn proceed(&self, args: ARGS);
-}
-
-pub struct AspectAwarePackage {
-    /// module path with dots, such as aspect.another_module
-    module_path: String,
-    /// original path
-    path: Path
-
-}
-
-impl AspectAwarePackage {
-    pub fn new(path: &Path) -> Self {
+impl MethodAdviceChain {
+    pub fn new(method_advice: &MethodAdviceAspectCodegen) -> Self {
         Self {
-            module_path: Self::get_module_path(&path),
-            path: path.clone()
+            before_advice: method_advice.before_advice.clone(),
+            after_advice: method_advice.after_advice.clone(),
+            proceed_statement: method_advice.proceed_statement.clone(),
         }
     }
+}
 
-    fn get_module_path(path: &Path) -> String {
-        let mut path_str = "".to_string();
-        for path_item in path.segments.iter() {
-            match path_item.arguments {
-                PathArguments::None => {
-                    path_str += path_item.ident.to_string().as_str()
-                }
-                PathArguments::AngleBracketed(_) => {
-                }
-                PathArguments::Parenthesized(_) => {}
-            }
-        }
-        path_str
-    }
+#[derive(Default, Clone)]
+pub struct AspectInfo {
+    pub method_advice_aspect: MethodAdviceAspectCodegen,
+    pub method: Option<ImplItemMethod>,
+    pub args: Vec<(Ident, Type)>,
+    /// This is the block before any aspects are added.
+    pub original_fn_logic: Option<Block>,
+    pub return_type: Option<Type>,
+    pub method_after: Option<ImplItemMethod>,
+    pub mutable: bool,
+    pub advice_chain: Vec<MethodAdviceChain>
 }

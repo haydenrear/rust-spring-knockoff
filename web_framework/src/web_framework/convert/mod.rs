@@ -1,6 +1,6 @@
 
 use core::borrow::BorrowMut;
-use crate::web_framework::context::RequestContext;
+use crate::web_framework::context::RequestHelpers;
 use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use std::ops::Deref;
 use std::sync::{Arc, Mutex};
 use std::vec;
 use knockoff_security::knockoff_security::authentication_type::{AuthenticationConversionError, Anonymous};
-use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
+use authentication_gen::{AuthenticationType, AuthenticationTypeConverter};
 use web_framework_shared::convert::Converter;
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use knockoff_security::knockoff_security::authentication_type::AuthenticationAware;
@@ -343,7 +343,7 @@ pub trait RequestExtractor<T>: Send + Sync {
     fn convert_extract(&self, request: &WebRequest) -> Option<T>;
 }
 
-impl <Request, Response> RequestExtractor<EndpointMetadata> for RequestContext<Request, Response>
+impl <Request, Response> RequestExtractor<EndpointMetadata> for RequestHelpers<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -353,7 +353,7 @@ impl <Request, Response> RequestExtractor<EndpointMetadata> for RequestContext<R
     }
 }
 
-impl <Request, Response> Converters<Request, Response> for RequestContext<Request, Response>
+impl <Request, Response> Converters<Request, Response> for RequestHelpers<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,

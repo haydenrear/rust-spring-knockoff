@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use quote::ToTokens;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::module_tree::Bean;
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::profile_tree::profile_tree_modifier::ProfileTreeModifier;
-use crate::module_macro_lib::profile_tree::ProfileTree;
+use module_macro_shared::profile_tree::ProfileTree;
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
@@ -18,22 +18,8 @@ pub struct MutableProfileTreeModifier {
     bean_id_types: MutableFieldTypesArgs
 }
 
-impl ProfileTreeModifier<MutableFieldTypesArgs> for MutableProfileTreeModifier {
+impl ProfileTreeModifier for MutableProfileTreeModifier {
 
-    fn create_arg(profile_tree_items: &HashMap<String,Bean>)  -> MutableFieldTypesArgs {
-        MutableFieldTypesArgs {
-            mutable_field_types: profile_tree_items.values()
-            .filter(|b| b.mutable)
-            .flat_map(|b| {
-                b.ident.as_ref().map(|i| i.to_token_stream().to_string().clone())
-                    .or_else(|| b.struct_type.as_ref().map(|s| s.to_token_stream().to_string().clone()))
-                    .map(|a| vec![a])
-                    .or(Some(vec![]))
-                    .unwrap()
-            })
-            .collect::<Vec<String>>()
-        }
-    }
 
     fn modify_bean(&self, d: &mut Bean, profile_tree: &mut ProfileTree) {
         self.bean_id_types.mutable_field_types.iter().for_each(|i| {
@@ -56,6 +42,23 @@ impl ProfileTreeModifier<MutableFieldTypesArgs> for MutableProfileTreeModifier {
     fn new(profile_tree_items: &HashMap<String, Bean>) -> Self {
         Self {
             bean_id_types: Self::create_arg(profile_tree_items),
+        }
+    }
+}
+
+impl MutableProfileTreeModifier {
+    fn create_arg(profile_tree_items: &HashMap<String,Bean>)  -> MutableFieldTypesArgs {
+        MutableFieldTypesArgs {
+            mutable_field_types: profile_tree_items.values()
+                .filter(|b| b.mutable)
+                .flat_map(|b| {
+                    b.ident.as_ref().map(|i| i.to_token_stream().to_string().clone())
+                        .or_else(|| b.struct_type.as_ref().map(|s| s.to_token_stream().to_string().clone()))
+                        .map(|a| vec![a])
+                        .or(Some(vec![]))
+                        .unwrap()
+                })
+                .collect::<Vec<String>>()
         }
     }
 }

@@ -5,14 +5,13 @@ use syn::{Block, FnArg, ImplItem, ImplItemMethod, Item, ItemImpl, parse, Pat, Re
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
-use web_framework_shared::matcher::Matcher;
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::module_tree::AspectInfo;
+use module_macro_shared::aspect::AspectInfo;
 use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 use crate::module_macro_lib::item_modifier::ItemModifier;
 

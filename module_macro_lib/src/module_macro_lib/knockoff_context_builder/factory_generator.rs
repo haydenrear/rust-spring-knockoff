@@ -1,4 +1,4 @@
-use crate::module_macro_lib::module_tree::{AutowiredField, AutowireType, Bean, BeanDefinition, BeanDefinitionType, BeanType, Profile};
+use crate::module_macro_lib::module_tree::BeanDefinition;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use proc_macro2::{Ident, Span, TokenStream};
@@ -9,6 +9,9 @@ use codegen_utils::syn_helper::SynHelper;
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
+use module_macro_shared::bean::{Bean, BeanDefinitionType, BeanType};
+use module_macro_shared::dependency::{AutowiredField, AutowireType};
+use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::BeanFactoryGenerator;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
@@ -20,7 +23,7 @@ pub trait FactoryGenerator: {
 
     fn generate_factory_tokens(&self) -> TokenStream;
 
-    fn new_factory_generator(profile: Profile, bean_definitions: Vec<BeanDefinitionType>) -> Box<dyn TokenStreamGenerator> where Self: Sized;
+    fn new_factory_generator(profile: ProfileBuilder, bean_definitions: Vec<BeanDefinitionType>) -> Box<dyn TokenStreamGenerator> where Self: Sized;
 
     fn impl_listable_factory() -> TokenStream where Self: Sized {
 
@@ -80,7 +83,7 @@ pub trait FactoryGenerator: {
 }
 
 pub struct FactoryGen {
-    profile: Profile,
+    profile: ProfileBuilder,
     beans: Vec<ProviderBean>
 }
 
@@ -101,8 +104,8 @@ impl FactoryGenerator for FactoryGen {
         Self::new_listable_bean_factory(&self.beans, &self.profile)
     }
 
-    fn new_factory_generator(profile: Profile, bean_definitions: Vec<BeanDefinitionType>)
-        -> Box<dyn TokenStreamGenerator> where Self: Sized
+    fn new_factory_generator(profile: ProfileBuilder, bean_definitions: Vec<BeanDefinitionType>)
+                             -> Box<dyn TokenStreamGenerator> where Self: Sized
     {
         let beans = bean_definitions.iter().flat_map(|b| {
             match b {
@@ -127,7 +130,7 @@ impl FactoryGenerator for FactoryGen {
 
 impl FactoryGen {
 
-    pub fn new_listable_bean_factory(beans_to_provide: &Vec<ProviderBean>, profile: &Profile) -> TokenStream {
+    pub fn new_listable_bean_factory(beans_to_provide: &Vec<ProviderBean>, profile: &ProfileBuilder) -> TokenStream {
         let profile_name_str = profile.profile.clone();
 
         let profile_name = Ident::new(profile_name_str.as_str(), Span::call_site());

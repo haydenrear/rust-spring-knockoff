@@ -39,7 +39,7 @@ impl DirectoryWalker {
                 .map(|p| {
                     p.iter().map(|path| {
                         if path.is_dir() {
-                            return path.join("mod.rs");
+                            return path.join("test");
                         }
                         path.clone()
                     }).collect::<Vec<PathBuf>>()

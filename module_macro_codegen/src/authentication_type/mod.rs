@@ -112,9 +112,10 @@ impl AuthenticationTypeCodegen {
                 use serde::{Deserialize, Serialize};
                 use web_framework_shared::request::WebRequest;
                 use web_framework_shared::convert::Converter;
+                use web_framework_shared::authority::GrantedAuthority;
                 use knockoff_security::knockoff_security::authentication_type::{
                     UsernamePassword, AuthenticationConversionError, JwtToken, AuthType,
-                    OpenSamlAssertion , AuthenticationAware, GrantedAuthority, Anonymous
+                    OpenSamlAssertion , AuthenticationAware, Anonymous
                 };
                 use spring_knockoff_boot_macro::{auth_type_aware, auth_type_impl, auth_type_struct};
         };

@@ -47,7 +47,6 @@ impl SynHelper {
         name
     }
 
-
     pub fn open_syn_file(base_env: &str, lib_file: &str) -> Option<syn::File> {
         parse::open_file(base_env, lib_file)
             .map(|mut b| Self::parse_syn_file(&mut b))
@@ -56,7 +55,7 @@ impl SynHelper {
     }
 
     pub fn open_factories_file_syn() -> Option<syn::File> {
-        Self::open_syn_file_from_env("KNOCKOFF_FACTORIES")
+        Self::open_syn_file_from_env("AUG_FILE")
     }
 
     pub fn open_syn_file_from_env(key: &str) -> Option<syn::File> {

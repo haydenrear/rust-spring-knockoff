@@ -4,8 +4,8 @@ pub mod filter {
     extern crate alloc;
     extern crate core;
 
-    use crate::web_framework::context::{ApplicationContext, RequestContext};
-    use crate::web_framework::dispatch::Dispatcher;
+    use crate::web_framework::context::{Context, RequestHelpers};
+    use crate::web_framework::dispatch::FilterExecutor;
     use crate::web_framework::convert::Registration;
     use crate::web_framework::security::authentication::AuthenticationToken;
     use crate::web_framework::session::session::HttpSession;
@@ -20,14 +20,17 @@ pub mod filter {
     use std::ops::{Deref, DerefMut, Index};
     use std::path::Iter;
     use std::sync::{Arc, Mutex};
-    use module_macro_lib::AuthenticationType;
+    use web_framework_shared::authority::GrantedAuthority;
+    use authentication_gen::AuthenticationType;
+    use web_framework_shared::dispatch_server::Handler;
     use crate::web_framework::filter;
-    use crate::web_framework::request::request::WebResponse;
+    use web_framework_shared::request::WebResponse;
     use web_framework_shared::request::{EndpointMetadata, WebRequest};
     use web_framework_shared::http_method::HttpMethod;
+    use crate::web_framework::request_context::RequestContext;
     use crate::web_framework::security::authorization::AuthorizationManager;
 
-    impl <Request, Response> Default for DelegatingFilterProxy<Request, Response>
+    impl <Request, Response> Default for FilterChain<Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
@@ -39,7 +42,7 @@ pub mod filter {
         }
     }
 
-    pub struct DelegatingFilterProxy< Request, Response>
+    pub struct FilterChain< Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
@@ -47,7 +50,7 @@ pub mod filter {
         pub(crate) filters: Arc<Vec<Filter<Request, Response>>>,
     }
 
-    impl <Request, Response> Clone for DelegatingFilterProxy<Request, Response>
+    impl <Request, Response> Clone for FilterChain<Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -61,16 +64,14 @@ pub mod filter {
         }
     }
 
-    // TODO: make the self reference non-mutable - otherwise it can only be run one at a time,
-    // resulting in new filter
-    impl <Request, Response> DelegatingFilterProxy<Request, Response>
+    impl <Request, Response> FilterChain<Request, Response>
         where
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
     {
-        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &ApplicationContext<Request, Response>) {
+        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &Context<Request, Response>, request_context: &mut RequestContext) {
             self.filters.iter()
-                .for_each(|f| f.filter(request, response, ctx));
+                .for_each(|f| f.filter(request, response, ctx, request_context));
         }
 
         pub fn new(filters: Vec<Filter<Request, Response>>) -> Self {
@@ -87,46 +88,13 @@ pub mod filter {
         Html
     }
 
-    pub trait DispatcherContainer {
-        fn dispatcher<Response, Request>(
-            &self,
-            method: HttpMethod,
-        ) -> &'static dyn Action<Request, Response>;
-    }
-
-    pub trait Action<Request, Response>: Send + Sync
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-    {
-        fn do_action(
-            &self,
-            metadata: EndpointMetadata,
-            request: &Option<Request>,
-            web_request: &WebRequest,
-            response: &mut WebResponse,
-            context: &RequestContext<Request, Response>,
-            application_context: &ApplicationContext<Request, Response>
-        ) -> Option<Response>;
-
-        fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool;
-
-        /**
-        determines if it matches endpoint, http method, etc.
-        */
-        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool;
-
-        fn clone(&self) -> Box<dyn Action<Request, Response>>;
-
-    }
-
     pub struct Filter<Request, Response>
     where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     {
-        pub(crate) actions: Box<dyn Action<Request, Response>>,
-        pub(crate) dispatcher: Dispatcher,
+        pub(crate) actions: Arc<dyn Handler<Request, Response, RequestContext, Context<Request, Response>>>,
+        pub(crate) dispatcher: Arc<FilterExecutor>,
         pub order: u8
     }
 
@@ -179,19 +147,24 @@ pub mod filter {
         }
     }
 
+
     impl <Request, Response> Filter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        pub fn new(action: Box<dyn Action<Request, Response>>, order: Option<u8>) -> Self {
+        pub fn new(actions: Arc<dyn Handler<Request, Response, RequestContext, Context<Request, Response>>>,
+                   order: Option<u8>,
+                   dispatcher: Arc<FilterExecutor>) -> Self {
             Self {
-                actions: action,
-                dispatcher: Dispatcher::default(),
+                actions,
+                dispatcher,
                 order: order.or(Some(0)).unwrap()
             }
         }
     }
+
+
 
     impl<Request, Response> Filter<Request, Response>
     where
@@ -202,10 +175,11 @@ pub mod filter {
             &self,
             request: &WebRequest,
             response: &mut WebResponse,
-            ctx: &ApplicationContext<Request, Response>
+            ctx: &Context<Request, Response>,
+            request_context: &mut RequestContext
         ) {
             self.dispatcher
-                .do_request(request.clone(), response, &self.actions, ctx);
+                .do_request(request, response, self.actions.clone(), ctx, request_context);
         }
     }
 }

@@ -2,7 +2,7 @@ use quote::{quote, ToTokens};
 use syn::{parse2, Type};
 use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
-use crate::module_macro_lib::module_tree::BeanPathParts;
+use module_macro_shared::bean::BeanPathParts;
 
 struct One;
 trait OneTrait {}

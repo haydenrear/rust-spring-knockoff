@@ -241,6 +241,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "065374052e7df7ee4047b1160cca5e1467a12351a40b3da123c870ba0b8eda2a"
 
 [[package]]
+name = "authentication_gen"
+version = "0.1.0"
+dependencies = [
+ "base64 0.13.0",
+ "build_lib",
+ "codegen_utils",
+ "derive-syn-parse",
+ "executors",
+ "knockoff_logging",
+ "knockoff_security",
+ "lazy_static",
+ "module_macro_codegen",
+ "module_macro_shared",
+ "paste",
+ "proc-macro2",
+ "quote",
+ "rand",
+ "serde",
+ "spring_knockoff_boot_macro",
+ "syn",
+ "web_framework_shared",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -548,9 +572,12 @@ dependencies = [
  "module_macro_lib",
  "module_macro_shared",
  "paste",
+ "proc-macro2",
  "quote",
  "spring_knockoff_boot_macro",
  "syn",
+ "token_stream_provider",
+ "web_framework",
 ]
 
 [[package]]
@@ -631,6 +658,22 @@ dependencies = [
  "rand",
  "synchronoise",
  "threadpool",
+]
+
+[[package]]
+name = "factories_codegen"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.0",
+ "derive-syn-parse",
+ "executors",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "rand",
+ "serde",
+ "syn",
+ "toml",
 ]
 
 [[package]]
@@ -812,6 +855,25 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+]
+
+[[package]]
+name = "handler_mapping"
+version = "0.1.0"
+dependencies = [
+ "async-std",
+ "codegen_utils",
+ "derive-syn-parse",
+ "executors",
+ "knockoff_logging",
+ "lazy_static",
+ "module_macro_shared",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "web_framework_shared",
 ]
 
 [[package]]
@@ -1041,6 +1103,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "knockoff_providers_gen"
+version = "0.1.0"
+dependencies = [
+ "handler_mapping",
+ "module_macro_shared",
+ "proc-macro2",
+ "web_framework",
+ "web_framework_shared",
+]
+
+[[package]]
 name = "knockoff_security"
 version = "0.1.0"
 dependencies = [
@@ -1176,10 +1249,11 @@ dependencies = [
 name = "module_macro_codegen"
 version = "0.1.0"
 dependencies = [
- "base64 0.13.0",
+ "base64 0.21.0",
  "codegen_utils",
  "derive-syn-parse",
  "executors",
+ "factories_codegen",
  "knockoff_logging",
  "knockoff_security",
  "lazy_static",
@@ -1189,6 +1263,7 @@ dependencies = [
  "serde",
  "spring_knockoff_boot_macro",
  "syn",
+ "toml",
  "web_framework_shared",
 ]
 
@@ -1202,6 +1277,7 @@ dependencies = [
  "derive-syn-parse",
  "executors",
  "knockoff_logging",
+ "knockoff_providers_gen",
  "knockoff_security",
  "lazy_static",
  "module_macro_codegen",
@@ -1223,7 +1299,10 @@ dependencies = [
  "base64 0.13.0",
  "codegen_utils",
  "derive-syn-parse",
+ "executors",
+ "knockoff_logging",
  "lazy_static",
+ "module_macro_codegen",
  "proc-macro2",
  "quote",
  "serde",
@@ -1437,9 +1516,9 @@ checksum = "dc375e1527247fe1a97d8b7156678dfe7c1af2fc075c9a4db3690ecd2a148068"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.51"
+version = "1.0.52"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d727cae5b39d21da60fa540906919ad737832fe0b1c165da3a34d6548c849d6"
+checksum = "1d0e1ae9e836cc3beddd63db0df682593d7e2d3d891ae8c9083d2113e1744224"
 dependencies = [
  "unicode-ident",
 ]
@@ -1614,9 +1693,9 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.144"
+version = "1.0.156"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f747710de3dcd43b88c9168773254e809d8ddbdf9653b84e2554ab219f17860"
+checksum = "314b5b092c0ade17c00142951e50ced110ec27cea304b1037c6969246c2469a4"
 dependencies = [
  "serde_derive",
 ]
@@ -1632,9 +1711,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.144"
+version = "1.0.156"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94ed3a816fb1d101812f83e789f888322c34e291f894f19590dc310963e87a00"
+checksum = "d7e29c4601e36bcec74a223228dce795f4cd3616341a4af93520ca1a837c087d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1650,6 +1729,15 @@ dependencies = [
  "indexmap",
  "itoa",
  "ryu",
+ "serde",
+]
+
+[[package]]
+name = "serde_spanned"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0efd8caf556a6cebd3b285caf480045fcc1ac04f6bd786b09a6f11af30c4fcf4"
+dependencies = [
  "serde",
 ]
 
@@ -1799,9 +1887,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.99"
+version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58dbef6ec655055e20b86b15a8cc6d439cca19b667537ac6a1369572d151ab13"
+checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1916,6 +2004,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
+name = "token_stream_provider"
+version = "0.1.0"
+dependencies = [
+ "module_macro_lib",
+ "module_macro_shared",
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
 name = "tokio"
 version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1993,6 +2091,40 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "toml"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b403acf6f2bb0859c93c7f0d967cb4a75a7ac552100f9322faf64dc047669b21"
+dependencies = [
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ab8ed2edee10b50132aed5f331333428b011c99402b5a534154ed15746f9622"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.19.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08de71aa0d6e348f070457f85af8bd566e2bc452156a423ddf22861b3a953fae"
+dependencies = [
+ "indexmap",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "winnow",
 ]
 
 [[package]]
@@ -2277,6 +2409,7 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "async-trait",
+ "authentication_gen",
  "base64 0.13.0",
  "build_lib",
  "circular",
@@ -2287,10 +2420,6 @@ dependencies = [
  "futures",
  "knockoff_security",
  "lazy_static",
- "module_macro",
- "module_macro_codegen",
- "module_macro_lib",
- "module_macro_shared",
  "mongo_repo",
  "paste",
  "quote",
@@ -2306,6 +2435,9 @@ name = "web_framework_shared"
 version = "0.1.0"
 dependencies = [
  "async-std",
+ "circular",
+ "derive-syn-parse",
+ "proc-macro2",
  "serde",
  "serde_json",
  "syn",
@@ -2409,6 +2541,15 @@ name = "windows_x86_64_msvc"
 version = "0.36.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
+
+[[package]]
+name = "winnow"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee7b2c67f962bf5042bfd8b6a916178df33a26eec343ae064cb8e069f638fa6f"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "winreg"

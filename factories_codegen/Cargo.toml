@@ -1,0 +1,20 @@
+[package]
+name = "factories_codegen"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+toml = "0.7.3"
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+derive-syn-parse = "0.1.5"
+serde = "1.0.137"
+base64 = "0.21.0"
+lazy_static = "1.4.0"
+executors = "0.9.0"
+rand = "0.8.5"
+
+

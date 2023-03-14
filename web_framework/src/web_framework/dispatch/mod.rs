@@ -1,32 +1,42 @@
-use crate::web_framework::context::{ApplicationContext, RequestContext};
+use std::sync::Arc;
+use crate::web_framework::context::{Context, RequestHelpers};
 use crate::web_framework::convert::{Converters, RequestExtractor};
-use crate::web_framework::filter::filter::{Action, MediaType};
+use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
+use web_framework_shared::dispatch_server::Handler;
 use crate::web_framework::context_builder::RequestContextBuilder;
-use crate::web_framework::request::request::{ResponseWriter, WebResponse};
-use web_framework_shared::request::WebRequest;
+use web_framework_shared::request::{ResponseWriter, WebRequest, WebResponse};
+use crate::web_framework::request_context::RequestContext;
+use crate::web_framework::session::session::HttpSession;
 
 #[derive(Clone)]
-pub struct Dispatcher {
-}
+pub struct FilterExecutor;
 
 /**
-General dispatcher for web request.
+General dispatch_server for web request.
 */
-impl Dispatcher {
+impl FilterExecutor {
     pub(crate) fn do_request<'a, Response, Request>(
         &self,
-        request: WebRequest,
+        request: &WebRequest,
         response: &mut WebResponse,
-        action: &Box<dyn Action<Request, Response>>,
-        application_context: &ApplicationContext<Request, Response>
+        action: Arc<dyn Handler<Request, Response, RequestContext, Context<Request, Response>>>,
+        application_context: &Context<Request, Response>,
+        request_context: &mut RequestContext,
     ) where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        if action.authentication_granted(&response.session.security_context_holder.auth_token) {
+        if action.authentication_granted(
+            request_context.http_session.security_context_holder.auth_token
+                    .as_ref()
+                    .map(|a| &a.authorities)
+                    .or(Some(&vec![]))
+                    .unwrap()
+        )
+        {
             application_context
                 .request_context
                 .convert_to(&request)
@@ -34,8 +44,14 @@ impl Dispatcher {
                     application_context.request_context
                         .convert_extract(&request)
                         .filter(|e| action.matches(&e))
-                        .and_then(|metadata| {
-                            action.do_action(metadata, &found.message, &request, response, &application_context.request_context, application_context)
+                        .and_then(|_| {
+                            action.do_action(
+                                 &found.message,
+                                &request,
+                                 response,
+                                application_context,
+                                request_context
+                            )
                         })
                         .and_then(|action_response| {
                             let media_type = request.headers.get("mediatype").cloned()
@@ -55,7 +71,7 @@ impl Dispatcher {
     }
 }
 
-impl Default for Dispatcher {
+impl Default for FilterExecutor {
     fn default() -> Self {
         Self {
         }

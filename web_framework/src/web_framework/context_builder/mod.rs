@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use core::borrow::BorrowMut;
 use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, AuthenticationConversionError};
-use module_macro_lib::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
+use authentication_gen::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
 use web_framework_shared::convert::Converter;
-use crate::web_framework::context::{ApplicationContext, RequestContext};
+use crate::web_framework::context::{Context, RequestHelpers};
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, DefaultMessageConverter, EndpointRequestExtractor, MessageConverter, Registration, RequestExtractor};
-use crate::web_framework::filter::filter::{DelegatingFilterProxy, Filter};
+use crate::web_framework::filter::filter::{FilterChain, Filter};
 use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
 
 /// TODO: This should be ControllerEndpointBuilder, and the user should provide
@@ -43,13 +43,13 @@ impl<Request, Response> ApplicationContextBuilder<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-    pub fn build(&self) -> ApplicationContext<Request, Response> {
+    pub fn build(&self) -> Context<Request, Response> {
         let mut filter_registry_found = self.filter_registry
             .as_ref().unwrap().lock().unwrap().clone();
         filter_registry_found.build();
         let context = self.request_context_builder.as_ref()
             .unwrap().lock().unwrap().build();
-        ApplicationContext {
+        Context {
             filter_registry: Arc::new(filter_registry_found),
             request_context: context,
             authentication_converters: self.authentication_converters.as_ref().unwrap().build(),
@@ -134,8 +134,8 @@ impl<Request, Response> RequestContextBuilder<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
-    fn build(&mut self) -> RequestContext<Request, Response> {
-        RequestContext {
+    fn build(&mut self) -> RequestHelpers<Request, Response> {
+        RequestHelpers {
             message_converters: self.message_converter_builder.build(),
             authentication_manager: self.authentication_manager_builder.build(),
         }
@@ -288,7 +288,7 @@ pub struct FilterRegistrarBuilder<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
     pub filters: Arc<Mutex<Vec<Filter<Request, Response>>>>,
-    pub fiter_chain: Arc<DelegatingFilterProxy<Request, Response>>,
+    pub fiter_chain: Arc<FilterChain<Request, Response>>,
     pub already_built: bool,
 }
 
@@ -299,7 +299,7 @@ where
 {
 
     // Sets the filter_build for later - so you don't have to do it every time.
-    pub fn build(&mut self) -> Arc<DelegatingFilterProxy<Request, Response>> {
+    pub fn build(&mut self) -> Arc<FilterChain<Request, Response>> {
         self.do_build_inner();
         self.fiter_chain.clone()
     }
@@ -309,7 +309,7 @@ where
             self.already_built = true;
             let mut filters_found = self.get_filters();
             filters_found.sort();
-            self.fiter_chain = Arc::new(DelegatingFilterProxy::new(filters_found));
+            self.fiter_chain = Arc::new(FilterChain::new(filters_found));
         }
     }
 }
@@ -337,7 +337,7 @@ impl <Request, Response> FilterRegistrarBuilder<Request, Response>
     pub(crate) fn new() -> FilterRegistrarBuilder<Request, Response> {
         Self {
             filters: Arc::new(Mutex::new(vec![])),
-            fiter_chain: Arc::new(DelegatingFilterProxy::default()),
+            fiter_chain: Arc::new(FilterChain::default()),
             already_built: false
         }
     }

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test_filter {
-    use crate::web_framework::context::{ApplicationContext, RequestContext};
-    use crate::web_framework::dispatch::Dispatcher;
+    use crate::web_framework::context::{Context, RequestHelpers};
+    use crate::web_framework::dispatch::FilterExecutor;
     use crate::web_framework::convert::{ConverterRegistry, Registry};
-    use crate::web_framework::filter::filter::{Action, DelegatingFilterProxy, MediaType, Filter};
+    use crate::web_framework::filter::filter::{Filter, FilterChain, MediaType};
     use crate::web_framework::message::MessageType;
     use crate::web_framework::security::authentication::AuthenticationToken;
     use lazy_static::lazy_static;
@@ -16,9 +16,11 @@ mod test_filter {
     use std::ops::Deref;
     use futures::SinkExt;
     use circular::Buffer;
-    use module_macro_lib::{AuthenticationType};
+    use authentication_gen::AuthenticationType;
+    use web_framework_shared::dispatch_server::Handler;
     use web_framework_shared::request::{EndpointMetadata, WebRequest};
-    use crate::web_framework::request::request::WebResponse;
+    use web_framework_shared::request::WebResponse;
+    use crate::web_framework::session::session::HttpSession;
 
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -42,15 +44,15 @@ mod test_filter {
     }
 
     struct TestAction;
-    impl Action<Example, Example> for TestAction {
+    impl Handler<Example, Example> for TestAction {
         fn do_action(
             &self,
             metadata: EndpointMetadata,
             request: &Option<Example>,
             web_request: &WebRequest,
             response: &mut WebResponse,
-            context: &RequestContext<Example, Example>,
-            application_context: &ApplicationContext<Example, Example>
+            context: &RequestHelpers<Example, Example>,
+            application_context: &Context<Example, Example>
         ) -> Option<Example> {
             Some(Example{ value: String::default() })
         }
@@ -63,7 +65,7 @@ mod test_filter {
             true
         }
 
-        fn clone(&self) -> Box<dyn Action<Example, Example>> {
+        fn clone(&self) -> Box<dyn Handler<Example, Example>> {
             todo!()
         }
     }
@@ -87,8 +89,8 @@ mod test_filter {
             dispatcher: Default::default(),
             order: 0,
         };
-        let mut fc = DelegatingFilterProxy::new(vec![one]);
-        fc.do_filter(&WebRequest::default(), &mut WebResponse::default(), &ApplicationContext::new());
+        let mut fc = FilterChain::new(vec![one]);
+        fc.do_filter(&WebRequest::default(), &mut WebResponse::default(), &Context::new());
     }
 
     #[test]
@@ -98,14 +100,14 @@ mod test_filter {
             dispatcher: Default::default(),
             order: 0,
         };
-        let mut fc = DelegatingFilterProxy::new(vec![one]);
+        let mut fc = FilterChain::new(vec![one]);
         let mut request = WebRequest::default();
         request
             .headers
             .insert("MediaType".to_string(), "json".to_string());
         request.body = serde_json::to_string(&Example::default()).unwrap();
         let mut response = WebResponse::default();
-        fc.do_filter(&request, &mut response, &ApplicationContext::new());
+        fc.do_filter(&request, &mut response, &Context::new());
         let response_val = String::from_utf8(response.response_bytes().unwrap())
             .unwrap();
         assert_eq!(response_val, request.body);

@@ -2,10 +2,9 @@ use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, Pointer};
 use std::future::Future;
-use std::io::{Read};
+use std::io::Read;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::ops::Deref;
-use std::task::{Context, Poll};
 use async_std::io::WriteExt;
 use chrono::format::Item;
 use circular::Buffer;
@@ -19,16 +18,16 @@ use serde::{Deserialize, Serialize};
 use serde::de::StdError;
 use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use web_framework::web_framework::context::ApplicationContext;
+use web_framework::web_framework::context::Context;
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::http::{
     ProtocolToAdaptFrom, RequestConversionError,
     RequestConverter, RequestExecutor, RequestExecutorImpl,
     RequestStream, ResponseType
 };
-use web_framework::web_framework::request::request::{WebResponse};
+use web_framework::web_framework::request_context::RequestContext;
 use web_framework_shared::http_method::HttpMethod;
-use web_framework_shared::request::WebRequest;
+use web_framework_shared::request::{WebRequest, WebResponse};
 
 pub struct HyperRequestStream<Request, Response>
     where
@@ -77,7 +76,7 @@ impl <HRequest, HResponse> HyperRequestStream<HRequest, HResponse>
                     async move {
                         converter_cloned.from(rqst).await
                             .map(|converted| {
-                                let web_response = request_exec_cloned.do_request(converted);
+                                let web_response = request_exec_cloned.do_request(converted, &mut RequestContext { http_session: Default::default() });
                                 Response::new(Body::from(web_response.response))
                             })
                             .or(Err(HyperBodyConvertError { error: "failure" }))

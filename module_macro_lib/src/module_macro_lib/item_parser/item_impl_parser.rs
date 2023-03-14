@@ -3,12 +3,14 @@ use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use crate::module_macro_lib::module_tree::{AutowireType, Bean, Profile};
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::parse_container::ParseContainer;
 
 pub struct ItemImplParser;
 
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_shared::dependency::AutowireType;
+use module_macro_shared::profile_tree::ProfileBuilder;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
@@ -65,8 +67,8 @@ impl ItemParser<ItemImpl> for ItemImplParser {
             .map(|profile| profile.split(", ")
                 .map(|profile| profile.to_string())
                 .map(|mut profile| profile.replace(" ", ""))
-                .map(|profile| Profile {profile})
-                .collect::<Vec<Profile>>()
+                .map(|profile| ProfileBuilder {profile})
+                .collect::<Vec<ProfileBuilder>>()
             )
             .or(Some(vec![]))
             .unwrap();
@@ -104,7 +106,6 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                         }
                     ],
                     enum_found: None,
-                    attr: vec![],
                     deps_map: vec![],
                     id: id.clone(),
                     path_depth: vec![],

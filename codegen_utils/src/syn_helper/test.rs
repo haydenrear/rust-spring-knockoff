@@ -40,7 +40,7 @@ fn test_knockoff_factories() {
 }
 
 fn get_knockoff_factores_arg() -> Option<String> {
-    env::var("KNOCKOFF_FACTORIES").ok()
+    env::var("AUG_FILE").ok()
 }
 
 fn do_test(attr_matcher: &dyn Fn(&Attribute) -> bool) -> Option<ItemFn> {

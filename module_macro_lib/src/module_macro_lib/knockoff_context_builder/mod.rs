@@ -5,21 +5,23 @@ use quote::{quote, TokenStreamExt, ToTokens};
 use syn::__private::TokenStream2;
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::module_tree::{BeanType, Bean, Profile, BeanDefinitionType, AutowireType};
+use module_macro_shared::bean::{Bean, BeanDefinitionType, BeanType};
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
+use module_macro_shared::dependency::AutowireType;
+use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::{BeanFactoryGenerator, FactoryBeanBeanFactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
 use crate::module_macro_lib::knockoff_context_builder::factory_generator::{FactoryGen, FactoryGenerator};
-use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
+use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::{TokenStreamGenerator, UserProvidedTokenStreamGenerator};
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-use crate::module_macro_lib::profile_tree::ProfileTree;
+use module_macro_shared::profile_tree::ProfileTree;
 
 pub mod factory_generator;
 pub mod bean_factory_generator;
@@ -35,7 +37,8 @@ pub struct ApplicationContextGenerator {
     bean_factory_generators: Vec<Box<dyn TokenStreamGenerator>>,
     aspect_generators: Vec<Box<dyn TokenStreamGenerator>>,
     constructor_generator: Vec<Box<dyn TokenStreamGenerator>>,
-    profiles: Vec<Profile>,
+    dynamic_token_provider: Vec<Box<dyn TokenStreamGenerator>>,
+    profiles: Vec<ProfileBuilder>,
 }
 
 impl TokenStreamGenerator for ApplicationContextGenerator {
@@ -77,6 +80,7 @@ impl ApplicationContextGenerator {
             .map(|p| p.clone())
             .collect();
         let aspect_generators = vec![Self::create_aspect_generator(&profile_tree)];
+        let dynamic_token_provider = vec![Box::new(UserProvidedTokenStreamGenerator::new(&profile_tree)) as Box<dyn TokenStreamGenerator>];
 
         Self {
             factory_generators,
@@ -84,6 +88,7 @@ impl ApplicationContextGenerator {
             profiles,
             aspect_generators,
             constructor_generator,
+            dynamic_token_provider
         }
     }
 
@@ -97,7 +102,7 @@ impl ApplicationContextGenerator {
         Box::new(AspectGenerator::new(from))
     }
 
-    fn create_factory_generators(from: &(&Profile, &Vec<BeanDefinitionType>)) -> Vec<Box<dyn TokenStreamGenerator>> {
+    fn create_factory_generators(from: &(&ProfileBuilder, &Vec<BeanDefinitionType>)) -> Vec<Box<dyn TokenStreamGenerator>> {
         vec![
             FactoryGen::new_factory_generator(from.0.clone(), from.1.clone())
         ]
@@ -110,7 +115,7 @@ impl ApplicationContextGenerator {
         )
     }
 
-    fn get_abstract_beans(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<(Bean, AutowireType, Profile)> {
+    fn get_abstract_beans(from: &HashMap<ProfileBuilder, Vec<BeanDefinitionType>>) -> Vec<(Bean, AutowireType, ProfileBuilder)> {
         from.iter().flat_map(|f|
             f.1.iter()
             .flat_map(|b| {
@@ -132,7 +137,7 @@ impl ApplicationContextGenerator {
         ).collect()
     }
 
-    fn get_concrete_beans(from: &HashMap<Profile, Vec<BeanDefinitionType>>) -> Vec<Bean> {
+    fn get_concrete_beans(from: &HashMap<ProfileBuilder, Vec<BeanDefinitionType>>) -> Vec<Bean> {
         from.iter().flat_map(|f| f.1)
             .flat_map(|b| {
                 match b {
@@ -153,7 +158,8 @@ impl ApplicationContextGenerator {
 
     pub fn context_imports() -> TokenStream {
         let ts = quote! {
-            use module_macro_lib::module_macro_lib::knockoff_context::{AbstractListableFactory, ApplicationContext, Profile, ContainsBeans};
+            use module_macro_lib::module_macro_lib::knockoff_context::{AbstractListableFactory, ApplicationContext, ContainsBeans, Profile};
+            use module_macro_shared::profile_tree::ProfileBuilder;
             use std::sync::Mutex;
             use paste::paste;
         };
@@ -328,7 +334,6 @@ impl ApplicationContextGenerator {
 
         let injectable_code = quote! {
 
-            use module_macro_lib::module_macro_lib::module_tree::Profile as KnockoffProfile;
 
             pub struct AppCtx {
                 pub(crate) factories: HashMap<String,ListableBeanFactory>,
@@ -376,7 +381,7 @@ impl ApplicationContextGenerator {
                     Self {
                         factories,
                         profiles,
-                        default_profile: KnockoffProfile::default().profile
+                        default_profile: ProfileBuilder::default().profile
                     }
                 }
 
@@ -400,6 +405,10 @@ impl ApplicationContextGenerator {
                 ts.append_all(aspect_generator.generate_token_stream())
             );
         self.constructor_generator.iter()
+            .for_each(|constructor_gen|
+                ts.append_all(constructor_gen.generate_token_stream())
+            );
+        self.dynamic_token_provider.iter()
             .for_each(|constructor_gen|
                 ts.append_all(constructor_gen.generate_token_stream())
             );

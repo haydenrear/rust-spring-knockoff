@@ -16,7 +16,6 @@ pub mod module_macro_lib {
     pub mod debug;
     pub mod default_impls;
     pub mod logging;
-    pub mod aspect;
     pub mod item_parser;
     pub mod item_modifier;
     #[cfg(test)]

@@ -24,18 +24,14 @@ dynpath = "0.1.4"
 path = "../data_framework"
 [dependencies.mongo_repo]
 path = '../mongo_repo'
-[dependencies.module_macro]
-path = "../module_macro"
-[dependencies.module_macro_lib]
-path = "../module_macro_lib"
-[dependencies.module_macro_shared]
-path = "../module_macro_shared"
 [dependencies.knockoff_security]
 path = "../knockoff_security"
 [dependencies.web_framework_shared]
 path = "../web_framework_shared"
 [dependencies.codegen_utils]
 path = "../codegen_utils"
+[dependencies.authentication_gen]
+path = "../authentication_gen"
 
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}
@@ -43,11 +39,5 @@ syn = {version = "1.0", features = ["full"]}
 path = "../codegen_utils"
 [build-dependencies.build_lib]
 path = "../build_lib"
-[build-dependencies.module_macro_codegen]
-path = "../module_macro_codegen"
-[build-dependencies.module_macro_shared]
-path = "../module_macro_shared"
 [build-dependencies.web_framework_shared]
 path = "../web_framework_shared"
-[build-dependencies.module_macro_lib]
-path = "../module_macro_lib"

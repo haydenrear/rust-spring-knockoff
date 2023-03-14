@@ -1,12 +1,13 @@
 use core::fmt::Debug;
 use knockoff_security::knockoff_security::user_request_account::UserAccount;
-use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
+use authentication_gen::{AuthenticationType, AuthenticationTypeConverter};
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use futures::executor;
-use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, AuthenticationConversionError, GrantedAuthority};
+use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, AuthenticationConversionError};
+use web_framework_shared::authority::GrantedAuthority;
 use web_framework_shared::convert::Converter;
 use web_framework_shared::request::WebRequest;
 use crate::web_framework::convert::{AuthenticationConverterRegistry, Registration};

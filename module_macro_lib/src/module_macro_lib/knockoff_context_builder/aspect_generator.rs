@@ -1,20 +1,21 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
-use syn::{Block, Expr, ImplItemMethod, Stmt, Type};
+use syn::{Block, Expr, Field, ImplItemMethod, Stmt, Type};
+use module_macro_shared::aspect::{AspectInfo, MethodAdviceChain};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
+use module_macro_shared::bean::Bean;
 use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use crate::module_macro_lib::module_tree::{AspectInfo, Bean, BeanDefinitionType, MethodAdviceChain};
+use module_macro_shared::bean::BeanDefinitionType;
 
 use_logging!();
 initialize_log!();
 
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-use crate::module_macro_lib::profile_tree::ProfileTree;
-
+use module_macro_shared::profile_tree::ProfileTree;
 
 pub struct AspectGenerator {
     pub(crate) method_advice_aspects: Vec<(AspectInfo, Bean)>
@@ -76,7 +77,6 @@ impl AspectGenerator {
 
         let method_ident = &a.0.method.as_ref().unwrap().sig.ident;
 
-
         Self::implement(ts, a, &arg_idents, &arg_types, &mut proceed_suffix, &mut vec![block.to_token_stream().clone()], method_ident);
     }
 
@@ -99,18 +99,27 @@ impl AspectGenerator {
                     log_message!("{:?} is the next in the method advice chain.", next_chain);
                     let mut block_items = vec![];
 
-                    next_chain.before_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+                    next_chain.before_advice
+                        .as_ref()
+                        .map(|b| block_items.push(b.to_token_stream().clone()));
 
-                    next_chain.proceed_statement.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+                    next_chain.proceed_statement
+                        .as_ref()
+                        .map(|b| block_items.push(b.to_token_stream().clone()));
 
-                    next_chain.after_advice.as_ref().map(|b| block_items.push(b.to_token_stream().clone()));
+                    next_chain.after_advice
+                        .as_ref()
+                        .map(|b| block_items.push(b.to_token_stream().clone()));
 
                     if advice_index > 0 {
-                        proceed_suffix = a.0.advice_chain[advice_index - 1].proceed_statement.as_ref()
+                        proceed_suffix = a.0.advice_chain[advice_index - 1].proceed_statement
+                            .as_ref()
                             .map(|s| SynHelper::get_proceed(s.to_token_stream().to_string().clone()))
                             .or(Some("".to_string()))
                             .unwrap();
+
                         log_message!("Implementing next: {}.", &proceed_suffix);
+
                     } else {
                         proceed_suffix = SynHelper::get_proceed(a.0.method_advice_aspect.proceed_statement.as_ref().unwrap().to_token_stream().to_string().clone());
                         log_message!("Implementing initial: {}.", &proceed_suffix);

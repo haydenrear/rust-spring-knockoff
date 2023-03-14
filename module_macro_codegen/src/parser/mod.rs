@@ -73,12 +73,10 @@ impl LibParser {
         let flatten = Self::parse_codegen_items(in_dir_file);
         let mut to_write_codegen: HashMap<String, String> = flatten
             .iter()
-            .flat_map(|item| {
+            .flat_map(|item|
                 item.get_codegen()
-                    .map(|codegen| {
-                        (item.get_unique_id(), codegen)
-                    })
-            })
+                    .map(|codegen| (item.get_unique_id(), codegen))
+            )
             .collect();
 
         to_write_codegen
@@ -87,9 +85,7 @@ impl LibParser {
     pub fn parse_codegen_items(in_dir_file: &str) -> Vec<CodegenItemType> {
         let flatten = Self::parse_syn(in_dir_file)
             .iter()
-            .flat_map(|syn_file| {
-                get_codegen_item(&syn_file.items.clone())
-            })
+            .flat_map(|syn_file| get_codegen_item(&syn_file.items.clone()))
             .collect::<Vec<CodegenItemType>>();
         flatten
     }
@@ -97,9 +93,10 @@ impl LibParser {
     pub fn parse_syn(in_dir_file: &str) -> Option<syn::File> {
         let in_path = Path::new(in_dir_file);
         if in_path.exists() {
-            return fs::read_to_string(in_path).ok().and_then(|mut in_file_result| {
-                syn::parse_file(in_file_result.as_str()).ok().or(None)
-            })
+            return fs::read_to_string(in_path).ok()
+                .and_then(|mut in_file_result|
+                    syn::parse_file(in_file_result.as_str()).ok().or(None)
+                )
         }
         None
     }

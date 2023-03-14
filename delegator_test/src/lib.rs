@@ -11,7 +11,6 @@ use module_macro::{module_attr};
 
 use crate::test_library::*;
 use crate::test_library::test_library_three::{Four, Once, One};
-use crate::test_library_three::test_library_four::TestOneHundred;
 use crate::test_library::test_library_two::Ten;
 use crate::test_library_three::Found;
 use std::any::Any;
@@ -20,7 +19,7 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::marker::PhantomData;
 use syn::parse::Parser;
-use module_macro_lib::module_macro_lib::module_tree::Profile as ModuleProfile;
+use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
 use spring_knockoff_boot_macro::initializer;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));

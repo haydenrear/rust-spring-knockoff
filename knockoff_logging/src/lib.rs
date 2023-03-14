@@ -10,6 +10,7 @@ pub mod knockoff_logging {
     pub mod aggregate_logging;
     pub mod logging_macro;
     pub mod logging_facade;
+    pub mod default_logging;
 }
 
 #[cfg(test)]

@@ -6,11 +6,12 @@ mod test_security {
     use std::ops::DerefMut;
     use std::sync::{Arc, Mutex};
     use serde::{Deserialize, Serialize};
-    use knockoff_security::knockoff_security::authentication_type::{Anonymous, AuthenticationConversionError, GrantedAuthority, JwtToken, UsernamePassword};
-    use module_macro_lib::{AuthenticationType, AuthenticationTypeConverter};
+    use knockoff_security::knockoff_security::authentication_type::{Anonymous, AuthenticationConversionError, JwtToken, UsernamePassword};
+    use authentication_gen::{AuthenticationType, AuthenticationTypeConverter};
+    use web_framework_shared::authority::GrantedAuthority;
     use web_framework_shared::convert::Converter;
-    use crate::web_framework::filter::filter::DelegatingFilterProxy;
-    use crate::web_framework::request::request::WebResponse;
+    use crate::web_framework::filter::filter::FilterChain;
+    use web_framework_shared::request::WebResponse;
     use crate::web_framework::security::security_filter::{AuthenticationFilter, UsernamePasswordAuthenticationFilter};
     use web_framework_shared::request::WebRequest;
     use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder};

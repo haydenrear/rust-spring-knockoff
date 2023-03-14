@@ -3,7 +3,7 @@ use crate::walk::DirectoryWalker;
 #[test]
 fn test_directory_walker() {
     test_walk("test_library_three", "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test");
-    test_walk("test_library_four/mod.rs", "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test");
+    test_walk("test_library_four/test", "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test");
     test_walk("test_library_five.rs", "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test");
 }
 

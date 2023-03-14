@@ -9,9 +9,11 @@ use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, 
 use bean_dependency_path_parser::BeanDependencyPathParser;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
+use module_macro_shared::bean::{Bean, BeanPath, BeanPathParts, BeanType};
+use module_macro_shared::dependency::{AutowiredField, DepType};
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
 use crate::module_macro_lib::parse_container::ParseContainer;
-use crate::module_macro_lib::module_tree::{AutowiredField, Bean, BeanDefinition, BeanPath, BeanPathParts, BeanType, DepType, FunctionType, ModulesFunctions};
+use crate::module_macro_lib::module_tree::{BeanDefinition, FunctionType, ModulesFunctions};
 use crate::module_macro_lib::util::ParseUtil;
 
 pub mod bean_dependency_path_parser;

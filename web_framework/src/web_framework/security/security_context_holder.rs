@@ -6,4 +6,3 @@ use crate::web_framework::security::authentication::AuthenticationToken;
 pub struct SecurityContextHolder {
     pub auth_token: Option<AuthenticationToken>
 }
-

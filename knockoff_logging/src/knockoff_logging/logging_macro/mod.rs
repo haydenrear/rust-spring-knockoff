@@ -67,6 +67,19 @@ macro_rules! use_logging {
 }
 
 #[macro_export]
+macro_rules! use_default_logging {
+    () => {
+        use crate::knockoff_logging::log_level::{LogLevel, LogLevels};
+        use crate::knockoff_logging::text_file_logging::{TextFileLogger, TextFileLoggerArgs, TextFileLoggerImpl};
+        use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
+        use crate::knockoff_logging::logger::Logger;
+        use crate::knockoff_logging::logging_facade::LoggingFacade;
+        use $crate::log_message;
+        use executors::Executor;
+    }
+}
+
+#[macro_export]
 macro_rules! initialize_log {
     () => {
 

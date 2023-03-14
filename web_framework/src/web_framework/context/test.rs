@@ -3,12 +3,13 @@ mod test {
     use std::collections::LinkedList;
     use std::ops::Deref;
     use std::sync::{Arc, Mutex};
-    use crate::web_framework::filter::filter::{Action, Filter};
-    use crate::web_framework::context::{ApplicationContext, RequestContext};
+    use crate::web_framework::filter::filter::Filter;
+    use crate::web_framework::context::{Context, RequestHelpers};
     use crate::web_framework::convert::{MessageConverter, Registration};
     use serde::{Deserialize, Serialize};
     use knockoff_security::knockoff_security::authentication_type::{AuthenticationAware, AuthType, UsernamePassword};
     use web_framework_shared::convert::Converter;
+    use web_framework_shared::dispatch_server::Handler;
     use crate::web_framework::context_builder::{ApplicationContextBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder, RequestContextBuilder};
     use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken};
 
