@@ -20,17 +20,17 @@ use quote::{format_ident, IdentFragment, quote, quote_token, ToTokens};
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::FieldAugmenterImpl;
-use crate::module_macro_lib::initializer::ModuleMacroInitializer;
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
 use module_macro_codegen::module_extractor::ModuleParser;
 use module_macro_codegen::parser::LibParser;
-use crate::module_macro_lib::item_modifier::delegating_modifier::DelegatingItemModifier;
-use crate::module_macro_lib::item_modifier::ItemModifier;
+use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
+use module_macro_shared::item_modifier::DelegatingItemModifier;
+use module_macro_shared::item_modifier::ItemModifier;
 use crate::module_macro_lib::item_parser::item_enum_parser::ItemEnumParser;
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
 use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
@@ -43,13 +43,14 @@ initialize_log!();
 
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
+use crate::module_macro_lib::parse_container::ParseContainerBuilder;
 
 pub fn parse_module(mut found: Item) -> TokenStream {
     create_initial_parse_container(&mut found).as_mut()
         .map(|created| {
             let container = do_container_modifications(&mut found, created);
 
-            let container_tokens = container.build_to_token_stream();
+            let container_tokens = ParseContainerBuilder::build_to_token_stream(container);
 
             return quote!(
                 #container_tokens
@@ -62,7 +63,7 @@ pub fn parse_module(mut found: Item) -> TokenStream {
 }
 
 pub(crate) fn do_container_modifications<'a>(mut found: &'a mut Item, created: &'a mut (ParseContainer, String)) -> &'a mut ParseContainer {
-    let item_modifier = DelegatingItemModifier::new();
+    let item_modifier = DelegatingItemModifier::new(vec![Box::new(AspectModifier{})]);
     let container = &mut created.0;
     item_modifier.modify_item(container, &mut found, vec![created.1.clone()]);
     container

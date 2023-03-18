@@ -25,7 +25,7 @@ pub mod session {
     use web_framework_shared::dispatch_server::Handler;
     use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
     use web_framework_shared::request::WebResponse;
-    use crate::web_framework::request_context::RequestContext;
+    use crate::web_framework::request_context::SessionContext;
     use crate::web_framework::security::authentication::AuthenticationToken;
     use crate::web_framework::security::security_context_holder::SecurityContextHolder;
 
@@ -80,22 +80,23 @@ pub mod session {
 
         fn do_action(
             &self,
-            request: &Option<Request>,
             mut web_request: &WebRequest,
             mut response: &mut WebResponse,
             application_context: &RequestContextData<Request, Response>,
-            request_context: &mut UserRequestContext<Request>
+            request_context: &mut Option<Box<UserRequestContext<Request>>>
         ) -> Option<Response> {
             if let Some(session) = web_request
                 .headers
                 .get("R_SESSION_ID")
                 .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id))) {
-                request_context.request_context.http_session = session;
+                    request_context.as_mut().map(|mut request_context| {
+                        request_context.request_context.http_session = session;
+                    });
             }
             None
         }
 
-        fn authentication_granted(&self, token: &Vec<GrantedAuthority>) -> bool {
+        fn authentication_granted(&self, token: &Option<Box<UserRequestContext<Request>>>) -> bool {
             true
         }
 

@@ -3,7 +3,7 @@ use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
 use module_macro_shared::bean::Bean;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 use quote::ToTokens;
 
 pub struct ItemEnumParser;
@@ -43,6 +43,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                     aspect_info: vec![],
+                    factory_fn: None,
                 };
                 parse_container.injectable_types_builder.insert(enum_to_add.ident.to_string().clone(), impl_found);
                 None

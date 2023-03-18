@@ -6,8 +6,10 @@ use codegen_utils::{parse, project_directory, syn_helper};
 use codegen_utils::env::get_project_base_dir;
 use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
 use std::io::Write;
-use factories_codegen::factories_parser::FactoriesParser;
-use factories_codegen::token_provider::TokenProvider;
+use factories_codegen::factories_parser::{Dependency, FactoriesParser};
+use factories_codegen::parse_provider::ParseProvider;
+use factories_codegen::provider::{Provider, ProviderItem};
+use factories_codegen::provider::DelegatingProvider;
 
 use_logging!();
 initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/module_macro_codegen_build_rs.log"));
@@ -19,8 +21,8 @@ initialize_log!();
 /// to generate tokens dynamically from user, with the ProfileTree as a dependency provided to the user
 /// or other library author to generate the tokens from.
 fn main() {
-     let parsed_factories = FactoriesParser::parse_factories();
-     let knockoff_providers_dep = parsed_factories.providers
+     let parsed_factories = <FactoriesParser as DelegatingProvider>::deps();
+     let knockoff_providers_dep = parsed_factories
          .iter().map(|provider| provider.dep_name.as_str())
          .collect::<Vec<&str>>();
 
@@ -28,7 +30,7 @@ fn main() {
      fs::create_dir_all(&directory_tuple.0).unwrap();
 
      create_cargo_toml(&directory_tuple.1, knockoff_providers_dep, &parsed_factories);
-     create_lib_rs(&parsed_factories, directory_tuple);
+     create_lib_rs(directory_tuple);
 
      let mut proj_dir = get_project_base_dir();
      let mut cargo_change = "cargo:rerun-if-changed=".to_string();
@@ -36,20 +38,22 @@ fn main() {
      println!("{}", cargo_change);
 }
 
-fn create_lib_rs(parsed_factories: &TokenProvider, mut directory_tuple: (String, String, String)) {
+fn create_lib_rs(mut directory_tuple: (String, String, String)) {
      let lib_rs_file_path = Path::new(directory_tuple.2.as_str());
 
-     fs::remove_file(lib_rs_file_path).unwrap();
+     fs::remove_file(lib_rs_file_path);
+
      File::create(lib_rs_file_path).ok()
-         .map(|mut lib_rs_file| write_lib_rs(&mut lib_rs_file, &parsed_factories))
+         .map(|mut lib_rs_file| write_lib_rs(&mut lib_rs_file))
          .flatten().or_else(|| {
-          log_message!("Could not write to lib.rs file.");
-          None
-     });
+               log_message!("Could not write to lib.rs file.");
+               None
+          });
 }
 
-fn write_lib_rs(mut lib_rs_file: &mut File, parsed_factories: &TokenProvider) -> Option<()> {
-     writeln!(&mut lib_rs_file, "{}", parsed_factories.get_tokens().to_string().as_str())
+fn write_lib_rs(mut lib_rs_file: &mut File) -> Option<()> {
+     let parsed_factories = <FactoriesParser as DelegatingProvider>::tokens();
+     writeln!(&mut lib_rs_file, "{}", parsed_factories.to_string().as_str())
          .ok()
 }
 
@@ -78,7 +82,7 @@ fn get_directories() -> (String, String, String) {
      (out_lib_dir, cargo_toml, out_lib_rs)
 }
 
-fn create_cargo_toml(cargo_file: &str, knockoff_providers_dep: Vec<&str>, parsed_factories: &TokenProvider) {
+fn create_cargo_toml(cargo_file: &str, knockoff_providers_dep: Vec<&str>, parsed_factories: &Vec<ProviderItem>) {
      let path = Path::new(cargo_file);
      if path.exists() {
           fs::remove_file(path).unwrap();

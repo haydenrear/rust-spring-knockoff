@@ -36,6 +36,8 @@ path = "../codegen_utils"
 [dependencies.knockoff_providers_gen]
 path = "../target/knockoff_providers_gen"
 
+[build-dependencies.crate_gen]
+path = "../crate_gen"
 [build-dependencies.codegen_utils]
 path = "../codegen_utils"
 [build-dependencies.knockoff_logging]

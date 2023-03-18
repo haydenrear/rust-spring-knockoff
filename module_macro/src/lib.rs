@@ -24,7 +24,6 @@ use syn::token::{Bang, For, Token};
 use module_macro_lib::module_macro_lib::module_parser::parse_module;
 use module_macro_lib::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use module_macro_lib::FieldAugmenterImpl;
-use module_macro_lib::module_macro_lib::initializer::ModuleMacroInitializer;
 use module_macro_shared::module_macro_shared_codegen::ContextInitializer;
 
 #[proc_macro_attribute]

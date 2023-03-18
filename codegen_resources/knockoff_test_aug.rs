@@ -41,11 +41,6 @@ pub fn do_aspect_again(&self, one: One) -> String {
     zero
 }
 
-#[configuration(field_aug)]
-pub mod field_aug_configuration {
-
-}
-
 #[authentication_type]
 #[cfg(authentication_type)]
 pub mod authentication_type {

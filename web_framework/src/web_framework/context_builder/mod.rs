@@ -170,7 +170,7 @@ pub struct DispatcherBuilder<Request, Response>
     pub context: RequestContextBuilder<Request, Response>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct DelegatingAuthenticationManagerBuilder {
     pub providers: Arc<Mutex<Vec<Box<dyn AuthenticationProvider>>>>,
 }

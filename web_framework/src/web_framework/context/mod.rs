@@ -14,10 +14,11 @@ use serde::{Deserialize, Serialize};
 use authentication_gen::{AuthenticationType, AuthenticationTypeConverterImpl};
 use web_framework_shared::controller::{ContextData, Data};
 use web_framework_shared::convert::Converter;
+use web_framework_shared::request::EndpointMetadata;
 use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder};
 use crate::web_framework::dispatch::FilterExecutor;
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
-use crate::web_framework::request_context::RequestContext;
+use crate::web_framework::request_context::SessionContext;
 use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken, DelegatingAuthenticationManager};
 
 
@@ -40,8 +41,9 @@ pub struct UserRequestContext<Request>
     where
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub request_context: RequestContext,
-    pub request: Option<Request>
+    pub request_context: SessionContext,
+    pub request: Option<Request>,
+    pub endpoint_metadata: Option<EndpointMetadata>
 }
 
 impl <Request> Data for UserRequestContext<Request>

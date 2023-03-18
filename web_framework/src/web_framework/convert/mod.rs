@@ -245,6 +245,10 @@ pub trait Registration<C: ?Sized> {
     fn register(&self, converter: Box<C>);
 }
 
+pub trait Register<C> {
+    fn register(&self, converter: C);
+}
+
 pub trait Registry<C: ?Sized> {
     fn read_only_registrations(&self) -> Arc<Vec<Box<C>>>;
 }

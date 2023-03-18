@@ -3,11 +3,14 @@ use web_framework_shared::authority::GrantedAuthority;
 use web_framework_shared::dispatch_server::Handler;
 use web_framework_shared::request::{EndpointMetadata, WebRequest, WebResponse};
 use crate::web_framework::context::{Context, RequestContextData, UserRequestContext};
-use crate::web_framework::request_context::RequestContext;
+use crate::web_framework::convert::{Converters, RequestExtractor};
+use crate::web_framework::request_context::SessionContext;
 use crate::web_framework::security::security_filter::UsernamePasswordAuthenticationFilter;
 
 #[derive(Copy, Clone, Serialize)]
-pub struct MessageType<T: Serialize> where Self: 'static, T: 'static{
+pub struct MessageType<T: Serialize>
+    where Self: 'static, T: 'static
+{
     pub message: Option<T>,
 }
 
@@ -20,21 +23,37 @@ impl <Request, Response> Handler<Request, Response, UserRequestContext<Request>,
 {
     fn do_action(
         &self,
-        request: &Option<Request>,
         web_request: &WebRequest,
         response: &mut WebResponse,
         application_context: &RequestContextData<Request, Response>,
-        request_context: &mut UserRequestContext<Request>
+        request_context: &mut Option<Box<UserRequestContext<Request>>>
     ) -> Option<Response> {
+
+        application_context.request_context_data
+            .request_context
+            .convert_extract(&web_request)
+            .map(|e| request_context.as_mut()
+                .map(|mut r| r.endpoint_metadata = Some(e))
+            );
+
+        application_context
+            .request_context_data
+            .request_context
+            .convert_to(&web_request)
+            .map(|converted| request_context
+                .as_mut()
+                .map(|r| r.request = converted.message)
+            );
+
         None
     }
 
-    fn authentication_granted(&self, token: &Vec<GrantedAuthority>) -> bool {
+    fn authentication_granted(&self, token: &Option<Box<UserRequestContext<Request>>>) -> bool {
         true
     }
 
     fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
-        todo!()
+        true
     }
 
 }

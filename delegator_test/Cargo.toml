@@ -21,17 +21,15 @@ path = "../module_macro_lib"
 path = "../module_macro_shared"
 [dependencies.spring_knockoff_boot_macro]
 path = "../spring_knockoff_boot_macro"
-[dependencies.token_stream_provider]
-path = "../token_stream_provider"
 [dependencies.web_framework]
 path = "../web_framework"
 [dependencies.web_framework_shared]
 path = "../web_framework_shared"
 
+[build-dependencies.crate_gen]
+path = "../crate_gen"
 [build-dependencies.web_framework]
 path = "../web_framework"
-[build-dependencies.token_stream_provider]
-path = "../token_stream_provider"
 [build-dependencies.spring_knockoff_boot_macro]
 path = "../spring_knockoff_boot_macro"
 [build-dependencies.build_lib]

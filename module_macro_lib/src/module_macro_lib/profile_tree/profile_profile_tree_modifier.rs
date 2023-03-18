@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use module_macro_shared::bean::Bean;
-use crate::module_macro_lib::profile_tree::profile_tree_modifier::ProfileTreeModifier;
+use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 use module_macro_shared::profile_tree::ProfileTree;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::profile_tree::ProfileBuilder;

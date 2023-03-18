@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use spring_knockoff_boot_macro::{autowired, bean, singleton, request_body, controller, get_mapping};
+use spring_knockoff_boot_macro::{autowired, bean, singleton, request_body, controller, get_mapping, request_mapping};
 use crate::*;
 
 pub mod test_library_four;
@@ -28,6 +28,7 @@ impl One {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct ReturnRequest;
 
+#[request_mapping]
 impl Four {
     #[get_mapping(/v1/dummy/request)]
     pub fn do_request(&self, #[request_body] one: ReturnRequest) -> ReturnRequest {
@@ -37,6 +38,7 @@ impl Four {
 
 #[singleton(Four)]
 #[derive(Default)]
+#[controller]
 pub struct Four {
     #[autowired]
     #[mutable_bean]

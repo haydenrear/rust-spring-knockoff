@@ -4,7 +4,7 @@ use quote::ToTokens;
 use std::ops::Deref;
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
 use module_macro_shared::bean::Bean;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 
 pub struct ItemImplParser;
 
@@ -118,6 +118,7 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                         .or(Some(false))
                         .unwrap(),
                     aspect_info: vec![],
+                    factory_fn: None,
                 };
                 parse_container.injectable_types_builder.insert(id.clone(), impl_found);
                 None

@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{Attribute, FnArg, ImplItem, ImplItemMethod, Type};
+use syn::{Attribute, Block, FnArg, ImplItem, ImplItemMethod, Type};
 use codegen_utils::project_directory;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::log_message;
@@ -52,15 +52,24 @@ impl HandlerMappingBuilder {
                 &s.attrs,
                 vec!["controller", "rest_controller"])
             )
+            .flatten()
             .is_some()
     }
 
     fn create_controller_beans(bean: &Bean) -> Vec<ControllerBean> {
         bean.traits_impl.iter()
-            .map(|autowire_type| (
-                autowire_type.clone(),
-                Self::create_request_matcher(&autowire_type.item_impl.attrs)
-            ))
+            .flat_map(|b| {
+                b.item_impl.items.iter().flat_map(|i| {
+                    match i {
+                        ImplItem::Method(impl_item_method) => {
+                            vec![(b.clone(), Self::create_request_matcher(&impl_item_method.attrs))]
+                        }
+                        _ => {
+                            vec![]
+                        }
+                    }
+                })
+            })
             .flat_map(|autowire| autowire.0.item_impl.items
                 .iter()
                 .map(|i| (autowire.0.clone(), autowire.1.clone(), i.clone()))
@@ -80,39 +89,50 @@ impl HandlerMappingBuilder {
             }).collect::<Vec<ControllerBean>>()
     }
 
-    // fn get_inputs(impl_item_method: &ImplItemMethod) {
-    //     let input_type = impl_item_method.sig.inputs.iter()
-    //         .map(|fn_arg| {
-    //             match fn_arg {}
-    //         })
-    // }
-
-
     pub fn generate_token_stream(&self) -> TokenStream {
         let (to_match, split) = self.get_request_matcher_info();
-        let args = self.controllers.iter().flat_map(|c| c.arguments_resolved.iter().filter(|a| {
-            a.request_body_arguments.len() != 0
-        }).map(|r| {
-            let args = r.request_body_arguments.get(0).unwrap();
-            (Ident::new(args.inner.name.as_str(), Span::call_site()), args.request_serialize_type.clone(), args.output_type.clone().unwrap())
-        }))
+        log_message!("{} are the number of to_match and {} are the number of split.", to_match.len(), split.len());
+
+        if to_match.len() >= 1 {
+            log_message!("{} are the inner number of to_match and {} are the number of split.", to_match.get(0).unwrap().len(), split.get(0).unwrap().len());
+        }
+
+        let args = self.controllers.iter()
+            .flat_map(|c| c.arguments_resolved.iter().filter(|a| {
+                a.request_body_arguments.len() != 0
+            }).map(|r| {
+                let args = r.request_body_arguments.get(0)
+                    .unwrap();
+                (Ident::new(args.inner.name.as_str(), Span::call_site()), args.request_serialize_type.clone(), args.output_type.clone().unwrap())
+            }))
             .collect::<Vec<(Ident, Type, Type)>>();
 
+        //TODO: These should be Vec<Vec<*>> because there will be tuples for multiple values...
+        //  Then the tuple will be unwrapped accordingly.
         let arg_idents = args.iter().map(|i| i.0.clone()).collect::<Vec<Ident>>();
         let arg_types = args.iter().map(|i| i.1.clone()).collect::<Vec<Type>>();
         let arg_outputs = args.iter().map(|i| i.2.clone()).collect::<Vec<Type>>();
+
+        log_message!("{} are the number of controllers.", self.controllers.len());
+        let method_logic = self.controllers.iter()
+            .map(|c| {
+                log_message!("Here is the next block for controller bean: {}.", SynHelper::get_str(&c.method.block));
+                &c.method.block
+            })
+            .collect::<Vec<&Block>>();
 
         let mut ts = quote! {
 
             use serde::{Serialize, Deserialize};
             use web_framework::web_framework::context::Context;
-            use web_framework::web_framework::request_context::RequestContext;
+            use web_framework::web_framework::request_context::SessionContext;
             use web_framework_shared::request::WebRequest;
             use web_framework_shared::controller::{ContextData, Data, HandlerExecutionChain};
             use web_framework_shared::request::WebResponse;
             use web_framework::web_framework::context::UserRequestContext;
             use web_framework::web_framework::context::RequestContextData;
             use web_framework_shared::controller::{HandlerExecutor, RequestExecutor, HandlerMethod, HandlerExecutorStruct};
+            use web_framework_shared::matcher::{AntPathRequestMatcher,AntStringRequestMatcher};
 
             pub struct Dispatcher {
                 handler_mapping: AttributeHandlerMapping
@@ -122,10 +142,7 @@ impl HandlerMappingBuilder {
             for Dispatcher
             {
                 fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
-                    self.handler_mapping.get_handler(&web_request)
-                        .map(|handler| {
-                            handler.do_request(web_request.clone())
-                        })
+                    self.handler_mapping.do_handle_request(web_request)
                         .or(Some(WebResponse::default()))
                         .unwrap()
                 }
@@ -150,9 +167,17 @@ impl HandlerMappingBuilder {
             }
 
             #(
-                impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> {
-                    fn execute_handler(&self, handler: &HandlerMethod<UserRequestContext<#arg_types>>, ctx: &RequestContextData<#arg_types, #arg_outputs>, response: &mut WebResponse, request: &WebRequest) {
-                        todo!()
+                impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>
+                for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>
+                {
+                    fn execute_handler(
+                        &self,
+                        handler: &HandlerMethod<UserRequestContext<#arg_types>>,
+                        ctx: &RequestContextData<#arg_types, #arg_outputs>,
+                        response: &mut WebResponse,
+                        request: &WebRequest
+                    ) {
+                        handler.request_ctx_data.clone().map(|#arg_idents| #method_logic);
                     }
                 }
             )*
@@ -161,12 +186,19 @@ impl HandlerMappingBuilder {
                 pub fn new() -> Self {
                     #(
                         let mut interceptors = vec![];
-                        let mut request_matchers = vec![];
+
+                        let mut ant_string_request_matchers = vec![];
+                        let mut request_matchers: Vec<AntPathRequestMatcher> = vec![];
 
                         #(
-                            let path_matcher = AntPathRequestMatcher::new(#to_match, #split);
-                            request_matchers.push(path_matcher);
+                            if #to_match.len() != 0 {
+                                let path_matcher = AntStringRequestMatcher::new(#to_match.to_string(), #split.to_string());
+                                ant_string_request_matchers.push(path_matcher);
+                            }
                         )*
+
+                        let ant_path_request_matchers: AntPathRequestMatcher = AntPathRequestMatcher::new_from_request_matcher(ant_string_request_matchers);
+                        request_matchers.push(ant_path_request_matchers);
 
                         let context_item = Context::<#arg_types, #arg_outputs>::new();
                         let context: Arc<RequestContextData<#arg_types, #arg_outputs>> = Arc::new(
@@ -205,19 +237,11 @@ impl HandlerMappingBuilder {
                         #(#arg_idents,)*
                     }
                 }
-            }
 
-            pub trait GetHandlerMapping {
-                fn get_handler(&self, request: &WebRequest) -> Option<Arc<HandlerExecutionChain<dyn Data, dyn ContextData>>>;
-            }
-
-            impl GetHandlerMapping for AttributeHandlerMapping {
-                fn get_handler(&self, request: &WebRequest) -> Option<Arc<HandlerExecutionChain<dyn Data, dyn ContextData>>>{
+                fn do_handle_request(&self, mut request: WebRequest) -> Option<WebResponse> {
                     #(
-                        if self.#arg_idents.matches(request) {
-                            let any_val = self.#arg_idents.clone() as Arc<dyn Any + Send + Sync>;
-                            return any_val.downcast::<HandlerExecutionChain<dyn Data, dyn ContextData>>()
-                                .ok();
+                        if self.#arg_idents.matches(&request) {
+                            return Some(self.#arg_idents.do_request(request));
                         }
                     )*
                     None
@@ -248,8 +272,7 @@ impl HandlerMappingBuilder {
 impl HandlerMappingBuilder {
 
     pub(crate) fn create_request_matcher(attr: &Vec<Attribute>) -> Vec<AntPathRequestMatcher> {
-        SynHelper::get_attr_from_vec(&attr, vec!["get_mapping"])
-            .or(SynHelper::get_attr_from_vec(&attr, vec!["post_mapping"]))
+        SynHelper::get_attr_from_vec(&attr, vec!["get_mapping", "post_mapping"])
             .map(|attr| {
                 log_message!("{} is the controller mapping for creating HandlerMapping.", &attr);
                 attr.split(",")

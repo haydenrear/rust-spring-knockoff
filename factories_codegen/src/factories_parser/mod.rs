@@ -3,13 +3,51 @@ use std::path::Path;
 use toml::{Table, Value};
 use proc_macro2::{Ident, Span};
 use syn::parse_str;
-use crate::token_provider::{TokenProvider, TokenProviderItem};
 use std::io::Write;
+use crate_gen::TomlWriter;
+use crate::provider::{DelegatingProvider, Provider, ProviderItem};
+use crate::parse_provider::ParseProvider;
+use crate::token_provider::TokenProvider;
 
 pub struct FactoriesParser;
 
+macro_rules! providers {
+    ($($ty:ident),*) => {
+
+        use proc_macro2::TokenStream;
+        use quote::TokenStreamExt;
+
+        impl DelegatingProvider for FactoriesParser {
+            fn tokens() -> TokenStream {
+                let mut ts = TokenStream::default();
+                $(
+                    ts.append_all($ty::tokens());
+                )*
+                ts
+            }
+            fn deps() -> Vec<ProviderItem> {
+                let mut deps = vec![];
+                $(
+                    let next_deps = $ty::deps();
+                    next_deps.iter()
+                        .for_each(|dep| {
+                            if !deps.contains(dep) {
+                                deps.push(dep.clone());
+                            }
+                        });
+                )*
+                deps
+            }
+        }
+
+    }
+}
+
+providers!(ParseProvider, TokenProvider);
+
 impl FactoriesParser {
-    pub fn parse_factories() -> TokenProvider {
+
+    pub fn parse_factories(provider_type: &str) -> Provider {
 
         let knockoff_factories = env::var("KNOCKOFF_FACTORIES")
             .ok()
@@ -19,17 +57,17 @@ impl FactoriesParser {
         let path = Path::new(knockoff_factories.as_str());
 
         if path.exists() {
-            return TokenProvider {
-                providers: Self::read_token_provider_items(path)
+            return Provider {
+                providers: Self::read_provider_items(path, provider_type)
             };
         }
 
-        TokenProvider {
+        Provider {
             providers: vec![],
         }
     }
 
-    fn read_token_provider_items(path: &Path) -> Vec<TokenProviderItem> {
+    fn read_provider_items(path: &Path, provider: &str) -> Vec<ProviderItem> {
         let providers = fs::read_to_string(path)
             .ok()
             .map(|f| {
@@ -37,17 +75,20 @@ impl FactoriesParser {
             })
             .flatten()
             .map(|t| {
-                let values = &t["token_provider"];
-                values.as_table().unwrap().keys()
-                    .map(|key| Self::parse_token_provider_item(&values, &key))
-                    .collect::<Vec<TokenProviderItem>>()
+                if t.contains_key(provider) {
+                    let values = &t[provider];
+                    return values.as_table().unwrap().keys()
+                        .map(|key| Self::parse_token_provider_item(&values, &key))
+                        .collect::<Vec<ProviderItem>>();
+                }
+                vec![]
             })
             .or(Some(vec![]))
             .unwrap();
         providers
     }
 
-    fn parse_token_provider_item(values: &Value, key: &String) -> TokenProviderItem {
+    fn parse_token_provider_item(values: &Value, key: &String) -> ProviderItem {
 
         let values = &values[key];
         let provider_path = &values["provider_path"].as_str().unwrap();
@@ -61,7 +102,7 @@ impl FactoriesParser {
             .or(Some(vec![]))
             .unwrap();
 
-        TokenProviderItem {
+        ProviderItem {
             dep_name: name.clone(),
             name,
             provider_path,
@@ -72,17 +113,20 @@ impl FactoriesParser {
         }
     }
 
-    pub fn write_cargo_dependencies(parsed_factories: &TokenProvider) -> String {
+    pub fn write_cargo_dependencies(parsed_factories: &Vec<ProviderItem>) -> String {
+
         let mut cargo_file = vec![];
-        parsed_factories.providers.iter()
+
+        parsed_factories.iter()
             .flat_map(|p| {
                 p.deps.clone()
             })
-            .for_each(|dep| Self::write_dependency(&mut cargo_file, dep));
+            .for_each(|dep| Self::get_dependency(&mut cargo_file, dep));
+
         String::from_utf8(cargo_file).unwrap()
     }
 
-    fn write_dependency(mut cargo_file: &mut Vec<u8>, dep: Dependency) {
+    pub fn get_dependency(mut cargo_file: &mut Vec<u8>, dep: Dependency) {
         dep.version.map(|version| {
             writeln!(&mut cargo_file, "{} = \"{}\"", dep.dep_name, version).unwrap();
         }).or_else(|| {
@@ -130,7 +174,7 @@ impl FactoriesParser {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct Dependency {
     pub name: String,
     pub path: Option<String>,

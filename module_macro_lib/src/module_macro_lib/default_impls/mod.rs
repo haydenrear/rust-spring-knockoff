@@ -1,2 +1,2 @@
-use crate::module_macro_lib::module_tree::Trait;
+use module_macro_shared::module_tree::Trait;
 

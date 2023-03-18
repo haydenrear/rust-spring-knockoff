@@ -10,7 +10,7 @@ use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
 use crate::module_macro_lib::item_parser::ItemParser;
 use crate::module_macro_lib::module_parser::{create_initial_parse_container, do_container_modifications};
 use module_macro_shared::bean::BeanDefinitionType;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 
 pub mod module_tree_test;
 pub mod profile_tree_test;

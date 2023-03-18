@@ -1,4 +1,4 @@
-use crate::module_macro_lib::item_modifier::ItemModifier;
+use module_macro_shared::item_modifier::ItemModifier;
 
 use std::ops::Deref;
 use proc_macro2::{Ident, Span};
@@ -11,7 +11,7 @@ use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
 use module_macro_shared::aspect::{AspectInfo, MethodAdviceChain};
 use web_framework_shared::matcher::Matcher;
 use crate::module_macro_lib::item_parser::item_impl_parser::{is_ignore_trait, matches_ignore_traits};
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 
 use_logging!();
 initialize_log!();

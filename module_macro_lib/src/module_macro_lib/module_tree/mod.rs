@@ -21,29 +21,13 @@ use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
 use module_macro_shared::bean::{Bean, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
 use module_macro_shared::profile_tree::ProfileBuilder;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 
 use_logging!();
 initialize_log!();
 
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-
-/**
-Will be annotated with #[bean] and #[singleton], #[prototype] as provided factory functions.
- **/
-pub struct ModulesFunctions {
-    pub fn_found: FunctionType,
-    pub path: Vec<String>
-}
-
-#[derive(Clone)]
-pub struct FunctionType {
-    pub(crate) item_fn: ItemFn,
-    pub(crate) qualifier: Option<String>,
-    pub(crate) fn_type: Option<Type>,
-    pub(crate) bean_type: BeanType
-}
 
 
 #[derive(Clone)]
@@ -52,21 +36,6 @@ pub struct BeanDefinition {
     pub bean_type_type: Option<Type>,
     pub bean_type_ident: Option<Ident>,
     pub bean_type: BeanType
-}
-
-#[derive(Default, Clone)]
-pub struct Trait {
-    pub trait_type: Option<ItemTrait>,
-    pub trait_path: Vec<String>
-}
-
-impl Trait {
-    pub fn new(trait_type: ItemTrait, path: Vec<String>) -> Self {
-        Self {
-            trait_type: Some(trait_type),
-            trait_path: path,
-        }
-    }
 }
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash)]

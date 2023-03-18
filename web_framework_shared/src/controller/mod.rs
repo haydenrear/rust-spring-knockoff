@@ -9,10 +9,10 @@ use crate::request::{EndpointMetadata, WebRequest, WebResponse};
 pub struct HandlerMethod<RequestCtxData: Data + ?Sized>
 {
     pub endpoint_metadata: EndpointMetadata,
-    pub request_ctx_data: Option<Arc<RequestCtxData>>
+    pub request_ctx_data: Option<Box<RequestCtxData>>
 }
 
-impl <RequestCtxData: Data + ?Sized> Default for HandlerMethod<RequestCtxData> {
+impl <RequestCtxData: Data + ?Sized + Default> Default for HandlerMethod<RequestCtxData> {
     fn default() -> Self {
         Self {
             endpoint_metadata: EndpointMetadata::default(),
@@ -45,7 +45,7 @@ pub struct HandlerExecutionChain<T: Data + ?Sized, Ctx: ContextData + ?Sized>
 
 
 impl <D, C> HandlerExecutionChain<D, C>
-    where D: Data + Send + Sync + ?Sized, C: ContextData + Send + Sync + ?Sized
+    where D: Data + Send + Sync + ?Sized + Default, C: ContextData + Send + Sync + ?Sized
 {
     pub fn create_handler_method(&self) -> HandlerMethod<D> {
         HandlerMethod::default()
@@ -69,7 +69,7 @@ pub trait RequestExecutor<WebRequest, WebResponse>: Send + Sync
 }
 
 impl <D, C> RequestExecutor<WebRequest, WebResponse> for HandlerExecutionChain<D, C>
-    where D: Data + Send + Sync + ?Sized, C: ContextData + Send + Sync + ?Sized
+    where D: Data + Send + Sync + ?Sized + Default, C: ContextData + Send + Sync + ?Sized
 {
     fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
         let mut response = WebResponse::default();

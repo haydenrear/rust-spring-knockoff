@@ -18,6 +18,7 @@ initialize_log!();
 use crate::logging::executor;
 use crate::logging::StandardLoggingFacade;
 
+pub mod profile_tree_modifier;
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash, Debug)]
 pub struct ProfileBuilder {

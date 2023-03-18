@@ -10,26 +10,19 @@ use syn::{Attribute, Item, ItemMod, parse2, parse_str};
 use syn::punctuated::Pair::Punctuated;
 use toml::{Table, Value};
 use crate::factories_parser::{Dependency, FactoriesParser};
+use crate::provider::{DelegatingProvider, Provider, ProviderItem};
 
-#[derive(Clone)]
-pub struct TokenProvider {
-    pub providers: Vec<TokenProviderItem>,
-}
+pub struct TokenProvider;
 
-#[derive(Clone)]
-pub struct TokenProviderItem {
-    pub name: String,
-    pub provider_path: syn::Path,
-    pub provider_ident: Ident,
-    pub path: Option<String>,
-    pub dep_name: String,
-    pub version: Option<String>,
-    pub deps: Vec<Dependency>
-}
+impl DelegatingProvider for TokenProvider {
+    fn tokens() -> TokenStream {
+        TokenProvider::get_tokens(&TokenProvider::create_provider())
+    }
 
-impl Default for TokenProvider {
-    fn default() -> Self {
-        FactoriesParser::parse_factories()
+    fn deps() -> Vec<ProviderItem> {
+        TokenProvider::create_provider().providers.iter()
+            .map(|p| p.clone())
+            .collect::<Vec<ProviderItem>>()
     }
 }
 
@@ -38,7 +31,11 @@ impl Default for TokenProvider {
 /// for the framework, to enable decoupling the web framework from the dependency injection.
 impl TokenProvider {
 
-    pub fn create_token_provider(provider_item: &TokenProviderItem) -> TokenStream {
+    pub fn create_provider() -> Provider {
+        FactoriesParser::parse_factories("token_provider")
+    }
+
+    pub fn create_token_provider(provider_item: &ProviderItem) -> TokenStream {
 
         let provider_ident = &provider_item.provider_ident;
         let builder_path = &provider_item.provider_path;
@@ -71,22 +68,58 @@ impl TokenProvider {
         ts.into()
     }
 
-    pub fn get_tokens(&self) -> TokenStream {
+    pub fn get_tokens(provider: &Provider) -> TokenStream {
         let mut ts = TokenStream::default();
         ts.append_all(Self::get_imports());
-        self.providers.iter()
-            .for_each(|p|
-                ts.append_all(
-                    Self::create_token_provider(p)
-                )
-            );
+        provider.providers.iter()
+            .for_each(|p| ts.append_all(Self::create_token_provider(p)));
+        ts.append_all(Self::get_delegating_token_provider(provider));
         ts
+    }
+
+    pub fn get_delegating_token_provider(provider: &Provider) -> TokenStream {
+
+        let provider_idents = provider.providers.iter()
+            .map(|p| Ident::new(p.provider_ident.to_string().to_lowercase().as_str(), Span::call_site()))
+            .collect::<Vec<Ident>>();
+        let provider_type = provider.providers.iter()
+            .map(|p| p.provider_ident.clone())
+            .collect::<Vec<Ident>>();
+
+        quote! {
+
+            pub struct DelegatingTokenProvider {
+                #(#provider_idents: #provider_type,)*
+            }
+
+            impl DelegatingTokenProvider {
+                pub fn new(profile_tree: &ProfileTree) -> Self {
+                    #(
+                        let #provider_idents = #provider_type::new(profile_tree);
+                    )*
+                    Self {
+                        #(#provider_idents,)*
+                    }
+                }
+
+                pub fn generate_token_stream(&self) -> TokenStream {
+                    let mut ts = TokenStream::default();
+                    #(
+                        ts.append_all(self.#provider_idents.generate_token_stream());
+                    )*
+                    ts
+                }
+
+            }
+
+        }
     }
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
             use module_macro_shared::profile_tree::ProfileTree;
             use proc_macro2::TokenStream;
+            use quote::TokenStreamExt;
         }.into();
         imports
     }

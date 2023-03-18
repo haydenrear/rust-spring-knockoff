@@ -5,10 +5,11 @@ use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
 use futures::TryStreamExt;
 use serde::{Deserialize, Serialize};
+use web_framework_shared::authority::GrantedAuthority;
 use web_framework_shared::dispatch_server::Handler;
 use crate::web_framework::context_builder::RequestContextBuilder;
 use web_framework_shared::request::{ResponseWriter, WebRequest, WebResponse};
-use crate::web_framework::request_context::RequestContext;
+use crate::web_framework::request_context::SessionContext;
 use crate::web_framework::session::session::HttpSession;
 
 #[derive(Clone)]
@@ -24,19 +25,12 @@ impl FilterExecutor {
         response: &mut WebResponse,
         action: Arc<dyn Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>>>,
         application_context: &RequestContextData<Request, Response>,
-        request_context: &mut UserRequestContext<Request>,
+        request_context: &mut Option<Box<UserRequestContext<Request>>>,
     ) where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        if action.authentication_granted(
-            request_context.request_context.http_session.security_context_holder.auth_token
-                    .as_ref()
-                    .map(|a| &a.authorities)
-                    .or(Some(&vec![]))
-                    .unwrap()
-        )
-        {
+        if action.authentication_granted(request_context) {
             // TODO: all of this logic will be added to the execution filter chain
             application_context
                 .request_context_data
@@ -49,7 +43,6 @@ impl FilterExecutor {
                         .filter(|e| action.matches(&e))
                         .and_then(|_| {
                             action.do_action(
-                                 &found.message,
                                 &request,
                                  response,
                                 application_context,

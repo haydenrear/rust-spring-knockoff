@@ -10,9 +10,10 @@ use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{Bean, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::dependency::{AutowiredField, DepType};
+use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
-use crate::module_macro_lib::parse_container::ParseContainer;
-use crate::module_macro_lib::module_tree::{BeanDefinition, FunctionType, ModulesFunctions};
+use module_macro_shared::parse_container::ParseContainer;
+use crate::module_macro_lib::module_tree::BeanDefinition;
 use crate::module_macro_lib::util::ParseUtil;
 
 

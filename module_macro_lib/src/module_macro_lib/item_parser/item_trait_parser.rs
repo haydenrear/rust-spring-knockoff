@@ -1,8 +1,8 @@
 use syn::ItemTrait;
 
 use crate::module_macro_lib::item_parser::ItemParser;
-use crate::module_macro_lib::module_tree::Trait;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::module_tree::Trait;
+use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();

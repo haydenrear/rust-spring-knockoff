@@ -13,7 +13,7 @@ use web_framework_shared::request::{ResponseBytesBuffer, WebResponse};
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use crate::web_framework::convert::AuthenticationConverterRegistry;
 use crate::web_framework::dispatch::FilterExecutor;
-use crate::web_framework::request_context::RequestContext;
+use crate::web_framework::request_context::SessionContext;
 use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
 use crate::web_framework::session::session::HttpSession;
 
@@ -28,7 +28,12 @@ impl <Request, Response> SecurityFilterChain<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
-    pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &RequestContextData<Request, Response>, request_context: &mut UserRequestContext<Request>) {
+    pub fn do_filter(&self,
+                     request: &WebRequest,
+                     response: &mut WebResponse,
+                     ctx: &RequestContextData<Request, Response>,
+                     request_context: &mut Option<Box<UserRequestContext<Request>>>)
+    {
         self.filters.do_filter(request, response, ctx, request_context);
     }
 }
@@ -95,16 +100,17 @@ where
 {
     fn do_action(
         &self,
-        request: &Option<Request>,
         web_request: &WebRequest,
         response: &mut WebResponse,
         application_context: &RequestContextData<Request, Response>,
-        request_context: &mut UserRequestContext<Request>
+        request_context: &mut Option<Box<UserRequestContext<Request>>>
         ) -> Option<Response> {
 
         self.try_convert_to_authentication(web_request)
             .map(|auth| {
-                request_context.request_context.http_session.security_context_holder.auth_token = Some(auth.to_owned());
+                request_context.as_mut().map(|mut request_context| {
+                    request_context.request_context.http_session.security_context_holder.auth_token = Some(auth.to_owned());
+                });
                 auth
             })
             .expect("Panic experienced while authenticating user.");
@@ -112,7 +118,7 @@ where
         None
     }
 
-    fn authentication_granted(&self, token: &Vec<GrantedAuthority>) -> bool {
+    fn authentication_granted(&self, token: &Option<Box<UserRequestContext<Request>>>) -> bool {
         true
     }
 

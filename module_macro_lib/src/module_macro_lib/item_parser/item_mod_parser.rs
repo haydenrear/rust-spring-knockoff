@@ -5,7 +5,7 @@ use crate::module_macro_lib::item_parser::item_impl_parser::ItemImplParser;
 use crate::module_macro_lib::item_parser::item_struct_parser::ItemStructParser;
 use crate::module_macro_lib::item_parser::item_trait_parser::ItemTraitParser;
 use crate::module_macro_lib::item_parser::ItemParser;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();

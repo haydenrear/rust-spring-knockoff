@@ -108,7 +108,9 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         create_beans_tokens.into()
     }
 
-    fn new_bean_factory_generator(concrete_beans: Vec<BeanFactoryInfo>, abstract_beans: Vec<BeanFactoryInfo>) -> Self where Self: Sized {
+    fn new_bean_factory_generator(concrete_beans: Vec<BeanFactoryInfo>, abstract_beans: Vec<BeanFactoryInfo>) -> Self
+        where Self: Sized
+    {
         Self::new(concrete_beans, abstract_beans)
     }
 

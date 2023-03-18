@@ -28,7 +28,7 @@ pub mod filter {
     use web_framework_shared::request::WebResponse;
     use web_framework_shared::request::{EndpointMetadata, WebRequest};
     use web_framework_shared::http_method::HttpMethod;
-    use crate::web_framework::request_context::RequestContext;
+    use crate::web_framework::request_context::SessionContext;
     use crate::web_framework::security::authorization::AuthorizationManager;
 
     impl <Request, Response> Default for FilterChain<Request, Response>
@@ -70,7 +70,7 @@ pub mod filter {
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
     {
-        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &RequestContextData<Request, Response>, request_context: &mut UserRequestContext<Request>) {
+        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &RequestContextData<Request, Response>, request_context: &mut Option<Box<UserRequestContext<Request>>>) {
             self.filters.iter()
                 .for_each(|f| f.filter(request, response, ctx, request_context));
         }
@@ -175,7 +175,7 @@ pub mod filter {
             request: &WebRequest,
             response: &mut WebResponse,
             ctx: &RequestContextData<Request, Response>,
-            request_context: &mut UserRequestContext<Request>
+            request_context: &mut Option<Box<UserRequestContext<Request>>>
         ) {
             self.dispatcher
                 .do_request(request, response, self.actions.clone(), ctx, request_context);
@@ -194,7 +194,12 @@ pub mod filter {
                       data: &mut HandlerMethod<UserRequestContext<Request>>,
                       ctx: &RequestContextData<Request, Response>
         ) {
-            todo!()
+            self.actions.do_action(
+                request,
+                response,
+                ctx,
+                &mut data.request_ctx_data
+            );
         }
 
         fn post_handle(&self,

@@ -16,7 +16,7 @@ use crate::web_framework::convert::Registration;
 use crate::web_framework::dispatch::FilterExecutor;
 use web_framework_shared::request::WebResponse;
 use web_framework_shared::request::WebRequest;
-use crate::web_framework::request_context::RequestContext;
+use crate::web_framework::request_context::SessionContext;
 use crate::web_framework::session::session::HttpSession;
 
 pub trait Adapter<T,U> {
@@ -51,7 +51,6 @@ where
 }
 
 pub trait RequestConversionError: Error {
-
 }
 
 pub trait Connection<'a, RequestResponseItem>: Send + Sync

@@ -19,6 +19,8 @@ pub struct DelegatingAuthenticationManager {
     pub(crate) providers: Arc<Vec<Box<dyn AuthenticationProvider>>>,
 }
 
+
+
 impl DelegatingAuthenticationManager {
     pub(crate) fn new() -> Self {
         Self {

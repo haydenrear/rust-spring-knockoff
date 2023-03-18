@@ -47,6 +47,8 @@
       <sourceFolder url="file://$MODULE_DIR$/test_something/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/token_stream_provider/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/authentication_gen/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crate_gen/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/plugin_parser/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

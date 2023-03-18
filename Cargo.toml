@@ -20,8 +20,9 @@ members = [
     "web_framework_shared",
     "spring_knockoff_boot_macro",
     "codegen_utils",
-    "token_stream_provider",
     "handler_mapping",
     "factories_codegen",
-    "authentication_gen"
+    "authentication_gen",
+    "plugin_parser",
+    "crate_gen"
 ]

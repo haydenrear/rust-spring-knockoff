@@ -12,6 +12,7 @@ use syn::token::Brace;
 use codegen_utils::env::get_project_base_dir;
 use codegen_utils::project_directory;
 use module_macro_codegen::parser::LibParser;
+use crate_gen::CrateWriter;
 
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
 
@@ -20,6 +21,7 @@ initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_director
 initialize_log!();
 
 fn main() {
+    CrateWriter::write_dummy_crate(concat!(project_directory!(), "target/knockoff_providers_gen/Cargo.toml"), "knockoff_providers_gen", "".to_string());
     log_message!("Initializing module macro lib.");
     let aug_file = get_aug_file();
     log_message!("Found augmented file: {}.", aug_file.as_str());

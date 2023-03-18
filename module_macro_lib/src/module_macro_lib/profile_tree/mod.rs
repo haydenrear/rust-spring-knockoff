@@ -18,7 +18,7 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
-use crate::module_macro_lib::profile_tree::profile_tree_modifier::ProfileTreeModifier;
+use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 
 pub mod profile_tree_modifier;
 pub mod mutable_profile_tree_modifier;

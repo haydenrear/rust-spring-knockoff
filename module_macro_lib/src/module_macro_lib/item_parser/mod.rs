@@ -11,12 +11,13 @@ use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::module_tree::{ModulesFunctions, Trait};
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::module_tree::Trait;
+use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::Bean;
 use module_macro_shared::dependency::AutowireType;
+use module_macro_shared::functions::ModulesFunctions;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use_logging!();
 initialize_log!();

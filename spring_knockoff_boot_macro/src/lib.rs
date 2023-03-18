@@ -76,18 +76,28 @@ pub fn autowired(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn enable_http_security(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
+#[proc_macro_attribute]
 pub fn mutable_bean(attr: TokenStream, input: TokenStream) -> TokenStream {
     input.into()
 }
 
 #[proc_macro_attribute]
 pub fn controller(attr: TokenStream, input: TokenStream) -> TokenStream {
-    strip_method_arg_attr(input)
+    input.into()
+}
+
+#[proc_macro_attribute]
+pub fn rest_controller(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
 }
 
 #[proc_macro_attribute]
 pub fn request_mapping(attr: TokenStream, input: TokenStream) -> TokenStream {
-    strip_method_arg_attr(input)
+    input.into()
 }
 
 #[proc_macro_attribute]

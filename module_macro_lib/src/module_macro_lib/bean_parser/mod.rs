@@ -11,9 +11,10 @@ use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{Bean, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::dependency::{AutowiredField, DepType};
+use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
-use crate::module_macro_lib::parse_container::ParseContainer;
-use crate::module_macro_lib::module_tree::{BeanDefinition, FunctionType, ModulesFunctions};
+use module_macro_shared::parse_container::ParseContainer;
+use crate::module_macro_lib::module_tree::BeanDefinition;
 use crate::module_macro_lib::util::ParseUtil;
 
 pub mod bean_dependency_path_parser;
@@ -40,7 +41,7 @@ impl BeanDependencyParser {
     pub fn add_dependencies(
         mut bean: Bean,
         injectable_types_builder: &HashMap<String, Bean>,
-        fns: &HashMap<TypeId, ModulesFunctions>
+        fns: &HashMap<String, ModulesFunctions>
     ) -> Bean {
         for fields in bean.fields.clone().iter() {
             match fields.clone() {
@@ -76,7 +77,7 @@ impl BeanDependencyParser {
         array_type: Option<TypeArray>,
         field: Field,
         injectable_types_builder: &HashMap<String, Bean>,
-        fns: &HashMap<TypeId, ModulesFunctions>
+        fns: &HashMap<String, ModulesFunctions>
     ) -> Bean {
         let autowired = ParseContainer::get_autowired_field_dep(field.clone());
         match autowired {
@@ -119,7 +120,7 @@ impl BeanDependencyParser {
         lifetime: Option<Lifetime>,
         array_type: Option<TypeArray>,
         injectable_types_builder: &HashMap<String, Bean>,
-        fns: &HashMap<TypeId, ModulesFunctions>,
+        fns: &HashMap<String, ModulesFunctions>,
         bean_type_path: Option<BeanPath>
     ) -> Bean
     {
@@ -179,7 +180,7 @@ impl BeanDependencyParser {
         dep_impl
     }
 
-    fn get_bean_type(bean_info: &AutowiredField, injectable_types_builder: &HashMap<String, Bean>, fns: &HashMap<TypeId, ModulesFunctions>) -> Option<BeanType> {
+    fn get_bean_type(bean_info: &AutowiredField, injectable_types_builder: &HashMap<String, Bean>, fns: &HashMap<String, ModulesFunctions>) -> Option<BeanType> {
         let bean_type = bean_info.qualifier.as_ref()
             .map(|q| injectable_types_builder.get(q))
             .map(|b| b.map(|b| {

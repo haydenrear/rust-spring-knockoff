@@ -25,7 +25,7 @@ use web_framework::web_framework::http::{
     RequestConverter, RequestExecutor, RequestExecutorImpl,
     RequestStream, ResponseType
 };
-use web_framework::web_framework::request_context::RequestContext;
+use web_framework::web_framework::request_context::SessionContext;
 use web_framework_shared::http_method::HttpMethod;
 use web_framework_shared::request::{WebRequest, WebResponse};
 

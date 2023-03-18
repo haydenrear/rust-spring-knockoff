@@ -41,17 +41,16 @@ where
 {
     fn do_action(
         &self,
-        request: &Option<Request>,
         web_request: &WebRequest,
         response: &mut WebResponse,
         context: &Ctx,
-        request_context: &mut RequestData
+        request_context: &mut Option<Box<RequestData>>
     ) -> Option<Response>;
 
     /**
     For method level annotations (could also be done via Aspect though).
     */
-    fn authentication_granted(&self, token: &Vec<GrantedAuthority>) -> bool;
+    fn authentication_granted(&self, token: &Option<Box<RequestData>>) -> bool;
 
     /**
     determines if it matches endpoint, http method, etc.

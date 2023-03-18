@@ -15,4 +15,9 @@ version = "1.0"
 [token_provider.handler_mapping.dependencies.serde]
 name = "serde"
 version = "1.0.137"
-
+[token_provider.handler_mapping.dependencies.syn]
+name = "syn"
+version = "1.0"
+[token_provider.handler_mapping.dependencies.quote]
+name = "quote"
+version = "1.0"

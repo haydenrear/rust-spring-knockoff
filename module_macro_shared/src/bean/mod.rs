@@ -11,6 +11,7 @@ use crate::aspect::AspectInfo;
 use crate::dependency::{AutowireType, DepType};
 
 use knockoff_logging::{initialize_log, use_logging};
+use crate::functions::ModulesFunctions;
 use_logging!();
 initialize_log!();
 use crate::logging::executor;
@@ -207,7 +208,6 @@ pub struct Bean {
     pub struct_found: Option<ItemStruct>,
     pub traits_impl: Vec<AutowireType>,
     pub enum_found: Option<ItemEnum>,
-    // A reference to another DepImpl - the id is the Type.
     pub deps_map: Vec<DepType>,
     pub id: String,
     pub path_depth: Vec<String>,
@@ -216,7 +216,8 @@ pub struct Bean {
     pub fields: Vec<Fields>,
     pub bean_type: Option<BeanType>,
     pub mutable: bool,
-    pub aspect_info: Vec<AspectInfo>
+    pub aspect_info: Vec<AspectInfo>,
+    pub factory_fn: Option<ModulesFunctions>
 }
 
 impl Eq for Bean {}
@@ -255,6 +256,7 @@ impl Default for Bean {
             bean_type: None,
             mutable: false,
             aspect_info: vec![],
+            factory_fn: None,
         }
     }
 }

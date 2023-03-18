@@ -27,6 +27,11 @@ pub struct WebRequest {
     pub uri: String
 }
 
+pub trait AuthorizationObject: Send + Sync + Default + Clone {
+}
+
+impl AuthorizationObject for WebRequest {}
+
 trait HttpEntity {}
 
 #[derive(Clone, Default, Serialize, Deserialize)]

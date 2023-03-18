@@ -18,7 +18,7 @@ use web_framework::web_framework::message::MessageType;
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use module_macro_lib::AuthenticationTypeConverterImpl;
 use mongo_repo::{Db, MongoRepo};
-use web_framework::web_framework::request_context::RequestContext;
+use web_framework::web_framework::request_context::SessionContext;
 use web_framework::web_framework::security::authentication::{AuthenticationProvider, AuthenticationToken, DaoAuthenticationProvider};
 use web_framework::web_framework::security::password::NoOpPasswordEncoder;
 use web_framework::web_framework::session::session::HttpSession;
@@ -175,11 +175,10 @@ struct TestAction1;
 impl Handler<Example1, Example1, UserRequestContext<Example1>, RequestContextData<Example1, Example1>> for TestAction {
     fn do_action(
         &self,
-        request: &Option<Example1>,
         web_request: &WebRequest,
         response: &mut WebResponse,
         ctx: &Context<Example1, Example1>,
-        request_context: &mut RequestContext
+        request_context: &mut Option<SessionContext>
     ) -> Option<Example1> {
         Some(Example1::default())
     }
@@ -199,11 +198,10 @@ struct TestAction;
 impl Handler<Example, Example, UserRequestContext<Example>, RequestContextData<Example, Example>> for TestAction {
     fn do_action(
         &self,
-        request: &Option<Example>,
         web_request: &WebRequest,
         response: &mut WebResponse,
         ctx: &Context<Example, Example>,
-        request_context: &mut RequestContext
+        request_context: &mut Option<SessionContext>
     ) -> Option<Example> {
         Some(Example::default())
     }

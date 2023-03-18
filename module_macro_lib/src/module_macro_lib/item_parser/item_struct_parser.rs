@@ -4,7 +4,7 @@ use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
 use module_macro_shared::bean::Bean;
-use crate::module_macro_lib::parse_container::ParseContainer;
+use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
@@ -12,6 +12,7 @@ initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use quote::{quote, ToTokens};
+use crate::FieldAugmenterImpl;
 
 pub struct ItemStructParser;
 
@@ -19,7 +20,9 @@ impl ItemParser<ItemStruct> for ItemStructParser {
     fn parse_item(parse_container: &mut ParseContainer, item_struct: &mut ItemStruct, path_depth: Vec<String>) {
         log_message!("adding type with name {}", item_struct.ident.clone().to_token_stream().to_string());
 
-        parse_container.initializer.field_augmenter.process(item_struct);
+        let field_augmenter = FieldAugmenterImpl {};
+
+        field_augmenter.process(item_struct);
 
         parse_container.injectable_types_builder.get_mut(&item_struct.ident.to_string().clone())
             .map(|struct_impl: &mut Bean| {
@@ -52,6 +55,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                         .or(Some(false))
                         .unwrap(),
                     aspect_info: vec![],
+                    factory_fn: None,
                 };
                 parse_container.injectable_types_builder.insert(item_struct.ident.to_string().clone(), impl_found);
                 None
