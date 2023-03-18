@@ -77,6 +77,11 @@ fn test_module_macro() {
 }
 
 #[test]
+fn test_attribute_handler_mapping() {
+    let attr = AttributeHandlerMapping::new();
+}
+
+#[test]
 fn test_app_ctx() {
     let app_ctx = AppCtx::new();
     assert_eq!(app_ctx.profiles.len(), 1);

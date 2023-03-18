@@ -135,16 +135,27 @@ impl HandlerMappingBuilder {
                 #(#arg_idents: Arc<HandlerExecutionChain<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>>,)*
             }
 
-            pub struct HandlerExecutorImpl;
+            pub struct HandlerExecutorImpl <D: Data + Send + Sync, C: ContextData + Send + Sync> {
+                phantom_d: PhantomData<D>,
+                phantom_c: PhantomData<C>
+            }
+
+            impl <D: Data + Send + Sync, C: ContextData + Send + Sync> Default for HandlerExecutorImpl<D, C> {
+                fn default() -> Self {
+                    Self {
+                        phantom_d: PhantomData::default(),
+                        phantom_c: PhantomData::default()
+                    }
+                }
+            }
 
             #(
-                impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> for HandlerExecutorImpl {
+                impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> {
                     fn execute_handler(&self, handler: &HandlerMethod<UserRequestContext<#arg_types>>, ctx: &RequestContextData<#arg_types, #arg_outputs>, response: &mut WebResponse, request: &WebRequest) {
                         todo!()
                     }
                 }
             )*
-
 
             impl AttributeHandlerMapping {
                 pub fn new() -> Self {
@@ -164,22 +175,23 @@ impl HandlerMappingBuilder {
                             }
                         );
 
-                        let handler_executor = Arc::new(HandlerExecutorStruct {
-                            handler_executor: Arc::new(HandlerExecutorImpl {}),
+                        let handler_executor: Arc<HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>>
+                            = Arc::new(HandlerExecutorImpl::default());
+
+                        let handler_executor = handler_executor as Arc<dyn HandlerExecutor<
+                                            UserRequestContext<#arg_types>,
+                                            RequestContextData<#arg_types, #arg_outputs>
+                        >>;
+
+                        let handler_executor: Arc<HandlerExecutorStruct<
+                            dyn HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>,
+                            UserRequestContext<#arg_types>,
+                            RequestContextData<#arg_types, #arg_outputs>
+                        >> = Arc::new(HandlerExecutorStruct {
+                            handler_executor,
                             phantom_data_t: PhantomData::default(),
                             phantom_data_ctx: PhantomData::default()
-                        }) as Arc<dyn Any + Send + Sync>;
-
-                        let handler_executor = handler_executor.downcast::<
-                                    HandlerExecutorStruct<
-                                        dyn HandlerExecutor<
-                                            UserRequestContext<#arg_types>,
-                                            RequestContextData<#arg_types, #arg_outputs>>,
-                                        UserRequestContext<#arg_types>,
-                                        RequestContextData<#arg_types, #arg_outputs>
-                                    >
-                                >()
-                            .ok().unwrap();
+                        });
 
                         let #arg_idents = Arc::new(HandlerExecutionChain {
                             interceptors: Arc::new(interceptors),
@@ -188,6 +200,7 @@ impl HandlerMappingBuilder {
                             context
                         });
                     )*
+
                     Self {
                         #(#arg_idents,)*
                     }

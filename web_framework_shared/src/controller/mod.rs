@@ -75,21 +75,28 @@ impl <D, C> RequestExecutor<WebRequest, WebResponse> for HandlerExecutionChain<D
         let mut response = WebResponse::default();
         let mut handler = HandlerMethod::default();
 
+        self.do_request_inner(&mut web_request, &mut response, &mut handler);
+
+        response
+    }
+}
+
+impl<D, C> HandlerExecutionChain<D, C> where C: ?Sized + ContextData + Send + Sync, D: ?Sized + Data + Send + Sync {
+    fn do_request_inner(&self, web_request: &mut WebRequest, mut response: &mut WebResponse, mut handler: &mut HandlerMethod<D>) {
         self.interceptors
             .iter()
             .for_each(|i|
                 i.pre_handle(&web_request, &mut response, &mut handler, &self.context)
             );
 
-        // self.handler_executor.execute_handler(&handler, &self.context, &mut response, &web_request);
+        self.handler_executor.handler_executor
+            .execute_handler(&handler, &self.context, &mut response, &web_request);
 
         self.interceptors
             .iter()
             .for_each(|i|
                 i.post_handle(&web_request, &mut response, &mut handler, &self.context)
             );
-
-        response
     }
 }
 

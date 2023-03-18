@@ -7,10 +7,8 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Fixed aspect issue.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="downcast passed">
       <change beforePath="$PROJECT_DIR$/handler_mapping/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/handler_mapping/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/controller/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/controller/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,24 +118,7 @@
       <recent name="$PROJECT_DIR$/initializer_lib" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test controller::test_handler_mapping" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework_shared --lib controller::test_handler_mapping -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="false" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="Cargo.Test test_attribute_handler_mapping">
     <configuration name="Test test::test_argument_resolver::test_fn_arg_resolver" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework_shared --lib test::test_argument_resolver::test_fn_arg_resolver -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -189,6 +170,23 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test test_attribute_handler_mapping" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_attribute_handler_mapping -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="false" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -225,19 +223,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test controller::test_handler_mapping" />
       <item itemvalue="Cargo.Test test::test_argument_resolver::test_fn_arg_resolver" />
       <item itemvalue="Cargo.Test test::test_argument_resolver::test_request_body_path_variable" />
       <item itemvalue="Cargo.Test test_argument_resolver" />
+      <item itemvalue="Cargo.Test test_attribute_handler_mapping" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test_attribute_handler_mapping" />
+        <item itemvalue="Cargo.Test test_module_macro" />
         <item itemvalue="Cargo.Test test_argument_resolver" />
         <item itemvalue="Cargo.Test test::test_argument_resolver::test_request_body_path_variable" />
         <item itemvalue="Cargo.Test test::test_argument_resolver::test_fn_arg_resolver" />
-        <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test controller::test_handler_mapping" />
       </list>
     </recent_temporary>
   </component>
@@ -303,35 +301,7 @@
       <workItem from="1677938837220" duration="21272000" />
       <workItem from="1678022170942" duration="70052000" />
       <workItem from="1678458623911" duration="19007000" />
-      <workItem from="1678975680993" duration="43172000" />
-    </task>
-    <task id="LOCAL-00100" summary="method advice aspect w/ proceed">
-      <created>1678215689822</created>
-      <option name="number" value="00100" />
-      <option name="presentableId" value="LOCAL-00100" />
-      <option name="project" value="LOCAL" />
-      <updated>1678215689822</updated>
-    </task>
-    <task id="LOCAL-00101" summary="method advice aspect w/ proceed">
-      <created>1678215742715</created>
-      <option name="number" value="00101" />
-      <option name="presentableId" value="LOCAL-00101" />
-      <option name="project" value="LOCAL" />
-      <updated>1678215742715</updated>
-    </task>
-    <task id="LOCAL-00102" summary="arbitrary suffix to fix collision.">
-      <created>1678224490457</created>
-      <option name="number" value="00102" />
-      <option name="presentableId" value="LOCAL-00102" />
-      <option name="project" value="LOCAL" />
-      <updated>1678224490457</updated>
-    </task>
-    <task id="LOCAL-00103" summary="arbitrary suffix to fix collision.">
-      <created>1678225217831</created>
-      <option name="number" value="00103" />
-      <option name="presentableId" value="LOCAL-00103" />
-      <option name="project" value="LOCAL" />
-      <updated>1678225217831</updated>
+      <workItem from="1678975680993" duration="50887000" />
     </task>
     <task id="LOCAL-00104" summary="arbitrary suffix to fix collision.">
       <created>1678225259852</created>
@@ -648,7 +618,35 @@
       <option name="project" value="LOCAL" />
       <updated>1679161673784</updated>
     </task>
-    <option name="localTasksCounter" value="149" />
+    <task id="LOCAL-00149" summary="updated">
+      <created>1679164517371</created>
+      <option name="number" value="00149" />
+      <option name="presentableId" value="LOCAL-00149" />
+      <option name="project" value="LOCAL" />
+      <updated>1679164517371</updated>
+    </task>
+    <task id="LOCAL-00150" summary="downcast passed">
+      <created>1679170879504</created>
+      <option name="number" value="00150" />
+      <option name="presentableId" value="LOCAL-00150" />
+      <option name="project" value="LOCAL" />
+      <updated>1679170879504</updated>
+    </task>
+    <task id="LOCAL-00151" summary="downcast passed">
+      <created>1679170981678</created>
+      <option name="number" value="00151" />
+      <option name="presentableId" value="LOCAL-00151" />
+      <option name="project" value="LOCAL" />
+      <updated>1679170981678</updated>
+    </task>
+    <task id="LOCAL-00152" summary="downcast passed">
+      <created>1679175259622</created>
+      <option name="number" value="00152" />
+      <option name="presentableId" value="LOCAL-00152" />
+      <option name="project" value="LOCAL" />
+      <updated>1679175259622</updated>
+    </task>
+    <option name="localTasksCounter" value="153" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -698,7 +696,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed bug" />
     <MESSAGE value="Removed duplicated BeanType" />
     <MESSAGE value="Fixed aspect logic" />
     <MESSAGE value="Fixed aspect logic and ensured args all the same in the whole chain." />
@@ -719,11 +716,12 @@
     <MESSAGE value="parse factories" />
     <MESSAGE value="Prepare for HandlerMapping" />
     <MESSAGE value="Updated so that web_framework can be imported into factories_codegen to create handler_mapping amongst other" />
-    <MESSAGE value="updated" />
     <MESSAGE value="Updated" />
     <MESSAGE value="Implemented method argument" />
     <MESSAGE value="Fixed aspect issue." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed aspect issue." />
+    <MESSAGE value="updated" />
+    <MESSAGE value="downcast passed" />
+    <option name="LAST_COMMIT_MESSAGE" value="downcast passed" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
