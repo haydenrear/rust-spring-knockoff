@@ -20,7 +20,7 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
     }
 }
 
-#[aspect(**)]
+#[aspect(test_library.test_library_three.One.*)]
 #[ordered(0)]
 pub fn do_aspect(&self, one: One) -> String {
     println!("hello");
@@ -30,7 +30,7 @@ pub fn do_aspect(&self, one: One) -> String {
     three_four
 }
 
-#[aspect(**)]
+#[aspect(test_library.test_library_three.One.*)]
 #[ordered(1)]
 pub fn do_aspect_again(&self, one: One) -> String {
     println!("hello");

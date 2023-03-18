@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 use serde::de::StdError;
 use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use web_framework::web_framework::context::Context;
+use web_framework::web_framework::context::{Context, UserRequestContext};
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::http::{
     ProtocolToAdaptFrom, RequestConversionError,
@@ -76,8 +76,13 @@ impl <HRequest, HResponse> HyperRequestStream<HRequest, HResponse>
                     async move {
                         converter_cloned.from(rqst).await
                             .map(|converted| {
-                                let web_response = request_exec_cloned.do_request(converted, &mut RequestContext { http_session: Default::default() });
-                                Response::new(Body::from(web_response.response))
+                                // TODO: use generated dispatcher
+                                // let web_response = request_exec_cloned.do_request(
+                                //     converted,
+                                //     &mut UserRequestContext { request_context: RequestContext { http_session: Default::default() }, request: None }
+                                // );
+                                // Response::new(Body::from(web_response.response))
+                                Response::new(Body::from("hello".to_string()))
                             })
                             .or(Err(HyperBodyConvertError { error: "failure" }))
                     }

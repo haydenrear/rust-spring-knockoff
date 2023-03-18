@@ -18,11 +18,20 @@ impl Found for Four {
 }
 
 impl One {
-    #[get_mapping(/v1/dummy/request)]
-    pub fn one_two_three(&self, #[request_body] one: One) -> String {
+    pub fn one_two_three(&self, one: One) -> String {
         print!("testing...");
         print!("{} is one", one.two.to_string());
         "two one".to_string()
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct ReturnRequest;
+
+impl Four {
+    #[get_mapping(/v1/dummy/request)]
+    pub fn do_request(&self, #[request_body] one: ReturnRequest) -> ReturnRequest {
+        one
     }
 }
 

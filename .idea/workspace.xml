@@ -7,23 +7,10 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Updated so that web_framework can be imported into factories_codegen to create handler_mapping amongst other">
-      <change afterPath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/path_variable_argument_resolver.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/query_param_argument_resolver.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/request_body_argument_resolver.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Fixed aspect issue.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handler_mapping/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/handler_mapping/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/aspect/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web_framework_shared/src/controller/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/controller/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/dispatch_server/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/dispatch_server/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,7 +86,7 @@
     "aspect.path.notification.shown": "true",
     "go.import.settings.migrated": "true",
     "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/authentication_gen",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -119,9 +106,9 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/codegen_resources" />
       <recent name="$PROJECT_DIR$/authentication_gen" />
       <recent name="$PROJECT_DIR$/module_macro_codegen" />
-      <recent name="$PROJECT_DIR$/codegen_resources" />
       <recent name="$PROJECT_DIR$/module_macro_lib/src/test_resources" />
       <recent name="$PROJECT_DIR$/codegen_utils" />
     </key>
@@ -134,23 +121,6 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Expand build_script_build" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="expand --color=always --theme=Dracula --tests" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$/module_macro_codegen" />
-      <option name="emulateTerminal" value="false" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test controller::test_handler_mapping" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package web_framework_shared --lib controller::test_handler_mapping -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -168,8 +138,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package test_app --bin test_app test -- --exact" />
+    <configuration name="Test test::test_argument_resolver::test_fn_arg_resolver" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework_shared --lib test::test_argument_resolver::test_fn_arg_resolver -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -185,8 +155,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::test_token_providers::test_factories_parser" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_factories_parser -- --exact" />
+    <configuration name="Test test::test_argument_resolver::test_request_body_path_variable" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework_shared --lib test::test_argument_resolver::test_request_body_path_variable -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="false" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test_argument_resolver" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package web_framework_shared --lib test::test_argument_resolver" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -239,18 +226,18 @@
     <list>
       <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Test controller::test_handler_mapping" />
-      <item itemvalue="Cargo.Test test::test_token_providers::test_factories_parser" />
-      <item itemvalue="Cargo.Test test (1)" />
-      <item itemvalue="Cargo.Expand build_script_build" />
+      <item itemvalue="Cargo.Test test::test_argument_resolver::test_fn_arg_resolver" />
+      <item itemvalue="Cargo.Test test::test_argument_resolver::test_request_body_path_variable" />
+      <item itemvalue="Cargo.Test test_argument_resolver" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Test controller::test_handler_mapping" />
+        <item itemvalue="Cargo.Test test_argument_resolver" />
+        <item itemvalue="Cargo.Test test::test_argument_resolver::test_request_body_path_variable" />
+        <item itemvalue="Cargo.Test test::test_argument_resolver::test_fn_arg_resolver" />
         <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test test::test_token_providers::test_factories_parser" />
-        <item itemvalue="Cargo.Test test (1)" />
-        <item itemvalue="Cargo.Expand build_script_build" />
+        <item itemvalue="Cargo.Test controller::test_handler_mapping" />
       </list>
     </recent_temporary>
   </component>
@@ -316,28 +303,7 @@
       <workItem from="1677938837220" duration="21272000" />
       <workItem from="1678022170942" duration="70052000" />
       <workItem from="1678458623911" duration="19007000" />
-      <workItem from="1678975680993" duration="23526000" />
-    </task>
-    <task id="LOCAL-00097" summary="method advice aspect w/ proceed">
-      <created>1678214276384</created>
-      <option name="number" value="00097" />
-      <option name="presentableId" value="LOCAL-00097" />
-      <option name="project" value="LOCAL" />
-      <updated>1678214276384</updated>
-    </task>
-    <task id="LOCAL-00098" summary="method advice aspect w/ proceed">
-      <created>1678215419054</created>
-      <option name="number" value="00098" />
-      <option name="presentableId" value="LOCAL-00098" />
-      <option name="project" value="LOCAL" />
-      <updated>1678215419054</updated>
-    </task>
-    <task id="LOCAL-00099" summary="method advice aspect w/ proceed">
-      <created>1678215439823</created>
-      <option name="number" value="00099" />
-      <option name="presentableId" value="LOCAL-00099" />
-      <option name="project" value="LOCAL" />
-      <updated>1678215439823</updated>
+      <workItem from="1678975680993" duration="43172000" />
     </task>
     <task id="LOCAL-00100" summary="method advice aspect w/ proceed">
       <created>1678215689822</created>
@@ -661,7 +627,28 @@
       <option name="project" value="LOCAL" />
       <updated>1679003266667</updated>
     </task>
-    <option name="localTasksCounter" value="146" />
+    <task id="LOCAL-00146" summary="Implemented method argument">
+      <created>1679100169340</created>
+      <option name="number" value="00146" />
+      <option name="presentableId" value="LOCAL-00146" />
+      <option name="project" value="LOCAL" />
+      <updated>1679100169340</updated>
+    </task>
+    <task id="LOCAL-00147" summary="Implemented method argument">
+      <created>1679158046232</created>
+      <option name="number" value="00147" />
+      <option name="presentableId" value="LOCAL-00147" />
+      <option name="project" value="LOCAL" />
+      <updated>1679158046232</updated>
+    </task>
+    <task id="LOCAL-00148" summary="Fixed aspect issue.">
+      <created>1679161673784</created>
+      <option name="number" value="00148" />
+      <option name="presentableId" value="LOCAL-00148" />
+      <option name="project" value="LOCAL" />
+      <updated>1679161673784</updated>
+    </task>
+    <option name="localTasksCounter" value="149" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -711,8 +698,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="multiple method advice aspect aspect" />
-    <MESSAGE value="Fixed to add same args as function call." />
     <MESSAGE value="Fixed bug" />
     <MESSAGE value="Removed duplicated BeanType" />
     <MESSAGE value="Fixed aspect logic" />
@@ -723,7 +708,6 @@
     <MESSAGE value="profile factory start" />
     <MESSAGE value="get abstract bean" />
     <MESSAGE value="Abstract beans" />
-    <MESSAGE value="Updated" />
     <MESSAGE value="refactor modify profile tree." />
     <MESSAGE value="inject dyn" />
     <MESSAGE value="fix bug" />
@@ -732,11 +716,14 @@
     <MESSAGE value="refactor test and beanfactoryinfo" />
     <MESSAGE value="constructor" />
     <MESSAGE value="start HandlerMapping" />
-    <MESSAGE value="updated" />
     <MESSAGE value="parse factories" />
     <MESSAGE value="Prepare for HandlerMapping" />
     <MESSAGE value="Updated so that web_framework can be imported into factories_codegen to create handler_mapping amongst other" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated so that web_framework can be imported into factories_codegen to create handler_mapping amongst other" />
+    <MESSAGE value="updated" />
+    <MESSAGE value="Updated" />
+    <MESSAGE value="Implemented method argument" />
+    <MESSAGE value="Fixed aspect issue." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed aspect issue." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -812,7 +799,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs</url>
-          <line>43</line>
+          <line>46</line>
           <option name="timeStamp" value="203" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

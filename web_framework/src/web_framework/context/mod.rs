@@ -12,11 +12,41 @@ use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use authentication_gen::{AuthenticationType, AuthenticationTypeConverterImpl};
+use web_framework_shared::controller::{ContextData, Data};
 use web_framework_shared::convert::Converter;
 use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder};
 use crate::web_framework::dispatch::FilterExecutor;
 use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
+use crate::web_framework::request_context::RequestContext;
 use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken, DelegatingAuthenticationManager};
+
+
+
+pub struct RequestContextData<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub request_context_data: Context<Request, Response>
+}
+
+impl <Request, Response> ContextData for RequestContextData<Request, Response>
+    where
+        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {}
+
+#[derive(Default, Clone)]
+pub struct UserRequestContext<Request>
+    where
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{
+    pub request_context: RequestContext,
+    pub request: Option<Request>
+}
+
+impl <Request> Data for UserRequestContext<Request>
+    where
+        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static{}
 
 #[derive(Clone, Default)]
 pub struct RequestHelpers<Request, Response>

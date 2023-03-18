@@ -574,10 +574,12 @@ dependencies = [
  "paste",
  "proc-macro2",
  "quote",
+ "serde",
  "spring_knockoff_boot_macro",
  "syn",
  "token_stream_provider",
  "web_framework",
+ "web_framework_shared",
 ]
 
 [[package]]
@@ -1109,6 +1111,7 @@ dependencies = [
  "handler_mapping",
  "module_macro_shared",
  "proc-macro2",
+ "serde",
  "web_framework",
  "web_framework_shared",
 ]
@@ -2436,6 +2439,7 @@ version = "0.1.0"
 dependencies = [
  "async-std",
  "circular",
+ "codegen_utils",
  "derive-syn-parse",
  "proc-macro2",
  "serde",

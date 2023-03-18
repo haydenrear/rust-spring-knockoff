@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use crate::web_framework::context::{Context, RequestHelpers};
+use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
 use crate::web_framework::convert::{Converters, RequestExtractor};
 use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
@@ -22,26 +22,29 @@ impl FilterExecutor {
         &self,
         request: &WebRequest,
         response: &mut WebResponse,
-        action: Arc<dyn Handler<Request, Response, RequestContext, Context<Request, Response>>>,
-        application_context: &Context<Request, Response>,
-        request_context: &mut RequestContext,
+        action: Arc<dyn Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>>>,
+        application_context: &RequestContextData<Request, Response>,
+        request_context: &mut UserRequestContext<Request>,
     ) where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
         if action.authentication_granted(
-            request_context.http_session.security_context_holder.auth_token
+            request_context.request_context.http_session.security_context_holder.auth_token
                     .as_ref()
                     .map(|a| &a.authorities)
                     .or(Some(&vec![]))
                     .unwrap()
         )
         {
+            // TODO: all of this logic will be added to the execution filter chain
             application_context
+                .request_context_data
                 .request_context
                 .convert_to(&request)
                 .and_then(|found| {
-                    application_context.request_context
+                    application_context.request_context_data
+                        .request_context
                         .convert_extract(&request)
                         .filter(|e| action.matches(&e))
                         .and_then(|_| {
@@ -59,7 +62,7 @@ impl FilterExecutor {
                                 .or(request.headers.get("Mediatype").cloned())
                                 .or(Some("application/json".to_string()));
 
-                            application_context.request_context
+                            application_context.request_context_data.request_context
                                 .convert_from(&action_response, &request, media_type)
                         })
                 })

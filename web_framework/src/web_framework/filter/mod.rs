@@ -4,7 +4,7 @@ pub mod filter {
     extern crate alloc;
     extern crate core;
 
-    use crate::web_framework::context::{Context, RequestHelpers};
+    use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
     use crate::web_framework::dispatch::FilterExecutor;
     use crate::web_framework::convert::Registration;
     use crate::web_framework::security::authentication::AuthenticationToken;
@@ -22,6 +22,7 @@ pub mod filter {
     use std::sync::{Arc, Mutex};
     use web_framework_shared::authority::GrantedAuthority;
     use authentication_gen::AuthenticationType;
+    use web_framework_shared::controller::{ContextData, HandlerInterceptor, HandlerMethod};
     use web_framework_shared::dispatch_server::Handler;
     use crate::web_framework::filter;
     use web_framework_shared::request::WebResponse;
@@ -69,7 +70,7 @@ pub mod filter {
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
     {
-        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &Context<Request, Response>, request_context: &mut RequestContext) {
+        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &RequestContextData<Request, Response>, request_context: &mut UserRequestContext<Request>) {
             self.filters.iter()
                 .for_each(|f| f.filter(request, response, ctx, request_context));
         }
@@ -93,7 +94,7 @@ pub mod filter {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     {
-        pub(crate) actions: Arc<dyn Handler<Request, Response, RequestContext, Context<Request, Response>>>,
+        pub(crate) actions: Arc<dyn Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>>>,
         pub(crate) dispatcher: Arc<FilterExecutor>,
         pub order: u8
     }
@@ -153,7 +154,7 @@ pub mod filter {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     {
-        pub fn new(actions: Arc<dyn Handler<Request, Response, RequestContext, Context<Request, Response>>>,
+        pub fn new(actions: Arc<dyn Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>>>,
                    order: Option<u8>,
                    dispatcher: Arc<FilterExecutor>) -> Self {
             Self {
@@ -164,8 +165,6 @@ pub mod filter {
         }
     }
 
-
-
     impl<Request, Response> Filter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -175,11 +174,46 @@ pub mod filter {
             &self,
             request: &WebRequest,
             response: &mut WebResponse,
-            ctx: &Context<Request, Response>,
-            request_context: &mut RequestContext
+            ctx: &RequestContextData<Request, Response>,
+            request_context: &mut UserRequestContext<Request>
         ) {
             self.dispatcher
                 .do_request(request, response, self.actions.clone(), ctx, request_context);
         }
     }
+
+
+    impl <Request, Response> HandlerInterceptor<UserRequestContext<Request>, RequestContextData<Request, Response>> for Filter<Request, Response>
+        where
+            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+    {
+        fn pre_handle(&self,
+                      request: &WebRequest,
+                      response: &mut WebResponse,
+                      data: &mut HandlerMethod<UserRequestContext<Request>>,
+                      ctx: &RequestContextData<Request, Response>
+        ) {
+            todo!()
+        }
+
+        fn post_handle(&self,
+                       request: &WebRequest,
+                       response: &mut WebResponse,
+                       data: &mut HandlerMethod<UserRequestContext<Request>>,
+                       ctx: &RequestContextData<Request, Response>
+        ) {
+            todo!()
+        }
+
+        fn after_completion(&self,
+                            request: &WebRequest,
+                            response: &mut WebResponse,
+                            data: &mut HandlerMethod<UserRequestContext<Request>>,
+                            ctx: &RequestContextData<Request, Response>
+        ) {
+            todo!()
+        }
+    }
+
 }

@@ -9,7 +9,7 @@ use std::pin::Pin;
 use async_std::stream::Stream;
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, TryStream, TryStreamExt};
-use crate::web_framework::context::{Context, RequestHelpers};
+use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
 use serde::{Deserialize, Serialize};
 use web_framework_shared::dispatch_server::Handler;
 use crate::web_framework::convert::Registration;
@@ -39,16 +39,6 @@ where
     ResponseWriterType: Copy + Clone
 {
     async fn next(&self) -> RequestResponseType;
-}
-
-#[async_trait]
-pub trait RequestExecutor<'a, RequestType, ResponseType, ResponseWriterType>
-    where
-        RequestType: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        ResponseType: Serialize + for<'b> Deserialize<'b> + Clone + Default,
-        ResponseWriterType: Copy + Clone
-{
-    fn do_request(&self, response_writer_type: RequestType, request_context: &mut RequestContext) -> ResponseType;
 }
 
 #[async_trait]
@@ -120,42 +110,5 @@ impl <'a> Default for RequestType<'a> {
 impl <'a> Default for ResponseType<'a> {
     fn default() -> Self {
         todo!()
-    }
-}
-
-pub struct RequestExecutorImpl<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-{
-    pub ctx: Context<Request, Response>,
-}
-
-impl <Request, Response> Clone for RequestExecutorImpl<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
-{
-    fn clone(&self) -> Self {
-        Self {
-            ctx: self.ctx.clone()
-        }
-    }
-}
-
-
-#[async_trait]
-impl <'a, Request, Response> RequestExecutor<'a, WebRequest, WebResponse, &'a [u8]>
-for RequestExecutorImpl<Request, Response>
-where
-    Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
-    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
-{
-    fn do_request(&self, mut web_request: WebRequest, request_context: &mut RequestContext) -> WebResponse {
-        let mut response = WebResponse::default();
-        self.ctx.filter_registry
-            .fiter_chain
-            .do_filter(&web_request, &mut response, &self.ctx, request_context);
-        response
     }
 }

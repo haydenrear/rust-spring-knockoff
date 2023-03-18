@@ -23,7 +23,7 @@ pub mod session {
     use std::pin::Pin;
     use web_framework_shared::authority::GrantedAuthority;
     use web_framework_shared::dispatch_server::Handler;
-    use crate::web_framework::context::{Context, RequestHelpers};
+    use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
     use web_framework_shared::request::WebResponse;
     use crate::web_framework::request_context::RequestContext;
     use crate::web_framework::security::authentication::AuthenticationToken;
@@ -71,7 +71,7 @@ pub mod session {
         repo: Box<R>,
     }
 
-    impl<'a, R, Request, Response> Handler<Request, Response, RequestContext, Context<Request, Response>> for SessionFilter<'a, R>
+    impl<'a, R, Request, Response> Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>> for SessionFilter<'a, R>
     where
         R: Repo<'a, HttpSession, String>,
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -83,14 +83,14 @@ pub mod session {
             request: &Option<Request>,
             mut web_request: &WebRequest,
             mut response: &mut WebResponse,
-            application_context: &Context<Request, Response>,
-            request_context: &mut RequestContext
+            application_context: &RequestContextData<Request, Response>,
+            request_context: &mut UserRequestContext<Request>
         ) -> Option<Response> {
             if let Some(session) = web_request
                 .headers
                 .get("R_SESSION_ID")
                 .and_then(|session_id| executor::block_on(self.repo.find_by_id(session_id))) {
-                request_context.http_session = session;
+                request_context.request_context.http_session = session;
             }
             None
         }

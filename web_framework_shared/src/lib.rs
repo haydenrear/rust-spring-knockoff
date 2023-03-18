@@ -7,6 +7,7 @@ pub mod profile_tree;
 pub mod dispatch_server;
 pub mod authority;
 pub mod argument_resolver;
+pub mod test;
 
 #[test]
 fn compile() {

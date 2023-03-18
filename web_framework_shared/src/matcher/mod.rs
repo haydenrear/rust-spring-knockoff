@@ -1,5 +1,8 @@
 use std::collections::LinkedList;
 use derive_syn_parse::Parse;
+use proc_macro2::TokenStream;
+use syn::__private::quote::quote;
+use syn::__private::ToTokens;
 use crate::request::WebRequest;
 
 #[cfg(test)]
@@ -17,8 +20,8 @@ pub trait RequestMatcher: for<'a> Matcher<&'a WebRequest> {
 
 #[derive(Clone, Default, Debug)]
 pub struct AntStringRequestMatcher {
-    to_match: String,
-    splitter: String
+    pub to_match: String,
+    pub splitter: String
 }
 
 impl AntStringRequestMatcher {
@@ -103,7 +106,7 @@ impl  Matcher<&'_ WebRequest> for AntPathRequestMatcher {
 #[derive(Clone)]
 pub struct AntPathRequestMatcher {
     //TODO: add bloom filter and contains
-    request_matchers: Vec<AntStringRequestMatcher>
+    pub request_matchers: Vec<AntStringRequestMatcher>
 }
 
 impl AntPathRequestMatcher {

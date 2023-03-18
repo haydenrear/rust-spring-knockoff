@@ -36,15 +36,15 @@ fn test_get_name() {
 
 #[test]
 fn test_knockoff_factories() {
-    assert!(get_knockoff_factores_arg().is_some());
+    assert!(get_knockoff_factories_arg().is_some());
 }
 
-fn get_knockoff_factores_arg() -> Option<String> {
+fn get_knockoff_factories_arg() -> Option<String> {
     env::var("AUG_FILE").ok()
 }
 
 fn do_test(attr_matcher: &dyn Fn(&Attribute) -> bool) -> Option<ItemFn> {
-    let option = get_knockoff_factores_arg();
+    let option = get_knockoff_factories_arg();
     let mut did_check = false;
     assert!(option.is_some());
     option.map(|aug_file| {

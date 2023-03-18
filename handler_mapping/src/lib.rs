@@ -1,12 +1,12 @@
-use proc_macro2::TokenStream;
-use quote::quote;
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, ToTokens};
 use syn::{Attribute, FnArg, ImplItem, ImplItemMethod, Type};
 use codegen_utils::project_directory;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::log_message;
 use module_macro_shared::bean::{Bean, BeanDefinitionType};
 use module_macro_shared::profile_tree::ProfileTree;
-use web_framework_shared::matcher::{AntPathRequestMatcher, AntStringRequestMatcher};
+use web_framework_shared::matcher::{AntPathRequestMatcher, AntStringRequestMatcher, Matcher};
 
 use module_macro_shared::logging::StandardLoggingFacade;
 use module_macro_shared::logging::executor;
@@ -87,46 +87,148 @@ impl HandlerMappingBuilder {
     //         })
     // }
 
+
     pub fn generate_token_stream(&self) -> TokenStream {
+        let (to_match, split) = self.get_request_matcher_info();
+        let args = self.controllers.iter().flat_map(|c| c.arguments_resolved.iter().filter(|a| {
+            a.request_body_arguments.len() != 0
+        }).map(|r| {
+            let args = r.request_body_arguments.get(0).unwrap();
+            (Ident::new(args.inner.name.as_str(), Span::call_site()), args.request_serialize_type.clone(), args.output_type.clone().unwrap())
+        }))
+            .collect::<Vec<(Ident, Type, Type)>>();
+
+        let arg_idents = args.iter().map(|i| i.0.clone()).collect::<Vec<Ident>>();
+        let arg_types = args.iter().map(|i| i.1.clone()).collect::<Vec<Type>>();
+        let arg_outputs = args.iter().map(|i| i.2.clone()).collect::<Vec<Type>>();
+
         let mut ts = quote! {
-            pub struct RequestContextData<Request, Response>
-            where
-                Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-                Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
-            {
-                request_context_data: Context<Request, Response>
+
+            use serde::{Serialize, Deserialize};
+            use web_framework::web_framework::context::Context;
+            use web_framework::web_framework::request_context::RequestContext;
+            use web_framework_shared::request::WebRequest;
+            use web_framework_shared::controller::{ContextData, Data, HandlerExecutionChain};
+            use web_framework_shared::request::WebResponse;
+            use web_framework::web_framework::context::UserRequestContext;
+            use web_framework::web_framework::context::RequestContextData;
+            use web_framework_shared::controller::{HandlerExecutor, RequestExecutor, HandlerMethod, HandlerExecutorStruct};
+
+            pub struct Dispatcher {
+                handler_mapping: AttributeHandlerMapping
             }
 
-            impl <Request, Response> ContextData for RequestContextData<Request, Response>
-            where
-                Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-                Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {}
-
-            pub struct UserRequestContext<Request>
-            where
-                Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+            impl RequestExecutor<WebRequest, WebResponse>
+            for Dispatcher
             {
-                request_context: RequestContext,
-                request: Request
+                fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
+                    self.handler_mapping.get_handler(&web_request)
+                        .map(|handler| {
+                            handler.do_request(web_request.clone())
+                        })
+                        .or(Some(WebResponse::default()))
+                        .unwrap()
+                }
             }
-
-            impl <Request> Data for UserRequestContext<Request>
-            where
-                Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static{}
 
             pub struct AttributeHandlerMapping {
-                //TODO: field for each handler mapping... OR downcast to get.
+                #(#arg_idents: Arc<HandlerExecutionChain<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>>,)*
             }
 
-            pub trait GetHandlerMapping<T: HandlerExecutionChain<D, C>, D: Data, C: ContextData> {
-                fn get_handler(&self, request: &WebRequest) -> HandlerExecutionChain<dyn Data, dyn ContextData>;
+            pub struct HandlerExecutorImpl;
+
+            #(
+                impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> for HandlerExecutorImpl {
+                    fn execute_handler(&self, handler: &HandlerMethod<UserRequestContext<#arg_types>>, ctx: &RequestContextData<#arg_types, #arg_outputs>, response: &mut WebResponse, request: &WebRequest) {
+                        todo!()
+                    }
+                }
+            )*
+
+
+            impl AttributeHandlerMapping {
+                pub fn new() -> Self {
+                    #(
+                        let mut interceptors = vec![];
+                        let mut request_matchers = vec![];
+
+                        #(
+                            let path_matcher = AntPathRequestMatcher::new(#to_match, #split);
+                            request_matchers.push(path_matcher);
+                        )*
+
+                        let context_item = Context::<#arg_types, #arg_outputs>::new();
+                        let context: Arc<RequestContextData<#arg_types, #arg_outputs>> = Arc::new(
+                            RequestContextData {
+                                request_context_data: context_item
+                            }
+                        );
+
+                        let handler_executor = Arc::new(HandlerExecutorStruct {
+                            handler_executor: Arc::new(HandlerExecutorImpl {}),
+                            phantom_data_t: PhantomData::default(),
+                            phantom_data_ctx: PhantomData::default()
+                        }) as Arc<dyn Any + Send + Sync>;
+
+                        let handler_executor = handler_executor.downcast::<
+                                    HandlerExecutorStruct<
+                                        dyn HandlerExecutor<
+                                            UserRequestContext<#arg_types>,
+                                            RequestContextData<#arg_types, #arg_outputs>>,
+                                        UserRequestContext<#arg_types>,
+                                        RequestContextData<#arg_types, #arg_outputs>
+                                    >
+                                >()
+                            .ok().unwrap();
+
+                        let #arg_idents = Arc::new(HandlerExecutionChain {
+                            interceptors: Arc::new(interceptors),
+                            request_matchers,
+                            handler_executor,
+                            context
+                        });
+                    )*
+                    Self {
+                        #(#arg_idents,)*
+                    }
+                }
             }
 
-            pub trait HandlerMapping {
+            pub trait GetHandlerMapping {
+                fn get_handler(&self, request: &WebRequest) -> Option<Arc<HandlerExecutionChain<dyn Data, dyn ContextData>>>;
+            }
+
+            impl GetHandlerMapping for AttributeHandlerMapping {
+                fn get_handler(&self, request: &WebRequest) -> Option<Arc<HandlerExecutionChain<dyn Data, dyn ContextData>>>{
+                    #(
+                        if self.#arg_idents.matches(request) {
+                            let any_val = self.#arg_idents.clone() as Arc<dyn Any + Send + Sync>;
+                            return any_val.downcast::<HandlerExecutionChain<dyn Data, dyn ContextData>>()
+                                .ok();
+                        }
+                    )*
+                    None
+                }
             }
 
         };
-        TokenStream::default()
+        ts.into()
+    }
+
+    fn get_request_matcher_info(&self) -> (Vec<Vec<String>>, Vec<Vec<String>>) {
+        let to_match = self.controllers.iter()
+            .map(|m| m.ant_path_request_matcher.iter()
+                .flat_map(|r| r.request_matchers.iter()
+                    .map(|r| r.to_match.clone())
+                ).collect::<Vec<String>>()
+            ).collect::<Vec<Vec<String>>>();
+        let split = self.controllers.iter()
+            .map(|m| m.ant_path_request_matcher.iter()
+                .flat_map(|r| r.request_matchers.iter()
+                    .map(|r| r.splitter.clone())
+                ).collect::<Vec<String>>()
+            ).collect::<Vec<Vec<String>>>();
+        (to_match, split)
     }
 }
 

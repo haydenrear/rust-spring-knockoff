@@ -21,6 +21,7 @@ use std::marker::PhantomData;
 use syn::parse::Parser;
 use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
 use spring_knockoff_boot_macro::initializer;
+use crate::test_library_three::ReturnRequest;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 

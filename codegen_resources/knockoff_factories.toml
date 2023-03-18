@@ -12,4 +12,7 @@ name = "web_framework_shared"
 [token_provider.handler_mapping.dependencies.proc-macro2]
 name = "proc-macro2"
 version = "1.0"
+[token_provider.handler_mapping.dependencies.serde]
+name = "serde"
+version = "1.0.137"
 

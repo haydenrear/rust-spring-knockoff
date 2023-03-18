@@ -137,15 +137,21 @@ impl AspectModifier {
             .flat_map(|p| &p.method_advice_aspects)
             .filter(|a| {
                 let mut path = path.clone();
-                path.push(bean_id.to_string().clone());
-                path.push(method.sig.ident.to_string().clone());
                 let point_cut_matcher = path.join(".");
                 log_message!("Checking if before advice {} and after advice {} matches {}.",
                     SynHelper::get_str(a.before_advice.clone().unwrap()),
                     SynHelper::get_str(a.after_advice.clone().unwrap()),
                     point_cut_matcher.clone()
                 );
-                a.pointcut.pointcut_expr.matches(point_cut_matcher.as_str())
+                if a.pointcut.pointcut_expr.matches(point_cut_matcher.as_str()) {
+                    log_message!("Before advice {} and after advice {} matches {}!",
+                        SynHelper::get_str(a.before_advice.clone().unwrap()),
+                        SynHelper::get_str(a.after_advice.clone().unwrap()),
+                        point_cut_matcher.clone()
+                    );
+                    return true;
+                }
+                false
             })
             .collect::<Vec<&MethodAdviceAspectCodegen>>();
 

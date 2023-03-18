@@ -12,7 +12,7 @@ use web_framework::web_framework::filter::filter::{Filter, FilterChain};
 use web_framework_shared::request::WebResponse;
 use web_framework::web_framework::security::user_details::PersistenceUserDetailsService;
 use web_framework::web_framework::http::RequestExecutorImpl;
-use web_framework::web_framework::context::{Context, RequestHelpers};
+use web_framework::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
 use web_framework::web_framework::context_builder::{ApplicationContextBuilder, AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder, RequestContextBuilder};
 use web_framework::web_framework::message::MessageType;
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
@@ -172,7 +172,7 @@ struct TestJson {
 }
 
 struct TestAction1;
-impl Handler<Example1, Example1, RequestContext, Context<Example1, Example1>> for TestAction {
+impl Handler<Example1, Example1, UserRequestContext<Example1>, RequestContextData<Example1, Example1>> for TestAction {
     fn do_action(
         &self,
         request: &Option<Example1>,
@@ -196,7 +196,7 @@ impl Handler<Example1, Example1, RequestContext, Context<Example1, Example1>> fo
 
 
 struct TestAction;
-impl Handler<Example, Example, RequestContext, Context<Example, Example>> for TestAction {
+impl Handler<Example, Example, UserRequestContext<Example>, RequestContextData<Example, Example>> for TestAction {
     fn do_action(
         &self,
         request: &Option<Example>,

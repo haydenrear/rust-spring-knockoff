@@ -4,11 +4,12 @@ use serde::{Deserialize, Serialize};
 use knockoff_security::knockoff_security::authentication_type::AuthenticationConversionError;
 use authentication_gen::{AuthenticationTypeConverter, AuthenticationTypeConverterImpl};
 use web_framework_shared::authority::GrantedAuthority;
+use web_framework_shared::controller::{HandlerInterceptor, HandlerMethod};
 use web_framework_shared::convert::Converter;
 use web_framework_shared::dispatch_server::Handler;
-use crate::web_framework::context::{Context, RequestHelpers};
+use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
 use crate::web_framework::filter::filter::{Filter, FilterChain};
-use web_framework_shared::request::WebResponse;
+use web_framework_shared::request::{ResponseBytesBuffer, WebResponse};
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
 use crate::web_framework::convert::AuthenticationConverterRegistry;
 use crate::web_framework::dispatch::FilterExecutor;
@@ -27,11 +28,10 @@ impl <Request, Response> SecurityFilterChain<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static {
-    pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &Context<Request, Response>, request_context: &mut RequestContext) {
+    pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &RequestContextData<Request, Response>, request_context: &mut UserRequestContext<Request>) {
         self.filters.do_filter(request, response, ctx, request_context);
     }
 }
-
 
 //TODO: replace filter with action
 pub trait AuthenticationFilter
@@ -88,7 +88,7 @@ impl UsernamePasswordAuthenticationFilter
     }
 }
 
-impl <Request, Response> Handler<Request, Response, RequestContext, Context<Request, Response>> for UsernamePasswordAuthenticationFilter
+impl <Request, Response> Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>> for UsernamePasswordAuthenticationFilter
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
@@ -98,13 +98,13 @@ where
         request: &Option<Request>,
         web_request: &WebRequest,
         response: &mut WebResponse,
-        application_context: &Context<Request, Response>,
-        request_context: &mut RequestContext
+        application_context: &RequestContextData<Request, Response>,
+        request_context: &mut UserRequestContext<Request>
         ) -> Option<Response> {
 
         self.try_convert_to_authentication(web_request)
             .map(|auth| {
-                request_context.http_session.security_context_holder.auth_token = Some(auth.to_owned());
+                request_context.request_context.http_session.security_context_holder.auth_token = Some(auth.to_owned());
                 auth
             })
             .expect("Panic experienced while authenticating user.");
