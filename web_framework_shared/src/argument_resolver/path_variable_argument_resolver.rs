@@ -2,6 +2,7 @@ use syn::{Attribute, ImplItemMethod, Path};
 use codegen_utils::syn_helper::SynHelper;
 use crate::argument_resolver::{NamedValueInfo, ResolveArguments};
 
+#[derive(Clone,Default)]
 pub struct PathVariableMethodArgument {
     pub inner: NamedValueInfo
 }

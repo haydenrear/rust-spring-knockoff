@@ -12,6 +12,7 @@ use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_providers_gen::DelegatingParseProvider;
 
 use quote::ToTokens;
 
@@ -28,6 +29,7 @@ impl ItemParser<ItemMod> for ItemModParser {
 
 impl ItemModParser {
     pub fn parse_item_inner(i: &mut Item, mut app_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
+        DelegatingParseProvider::parse_update(i, app_container);
         match i {
             Item::Const(const_val) => {
                 log_message!("Found const val {}.", const_val.to_token_stream().clone());

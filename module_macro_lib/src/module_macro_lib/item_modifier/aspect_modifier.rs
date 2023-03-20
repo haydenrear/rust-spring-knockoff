@@ -84,15 +84,10 @@ impl AspectModifier {
                 }
                 FnArg::Typed(t) => {
                     log_message!("Found pat: {}", t.pat.to_token_stream().to_string().clone());
-                    match t.pat.deref().clone() {
-                        Pat::Ident(ident) => {
-                            log_message!("{} is the ident of the fn.", ident.ident.to_string().as_str());
-                            vec![(ident.ident, t.ty.deref().clone())]
-                        }
-                        _ => {
-                            vec![]
-                        }
-                    }
+                    SynHelper::get_fn_arg_ident_type(t)
+                        .map(|t| vec![t])
+                        .or(Some(vec![]))
+                        .unwrap()
                 }
             }
         }).collect::<Vec<(Ident, Type)>>()
@@ -298,13 +293,6 @@ impl AspectModifier {
     }
 
     pub(crate) fn create_new_proceed_stmt<T: ToTokens>(args: &Vec<T>, ident: Ident) -> syn::Result<Stmt> {
-        /// Important because every call to the function should contain all of the arguments of
-        /// the original functions with all of the original names of the arguments to the functions.
-        /// Then, at any level to the aspect all arguments are there, instead of calling the aspect
-        /// at some n level deep with all the args and not having one of them there. Additionally,
-        /// the move rules apply for this to work as long as the args continue to be passed in just as
-        /// the first (this one)
-        /// ** the first one is the only one that needs to be changed **
         let proceed = quote! {
             let found = self.#ident(#(#args),*);
         };

@@ -4,11 +4,11 @@ use std::fmt::{Debug, Formatter};
 use std::fmt;
 use codegen_utils::syn_helper;
 use quote::ToTokens;
-use proc_macro2::Ident;
+use proc_macro2::{Ident, TokenStream};
 use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
 use crate::aspect::AspectInfo;
-use crate::dependency::{AutowireType, DepType};
+use crate::dependency::{ArgDepType, AutowiredField, DependencyDescriptor, DependencyMetadata, FieldDepType};
 
 use knockoff_logging::{initialize_log, use_logging};
 use crate::functions::ModulesFunctions;
@@ -95,9 +95,50 @@ pub enum BeanPathParts {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct BeanPath {
     pub path_segments: Vec<BeanPathParts>
+}
+
+impl Eq for BeanPath {}
+
+impl BeanPathParts {
+    fn get_matcher(&self) -> Vec<String> {
+        match self {
+            BeanPathParts::ArcType { arc_inner_types, outer_type } => {
+                vec![arc_inner_types.to_token_stream().to_string(), outer_type.to_token_stream().to_string()]
+            }
+            BeanPathParts::ArcMutexType { arc_mutex_inner_type, outer_type } => {
+                vec![arc_mutex_inner_type.to_token_stream().to_string(), outer_type.to_token_stream().to_string()]
+            }
+            BeanPathParts::MutexType { mutex_type_inner_type, outer_type } => {
+                vec![mutex_type_inner_type.to_token_stream().to_string(), outer_type.to_token_stream().to_string()]
+            }
+            BeanPathParts::FnType { input_types, return_type } => {
+                vec![input_types.iter().map(|i| i.to_token_stream().to_string()).collect::<Vec<String>>().join(", "),
+                     return_type.to_token_stream().to_string()]
+            }
+            BeanPathParts::QSelfType { q_self } => {
+                vec![q_self.to_token_stream().to_string()]
+            }
+            BeanPathParts::BindingType { associated_type } => {
+                vec![associated_type.to_token_stream().to_string()]
+            }
+            BeanPathParts::GenType { inner } => {
+                vec![inner.to_token_stream().to_string()]
+            }
+        }
+    }
+}
+
+impl PartialEq<Self> for BeanPathParts {
+    fn eq(&self, other: &Self) -> bool {
+        self.get_matcher() == other.get_matcher()
+    }
+}
+
+impl Eq for BeanPathParts {
+
 }
 
 impl BeanPath {
@@ -203,12 +244,12 @@ impl BeanPath {
 }
 
 #[derive(Clone)]
-pub struct Bean {
+pub struct BeanDefinition {
     pub struct_type: Option<Type>,
     pub struct_found: Option<ItemStruct>,
-    pub traits_impl: Vec<AutowireType>,
+    pub traits_impl: Vec<DependencyDescriptor>,
     pub enum_found: Option<ItemEnum>,
-    pub deps_map: Vec<DepType>,
+    pub deps_map: Vec<DependencyMetadata>,
     pub id: String,
     pub path_depth: Vec<String>,
     pub profile: Vec<ProfileBuilder>,
@@ -220,34 +261,34 @@ pub struct Bean {
     pub factory_fn: Option<ModulesFunctions>
 }
 
-impl Eq for Bean {}
 
-impl PartialEq<Self> for Bean {
+impl  Eq for BeanDefinition {}
+
+impl  PartialEq<Self> for BeanDefinition {
     fn eq(&self, other: &Self) -> bool {
         self.id.eq(&other.id)
     }
 }
 
-impl PartialOrd<Self> for Bean {
+impl  PartialOrd<Self> for BeanDefinition {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.id.partial_cmp(&other.id)
     }
 }
 
-impl Ord for Bean {
+impl  Ord for BeanDefinition {
     fn cmp(&self, other: &Self) -> Ordering {
         self.id.cmp(&other.id)
     }
 }
 
-impl Default for Bean {
+impl  Default for BeanDefinition {
     fn default() -> Self {
         Self {
             struct_type: None,
             struct_found: None,
             traits_impl: vec![],
             enum_found: None,
-            deps_map: vec![],
             id: String::default(),
             path_depth: vec![],
             profile: vec![],
@@ -257,16 +298,17 @@ impl Default for Bean {
             mutable: false,
             aspect_info: vec![],
             factory_fn: None,
+            deps_map: vec![],
         }
     }
 }
 
-#[derive(Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum BeanDefinitionType {
     Abstract {
-        bean: Bean,
-        dep_type: AutowireType
+        bean: BeanDefinition,
+        dep_type: DependencyDescriptor
     }, Concrete {
-        bean: Bean,
+        bean: BeanDefinition,
     }
 }

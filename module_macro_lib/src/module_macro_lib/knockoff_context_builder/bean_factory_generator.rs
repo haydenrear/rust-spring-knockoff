@@ -5,11 +5,11 @@ use syn::token::Mut;
 use syn::{Path, Type};
 use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use module_macro_shared::bean::{Bean, BeanPath};
+use module_macro_shared::bean::{BeanDefinition, BeanPath};
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
 
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
+use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor, FieldDepType};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use_logging!();
 initialize_log!();
@@ -56,6 +56,58 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
 
         ts
     }
+
+    fn create_bean_tokens_factory_fn(
+        bean_factory_info: &BeanFactoryInfo,
+        profile_ident: &Ident,
+        concrete_type: &Ident
+    ) -> TokenStream {
+
+        let (field_types, field_idents, concrete_field,
+            mutable_identifiers, mutable_field_types, concrete_mutable_type,
+            abstract_field_idents, abstract_field_types, concrete_abstract_types,
+            abstract_mutable_idents, abstract_mutable_field_types, concrete_mutable_abstract)
+            = bean_factory_info.get_field_types();
+
+        log_message!("Creating factory for profile {} for: {}.",
+            SynHelper::get_str(profile_ident),
+            SynHelper::get_str(&bean_factory_info.concrete_type.as_ref().unwrap())
+        );
+
+        log_message!("{} is number of field idents, {} is number of field types.", field_types.len(), field_idents.len());
+        log_message!("{} is number of mutable idents, {} is number of mutable field types.", mutable_identifiers.len(), mutable_field_types.len());
+        log_message!("{} is number of abstract idents, {} is number of abstract field types.", abstract_field_idents.len(), abstract_field_types.len());
+        log_message!("{} is number of abstract mutable idents, {} is number of abstract mutable field types.", abstract_mutable_idents.len(), abstract_mutable_field_types.len());
+
+        let create_beans_tokens = quote! {
+                #(
+                    let bean_def: BeanDefinition<#field_types> = <ListableBeanFactory as BeanFactory<#field_types, #profile_ident >>::get_bean(listable_bean_factory);
+                    let #field_idents = bean_def.inner;
+                )*
+                #(
+                    let bean_def: MutableBeanDefinition<Mutex<#mutable_field_types>>
+                        = <ListableBeanFactory as MutableBeanFactory<Mutex<#mutable_field_types>, #profile_ident >>::get_bean(listable_bean_factory);
+                    let #mutable_identifiers = bean_def.inner;
+                )*
+                #(
+                    let arc_bean_def = <ListableBeanFactory as BeanFactory<#abstract_field_types, #profile_ident >>::get_bean(listable_bean_factory);
+                    let #abstract_field_idents = arc_bean_def.inner;
+                )*
+                #(
+                    let bean_def = <ListableBeanFactory as MutableBeanFactory<Mutex<Box<#abstract_mutable_field_types>>, #profile_ident >>::get_bean(
+                            listable_bean_factory
+                        );
+                    let #abstract_mutable_idents = bean_def.inner;
+                )*
+                let inner = #concrete_type::new(
+                    #(#field_idents,)* #(#mutable_identifiers,)*
+                    #(#abstract_field_idents,)* #(#abstract_mutable_idents,)*
+                );
+        };
+
+        create_beans_tokens.into()
+    }
+
 
     fn create_bean_tokens(
         bean_factory_info: &BeanFactoryInfo,
@@ -369,7 +421,7 @@ impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
             .or(bean_factory_info.ident_type.clone())
             .unwrap();
 
-        let abstract_type: &Path = bean_factory_info.abstract_type.as_ref().unwrap();
+        let abstract_type: &Type = bean_factory_info.abstract_type.as_ref().unwrap();
 
         let profile_ident = &bean_factory_info.get_profile_ident();
         let concrete_type = bean_factory_info.get_concrete_type();

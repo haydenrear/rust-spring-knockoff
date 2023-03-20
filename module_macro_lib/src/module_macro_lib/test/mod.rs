@@ -3,8 +3,8 @@ use std::env;
 use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_codegen::aspect::AspectParser;
-use module_macro_shared::bean::Bean;
-use module_macro_shared::dependency::{AutowireType, DepType};
+use module_macro_shared::bean::BeanDefinition;
+use module_macro_shared::dependency::{DependencyDescriptor, FieldDepType};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
 use crate::module_macro_lib::item_parser::ItemParser;
@@ -70,16 +70,16 @@ fn get_module_item(module_app: &str, factories: &str) -> Option<Item> {
     syn_file.items.get(0).cloned()
 }
 
-fn get_deps_map(concrete_beans: Vec<Bean>, bean_id: &str) -> Vec<DepType> {
+fn get_deps_map(concrete_beans: Vec<BeanDefinition>, bean_id: &str) -> Vec<FieldDepType> {
     let one_num_deps = concrete_beans.iter()
         .filter(|b| b.id == bean_id.to_string())
-        .map(|b| b.deps_map.clone())
+        .map(|b| b.field_deps_map.clone())
         .next()
         .unwrap();
     one_num_deps
 }
 
-fn get_concrete_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<Bean> {
+fn get_concrete_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<BeanDefinition> {
     concrete_beans.iter().flat_map(|b| {
         match b {
             BeanDefinitionType::Abstract { bean, dep_type } => {
@@ -89,10 +89,10 @@ fn get_concrete_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<Bean> {
                 vec![bean.clone()]
             }
         }
-    }).collect::<Vec<Bean>>()
+    }).collect::<Vec<BeanDefinition>>()
 }
 
-fn get_abstract_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<(Bean, AutowireType)> {
+fn get_abstract_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<(BeanDefinition, DependencyDescriptor)> {
     concrete_beans.iter().flat_map(|b| {
         match b {
             BeanDefinitionType::Abstract { bean, dep_type } => {
@@ -102,7 +102,7 @@ fn get_abstract_beans(concrete_beans: &Vec<BeanDefinitionType>) -> Vec<(Bean, Au
                 vec![]
             }
         }
-    }).collect::<Vec<(Bean, AutowireType)>>()
+    }).collect::<Vec<(BeanDefinition, DependencyDescriptor)>>()
 }
 
 fn get_concrete_bean_types(bean_defs: Option<&Vec<BeanDefinitionType>>) -> Vec<&BeanDefinitionType> {
@@ -119,14 +119,14 @@ fn get_concrete_bean_types(bean_defs: Option<&Vec<BeanDefinitionType>>) -> Vec<&
         }).collect::<Vec<&BeanDefinitionType>>()
 }
 
-fn get_concrete_beans_with_aspects(container: &mut ParseContainer) -> Vec<Bean> {
+fn get_concrete_beans_with_aspects(container: &mut ParseContainer) -> Vec<BeanDefinition> {
     println!("{} is the num injectable types.", container.profile_tree.injectable_types.len());
     assert_eq!(container.profile_tree.injectable_types.len(), 1);
     get_concrete_beans(&container.profile_tree.injectable_types.get(&ProfileBuilder::default()).unwrap())
         .iter()
         .filter(|b| b.aspect_info.len() != 0)
         .map(|b| b.to_owned())
-        .collect::<Vec<Bean>>()
+        .collect::<Vec<BeanDefinition>>()
 }
 
 fn set_knockoff_factories(module_app: &str) {

@@ -5,15 +5,15 @@ use std::path::Path;
 use proc_macro2::Ident;
 use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
-use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
+use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, parse2, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_shared::bean::{Bean, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{AutowiredField, DepType};
+use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
+use module_macro_shared::bean::BeanPathParts::GenType;
+use module_macro_shared::dependency::{AutowiredField, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
 use module_macro_shared::parse_container::ParseContainer;
-use crate::module_macro_lib::module_tree::BeanDefinition;
 use crate::module_macro_lib::util::ParseUtil;
 
 
@@ -40,7 +40,64 @@ impl BeanDependencyPathParser {
             .unwrap()
     }
 
+    pub(crate) fn parse_path_to_bean_path(path: &syn::Path) -> BeanPath {
+        BeanPath{
+            path_segments: Self::parse_path(path)
+        }
+    }
+
+    pub(crate) fn parse_type(path: Type) -> Option<BeanPath> {
+        log_message!("Parsing type segments {}.", path.to_token_stream().to_string().as_str());
+        match path {
+            Type::Path(tp)  => {
+                Some(BeanDependencyPathParser::parse_type_path(tp))
+            }
+            Type::TraitObject(tt) => {
+                let path_segments = tt.bounds.iter().flat_map(|b| match b {
+                    TypeParamBound::Trait(trait_bound) => {
+                        Self::parse_path(&trait_bound.path)
+                    }
+                    TypeParamBound::Lifetime(_) => {
+                        vec![]
+                    }
+                }).collect::<Vec<BeanPathParts>>();
+                Some(
+                    BeanPath {
+                        path_segments
+                    }
+                )
+
+            }
+            _ => {
+                None
+            }
+        }
+    }
+
     fn parse_path(path: &syn::Path) -> Vec<BeanPathParts> {
+        path.segments.iter().flat_map(|segment| {
+            match &segment.arguments {
+                PathArguments::None => {
+                    log_message!("{} type path did not have args.", path.to_token_stream().to_string().as_str());
+                    /// In the event that there is no generic types, then we prove that it cannot be dyn,
+                    /// so it can be parsed as a Type successfully.
+                    parse2::<Type>(path.to_token_stream().clone())
+                        .ok()
+                        .map(|inner| vec![GenType { inner }])
+                        .or(Some(vec![]))
+                        .unwrap()
+                }
+                PathArguments::AngleBracketed(angle) => {
+                    Self::parse_angle_bracketed(angle, path)
+                }
+                PathArguments::Parenthesized(parenthesized) => {
+                    Self::parse_parenthesized(parenthesized, path)
+                }
+            }
+        }).collect()
+    }
+
+    fn parse_path_inner(path: &syn::Path) -> Vec<BeanPathParts> {
         path.segments.iter().flat_map(|segment| {
             match &segment.arguments {
                 PathArguments::None => {
@@ -55,7 +112,6 @@ impl BeanDependencyPathParser {
                 }
             }
         }).collect()
-
     }
 
     fn parse_parenthesized(parenthesized: &ParenthesizedGenericArguments, path: &syn::Path) -> Vec<BeanPathParts> {
@@ -128,7 +184,7 @@ impl BeanDependencyPathParser {
     fn parse_next_path(in_type: &Type) -> Vec<BeanPathParts> {
         match in_type {
             Type::Path(type_path) => {
-                Self::parse_path(&type_path.path.clone())
+                Self::parse_path_inner(&type_path.path.clone())
             }
             _ => {
                 vec![]
@@ -168,7 +224,7 @@ impl BeanDependencyPathParser {
                 TypeParamBound::Trait(trait_bound) => {
                     // let path: syn::Path
                     // trait_bound.path
-                    Self::parse_path(&trait_bound.path)
+                    Self::parse_path_inner(&trait_bound.path)
                 }
                 TypeParamBound::Lifetime(_) => {
                     log_message!("Ignored lifetime contraint when parsing path.");

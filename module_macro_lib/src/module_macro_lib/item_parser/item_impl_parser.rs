@@ -3,18 +3,19 @@ use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use module_macro_shared::bean::Bean;
+use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::parse_container::ParseContainer;
 
 pub struct ItemImplParser;
 
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_shared::dependency::AutowireType;
+use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
+use crate::module_macro_lib::util::ParseUtil;
 
 impl ItemImplParser{
     fn add_path(path_depth: &mut Vec<String>, impl_found: &ItemImpl) {
@@ -63,30 +64,16 @@ impl ItemParser<ItemImpl> for ItemImplParser {
 
         Self::add_path(&mut path_depth, &item_impl);
 
-        let profile = Self::get_profile(&item_impl.attrs)
-            .map(|profile| profile.split(", ")
-                .map(|profile| profile.to_string())
-                .map(|mut profile| profile.replace(" ", ""))
-                .map(|profile| ProfileBuilder {profile})
-                .collect::<Vec<ProfileBuilder>>()
-            )
-            .or(Some(vec![]))
-            .unwrap();
+        let profile = ParseUtil::get_profile(&item_impl.attrs);
 
-        let qualifiers = Self::get_qualifier(&item_impl.attrs)
-            .map(|profile| profile.split(", ")
-                .map(|profile| profile.to_string())
-                .map(|mut profile| profile.replace(" ", ""))
-                .collect::<Vec<String>>()
-            )
-            .or(Some(vec![]))
-            .unwrap();
+        let qualifiers = ParseUtil::get_qualifiers(&item_impl.attrs);
 
         &mut parse_container.injectable_types_builder.get_mut(&id)
-            .map(|bean: &mut Bean| {
+            .map(|bean: &mut BeanDefinition| {
                 bean.traits_impl.push(
-                    AutowireType {
-                        item_impl: item_impl.clone(),
+                    DependencyDescriptor {
+                        item_impl: Some(item_impl.clone()),
+                        abstract_type: None,
                         profile: profile.clone(),
                         path_depth: path_depth.clone(),
                         qualifiers: qualifiers.clone()
@@ -94,12 +81,13 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                 );
             })
             .or_else(|| {
-                let mut impl_found = Bean {
+                let mut impl_found = BeanDefinition {
                     struct_type: Some(item_impl.self_ty.deref().clone()),
                     struct_found: None,
                     traits_impl: vec![
-                        AutowireType {
-                            item_impl: item_impl.clone(),
+                        DependencyDescriptor {
+                            item_impl: Some(item_impl.clone()),
+                            abstract_type: None,
                             profile: profile.clone(),
                             path_depth: path_depth.clone(),
                             qualifiers: qualifiers.clone()
@@ -113,10 +101,7 @@ impl ItemParser<ItemImpl> for ItemImplParser {
                     ident: None,
                     fields: vec![],
                     bean_type: None,
-                    mutable: SynHelper::get_attr_from_vec(&item_impl.attrs, vec!["mutable_bean"])
-                        .map(|_| true)
-                        .or(Some(false))
-                        .unwrap(),
+                    mutable: ParseUtil::does_attr_exist(&item_impl.attrs, vec!["mutable_bean"]),
                     aspect_info: vec![],
                     factory_fn: None,
                 };

@@ -9,4 +9,3 @@ pub mod parse_container;
 pub mod functions;
 pub mod item_modifier;
 pub mod module_tree;
-pub mod bean_dependency_parser;

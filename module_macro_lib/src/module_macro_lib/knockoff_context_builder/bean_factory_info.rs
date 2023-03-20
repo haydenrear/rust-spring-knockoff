@@ -2,19 +2,21 @@ use std::rc::Rc;
 use std::sync::Arc;
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
-use syn::{Field, Fields, Path, Type};
+use syn::{Field, Fields, Path, Type, TypeParamBound};
+use syn::token::Struct;
 use codegen_utils::syn_helper::SynHelper;
-use module_macro_shared::bean::Bean;
+use module_macro_shared::bean::BeanDefinition;
 
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
+use module_macro_shared::dependency::{ArgDepType, AutowiredField, DependencyDescriptor, DependencyMetadata, DepType, FieldDepType};
+use module_macro_shared::functions::ModulesFunctions;
 use module_macro_shared::profile_tree::ProfileBuilder;
+use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
 use_logging!();
 initialize_log!();
 
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-
 
 #[derive(Clone, Default)]
 pub struct BeanFactoryInfo {
@@ -24,9 +26,10 @@ pub struct BeanFactoryInfo {
     pub(crate) mutable_abstract_fields: Vec<MutableAbstractFieldInfo>,
     pub(crate) default_field_info: Vec<DefaultFieldInfo>,
     pub(crate) concrete_type: Option<Type>,
-    pub(crate) abstract_type: Option<Path>,
+    pub(crate) abstract_type: Option<Type>,
     pub(crate) ident_type: Option<Ident>,
-    pub(crate) profile: Option<ProfileBuilder>
+    pub(crate) profile: Option<ProfileBuilder>,
+    pub(crate) factory_fn: Option<ModulesFunctions>
 }
 
 #[derive(Clone)]
@@ -61,7 +64,6 @@ pub struct AbstractFieldInfo {
     field_type: Type,
     concrete_field_type: Type,
     field_ident: Ident,
-    autowire_type: AutowiredField,
     qualifier: Option<String>,
     profile: Option<String>
 }
@@ -71,12 +73,29 @@ pub struct MutableAbstractFieldInfo {
     field_type: Type,
     concrete_field_type: Type,
     field_ident: Ident,
-    autowire_type: AutowiredField,
     qualifier: Option<String>,
     profile: Option<String>
 }
 
 impl BeanFactoryInfo {
+
+    pub(crate) fn get_abstract_type(bean_type: &DependencyDescriptor) -> Option<Type> {
+        let abstract_type = bean_type.item_impl
+            .as_ref()
+            .map(|item_impl| {
+                item_impl.trait_.as_ref()
+                    .map(|f| BeanDependencyPathParser::parse_path_to_bean_path(&f.1))
+            })
+            .flatten()
+            .or_else(|| {
+                bean_type.abstract_type.clone()
+            })
+            .map(|bean_type| {
+                bean_type.get_inner_type()
+            })
+            .flatten();
+        abstract_type
+    }
 
     pub(crate) fn get_profile_ident(&self) -> Ident {
         self.profile.as_ref().map(|p| Ident::new(p.profile.as_str(), Span::call_site()))
@@ -136,6 +155,7 @@ impl BeanFactoryInfo {
         let mutable_abstract_field_concrete = self.mutable_abstract_fields.iter()
             .map(|f| f.concrete_field_type.clone())
             .collect::<Vec<Type>>();
+
         (field_types, field_idents, field_concrete,
          mutable_field_idents, mutable_field_types, mutable_field_concrete,
          abstract_field_ident, abstract_field_types, abstract_field_concrete,
@@ -147,26 +167,26 @@ pub trait BeanFactoryInfoFactory<T> {
 
     fn create_bean_factory_info(bean: &T) -> Vec<BeanFactoryInfo>;
 
-    fn get_mutable_singleton_field_ids(token_type: &Bean) -> Vec<MutableFieldInfo> {
+    fn get_mutable_singleton_field_ids(token_type: &BeanDefinition) -> Vec<MutableFieldInfo> {
         Self::get_field_ids::<MutableFieldInfo>(token_type, &Self::create_mutable_dep_type)
     }
 
-    fn get_singleton_field_ids(bean: &Bean) -> Vec<AutowirableFieldTypeInfo> {
+    fn get_singleton_field_ids(bean: &BeanDefinition) -> Vec<AutowirableFieldTypeInfo> {
         Self::get_field_ids::<AutowirableFieldTypeInfo>(bean, &Self::create_dep_type)
     }
 
-    fn get_abstract_field_ids(bean: &Bean) -> Vec<AbstractFieldInfo> {
+    fn get_abstract_field_ids(bean: &BeanDefinition) -> Vec<AbstractFieldInfo> {
         Self::get_field_ids::<AbstractFieldInfo>(bean, &Self::create_abstract_dep_type)
     }
 
-    fn get_abstract_mutable_field_ids(bean: &Bean) -> Vec<MutableAbstractFieldInfo> {
+    fn get_abstract_mutable_field_ids(bean: &BeanDefinition) -> Vec<MutableAbstractFieldInfo> {
         Self::get_field_ids::<MutableAbstractFieldInfo>(
             bean,
             &Self::create_mutable_abstract_dep_type
         )
     }
 
-    fn get_default_fields(bean: &Bean) -> Vec<DefaultFieldInfo> {
+    fn get_default_fields(bean: &BeanDefinition) -> Vec<DefaultFieldInfo> {
         if bean.fields.len() > 1 {
             panic!("Type had more than one set of fields Enum is not ready to be autowired!");
         }
@@ -183,79 +203,131 @@ pub trait BeanFactoryInfoFactory<T> {
         }
     }
 
-    fn create_mutable_dep_type(dep_type: &DepType) -> Option<MutableFieldInfo> {
-        if dep_type.is_abstract.is_some() && *dep_type.is_abstract.as_ref().unwrap() {
+    fn create_mutable_dep_type(dep_type: &DependencyMetadata) -> Option<MutableFieldInfo> {
+        match dep_type {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                Self::create_mutable_dep_type_dep(dep_type)
+            }
+            DependencyMetadata::ArgDepType(arg_dep_type) => {
+                Self::create_mutable_dep_type_dep(arg_dep_type)
+            }
+        }
+    }
+
+    fn create_mutable_dep_type_dep(dep_type: &dyn DepType) -> Option<MutableFieldInfo> {
+        if dep_type.is_abstract() {
             return None;
         }
-        dep_type.bean_type_path
+        dep_type.bean_type_path()
             .as_ref()
             .filter(|d| d.is_mutable())
             .map(|type_path| type_path.get_autowirable_type())
             .flatten()
-            .map(|field_type| MutableFieldInfo {
-                concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
-                field_type,
-                field_ident: dep_type.bean_info.field.ident.clone().unwrap(),
+            .map(|field_type| {
+                let concrete_field_type = dep_type.concrete_type()
+                    .as_ref()
+                    .cloned()
+                    .or(Some(field_type.clone())).unwrap();
+                let field_ident = dep_type.field_ident();
+                MutableFieldInfo {
+                    concrete_field_type,
+                    field_type,
+                    field_ident,
+                }
             })
     }
 
-    fn create_dep_type(dep_type: &DepType) -> Option<AutowirableFieldTypeInfo> {
-        if dep_type.is_abstract.is_some() && *dep_type.is_abstract.as_ref().unwrap() {
+    fn create_dep_type(dep_type: &DependencyMetadata) -> Option<AutowirableFieldTypeInfo> {
+        match dep_type {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                Self::create_dep_type_dep(dep_type)
+            }
+            DependencyMetadata::ArgDepType(arg_dep_type) => {
+                Self::create_dep_type_dep(arg_dep_type)
+            }
+        }
+    }
+
+    fn create_dep_type_dep(dep_type: &dyn DepType) -> Option<AutowirableFieldTypeInfo> {
+        if dep_type.is_abstract() {
             return None;
         }
-        dep_type.bean_type_path
+        dep_type.bean_type_path()
             .as_ref()
             .filter(|d| d.is_not_mutable())
             .map(|type_path| type_path.get_autowirable_type())
             .flatten()
             .map(|field_type| AutowirableFieldTypeInfo {
-                concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
+                concrete_field_type: dep_type.concrete_type().as_ref().cloned().or(Some(field_type.clone())).unwrap(),
                 field_type,
-                field_ident: dep_type.bean_info.field.ident.clone().unwrap(),
+                field_ident: dep_type.field_ident(),
             })
     }
 
-    fn create_abstract_dep_type(dep_type: &DepType) -> Option<AbstractFieldInfo> {
-        if dep_type.is_abstract.is_some() && *dep_type.is_abstract.as_ref().unwrap() {
-            return dep_type.bean_type_path
+    fn create_abstract_dep_type(dep_type: &DependencyMetadata) -> Option<AbstractFieldInfo> {
+        match dep_type {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                Self::get_abstract_field_info(dep_type)
+            }
+            DependencyMetadata::ArgDepType(arg_dep_type) => {
+                Self::get_abstract_field_info(arg_dep_type)
+            }
+        }
+    }
+
+    fn get_abstract_field_info(dep_type: &dyn DepType) -> Option<AbstractFieldInfo> {
+        if dep_type.is_abstract() {
+            return dep_type.bean_type_path()
                 .as_ref()
                 .filter(|d| d.is_not_mutable())
                 .map(|type_path| type_path.get_autowirable_type())
                 .flatten()
                 .map(|field_type| AbstractFieldInfo {
-                    concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
+                    concrete_field_type: dep_type.concrete_type().clone().or(Some(field_type.clone())).unwrap(),
                     field_type,
-                    autowire_type: dep_type.bean_info.clone(),
-                    qualifier: dep_type.bean_info.qualifier.clone(),
+                    qualifier: dep_type.maybe_qualifier().clone(),
                     profile: None,
-                    field_ident: dep_type.bean_info.field.ident.clone().unwrap(),
+                    field_ident: dep_type.field_ident(),
                 });
         }
         None
     }
 
-    fn create_mutable_abstract_dep_type(dep_type: &DepType) -> Option<MutableAbstractFieldInfo> {
-        if dep_type.is_abstract.is_some() && *dep_type.is_abstract.as_ref().unwrap() {
-            return dep_type.bean_type_path
+    fn create_mutable_abstract_dep_type(dep_type: &DependencyMetadata) -> Option<MutableAbstractFieldInfo> {
+        match dep_type {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                Self::create_mutable_abstract_dep_type_dep(dep_type)
+            }
+            DependencyMetadata::ArgDepType(arg_dep_type) => {
+                Self::create_mutable_abstract_dep_type_dep(arg_dep_type)
+            }
+        }
+    }
+
+    fn create_mutable_abstract_dep_type_dep(dep_type: &dyn DepType) -> Option<MutableAbstractFieldInfo> {
+        if dep_type.is_abstract() {
+            return dep_type.bean_type_path()
                 .as_ref()
                 .filter(|d| d.is_mutable())
                 .map(|type_path| type_path.get_autowirable_type())
                 .flatten()
-                .map(|field_type| MutableAbstractFieldInfo {
-                    concrete_field_type: dep_type.bean_info.concrete_type_of_field_bean_type.clone().or(Some(field_type.clone())).unwrap(),
-                    field_type,
-                    autowire_type: dep_type.bean_info.clone(),
-                    qualifier: dep_type.bean_info.qualifier.clone(),
-                    profile: None,
-                    field_ident: dep_type.bean_info.field.ident.clone().unwrap(),
+                .map(|field_type| {
+                    let concrete_field_type = dep_type.concrete_type().as_ref().cloned().or(Some(field_type.clone())).unwrap();
+                    MutableAbstractFieldInfo {
+                        concrete_field_type,
+                        field_type,
+                        qualifier: dep_type.maybe_qualifier().clone(),
+                        profile: None,
+                        field_ident: dep_type.field_ident(),
+                    }
                 });
         }
         None
     }
 
     fn get_field_ids<U>(
-        token_type: &Bean,
-        creator: &dyn Fn(&DepType) -> Option<U>
+        token_type: &BeanDefinition,
+        creator: &dyn Fn(&DependencyMetadata) -> Option<U>
     ) -> Vec<U> {
         let field_types = token_type.deps_map
             .clone().iter()
@@ -269,23 +341,21 @@ pub trait BeanFactoryInfoFactory<T> {
         field_types
     }
 
-    fn bean_dep_impl_not_abstract(b: &DepType) -> bool {
-        b.is_abstract.is_some() && !*b.is_abstract.as_ref().unwrap()
-    }
-
-    fn bean_dep_impl_abstract(b: &DepType) -> bool {
-        !Self::bean_dep_impl_not_abstract(b)
-    }
-
 }
 
 /// ConcreteBeanFactoryInfo is the default implementation of the beans... So the Profile is only used
 /// when there is an abstract bean that will be different for different Profiles or qualifiers.
 pub struct ConcreteBeanFactoryInfo;
 
-impl BeanFactoryInfoFactory<Bean> for ConcreteBeanFactoryInfo {
+impl BeanFactoryInfoFactory<BeanDefinition> for ConcreteBeanFactoryInfo {
 
-    fn create_bean_factory_info(bean: &Bean) -> Vec<BeanFactoryInfo> {
+    fn create_bean_factory_info(bean: &BeanDefinition) -> Vec<BeanFactoryInfo> {
+
+        // TODO: factory_fn
+        if bean.factory_fn.is_some() {
+            return vec![];
+        }
+
         log_message!("Creating bean factory info for bean with id {} with has {} dependencies.", &bean.id, bean.deps_map.len());
 
         // TODO: Fix this - not adding dependencies in some cases.
@@ -306,6 +376,7 @@ impl BeanFactoryInfoFactory<Bean> for ConcreteBeanFactoryInfo {
                 abstract_type: None,
                 ident_type: bean.ident.clone(),
                 profile: Some(ProfileBuilder::default()),
+                factory_fn: bean.factory_fn.clone(),
             })
             .collect::<Vec<BeanFactoryInfo>>()
     }
@@ -313,11 +384,18 @@ impl BeanFactoryInfoFactory<Bean> for ConcreteBeanFactoryInfo {
 
 pub struct AbstractBeanFactoryInfo;
 
-impl BeanFactoryInfoFactory<(Bean, AutowireType, ProfileBuilder)> for AbstractBeanFactoryInfo {
-    fn create_bean_factory_info(bean_type: &(Bean, AutowireType, ProfileBuilder)) -> Vec<BeanFactoryInfo> {
+impl BeanFactoryInfoFactory<(BeanDefinition, DependencyDescriptor, ProfileBuilder)> for AbstractBeanFactoryInfo {
+    fn create_bean_factory_info(bean_type: &(BeanDefinition, DependencyDescriptor, ProfileBuilder)) -> Vec<BeanFactoryInfo> {
+
+        // TODO: factory_fn
+        if bean_type.0.factory_fn.is_some() {
+            return vec![];
+        }
 
         let bean = bean_type.0.to_owned();
-        let abstract_type = bean_type.1.to_owned().item_impl.trait_.map(|t| t.1);
+
+        let abstract_type = BeanFactoryInfo::get_abstract_type(&bean_type.1);
+
         let mutable_fields = Self::get_mutable_singleton_field_ids(&bean);
         let fields = Self::get_singleton_field_ids(&bean);
         let mutable_abstract_fields = Self::get_abstract_mutable_field_ids(&bean);
@@ -334,8 +412,13 @@ impl BeanFactoryInfoFactory<(Bean, AutowireType, ProfileBuilder)> for AbstractBe
                 concrete_type: bean.struct_type.clone(),
                 abstract_type,
                 ident_type: bean.ident.clone(),
-                profile: Some(bean_type.2.to_owned())
+                profile: Some(bean_type.2.to_owned()),
+                factory_fn: bean.factory_fn.clone(),
             }
         ]
     }
+}
+
+impl AbstractBeanFactoryInfo {
+
 }

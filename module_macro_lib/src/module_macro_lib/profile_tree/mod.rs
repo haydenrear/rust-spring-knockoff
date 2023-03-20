@@ -9,8 +9,8 @@ use concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 use crate::module_macro_lib::module_tree::InjectableTypeKey;
 
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_shared::bean::{Bean, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{AutowireType, DepType};
+use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
+use module_macro_shared::dependency::{DependencyDescriptor, FieldDepType};
 use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
 use mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use_logging!();
@@ -24,6 +24,7 @@ pub mod profile_tree_modifier;
 pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;
 pub mod profile_profile_tree_modifier;
+pub mod factory_fn_profile_tree_modifier;
 
 pub struct ProfileTreeBuilder {
     pub tree_modifiers: Vec<Box<dyn ProfileTreeModifier>>,
@@ -31,8 +32,10 @@ pub struct ProfileTreeBuilder {
 }
 
 impl ProfileTreeBuilder {
-    pub fn build_profile_tree(beans: &mut HashMap<String, Bean>, tree_modifiers: Vec<Box<dyn ProfileTreeModifier>>)
-        -> ProfileTree
+    pub fn build_profile_tree(
+        beans: &mut HashMap<String, BeanDefinition>,
+        tree_modifiers: Vec<Box<dyn ProfileTreeModifier>>
+    ) -> ProfileTree
     {
 
         let mut injectable_types = ProfileTree::create_initial(&beans);

@@ -2,7 +2,7 @@ use syn::{Fields, ItemEnum};
 use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use module_macro_shared::bean::Bean;
+use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::parse_container::ParseContainer;
 use quote::ToTokens;
 
@@ -19,7 +19,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
     fn parse_item(parse_container: &mut ParseContainer, enum_to_add: &mut ItemEnum, path_depth: Vec<String>) {
         log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
         &mut parse_container.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())
-            .map(|struct_impl: &mut Bean| {
+            .map(|struct_impl: &mut BeanDefinition| {
                 struct_impl.enum_found = Some(enum_to_add.clone());
             })
             .or_else(|| {
@@ -27,7 +27,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                     .map(|variant| variant.fields.clone())
                     .collect::<Vec<Fields>>();
 
-                let mut impl_found = Bean {
+                let mut impl_found = BeanDefinition {
                     struct_type: None,
                     path_depth,
                     struct_found: None,

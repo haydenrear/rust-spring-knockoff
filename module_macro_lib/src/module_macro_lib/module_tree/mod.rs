@@ -18,8 +18,8 @@ use module_macro_shared::aspect::{AspectInfo, MethodAdviceChain};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
-use module_macro_shared::bean::{Bean, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
+use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
+use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor, FieldDepType};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use module_macro_shared::parse_container::ParseContainer;
 
@@ -28,15 +28,6 @@ initialize_log!();
 
 use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
-
-
-#[derive(Clone)]
-pub struct BeanDefinition {
-    pub qualifier: Option<String>,
-    pub bean_type_type: Option<Type>,
-    pub bean_type_ident: Option<Ident>,
-    pub bean_type: BeanType
-}
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub struct InjectableTypeKey {

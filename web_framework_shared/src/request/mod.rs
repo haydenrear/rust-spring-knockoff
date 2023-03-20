@@ -12,7 +12,7 @@ use circular::Buffer;
 //TODO: turn into uri components builder
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct EndpointMetadata {
-    pub path_variables: String,
+    pub path_variables: HashMap<String, String>,
     pub query_params: HashMap<String, String>,
     pub http_method: HttpMethod,
     pub base_uri: String

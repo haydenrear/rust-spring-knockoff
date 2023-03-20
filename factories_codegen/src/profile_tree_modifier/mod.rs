@@ -27,9 +27,7 @@ impl DelegatingProvider for ProfileTreeModifierProvider {
     }
 }
 
-/// Basic idea is to provide the user with the parsed ProfileTree and then have them generate tokens
-/// based on it. So this will be used in the codegen as a TokenStreamGenerator. It is an extension point
-/// for the framework, to enable decoupling the web framework from the dependency injection.
+/// Allows user to generate token based on parsed ProfileTree.
 impl ProfileTreeModifierProvider {
 
     pub fn create_provider() -> Provider {
@@ -51,7 +49,7 @@ impl ProfileTreeModifierProvider {
             }
 
             impl #provider_ident {
-                pub fn do_modify(items: &mut ProfileTree){
+                pub fn do_modify(items: &mut ProfileTree) {
                     let profile_tree = items.clone();
                     let token_delegate = #builder_path::new(items);
                     Self {

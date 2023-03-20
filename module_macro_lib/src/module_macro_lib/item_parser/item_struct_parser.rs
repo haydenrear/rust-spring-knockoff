@@ -3,7 +3,7 @@ use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use module_macro_shared::bean::Bean;
+use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
@@ -13,6 +13,7 @@ use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::logging::StandardLoggingFacade;
 use quote::{quote, ToTokens};
 use crate::FieldAugmenterImpl;
+use crate::module_macro_lib::util::ParseUtil;
 
 pub struct ItemStructParser;
 
@@ -25,7 +26,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
         field_augmenter.process(item_struct);
 
         parse_container.injectable_types_builder.get_mut(&item_struct.ident.to_string().clone())
-            .map(|struct_impl: &mut Bean| {
+            .map(|struct_impl: &mut BeanDefinition| {
                 struct_impl.struct_found = Some(item_struct.clone());
                 struct_impl.ident =  Some(item_struct.ident.clone());
                 struct_impl.fields = vec![item_struct.fields.clone()];
@@ -38,7 +39,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     #item_struct_ident
                 };
                 let struct_type = parse2::<Type>(self_ty);
-                let mut impl_found = Bean {
+                let mut impl_found = BeanDefinition {
                     struct_type: struct_type.ok(),
                     struct_found: Some(item_struct.clone()),
                     traits_impl: vec![],
@@ -50,10 +51,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     ident: Some(item_struct.ident.clone()),
                     fields: vec![item_struct.fields.clone()],
                     bean_type: BeanDependencyParser::get_bean_type_opt(&item_struct.attrs),
-                    mutable: SynHelper::get_attr_from_vec(&item_struct.attrs, vec!["mutable_bean"])
-                        .map(|_| true)
-                        .or(Some(false))
-                        .unwrap(),
+                    mutable: ParseUtil::does_attr_exist(&item_struct.attrs, vec!["mutable_bean"]),
                     aspect_info: vec![],
                     factory_fn: None,
                 };

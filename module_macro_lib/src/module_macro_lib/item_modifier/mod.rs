@@ -15,4 +15,3 @@ use module_macro_shared::aspect::AspectInfo;
 use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 
 pub mod aspect_modifier;
-pub mod delegating_modifier;

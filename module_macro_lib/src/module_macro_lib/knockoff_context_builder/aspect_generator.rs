@@ -5,7 +5,7 @@ use module_macro_shared::aspect::{AspectInfo, MethodAdviceChain};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
-use module_macro_shared::bean::Bean;
+use module_macro_shared::bean::BeanDefinition;
 use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use module_macro_shared::bean::BeanDefinitionType;
@@ -18,7 +18,7 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 use module_macro_shared::profile_tree::ProfileTree;
 
 pub struct AspectGenerator {
-    pub(crate) method_advice_aspects: Vec<(AspectInfo, Bean)>
+    pub(crate) method_advice_aspects: Vec<(AspectInfo, BeanDefinition)>
 }
 
 impl TokenStreamGenerator for AspectGenerator {
@@ -47,10 +47,10 @@ impl AspectGenerator {
                     BeanDefinitionType::Concrete { bean } => {
                         bean.aspect_info.iter()
                             .flat_map(|a| vec![(a.clone(), bean.clone())])
-                            .collect::<Vec<(AspectInfo, Bean)>>()
+                            .collect::<Vec<(AspectInfo, BeanDefinition)>>()
                     }
                 }
-            }).collect::<Vec<(AspectInfo, Bean)>>();
+            }).collect::<Vec<(AspectInfo, BeanDefinition)>>();
 
 
         Self {
@@ -63,7 +63,7 @@ impl AspectGenerator {
     /// the proceed statement in the last advice of the chain.
     ///
     pub(crate) fn implement_proceed_original_fn_logic(
-        mut ts: &mut TokenStream, a: &(AspectInfo, Bean),
+        mut ts: &mut TokenStream, a: &(AspectInfo, BeanDefinition),
         block: &Block, arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>
     ) {
         let mut proceed_suffix = "".to_string();
@@ -88,7 +88,7 @@ impl AspectGenerator {
     /// and the last advice in the chain, which is the original function logic, do not need
     /// to be implemented. **
     pub fn implement_chain(
-        mut ts: &mut TokenStream, a: &(AspectInfo, Bean),
+        mut ts: &mut TokenStream, a: &(AspectInfo, BeanDefinition),
         arg_idents: &Vec<&Ident>, arg_types: &Vec<&Type>,
     ) {
         let advice_chain_len = a.0.advice_chain.len();
@@ -137,7 +137,7 @@ impl AspectGenerator {
 
     pub(crate) fn implement(
         mut ts: &mut TokenStream,
-        a: &(AspectInfo, Bean),
+        a: &(AspectInfo, BeanDefinition),
         arg_idents: &Vec<&Ident>,
         arg_types: &Vec<&Type>,
         proceed_suffix: &mut String,
@@ -183,7 +183,7 @@ impl AspectGenerator {
         });
     }
 
-    pub(crate) fn implement_original_fn(mut ts: &mut TokenStream, a: &(AspectInfo, Bean)) {
+    pub(crate) fn implement_original_fn(mut ts: &mut TokenStream, a: &(AspectInfo, BeanDefinition)) {
         let block = a.0.original_fn_logic.as_ref().unwrap();
         let arg_idents = a.0.args.iter().map(|a| &a.0).collect::<Vec<&Ident>>();
         let arg_types = a.0.args.iter().map(|a| &a.1).collect::<Vec<&Type>>();

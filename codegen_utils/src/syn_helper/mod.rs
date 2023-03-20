@@ -1,10 +1,11 @@
 use syn::__private::{str, TokenStream, ToTokens};
-use syn::Attribute;
+use syn::{Attribute, Ident, Pat, PatType, Type};
 use std::env;
 use std::fs::File;
 use std::path::Path;
 use std::io::Read;
 use std::fmt::{Debug, DebugStruct};
+use std::ops::Deref;
 use crate::parse;
 
 pub mod test;
@@ -45,6 +46,18 @@ impl SynHelper {
         let name = name[1].split("(").collect::<Vec<&str>>();
         let name = name[0].to_owned();
         name
+    }
+
+
+    pub fn get_fn_arg_ident_type(t: &PatType) -> Option<(Ident, Type)> {
+        match t.pat.deref().clone() {
+            Pat::Ident(ident) => {
+                Some((ident.ident, t.ty.deref().clone()))
+            }
+            _ => {
+                None
+            }
+        }
     }
 
     pub fn open_syn_file(base_env: &str, lib_file: &str) -> Option<syn::File> {

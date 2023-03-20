@@ -1,18 +1,18 @@
-use crate::module_macro_lib::module_tree::BeanDefinition;
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::__private::TokenStream2;
+use syn::__private::{str, TokenStream2};
 use syn::{parse2, Path, Type};
 use codegen_utils::syn_helper::SynHelper;
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
-use module_macro_shared::bean::{Bean, BeanDefinitionType, BeanType};
-use module_macro_shared::dependency::{AutowiredField, AutowireType};
+use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
+use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::BeanFactoryGenerator;
+use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
 initialize_log!();
@@ -72,7 +72,7 @@ pub trait FactoryGenerator: {
         new_listable_bean_factory.into()
     }
 
-    fn add_to(identifiers: &mut Vec<Ident>, types: &mut Vec<Type>, bean: &Bean) where Self: Sized {
+    fn add_to(identifiers: &mut Vec<Ident>, types: &mut Vec<Type>, bean: &BeanDefinition) where Self: Sized {
         if bean.ident.is_some() {
             log_message!("Implementing listable bean factory. Including: {}.", bean.ident.to_token_stream().to_string().clone());
             identifiers.push(bean.ident.clone().unwrap());
@@ -88,8 +88,8 @@ pub struct FactoryGen {
 }
 
 pub struct ProviderBean {
-    bean: Bean,
-    dep_type: Option<AutowireType>
+    bean: BeanDefinition,
+    autowire_type: Option<DependencyDescriptor>
 }
 
 impl TokenStreamGenerator for FactoryGen {
@@ -112,10 +112,10 @@ impl FactoryGenerator for FactoryGen {
                 BeanDefinitionType::Concrete { bean } => {
                     log_message!("{} is the number of trait types and {} is the number of deps for bean with id {}.",
                              bean.traits_impl.len(), bean.deps_map.len(), bean.id.as_str());
-                    vec![ProviderBean {bean: bean.clone(), dep_type: None}]
+                    vec![ProviderBean {bean: bean.clone(), autowire_type: None}]
                 }
                 BeanDefinitionType::Abstract { bean, dep_type } => {
-                    vec![ProviderBean{ bean: bean.clone(), dep_type: Some(dep_type.clone()) }]
+                    vec![ProviderBean{ bean: bean.clone(), autowire_type: Some(dep_type.clone()) }]
                 }
             }
         }).collect::<Vec<ProviderBean>>();
@@ -148,6 +148,9 @@ impl FactoryGen {
             log_message!("{} is the abstract mutable path to create.", SynHelper::get_str(&a_path));
         });
 
+        // TODO: if a bean is mutable it cannot have a reference not through mutex, so there will have
+        //  to be two. However, for the abstract, the reference to the concrete type can be added in the
+        //  map, so that the same bean is used.
         let new_listable_bean_factory = quote! {
 
             pub struct #profile_name {
@@ -227,53 +230,35 @@ impl FactoryGen {
     fn get_fill_ident_paths(beans_to_provide: &Vec<ProviderBean>)
         -> (Vec<Ident>, Vec<Type>,
             Vec<Type>, Vec<Ident>,
-            Vec<Path>, Vec<Type>,
-            Vec<Path>, Vec<Type>
+            Vec<Type>, Vec<Type>,
+            Vec<Type>, Vec<Type>
         ) {
 
         let mut singleton_idents = vec![];
         let mut singleton_types = vec![];
         let mut mutable_types = vec![];
         let mut mutable_idents = vec![];
-        let mut abstract_mutable_paths: Vec<Path> = vec![];
+        let mut abstract_mutable_paths: Vec<Type> = vec![];
         let mut abstract_mutable_concrete: Vec<Type> = vec![];
-        let mut abstract_paths: Vec<Path> = vec![];
+        let mut abstract_paths: Vec<Type> = vec![];
         let mut abstract_paths_concrete: Vec<Type> = vec![];
 
         for provider_bean in beans_to_provide.iter() {
+
             let bean = &provider_bean.bean;
 
+            // TODO: factory_fn
+            if bean.factory_fn.is_some() && bean.struct_type.is_none() {
+                continue;
+            }
 
-            provider_bean.dep_type.as_ref()
-                .map(|autowire_type| {
-                    bean.bean_type.as_ref().map(|bean_type| {
-                        log_message!("Found bean type {:?}.", bean_type);
-                        match bean_type {
-                            BeanType::Singleton => {
-                                log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
-                                Self::add_abstract_trait_paths_for_bean(&mut abstract_mutable_paths, &mut abstract_mutable_concrete, &mut abstract_paths, &mut abstract_paths_concrete, bean, autowire_type);
-                            }
-                            BeanType::Prototype => {
-                                log_message!("Ignoring prototype bean {} when building bean factory.", bean.id.as_str());
-                            }
-                        };
-                    });
-                })
-                .or_else(|| {
-                    bean.bean_type.as_ref().map(|bean_type| {
-                        log_message!("Found bean type {:?}.", bean_type);
-                        match bean_type {
-                            BeanType::Singleton => {
-                                log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
-                                Self::add_to_ident_type(&mut singleton_idents, &mut singleton_types, &mut mutable_types, &mut mutable_idents, &bean);
-                            }
-                            BeanType::Prototype => {
-                                log_message!("Ignoring prototype bean {} when building bean factory.", bean.id.as_str());
-                            }
-                        };
-                    });
-                    None
-                });
+            Self::add_provider_bean_to_vec(
+                &mut singleton_idents, &mut singleton_types,
+                &mut mutable_types, &mut mutable_idents,
+                &mut abstract_mutable_paths, &mut abstract_mutable_concrete,
+                &mut abstract_paths, &mut abstract_paths_concrete,
+                provider_bean, &bean
+            );
         }
 
         (singleton_idents, singleton_types,
@@ -282,36 +267,100 @@ impl FactoryGen {
          abstract_paths, abstract_paths_concrete)
     }
 
+    /// Add the bean (with abstraction if has one) to the vecs for the constructor of the container.
+    fn add_provider_bean_to_vec(mut singleton_idents: &mut Vec<Ident>, mut singleton_types: &mut Vec<Type>, mut mutable_types: &mut Vec<Type>, mut mutable_idents: &mut Vec<Ident>, mut abstract_mutable_paths: &mut Vec<Type>, mut abstract_mutable_concrete: &mut Vec<Type>, mut abstract_paths: &mut Vec<Type>, mut abstract_paths_concrete: &mut Vec<Type>, provider_bean: &ProviderBean, bean: &&BeanDefinition) {
+        provider_bean.autowire_type.as_ref()
+            .map(|autowire_type| {
+                Self::add_abstract_bean_type(
+                    &mut abstract_mutable_paths, &mut abstract_mutable_concrete,
+                    &mut abstract_paths, &mut abstract_paths_concrete,
+                    bean, autowire_type
+                );
+            })
+            .or_else(|| {
+                Self::add_concrete_bean_type(
+                    &mut singleton_idents, &mut singleton_types,
+                    &mut mutable_types, &mut mutable_idents,
+                    &bean
+                )
+            });
+    }
+
+    fn add_concrete_bean_type(mut singleton_idents: &mut Vec<Ident>, mut singleton_types: &mut Vec<Type>, mut mutable_types: &mut Vec<Type>, mut mutable_idents: &mut Vec<Ident>, bean: &&BeanDefinition) -> Option<()> {
+        bean.bean_type.as_ref().map(|bean_type| {
+            log_message!("Found bean type {:?}.", bean_type);
+            match bean_type {
+                BeanType::Singleton => {
+                    log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
+                    Self::add_to_ident_type(
+                        &mut singleton_idents, &mut singleton_types,
+                        &mut mutable_types, &mut mutable_idents,
+                        &bean
+                    );
+                }
+                BeanType::Prototype => {
+                    log_message!("Ignoring prototype bean {} when building bean factory.", bean.id.as_str());
+                }
+            };
+        });
+        None
+    }
+
+    fn add_abstract_bean_type(mut abstract_mutable_paths: &mut Vec<Type>, mut abstract_mutable_concrete: &mut Vec<Type>, mut abstract_paths: &mut Vec<Type>, mut abstract_paths_concrete: &mut Vec<Type>, bean: &BeanDefinition, autowire_type: &DependencyDescriptor) {
+        bean.bean_type.as_ref().map(|bean_type| {
+            log_message!("Found bean type {:?}.", bean_type);
+            match bean_type {
+                BeanType::Singleton => {
+                    log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
+                    Self::add_abstract_trait_paths_for_bean(
+                        &mut abstract_mutable_paths, &mut abstract_mutable_concrete,
+                        &mut abstract_paths, &mut abstract_paths_concrete,
+                        bean, autowire_type
+                    );
+                }
+                BeanType::Prototype => {
+                    log_message!("Ignoring prototype bean {} when building bean factory.", bean.id.as_str());
+                }
+            };
+        });
+    }
+
     fn add_abstract_trait_paths_for_bean(
-        mut abstract_mutable_paths: &mut Vec<Path>,
+        mut abstract_mutable_paths: &mut Vec<Type>,
         mut abstract_mutable_concrete: &mut Vec<Type>,
-        mut abstract_paths: &mut Vec<Path>,
+        mut abstract_paths: &mut Vec<Type>,
         mut abstract_paths_concrete: &mut Vec<Type>,
-        bean: &Bean,
-        autowire_type: &AutowireType
+        bean: &BeanDefinition,
+        autowire_type: &DependencyDescriptor
     ) {
         if bean.mutable {
-            autowire_type.item_impl.trait_.as_ref()
-                .map(|t| {
-                    log_message!("Adding abstract mutable path: {}", SynHelper::get_str(&t.1));
-                    abstract_mutable_paths.push(t.1.clone());
-                    abstract_mutable_concrete.push(bean.struct_type.clone().unwrap());
-                });
+            Self::add_abstract_concrete_path(abstract_mutable_paths, abstract_mutable_concrete, bean, autowire_type);
         } else {
-            autowire_type.item_impl.trait_.as_ref()
-                .map(|t| {
-                    log_message!("Adding abstract path: {}", SynHelper::get_str(&t.1));
-                    abstract_paths.push(t.1.clone());
-                    abstract_paths_concrete.push(bean.struct_type.clone().unwrap());
-                });
+            Self::add_abstract_concrete_path(abstract_paths, abstract_paths_concrete, bean, autowire_type);
         }
+    }
+
+    fn add_abstract_concrete_path(
+        mut abstract_mutable_paths: &mut Vec<Type>,
+        mut abstract_mutable_concrete: &mut Vec<Type>,
+        bean: &BeanDefinition,
+        autowire_type: &DependencyDescriptor
+    ) {
+        BeanFactoryInfo::get_abstract_type(autowire_type).as_ref()
+            .map(|t| {
+                bean.struct_type.as_ref().map(|struct_type| {
+                    log_message!("Adding abstract mutable path: {} to struct {}.", SynHelper::get_str(&t), SynHelper::get_str(&struct_type));
+                    abstract_mutable_paths.push(t.clone());
+                    abstract_mutable_concrete.push(struct_type.clone());
+                });
+            });
     }
 
     fn add_to_ident_type(mut singleton_idents: &mut Vec<Ident>,
                          mut singleton_types: &mut Vec<Type>,
                          mut mutable_types: &mut Vec<Type>,
                          mut mutable_idents: &mut Vec<Ident>,
-                         bean: &Bean) {
+                         bean: &BeanDefinition) {
         if bean.mutable {
             Self::add_to(&mut mutable_idents, &mut mutable_types, &bean);
         } else {

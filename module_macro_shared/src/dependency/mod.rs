@@ -1,52 +1,56 @@
-use syn::{Field, ItemImpl, Lifetime, Type, TypeArray};
+use syn::{Field, ItemImpl, Lifetime, PatType, Type, TypeArray};
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 use codegen_utils::syn_helper;
 use std::cmp::Ordering;
+use proc_macro2::Ident;
 use quote::ToTokens;
 use crate::bean::{BeanPath, BeanType};
 use crate::profile_tree::ProfileBuilder;
 
 use knockoff_logging::{initialize_log, use_logging};
+use crate::functions::{FunctionType, ModulesFunctions};
 use_logging!();
 initialize_log!();
 use crate::logging::executor;
 use crate::logging::StandardLoggingFacade;
 
-impl Eq for AutowireType {}
-
-impl PartialEq<Self> for AutowireType {
-    fn eq(&self, other: &Self) -> bool {
-        self.item_impl.to_token_stream().to_string().eq(&other.item_impl.to_token_stream().to_string())
-    }
-}
-
-impl PartialOrd<Self> for AutowireType {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.item_impl.to_token_stream().to_string().partial_cmp(&other.item_impl.to_token_stream().to_string())
-    }
-}
-
-impl Ord for AutowireType {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.item_impl.to_token_stream().to_string().cmp(&other.item_impl.to_token_stream().to_string())
-    }
-}
-
 #[derive(Clone)]
-pub struct AutowireType {
-    pub item_impl: ItemImpl,
+pub struct DependencyDescriptor {
+    pub item_impl: Option<ItemImpl>,
+    pub abstract_type: Option<BeanPath>,
     pub profile: Vec<ProfileBuilder>,
     pub path_depth: Vec<String>,
     pub qualifiers: Vec<String>
 }
 
+impl PartialEq<Self> for DependencyDescriptor {
+    fn eq(&self, other: &Self) -> bool {
+        self.item_impl.eq(&other.item_impl) && self.abstract_type.eq(&other.abstract_type)
+    }
+}
+
+impl Eq for DependencyDescriptor {}
+
+
 #[derive(Clone)]
 pub struct AutowiredField {
     pub qualifier: Option<String>,
-    pub profile: Option<String>,
     pub lazy: bool,
     pub field: Field,
+    pub type_of_field: Type,
+    pub concrete_type_of_field_bean_type: Option<Type>,
+    pub mutable: bool
+}
+
+#[derive(Clone)]
+pub struct AutowiredFnArg {
+    pub qualifier: Option<String>,
+    pub profile: Option<String>,
+    pub lazy: bool,
+    pub fn_arg: PatType,
+    pub fn_arg_ident: Ident,
+    pub bean_type: BeanPath,
     pub type_of_field: Type,
     pub concrete_type_of_field_bean_type: Option<Type>,
     pub mutable: bool
@@ -64,7 +68,19 @@ impl Debug for AutowiredField {
     }
 }
 
-impl Debug for AutowireType {
+impl Debug for AutowiredFnArg {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let mut debug_struct1 = f.debug_struct("AutowiredFnArg");
+        let mut debug_struct = debug_struct1
+            .field("mutable", &self.mutable)
+            .field("lazy", &self.lazy)
+            .field("field", &self.fn_arg.to_token_stream().to_string().as_str());
+        syn_helper::debug_struct_field_opt(&mut debug_struct, &self.qualifier, "qualifier");
+        debug_struct.finish()
+    }
+}
+
+impl Debug for DependencyDescriptor {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let profiles = self.profile.iter().map(|p| p.profile.clone()).collect::<Vec<String>>().join(", ");
         f.debug_struct("AutowireType")
@@ -75,12 +91,199 @@ impl Debug for AutowireType {
     }
 }
 
+#[derive(Clone, Debug)]
+pub enum DependencyMetadata {
+    FieldDepType(FieldDepType),
+    ArgDepType(ArgDepType)
+}
+
+impl DependencyMetadata {
+    pub fn qualifier(&self) -> String {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.qualifier()
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.qualifier()
+            }
+        }
+    }
+
+    pub fn mutable(&self) -> bool {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.mutable()
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.mutable()
+            }
+        }
+    }
+
+    pub fn set_mutable(&mut self) {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.bean_info.mutable = true;
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.bean_info.mutable = true;
+            }
+        }
+    }
+
+    pub fn set_abstract(&mut self) {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.is_abstract = Some(true);
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.is_abstract = Some(true);
+            }
+        }
+    }
+
+    pub fn maybe_qualifier(&self) -> &Option<String> {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.maybe_qualifier()
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.maybe_qualifier()
+            }
+        }
+    }
+
+    pub fn set_concrete_field_type(&mut self, concrete_field_type: Type) {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.bean_info.concrete_type_of_field_bean_type = Some(concrete_field_type);
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.bean_info.concrete_type_of_field_bean_type = Some(concrete_field_type);
+            }
+        }
+    }
+
+    pub fn type_path(&self) -> &Option<BeanPath> {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.bean_type_path()
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.bean_type_path()
+            }
+        }
+    }
+
+    pub fn identifier(&self) -> String {
+        match self {
+            DependencyMetadata::FieldDepType(dep_type) => {
+                dep_type.identifier()
+            }
+            DependencyMetadata::ArgDepType(dep_type) => {
+                dep_type.identifier()
+            }
+        }
+    }
+}
+
+pub trait DepType {
+    fn is_abstract(&self) -> bool;
+    fn bean_type_path(&self) -> &Option<BeanPath>;
+    fn concrete_type(&self) -> &Option<Type>;
+    fn maybe_qualifier(&self) -> &Option<String>;
+    fn mutable(&self) -> bool;
+    fn qualifier(&self) -> String {
+        self.maybe_qualifier()
+            .clone()
+            .or(self.bean_type_path().as_ref().map(|b| b.get_inner_type_id()))
+            .or(Some(self.field_type().to_token_stream().to_string().clone()))
+            .map(|q| q.to_string())
+            .unwrap()
+    }
+    fn identifier(&self) -> String {
+        self.bean_type_path().as_ref().map(|b| b.get_inner_type_id())
+            .or(Some(self.field_type().to_token_stream().to_string().clone()))
+            .unwrap()
+    }
+    fn field_ident(&self) -> Ident;
+    fn field_type(&self) -> &Type;
+}
+
+impl DepType for FieldDepType {
+    fn is_abstract(&self) -> bool {
+        self.is_abstract.is_some() && self.is_abstract.unwrap()
+    }
+
+    fn bean_type_path(&self) -> &Option<BeanPath> {
+        &self.bean_type_path
+    }
+
+    fn concrete_type(&self) -> &Option<Type> {
+        &self.bean_info.concrete_type_of_field_bean_type
+    }
+    fn maybe_qualifier(&self) -> &Option<String> {
+        &self.bean_info.qualifier
+    }
+
+    fn mutable(&self) -> bool {
+        self.bean_info.mutable
+    }
+
+    fn field_ident(&self) -> Ident {
+        self.bean_info.field.ident.as_ref().unwrap().clone()
+    }
+
+    fn field_type(&self) -> &Type {
+        &self.bean_info.type_of_field
+    }
+}
+impl DepType for ArgDepType {
+    fn is_abstract(&self) -> bool {
+        self.is_abstract.is_some() && self.is_abstract.unwrap()
+    }
+
+    fn bean_type_path(&self) -> &Option<BeanPath> {
+        &self.bean_type_path
+    }
+
+    fn concrete_type(&self) -> &Option<Type> {
+        &self.bean_info.concrete_type_of_field_bean_type
+    }
+
+    fn maybe_qualifier(&self) -> &Option<String> {
+        &self.bean_info.qualifier
+    }
+
+    fn mutable(&self) -> bool {
+        self.bean_info.mutable
+    }
+
+    fn field_ident(&self) -> Ident {
+        self.bean_info.fn_arg_ident.clone()
+    }
+
+    fn field_type(&self) -> &Type {
+        &self.bean_info.type_of_field
+    }
+}
+
 #[derive(Clone)]
-pub struct DepType {
+pub struct FieldDepType {
     pub bean_info: AutowiredField,
     pub lifetime: Option<Lifetime>,
     pub bean_type: Option<BeanType>,
     pub array_type: Option<TypeArray>,
     pub bean_type_path: Option<BeanPath>,
-    pub is_abstract: Option<bool>
+    pub is_abstract: Option<bool>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ArgDepType {
+    pub bean_info: AutowiredFnArg,
+    pub lifetime: Option<Lifetime>,
+    pub bean_type: Option<BeanType>,
+    pub array_type: Option<TypeArray>,
+    pub bean_type_path: Option<BeanPath>,
+    pub is_abstract: Option<bool>,
 }

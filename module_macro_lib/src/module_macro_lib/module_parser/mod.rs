@@ -37,7 +37,6 @@ use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
 use crate::module_macro_lib::item_parser::item_struct_parser::ItemStructParser;
 use crate::module_macro_lib::item_parser::item_trait_parser::ItemTraitParser;
 use crate::module_macro_lib::item_parser::ItemParser;
-use knockoff_providers_gen::DelegatingParseProvider;
 
 use_logging!();
 initialize_log!();
@@ -67,7 +66,6 @@ pub(crate) fn do_container_modifications<'a>(mut found: &'a mut Item, created: &
     let item_modifier = DelegatingItemModifier::new(vec![Box::new(AspectModifier{})]);
     let container = &mut created.0;
     item_modifier.modify_item(container, &mut found, vec![created.1.clone()]);
-    DelegatingParseProvider::parse_update(found, container);
     container
 }
 

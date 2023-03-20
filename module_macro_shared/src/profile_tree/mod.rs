@@ -10,8 +10,8 @@ use proc_macro2::Ident;
 use codegen_utils::syn_helper::SynHelper;
 
 use std::collections::HashMap;
-use crate::bean::{Bean, BeanDefinitionType};
-use crate::dependency::{AutowireType, DepType};
+use crate::bean::{BeanDefinition, BeanDefinitionType};
+use crate::dependency::{DependencyDescriptor, DependencyMetadata, FieldDepType};
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
@@ -41,7 +41,7 @@ pub struct ProfileTree {
 
 impl ProfileTree {
 
-    pub fn add_to_profile_concrete(&mut self, i_type: &Bean, profile: &ProfileBuilder) {
+    pub fn add_to_profile_concrete(&mut self, i_type: &BeanDefinition, profile: &ProfileBuilder) {
         log_message!("Adding {} to {} profiles.", &i_type.id, profile.profile.as_str());
         self.injectable_types.get_mut(profile)
             .map(|beans_to_add| {
@@ -53,21 +53,43 @@ impl ProfileTree {
             });
     }
 
-    fn create_bean_definition_concrete(bean: Bean) -> BeanDefinitionType {
+    fn contains_bean(bean_def_type: &BeanDefinitionType, to_check: &Vec<BeanDefinitionType>) -> bool {
+        to_check.iter().any(|a| {
+            match a {
+                BeanDefinitionType::Abstract { bean, dep_type } => {
+                    match bean_def_type {
+                        BeanDefinitionType::Abstract { bean: inner_bean, dep_type: inner_dep_type } => {
+                            bean.id == inner_bean.id
+                                && (dep_type.item_impl.to_token_stream().to_string().as_str() == inner_dep_type.item_impl.to_token_stream().to_string().as_str()
+                                    || dep_type.abstract_type == inner_dep_type.abstract_type)
+                        }
+                        BeanDefinitionType::Concrete { .. } => {
+                            false
+                        }
+                    }
+                }
+                BeanDefinitionType::Concrete { bean } => {
+                    false
+                }
+            }
+        })
+    }
+
+    fn create_bean_definition_concrete(bean: BeanDefinition) -> BeanDefinitionType {
         print!("Creating concrete type for {}.", bean.id);
         BeanDefinitionType::Concrete {
             bean
         }
     }
 
-    fn create_bean_definition_abstract(bean: Bean, dep_type: AutowireType) -> BeanDefinitionType {
+    fn create_bean_definition_abstract(bean: BeanDefinition, dep_type: DependencyDescriptor) -> BeanDefinitionType {
         print!("Creating concrete type for {} and autowire type {}.", bean.id, dep_type.item_impl.to_token_stream().to_string().as_str());
         BeanDefinitionType::Abstract {
             bean, dep_type
         }
     }
 
-    pub fn add_to_profile_abstract(&mut self, i_type: &Bean, profile: &ProfileBuilder, dep_type: AutowireType){
+    pub fn add_to_profile_abstract(&mut self, i_type: &BeanDefinition, profile: &ProfileBuilder, dep_type: DependencyDescriptor){
         self.injectable_types.get_mut(profile)
             .map(|beans_to_add| {
                     let bean_def_type = Self::create_bean_definition_abstract(i_type.clone(), dep_type);
@@ -78,7 +100,7 @@ impl ProfileTree {
             );
     }
 
-    pub fn create_initial(beans: &HashMap<String,Bean>) -> HashMap<ProfileBuilder, Vec<BeanDefinitionType>> {
+    pub fn create_initial(beans: &HashMap<String, BeanDefinition>) -> HashMap<ProfileBuilder, Vec<BeanDefinitionType>> {
 
         let mut injectable_types = HashMap::new();
 

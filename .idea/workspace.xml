@@ -7,16 +7,51 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="moving">
-      <change afterPath="$PROJECT_DIR$/security_parse_provider/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/security_parse_provider/src/lib.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Prepare for HandlerMapping">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handler_mapping/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/handler_mapping/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/debug/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/debug/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/handler_mapping/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/delegating_modifier.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/aspect_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/factory_fn_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/factory_fn_profile_tree_modifier.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mutable_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mutable_profile_tree_modifier.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_profile_tree_modifier.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_tree_modifier.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/item_parser_test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/item_parser_test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/module_tree_test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/module_tree_test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/debug/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/debug/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/functions/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/functions/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/profile_tree_modifier.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/path_variable_argument_resolver.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/argument_resolver/path_variable_argument_resolver.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,6 +97,11 @@
     <setting file="file://$USER_HOME$/.rustup/toolchains/beta-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/.rustup/toolchains/beta-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/sync/mutex.rs" root0="SKIP_INSPECTION" />
   </component>
+  <component name="JsbtTreeLayoutManager">
+    <layout place="tools.popupGrunt">
+      <scroll-view-position x="0" y="0" />
+    </layout>
+  </component>
   <component name="KubernetesApiPersistence">
     <option name="context" value="minikube" />
   </component>
@@ -81,35 +121,35 @@
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "aspect.path.notification.shown": "true",
-    "go.import.settings.migrated": "true",
-    "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/codegen_resources" />
@@ -144,8 +184,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::test_token_providers::test_factories_parser" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_factories_parser -- --exact" />
+    <configuration name="Test module_macro_lib::test::module_tree_test::test_arc_mutex_bean_path_parsing" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::test::module_tree_test::test_arc_mutex_bean_path_parsing -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -161,8 +201,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_argument_resolver" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework_shared --lib test::test_argument_resolver" />
+    <configuration name="Test test::test_token_providers::test_factories_parser" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_factories_parser -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -232,18 +272,18 @@
     <list>
       <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Test do_test" />
+      <item itemvalue="Cargo.Test module_macro_lib::test::module_tree_test::test_arc_mutex_bean_path_parsing" />
       <item itemvalue="Cargo.Test test::test_token_providers::test_factories_parser" />
-      <item itemvalue="Cargo.Test test_argument_resolver" />
       <item itemvalue="Cargo.Test test_attribute_handler_mapping" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Test do_test" />
         <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test module_macro_lib::test::module_tree_test::test_arc_mutex_bean_path_parsing" />
+        <item itemvalue="Cargo.Test do_test" />
         <item itemvalue="Cargo.Test test::test_token_providers::test_factories_parser" />
         <item itemvalue="Cargo.Test test_attribute_handler_mapping" />
-        <item itemvalue="Cargo.Test test_argument_resolver" />
       </list>
     </recent_temporary>
   </component>
@@ -309,28 +349,7 @@
       <workItem from="1677938837220" duration="21272000" />
       <workItem from="1678022170942" duration="70052000" />
       <workItem from="1678458623911" duration="19007000" />
-      <workItem from="1678975680993" duration="79501000" />
-    </task>
-    <task id="LOCAL-00112" summary="Fixed bug">
-      <created>1678333017718</created>
-      <option name="number" value="00112" />
-      <option name="presentableId" value="LOCAL-00112" />
-      <option name="project" value="LOCAL" />
-      <updated>1678333017718</updated>
-    </task>
-    <task id="LOCAL-00113" summary="Fixed bug">
-      <created>1678333036012</created>
-      <option name="number" value="00113" />
-      <option name="presentableId" value="LOCAL-00113" />
-      <option name="project" value="LOCAL" />
-      <updated>1678333036013</updated>
-    </task>
-    <task id="LOCAL-00114" summary="Removed duplicated BeanType">
-      <created>1678342873797</created>
-      <option name="number" value="00114" />
-      <option name="presentableId" value="LOCAL-00114" />
-      <option name="project" value="LOCAL" />
-      <updated>1678342873797</updated>
+      <workItem from="1678975680993" duration="96334000" />
     </task>
     <task id="LOCAL-00115" summary="Fixed aspect logic and ensured args all the same in the whole chain.">
       <created>1678386629461</created>
@@ -654,7 +673,28 @@
       <option name="project" value="LOCAL" />
       <updated>1679267416423</updated>
     </task>
-    <option name="localTasksCounter" value="161" />
+    <task id="LOCAL-00161" summary="user provided delegating parse provider">
+      <created>1679277687355</created>
+      <option name="number" value="00161" />
+      <option name="presentableId" value="LOCAL-00161" />
+      <option name="project" value="LOCAL" />
+      <updated>1679277687355</updated>
+    </task>
+    <task id="LOCAL-00162" summary="user provided delegating parse provider">
+      <created>1679277694602</created>
+      <option name="number" value="00162" />
+      <option name="presentableId" value="LOCAL-00162" />
+      <option name="project" value="LOCAL" />
+      <updated>1679277694602</updated>
+    </task>
+    <task id="LOCAL-00163" summary="adding factory fn">
+      <created>1679325609072</created>
+      <option name="number" value="00163" />
+      <option name="presentableId" value="LOCAL-00163" />
+      <option name="project" value="LOCAL" />
+      <updated>1679325609072</updated>
+    </task>
+    <option name="localTasksCounter" value="164" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -704,8 +744,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="updated to proc-macro2 for testing." />
-    <MESSAGE value="aspect decorator bug - not parse into chain" />
     <MESSAGE value="testing multiple aspect" />
     <MESSAGE value="profile factory start" />
     <MESSAGE value="get abstract bean" />
@@ -729,7 +767,9 @@
     <MESSAGE value="preliminary logic added." />
     <MESSAGE value="Preparing" />
     <MESSAGE value="moving" />
-    <option name="LAST_COMMIT_MESSAGE" value="moving" />
+    <MESSAGE value="user provided delegating parse provider" />
+    <MESSAGE value="adding factory fn" />
+    <option name="LAST_COMMIT_MESSAGE" value="adding factory fn" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -810,7 +850,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs</url>
-          <line>373</line>
+          <line>425</line>
           <option name="timeStamp" value="210" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -820,8 +860,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs</url>
-          <line>376</line>
+          <line>428</line>
           <option name="timeStamp" value="218" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs</url>
+          <line>38</line>
+          <option name="timeStamp" value="221" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

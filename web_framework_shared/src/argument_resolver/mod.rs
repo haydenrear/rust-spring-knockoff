@@ -16,6 +16,7 @@ pub struct ArgumentResolver {
     pub request_body_arguments: Vec<RequestBodyArgumentResolver>
 }
 
+#[derive(Clone,Default)]
 pub struct NamedValueInfo {
     pub name: String,
     pub required: bool,
@@ -29,7 +30,8 @@ pub trait ResolveArguments {
     fn resolve_argument_methods(method: &ImplItemMethod) -> Vec<Self>
     where Self: Sized;
 
-    fn resolve_fn_arg_fn_arg_ident_tuple<'a>(attr_name: &str, method: &'a ImplItemMethod) -> Vec<(&'a PatType, String)>
+    fn resolve_fn_arg_fn_arg_ident_tuple<'a>(attr_name: &str, method: &'a ImplItemMethod)
+        -> Vec<(&'a PatType, String)>
         where Self: Sized
     {
         method.sig.inputs.iter().flat_map(|i| match i {
@@ -40,10 +42,10 @@ pub trait ResolveArguments {
                 SynHelper::get_attr_from_vec(&typed_arg.attrs, vec![attr_name])
                     .map(|attr_item| {
                         if attr_item.len() == 0 {
-                            return Self::get_method_arg_ident(typed_arg)
-                                .map(|t| vec![(typed_arg, t.to_string())])
+                            return SynHelper::get_fn_arg_ident_type(typed_arg)
+                                .map(|t| vec![(typed_arg, t.0.to_string())])
                                 .or(Some(vec![]))
-                                .unwrap()
+                                .unwrap();
                         }
                         vec![(typed_arg, attr_item)]
                     })

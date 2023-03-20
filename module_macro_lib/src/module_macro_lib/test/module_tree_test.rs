@@ -10,6 +10,12 @@ impl OneTrait for One {}
 
 #[test]
 fn test_arc_mutex_bean_path_parsing() {
+    let one_type = quote! {
+        One
+    };
+    let one_dyn_type = quote! {
+        dyn OneTrait
+    };
     let mutex_type = quote! {
         Mutex<One>
     };
@@ -23,21 +29,30 @@ fn test_arc_mutex_bean_path_parsing() {
         Arc<Mutex<Box<dyn OneTrait>>>
     };
 
+    let one_type = parse2::<syn::TypePath>(one_type);
+    let one_dyn_type = parse2::<syn::Type>(one_dyn_type);
     let parsed_mutex = parse2::<syn::TypePath>(mutex_type);
     let parsed_arc_mutex= parse2::<syn::TypePath>(arc_mutex_type);
     let parsed_dyn_type = parse2::<syn::TypePath>(dyn_type);
     let parsed_dyn_mutex_type= parse2::<syn::TypePath>(dyn_mutex_type);
 
+    assert!(one_type.is_ok());
+    assert!(one_dyn_type.is_ok());
     assert!(parsed_mutex.is_ok());
     assert!(parsed_arc_mutex.is_ok());
     assert!(parsed_dyn_type.is_ok());
     assert!(parsed_dyn_mutex_type.is_ok());
 
+
+    let parsed_one_type = BeanDependencyPathParser::parse_type_path(one_type.unwrap());
+    let parsed_one_dyn_type = BeanDependencyPathParser::parse_type(one_dyn_type.unwrap());
     let parsed_arc_mutex = BeanDependencyPathParser::parse_type_path(parsed_arc_mutex.unwrap());
     let parsed_mutex = BeanDependencyPathParser::parse_type_path(parsed_mutex.unwrap());
     let parsed_dyn_typ = BeanDependencyPathParser::parse_type_path(parsed_dyn_type.unwrap());
     let parsed_dyn_mutex_type = BeanDependencyPathParser::parse_type_path(parsed_dyn_mutex_type.unwrap());
 
+    assert_eq!(parsed_one_type.path_segments.len(), 1);
+    assert_eq!(parsed_one_dyn_type.unwrap().path_segments.len(), 1);
     assert_eq!(parsed_mutex.path_segments.len(), 1);
     assert_eq!(parsed_arc_mutex.path_segments.len(), 2);
     assert_eq!(parsed_dyn_typ.path_segments.len(), 1);
@@ -49,6 +64,7 @@ fn test_arc_mutex_bean_path_parsing() {
     let one_found = parse2::<Type>(inner_one).unwrap();
     let dyn_found = parse2::<Type>(inner_dyn).unwrap();
 
+    assert_eq!(SynHelper::get_str(&one_found), SynHelper::get_str(&parsed_one_type.get_inner_type().unwrap()));
     assert_eq!(SynHelper::get_str(&one_found), SynHelper::get_str(&parsed_arc_mutex.get_inner_type().unwrap()));
     assert_eq!(SynHelper::get_str(&one_found), SynHelper::get_str(&parsed_mutex.get_inner_type().unwrap()));
     assert_eq!(SynHelper::get_str(&dyn_found), SynHelper::get_str(&parsed_dyn_typ.get_inner_type().unwrap()));

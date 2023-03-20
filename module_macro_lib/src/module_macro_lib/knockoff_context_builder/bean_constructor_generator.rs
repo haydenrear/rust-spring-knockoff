@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt};
 use syn::Type;
-use module_macro_shared::bean::Bean;
+use module_macro_shared::bean::BeanDefinition;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use module_macro_shared::bean::BeanDefinitionType;

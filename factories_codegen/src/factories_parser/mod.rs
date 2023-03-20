@@ -5,6 +5,7 @@ use proc_macro2::{Ident, Span};
 use syn::parse_str;
 use std::io::Write;
 use crate_gen::TomlWriter;
+use crate::parse_container_modifier::ParseContainerModifierProvider;
 use crate::provider::{DelegatingProvider, Provider, ProviderItem};
 use crate::parse_provider::ParseProvider;
 use crate::token_provider::TokenProvider;
@@ -43,7 +44,7 @@ macro_rules! providers {
     }
 }
 
-providers!(ParseProvider, TokenProvider);
+providers!(ParseProvider, TokenProvider, ParseContainerModifierProvider);
 
 impl FactoriesParser {
 

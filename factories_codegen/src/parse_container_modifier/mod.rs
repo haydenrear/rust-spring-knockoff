@@ -11,26 +11,27 @@ use syn::punctuated::Pair::Punctuated;
 use toml::{Table, Value};
 use crate::factories_parser::{Dependency, FactoriesParser};
 use crate::provider::{DelegatingProvider, Provider, ProviderItem};
+use crate::token_provider::TokenProvider;
 
-pub struct ParseProvider;
+pub struct ParseContainerModifierProvider;
 
-impl DelegatingProvider for ParseProvider {
+impl DelegatingProvider for ParseContainerModifierProvider {
     fn tokens() -> TokenStream {
-        ParseProvider::get_tokens(&ParseProvider::create_provider())
+        ParseContainerModifierProvider::get_tokens(&ParseContainerModifierProvider::create_provider())
     }
 
     fn deps() -> Vec<ProviderItem> {
-        ParseProvider::create_provider().providers.iter()
+        ParseContainerModifierProvider::create_provider().providers.iter()
             .map(|p| p.clone())
             .collect::<Vec<ProviderItem>>()
     }
 }
 
-/// This is called on each item as it is parsed.
-impl ParseProvider {
+/// This runs after all of the modules have been parsed.
+impl ParseContainerModifierProvider {
 
     pub fn create_provider() -> Provider {
-        FactoriesParser::parse_factories("parse_provider")
+        FactoriesParser::parse_factories("parse_container_modifier_provider")
     }
 
     pub fn create_token_provider(provider_item: &ProviderItem) -> TokenStream {
@@ -43,12 +44,12 @@ impl ParseProvider {
             use #builder_path;
 
             pub struct #provider_ident {
+                parse_container_modifier_delegate: #builder_path
             }
 
             impl #provider_ident {
-
-                pub fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
-                    #builder_path::parse_update(items, parse_container);
+                pub fn do_modify(items: &mut ParseContainer) {
+                    self.parse_container_modifier_delegate.do_modify(items);
                 }
             }
 
@@ -57,7 +58,16 @@ impl ParseProvider {
         ts.into()
     }
 
-    pub fn get_delegating_parse_provider(provider: &Provider) -> TokenStream {
+    pub fn get_tokens(provider: &Provider) -> TokenStream {
+        let mut ts = TokenStream::default();
+        ts.append_all(Self::get_imports());
+        provider.providers.iter()
+            .for_each(|p| ts.append_all(Self::create_token_provider(p)));
+        ts.append_all(Self::get_delegating_token_provider(provider));
+        ts
+    }
+
+    pub fn get_delegating_token_provider(provider: &Provider) -> TokenStream {
 
         let provider_type = provider.providers.iter()
             .map(|p| p.provider_ident.clone())
@@ -65,33 +75,28 @@ impl ParseProvider {
 
         quote! {
 
-            pub struct DelegatingParseProvider {
+            pub struct DelegatingParseContainerModifierProvider {
             }
 
-            impl DelegatingParseProvider {
+            impl DelegatingParseContainerModifierProvider {
 
-                pub fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
+                pub fn new() -> Self {
+                    Self {}
+                }
+
+                pub fn do_modify(items: &mut ParseContainer) {
                     #(
-                        #provider_type::parse_update(items, parse_container);
+                        #provider_type::do_modify(items);
                     )*
                 }
-            }
-        }
-    }
 
-    pub fn get_tokens(provider: &Provider) -> TokenStream {
-        let mut ts = TokenStream::default();
-        ts.append_all(Self::get_imports());
-        provider.providers.iter()
-            .for_each(|p| ts.append_all(Self::create_token_provider(p)));
-        ts.append_all(Self::get_delegating_parse_provider(provider));
-        ts
+            }
+
+        }
     }
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
-            use syn::Item;
-            use module_macro_shared::parse_container::ParseContainer;
         }.into();
         imports
     }

@@ -5,11 +5,11 @@ use quote::{quote, TokenStreamExt, ToTokens};
 use syn::__private::TokenStream2;
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
-use module_macro_shared::bean::{Bean, BeanDefinitionType, BeanType};
+use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::aspect::AspectParser;
-use module_macro_shared::dependency::AutowireType;
+use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
@@ -60,12 +60,7 @@ impl TokenStreamGenerator for ApplicationContextGenerator {
 impl ApplicationContextGenerator {
 
     pub fn create_context_generator(profile_tree: &ProfileTree) -> Self {
-        let concrete_bean_factory_info = Self::get_concrete_beans(&profile_tree.injectable_types).iter()
-            .flat_map(|b| ConcreteBeanFactoryInfo::create_bean_factory_info(b))
-            .collect::<Vec<BeanFactoryInfo>>();
-        let abstract_bean_factory_info = Self::get_abstract_beans(&profile_tree.injectable_types).iter()
-            .flat_map(|b| AbstractBeanFactoryInfo::create_bean_factory_info(b))
-            .collect::<Vec<BeanFactoryInfo>>();
+        let (concrete_bean_factory_info, abstract_bean_factory_info) = Self::create_bean_factory_info(&profile_tree);
 
         let factory_generators = Self::factory_generators(profile_tree);
         let bean_factory_generators = Self::create_bean_factory_generators(
@@ -91,6 +86,17 @@ impl ApplicationContextGenerator {
         }
     }
 
+    /// Parse the ProfileTree into BeanFactoryInfo objects, which will then be used to generate the BeanFactories for each bean.
+    fn create_bean_factory_info(profile_tree: &&ProfileTree) -> (Vec<BeanFactoryInfo>, Vec<BeanFactoryInfo>) {
+        let concrete_bean_factory_info = Self::get_concrete_beans(&profile_tree.injectable_types).iter()
+            .flat_map(|b| ConcreteBeanFactoryInfo::create_bean_factory_info(b))
+            .collect::<Vec<BeanFactoryInfo>>();
+        let abstract_bean_factory_info = Self::get_abstract_beans(&profile_tree.injectable_types).iter()
+            .flat_map(|b| AbstractBeanFactoryInfo::create_bean_factory_info(b))
+            .collect::<Vec<BeanFactoryInfo>>();
+        (concrete_bean_factory_info, abstract_bean_factory_info)
+    }
+
     fn factory_generators(profile_tree: &ProfileTree) -> Vec<Box<dyn TokenStreamGenerator>> {
         profile_tree.injectable_types.iter()
             .flat_map(|bean_def_type_profile| Self::create_factory_generators(&bean_def_type_profile))
@@ -114,17 +120,16 @@ impl ApplicationContextGenerator {
         )
     }
 
-    fn get_abstract_beans(from: &HashMap<ProfileBuilder, Vec<BeanDefinitionType>>) -> Vec<(Bean, AutowireType, ProfileBuilder)> {
+    fn get_abstract_beans(from: &HashMap<ProfileBuilder, Vec<BeanDefinitionType>>) -> Vec<(BeanDefinition, DependencyDescriptor, ProfileBuilder)> {
         from.iter().flat_map(|f|
             f.1.iter()
             .flat_map(|b| {
                 match b {
                     BeanDefinitionType::Abstract { bean, dep_type } => {
-                        dep_type.item_impl.trait_.as_ref().map(|trait_type| {
-                            log_message!("Found abstract bean with id: {} and abstract type: {}.",
-                            &bean.id, SynHelper::get_str(&dep_type.item_impl.trait_.as_ref().unwrap().1));
-                            vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
-                        })
+                        BeanFactoryInfo::get_abstract_type(dep_type)
+                            .map(|_| {
+                                vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
+                            })
                             .or(Some(vec![]))
                             .unwrap()
                     }
@@ -136,7 +141,7 @@ impl ApplicationContextGenerator {
         ).collect()
     }
 
-    fn get_concrete_beans(from: &HashMap<ProfileBuilder, Vec<BeanDefinitionType>>) -> Vec<Bean> {
+    fn get_concrete_beans(from: &HashMap<ProfileBuilder, Vec<BeanDefinitionType>>) -> Vec<BeanDefinition> {
         from.iter().flat_map(|f| f.1)
             .flat_map(|b| {
                 match b {
@@ -148,7 +153,7 @@ impl ApplicationContextGenerator {
                     }
                 }
             })
-            .collect::<HashMap<String, Bean>>()
+            .collect::<HashMap<String, BeanDefinition>>()
             .values()
             .map(|b| b.to_owned())
             .collect()

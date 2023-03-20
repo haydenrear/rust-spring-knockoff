@@ -27,20 +27,21 @@ use codegen_utils::syn_helper::SynHelper;
 use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::bean_parser::BeanDependencyParser;
 use crate::module_macro_lib::context_builder::ContextBuilder;
-use crate::module_macro_lib::module_tree::{BeanDefinition, InjectableTypeKey};
+use crate::module_macro_lib::module_tree::{InjectableTypeKey};
 use crate::module_macro_lib::profile_tree::ProfileTreeBuilder;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{create_logger_expr, initialize_log, use_logging};
 use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
 use module_macro_shared::aspect::AspectInfo;
-use module_macro_shared::bean::{Bean, BeanDefinitionType, BeanType};
-use module_macro_shared::dependency::{AutowiredField, AutowireType, DepType};
+use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
+use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor, DependencyMetadata, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use module_macro_shared::module_tree::Trait;
 use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
 use module_macro_shared::item_modifier::DelegatingItemModifier;
+use module_macro_shared::parse_container::parse_container_builder::BuildParseContainer;
 use module_macro_shared::parse_container::ParseContainer;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
@@ -51,17 +52,39 @@ use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::Concr
 use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
+use crate::module_macro_lib::parse_container::parse_container_dependencies::BuildDependencyParseContainer;
 
-pub struct ParseContainerBuilder;
+pub mod parse_container_dependencies;
+
+pub struct ParseContainerBuilder {
+    parse_container_builders: Vec<Box<dyn BuildParseContainer>>
+}
+
+impl BuildParseContainer for ParseContainerBuilder {
+    fn build_parse_container(&self, parse_container: &mut ParseContainer) {
+        self.parse_container_builders.iter()
+            .for_each(|p| p.build_parse_container(parse_container));
+        Self::build_injectable(parse_container);
+    }
+}
 
 impl ParseContainerBuilder {
+
+    pub fn new() -> Self {
+        Self {
+            parse_container_builders: vec![Box::new(BuildDependencyParseContainer {})]
+        }
+    }
 
     pub fn build_to_token_stream(parse_container: &mut ParseContainer) -> TokenStream {
         ContextBuilder::build_token_stream(parse_container)
     }
 
+    pub fn build(&self, parse_container: &mut ParseContainer) {
+        self.build_parse_container(parse_container);
+    }
+
     pub fn build_injectable(parse_container: &mut ParseContainer) {
-        ParseContainerBuilder::set_build_dep_types(parse_container);
 
         let modifiers = vec![
             Box::new(ConcreteTypeProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
@@ -69,25 +92,15 @@ impl ParseContainerBuilder {
             Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
         ];
 
-        parse_container.profile_tree = ProfileTreeBuilder::build_profile_tree(&mut parse_container.injectable_types_builder, modifiers);
+        parse_container.profile_tree = ProfileTreeBuilder::build_profile_tree(
+            &mut parse_container.injectable_types_builder,
+            modifiers
+        );
 
         log_message!("{} is the number of injectable types in the profile tree.", &parse_container.profile_tree.injectable_types.values().len());
         log_message!("{:?} is the parsed and modified profile tree.", &parse_container.profile_tree);
     }
 
-    pub fn set_build_dep_types(parse_container: &mut ParseContainer) {
-        let keys = parse_container.get_injectable_keys();
-        let fns = parse_container.fns.values()
-            .map(|fn_found| fn_found.fn_found.clone())
-            .collect::<Vec<FunctionType>>();
-        log_message!("{} is the number of injectable keys before.", keys.len());
-        for id in keys.iter() {
-            let mut removed = parse_container.injectable_types_builder.remove(id).unwrap();
-            let deps_set = BeanDependencyParser::add_dependencies(removed, &parse_container.injectable_types_builder, &parse_container.fns);
-            parse_container.injectable_types_builder.insert(id.clone().parse().unwrap(), deps_set);
-        }
-        log_message!("{} is the number of injectable keys after.", parse_container.injectable_types_builder.len());
-    }
 
     pub fn is_valid_ordering_create(parse_container: &ParseContainer) -> Vec<String> {
         let mut already_processed = vec![];
@@ -100,10 +113,10 @@ impl ParseContainerBuilder {
         already_processed
     }
 
-    pub fn is_valid_ordering(parse_container: &ParseContainer, already_processed: &mut Vec<String>, dep: &Bean) -> bool {
+    pub fn is_valid_ordering(parse_container: &ParseContainer, already_processed: &mut Vec<String>, dep: &BeanDefinition) -> bool {
         already_processed.push(dep.id.clone());
         for dep_impl in &dep.deps_map {
-            let next_id = ParseContainerBuilder::get_identifier(dep_impl);
+            let next_id = dep_impl.identifier();
             if already_processed.contains(&next_id) {
                 continue;
             }
@@ -117,17 +130,6 @@ impl ParseContainerBuilder {
             }
         }
         true
-    }
-
-    pub fn get_identifier(dep_type: &DepType) -> String {
-        match &dep_type.bean_info.qualifier  {
-            None => {
-                dep_type.bean_info.type_of_field.to_token_stream().to_string()
-            }
-            Some(qual) => {
-                qual.clone()
-            }
-        }
     }
 
 

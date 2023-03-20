@@ -1,10 +1,10 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{Attribute, Block, FnArg, ImplItem, ImplItemMethod, Type};
+use syn::{Attribute, Block, FnArg, ImplItem, ImplItemMethod, Stmt, Type};
 use codegen_utils::project_directory;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::log_message;
-use module_macro_shared::bean::{Bean, BeanDefinitionType};
+use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
 use module_macro_shared::profile_tree::ProfileTree;
 use web_framework_shared::matcher::{AntPathRequestMatcher, AntStringRequestMatcher, Matcher};
 
@@ -16,7 +16,7 @@ use knockoff_logging::knockoff_logging::logging_facade::LoggingFacade;
 use knockoff_logging::knockoff_logging::log_level::LogLevel;
 use executors::common::Executor;
 use knockoff_logging::knockoff_logging::logger::Logger;
-use module_macro_shared::dependency::AutowireType;
+use module_macro_shared::dependency::DependencyDescriptor;
 use web_framework_shared::argument_resolver::{ArgumentResolver, ResolveArguments};
 
 pub struct HandlerMappingBuilder {
@@ -46,7 +46,7 @@ impl HandlerMappingBuilder {
 
     }
 
-    fn filter_controller_beans(b: &&Bean) -> bool {
+    fn filter_controller_beans(b: &&BeanDefinition) -> bool {
         b.struct_found.as_ref()
             .map(|s| SynHelper::get_attr_from_vec(
                 &s.attrs,
@@ -56,24 +56,32 @@ impl HandlerMappingBuilder {
             .is_some()
     }
 
-    fn create_controller_beans(bean: &Bean) -> Vec<ControllerBean> {
+    fn create_controller_beans(bean: &BeanDefinition) -> Vec<ControllerBean> {
         bean.traits_impl.iter()
             .flat_map(|b| {
-                b.item_impl.items.iter().flat_map(|i| {
-                    match i {
-                        ImplItem::Method(impl_item_method) => {
-                            vec![(b.clone(), Self::create_request_matcher(&impl_item_method.attrs))]
+                b.item_impl.as_ref().map(|item| item.items.iter()
+                    .flat_map(|i| {
+                        match i {
+                            ImplItem::Method(impl_item_method) => {
+                                vec![(b.clone(), Self::create_request_matcher(&impl_item_method.attrs))]
+                            }
+                            _ => {
+                                vec![]
+                            }
                         }
-                        _ => {
-                            vec![]
-                        }
-                    }
-                })
+                    })
+                    .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>)>>())
+                    .or(Some(vec![]))
+                    .unwrap()
             })
-            .flat_map(|autowire| autowire.0.item_impl.items
+            .flat_map(|autowire| autowire.0.item_impl
+                .as_ref()
+                .map(|i| i.items.as_ref())
+                .or(Some(&vec![]))
+                .unwrap()
                 .iter()
                 .map(|i| (autowire.0.clone(), autowire.1.clone(), i.clone()))
-                .collect::<Vec<(AutowireType, Vec<AntPathRequestMatcher>, ImplItem)>>()
+                .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)>>()
             )
             .flat_map(|i| match i.2 {
                 ImplItem::Method(impl_item_method) => {
@@ -91,35 +99,12 @@ impl HandlerMappingBuilder {
 
     pub fn generate_token_stream(&self) -> TokenStream {
         let (to_match, split) = self.get_request_matcher_info();
-        log_message!("{} are the number of to_match and {} are the number of split.", to_match.len(), split.len());
 
-        if to_match.len() >= 1 {
-            log_message!("{} are the inner number of to_match and {} are the number of split.", to_match.get(0).unwrap().len(), split.get(0).unwrap().len());
-        }
+        let (arg_idents, arg_types, arg_outputs) = self.parse_request_body_args();
 
-        let args = self.controllers.iter()
-            .flat_map(|c| c.arguments_resolved.iter().filter(|a| {
-                a.request_body_arguments.len() != 0
-            }).map(|r| {
-                let args = r.request_body_arguments.get(0)
-                    .unwrap();
-                (Ident::new(args.inner.name.as_str(), Span::call_site()), args.request_serialize_type.clone(), args.output_type.clone().unwrap())
-            }))
-            .collect::<Vec<(Ident, Type, Type)>>();
+        let (path_var_idents, path_var_names) = self.parse_path_variable_args();
 
-        //TODO: These should be Vec<Vec<*>> because there will be tuples for multiple values...
-        //  Then the tuple will be unwrapped accordingly.
-        let arg_idents = args.iter().map(|i| i.0.clone()).collect::<Vec<Ident>>();
-        let arg_types = args.iter().map(|i| i.1.clone()).collect::<Vec<Type>>();
-        let arg_outputs = args.iter().map(|i| i.2.clone()).collect::<Vec<Type>>();
-
-        log_message!("{} are the number of controllers.", self.controllers.len());
-        let method_logic = self.controllers.iter()
-            .map(|c| {
-                log_message!("Here is the next block for controller bean: {}.", SynHelper::get_str(&c.method.block));
-                &c.method.block
-            })
-            .collect::<Vec<&Block>>();
+        let method_logic_stmts = self.reparse_method_logic();
 
         let mut ts = quote! {
 
@@ -177,7 +162,9 @@ impl HandlerMappingBuilder {
                         response: &mut WebResponse,
                         request: &WebRequest
                     ) {
-                        handler.request_ctx_data.clone().map(|#arg_idents| #method_logic);
+                        handler.request_ctx_data.clone().map(|#arg_idents| {
+                            #(#method_logic_stmts)*
+                        });
                     }
                 }
             )*
@@ -250,6 +237,70 @@ impl HandlerMappingBuilder {
 
         };
         ts.into()
+    }
+
+    fn reparse_method_logic(&self) -> Vec<Vec<&Stmt>> {
+        let method_logic = self.controllers.iter()
+            .map(|c| {
+                log_message!("Here is the next block for controller bean: {}.", SynHelper::get_str(&c.method.block));
+                c.method.block.stmts.iter().collect::<Vec<&Stmt>>()
+            })
+            .map(|f| f.clone())
+            .collect::<Vec<Vec<&Stmt>>>();
+        method_logic
+    }
+
+    fn parse_path_variable_args(&self) -> (Vec<Vec<Ident>>, Vec<Vec<String>>) {
+        let mut path_var_idents = self.controllers.iter()
+            .flat_map(|c| c.arguments_resolved.iter()
+                .map(|a| a.path_variable_arguments.clone())
+                .map(|args| {
+                    args.iter().flat_map(|args| {
+                        // if args.inner.name.len() != 0 {
+                        return vec![Ident::new(args.inner.name.as_str(), Span::call_site())];
+                        // }
+                        // vec![]
+                    }).collect::<Vec<Ident>>()
+                })
+            )
+            .collect::<Vec<Vec<Ident>>>();
+        let path_var_names = self.controllers.iter()
+            .flat_map(|c| c.arguments_resolved.iter()
+                .filter(|a| {
+                    a.path_variable_arguments.len() != 0
+                })
+                .map(|a| a.path_variable_arguments.clone())
+                .map(|args| {
+                    args.iter().map(|args| {
+                        args.inner.name.clone()
+                    }).collect::<Vec<String>>()
+                })
+            )
+            .collect::<Vec<Vec<String>>>();
+        (path_var_idents, path_var_names)
+    }
+
+    fn parse_request_body_args(&self) -> (Vec<Ident>, Vec<Type>, Vec<Type>) {
+// TODO: all other argument resolver types will be added
+        let args = self.controllers.iter()
+            .flat_map(|c| c.arguments_resolved.iter().filter(|a| {
+                a.request_body_arguments.len() != 0
+            }).map(|r| {
+                let args = r.request_body_arguments.get(0)
+                    .unwrap();
+                (Ident::new(args.inner.name.as_str(), Span::call_site()), args.request_serialize_type.clone(), args.output_type.clone().unwrap())
+            }))
+            .collect::<Vec<(Ident, Type, Type)>>();
+
+        //TODO: These should be Vec<Vec<*>> because there will be tuples for multiple values...
+        //  Then the tuple will be unwrapped accordingly.
+        let arg_idents = args.iter()
+            .map(|i| i.0.clone())
+            .collect::<Vec<Ident>>();
+        let arg_types = args.iter()
+            .map(|i| i.1.clone())
+            .collect::<Vec<Type>>();
+        (arg_idents, arg_types, args.iter().map(|i| i.2.clone()).collect::<Vec<Type>>())
     }
 
     fn get_request_matcher_info(&self) -> (Vec<Vec<String>>, Vec<Vec<String>>) {

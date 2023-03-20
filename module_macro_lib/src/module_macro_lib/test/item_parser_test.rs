@@ -3,14 +3,15 @@ use std::env;
 use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_codegen::aspect::AspectParser;
-use module_macro_shared::bean::Bean;
-use module_macro_shared::dependency::DepType;
+use module_macro_shared::bean::BeanDefinition;
+use module_macro_shared::dependency::FieldDepType;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
 use crate::module_macro_lib::item_parser::ItemParser;
 use crate::module_macro_lib::module_parser::{create_initial_parse_container, do_container_modifications};
 use module_macro_shared::bean::BeanDefinitionType;
 use module_macro_shared::parse_container::ParseContainer;
+use crate::module_macro_lib::parse_container::ParseContainerBuilder;
 use crate::module_macro_lib::test::{assert_aspect_info_container, get_abstract_beans, get_concrete_bean_types, get_concrete_beans, get_concrete_beans_with_aspects, get_container_tup, get_deps_map, get_parse_container};
 
 #[test]
@@ -20,7 +21,7 @@ fn test_parse_module() {
         "module_macro_lib/test_resources/multiple_aspects_test.rs"
     );
     let container = do_container_modifications(&mut module_item, &mut container_tup);
-    container.build_to_token_stream();
+    ParseContainerBuilder::build_to_token_stream(container);
     assert_aspect_info_container(container);
     assert_eq!(container.aspects.aspects[0].method_advice_aspects.len(), 2);
     let beans_with_aspects = get_concrete_beans_with_aspects(container);
@@ -51,8 +52,7 @@ fn test_injectable_types() {
 
     let mut container = container_opt.unwrap();
 
-    container.build_to_token_stream();
-
+    ParseContainerBuilder::build_to_token_stream(&mut container);
 
     assert_eq!(container.profile_tree.injectable_types.len(), 1);
 
@@ -65,7 +65,7 @@ fn test_injectable_types() {
     let concrete_beans = get_concrete_beans(bean_defs.unwrap());
     let one_beans = concrete_beans.iter()
         .filter(|b| b.id.clone() == "One".to_string())
-        .collect::<Vec<&Bean>>();
+        .collect::<Vec<&BeanDefinition>>();
     assert_eq!(one_beans.len(), 1);
 
     let one_num_deps = get_deps_map(concrete_beans, "Four");
