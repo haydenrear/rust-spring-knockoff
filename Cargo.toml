@@ -24,5 +24,6 @@ members = [
     "factories_codegen",
     "authentication_gen",
     "plugin_parser",
-    "crate_gen"
+    "crate_gen",
+    "security_parse_provider"
 ]

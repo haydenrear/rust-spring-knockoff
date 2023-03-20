@@ -7,86 +7,16 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Preparing">
-      <change afterPath="$PROJECT_DIR$/crate_gen/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/src/profile_tree_modifier/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/src/provider/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/bean_dependency_parser/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/functions/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/item_modifier/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/module_tree/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/profile_tree_modifier.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/plugin_parser/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/plugin_parser/src/lib.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="moving">
+      <change afterPath="$PROJECT_DIR$/security_parse_provider/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/security_parse_provider/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_test_aug.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/test/test_token_providers.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/test/test_token_providers.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handler_mapping/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/handler_mapping/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/context_builder/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/debug/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/debug/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/default_impls/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/initializer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/initializer/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/aspect_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/delegating_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/delegating_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_mod_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_mod_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_trait_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_trait_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/token_stream_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/token_stream_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/module_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mutable_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mutable_profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/item_parser_test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/item_parser_test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_knockoff_boot_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/spring_knockoff_boot_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_app/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/test_app/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/token_stream_provider/Cargo.toml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/token_stream_provider/src/lib.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/filter/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/http/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/http/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/message/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/message/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/request_context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/request_context/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/authorization.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/authorization.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/security/security_filter.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/session/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -379,14 +309,7 @@
       <workItem from="1677938837220" duration="21272000" />
       <workItem from="1678022170942" duration="70052000" />
       <workItem from="1678458623911" duration="19007000" />
-      <workItem from="1678975680993" duration="77840000" />
-    </task>
-    <task id="LOCAL-00111" summary="Fixed to add same args as function call.">
-      <created>1678329426681</created>
-      <option name="number" value="00111" />
-      <option name="presentableId" value="LOCAL-00111" />
-      <option name="project" value="LOCAL" />
-      <updated>1678329426681</updated>
+      <workItem from="1678975680993" duration="79501000" />
     </task>
     <task id="LOCAL-00112" summary="Fixed bug">
       <created>1678333017718</created>
@@ -724,7 +647,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679236596961</updated>
     </task>
-    <option name="localTasksCounter" value="160" />
+    <task id="LOCAL-00160" summary="moving">
+      <created>1679267416423</created>
+      <option name="number" value="00160" />
+      <option name="presentableId" value="LOCAL-00160" />
+      <option name="project" value="LOCAL" />
+      <updated>1679267416423</updated>
+    </task>
+    <option name="localTasksCounter" value="161" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -774,7 +704,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fixed aspect logic and ensured args all the same in the whole chain." />
     <MESSAGE value="updated to proc-macro2 for testing." />
     <MESSAGE value="aspect decorator bug - not parse into chain" />
     <MESSAGE value="testing multiple aspect" />
@@ -799,7 +728,8 @@
     <MESSAGE value="downcast passed" />
     <MESSAGE value="preliminary logic added." />
     <MESSAGE value="Preparing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Preparing" />
+    <MESSAGE value="moving" />
+    <option name="LAST_COMMIT_MESSAGE" value="moving" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

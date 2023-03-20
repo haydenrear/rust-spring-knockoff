@@ -138,6 +138,9 @@ impl FactoriesParser {
     }
 
     fn parse_dependencies(table: &Table) -> Vec<Dependency> {
+        if !table.contains_key("dependencies") {
+            return vec![];
+        }
         let deps = &table["dependencies"];
         deps.as_table().map(|t| t.keys().flat_map(|k| {
             deps[k].as_table()

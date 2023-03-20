@@ -21,3 +21,7 @@ version = "1.0"
 [token_provider.handler_mapping.dependencies.quote]
 name = "quote"
 version = "1.0"
+[parse_provider.security_parse_provider]
+provider_path = "security_parse_provider::SecurityParseProvider"
+provider_ident = "SecurityParseProviderBuilder"
+path = "../../security_parse_provider"

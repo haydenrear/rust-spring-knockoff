@@ -49,8 +49,8 @@ impl ParseProvider {
 
             impl #provider_ident {
 
-                pub fn parse_update(items: &mut Item) {
-                    #builder_path::parse_update(items);
+                pub fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
+                    #builder_path::parse_update(items, parse_container);
                 }
             }
 
@@ -72,9 +72,9 @@ impl ParseProvider {
 
             impl DelegatingParseProvider {
 
-                pub fn parse_update(items: &mut Item) {
+                pub fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
                     #(
-                        #provider_type::parse_update(parse_container, items);
+                        #provider_type::parse_update(items, parse_container);
                     )*
                 }
             }
@@ -93,6 +93,7 @@ impl ParseProvider {
     fn get_imports() -> TokenStream {
         let imports = quote! {
             use syn::Item;
+            use module_macro_shared::parse_container::ParseContainer;
         }.into();
         imports
     }
