@@ -51,7 +51,7 @@ use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::Concr
 use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
-use crate::module_macro_lib::parse_container::parse_container_dependencies::BuildDependencyParseContainer;
+use crate::module_macro_lib::parse_container::parse_container_dependencies::{BuildDependencyParseContainer, DelegateParseContainerModifier};
 
 pub mod parse_container_dependencies;
 
@@ -75,7 +75,10 @@ impl ParseContainerBuilder {
 
     pub fn new() -> Self {
         Self {
-            parse_container_builders: vec![Box::new(BuildDependencyParseContainer {})]
+            parse_container_builders: vec![
+                Box::new(BuildDependencyParseContainer {}),
+                Box::new(DelegateParseContainerModifier {})
+            ]
         }
     }
 

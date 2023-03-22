@@ -5,7 +5,7 @@ use std::ops::Deref;
 use proc_macro2::Ident;
 use quote::ToTokens;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::item_parser::ItemParser;
+use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
 use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::{initialize_log, use_logging};
@@ -31,14 +31,15 @@ pub struct ItemFnParser;
 ///  -> BeanFactory used to get factory_fn bean
 impl ItemParser<ItemFn> for ItemFnParser {
     fn parse_item(parse_container: &mut ParseContainer, item_fn: &mut ItemFn, path_depth: Vec<String>) {
-        let mut path = path_depth.clone();
-        path.push(item_fn.sig.ident.to_string().clone());
+        if !Self::is_bean(&item_fn.attrs) {
+            return;
+        }
         Self::item_fn_parse(item_fn.clone())
             .filter(|fn_found|
                 fn_found.fn_type.as_ref().is_some()
                     && fn_found.fn_type.as_ref().unwrap().get_inner_type().is_some()
             )
-            .map(|fn_found| Self::add_fn_add_bean(parse_container, &item_fn, path, &fn_found))
+            .map(|fn_found| Self::add_fn_add_bean(parse_container, &item_fn, path_depth.clone(), &fn_found))
             .or_else(|| {
                 log_message!("Could not set fn type for fn named: {}", SynHelper::get_str(item_fn.sig.ident.clone()).as_str());
                 None
@@ -54,15 +55,17 @@ impl ItemFnParser {
 
     pub fn get_bean(item_fn: &ItemFn, factory_fn: &ModulesFunctions, id: String) -> BeanDefinition {
         BeanDefinition {
-            struct_type: None,
+            struct_type: factory_fn.fn_found.fn_type.as_ref()
+                .map(|bean_path| bean_path.get_inner_type())
+                .flatten(),
             struct_found: None,
             traits_impl: vec![],
             enum_found: None,
             deps_map: vec![],
             id,
             path_depth: factory_fn.path.clone(),
-            profile: vec![],
-            ident: Some(item_fn.sig.ident.clone()),
+            profile: get_profiles(&item_fn.attrs),
+            ident: Some(factory_fn.fn_found.item_fn.sig.ident.clone()),
             fields: vec![],
             bean_type: Some(factory_fn.fn_found.bean_type.clone()),
             mutable: false,
@@ -122,7 +125,7 @@ impl ItemFnParser {
                 FnArg::Typed(value) => {
                     let qualifier = SynHelper::get_attr_from_vec(
                         &value.attrs,
-                        vec!["qualifier"],
+                        &vec!["qualifier"],
                     );
 
                     SynHelper::get_fn_arg_ident_type(value)
@@ -147,7 +150,7 @@ impl ItemFnParser {
     pub(crate) fn get_fn_for_qualifier(
         fns: &HashMap<String, ModulesFunctions>,
         qualifier: &Option<String>,
-        type_of: &Option<Type>,
+        type_of: &Option<&Type>,
     ) -> Option<ModulesFunctions> {
         qualifier.as_ref()
             .map(|qualifier_to_match|
@@ -164,7 +167,7 @@ impl ItemFnParser {
             .or_else(|| Self::get_fn_type_by_type(fns, type_of))
     }
 
-    pub(crate) fn get_fn_type_by_type(fns: &HashMap<String, ModulesFunctions>, type_of: &Option<Type>) -> Option<ModulesFunctions> {
+    pub(crate) fn get_fn_type_by_type(fns: &HashMap<String, ModulesFunctions>, type_of: &Option<&Type>) -> Option<ModulesFunctions> {
         let mut next = type_of
             .as_ref()
             .map(|type_to_check| Self::filter_modules_fn_by_type_of(fns, type_to_check))
@@ -201,6 +204,7 @@ impl ItemFnParser {
                 .get_mut(&fn_id)
                 .map(|bean| bean.factory_fn = Some(modules_fn.clone()));
         } else {
+            log_message!("Adding factory fn bean {} to parse container.", SynHelper::get_str(&item_fn.sig.ident));
             parse_container.injectable_types_builder
                 .insert(fn_id.clone(), Self::get_bean(&item_fn, &modules_fn, fn_id.clone()));
         }

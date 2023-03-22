@@ -1,5 +1,6 @@
 use syn::Item;
 use std::env;
+use quote::ToTokens;
 use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_codegen::aspect::AspectParser;
@@ -60,7 +61,22 @@ fn test_injectable_types() {
     assert!(bean_defs.is_some());
 
     let concrete_bean_types = get_concrete_bean_types(bean_defs);
-    assert_eq!(concrete_bean_types.len(), 5);
+    assert_eq!(concrete_bean_types.len(), 4);
+
+    concrete_bean_types.iter().for_each(|c| {
+        match c {
+            BeanDefinitionType::Abstract { bean, dep_type } => {
+
+            }
+            BeanDefinitionType::Concrete { bean } => {
+                println!("Printing use stmt");
+                bean.get_use_stmts().values()
+                    .for_each(|u| {
+                        println!("{} is use stmt.", u.to_token_stream().to_string());
+                    })
+            }
+        }
+    });
 
     let concrete_beans = get_concrete_beans(bean_defs.unwrap());
     let one_beans = concrete_beans.iter()
@@ -74,6 +90,7 @@ fn test_injectable_types() {
     let abstract_beans = get_abstract_beans(bean_defs.unwrap());
     assert_eq!(abstract_beans.len(), 1);
     assert_eq!(abstract_beans.iter().map(|b| &b.0.id).next().unwrap(), &"Four");
+
 
 }
 

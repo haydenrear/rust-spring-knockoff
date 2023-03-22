@@ -11,7 +11,7 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
 use build_lib::replace_modules;
-use codegen_utils::env::get_project_base_dir;
+use codegen_utils::env::{get_project_base_dir, get_project_dir};
 use codegen_utils::project_directory;
 use module_macro_codegen::parser::LibParser;
 
@@ -33,7 +33,7 @@ fn main() {
 
 fn get_aug_file() -> String {
     let aug_file = env::var("AUG_FILE").ok()
-        .or(Some(String::from("~/IdeaProject/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs")))
+        .or(Some(String::from(get_project_dir("codegen_resources/knockoff_test_aug.rs"))))
         .unwrap();
     aug_file
 }

@@ -19,6 +19,7 @@ use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::functions::ModulesFunctions;
 use module_macro_shared::profile_tree::ProfileBuilder;
+use crate::module_macro_lib::util::ParseUtil;
 use_logging!();
 initialize_log!();
 
@@ -31,10 +32,13 @@ pub mod item_fn_parser;
 
 pub trait ItemParser<T: ToTokens> {
     fn parse_item(parse_container: &mut ParseContainer, item: &mut T, path_depth: Vec<String>);
+    fn is_bean(attrs: &Vec<Attribute>) -> bool {
+        ParseUtil::does_attr_exist(&attrs, &ParseUtil::get_qualifier_attr_names())
+    }
 }
 
 fn get_profiles(attrs: &Vec<Attribute>) -> Vec<ProfileBuilder> {
-    let mut profiles = SynHelper::get_attr_from_vec(attrs, vec!["profile"])
+    let mut profiles = SynHelper::get_attr_from_vec(attrs, &vec!["profile"])
         .map(|profile| profile.split(",").map(|s| s.to_string()).collect::<Vec<String>>())
         .or(Some(vec![]))
         .unwrap()
@@ -43,5 +47,4 @@ fn get_profiles(attrs: &Vec<Attribute>) -> Vec<ProfileBuilder> {
         .collect::<Vec<ProfileBuilder>>();
     profiles.push(ProfileBuilder::default());
     profiles
-    // vec![]
 }

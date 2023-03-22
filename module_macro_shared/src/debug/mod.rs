@@ -5,7 +5,7 @@ use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use crate::aspect::{AspectInfo, MethodAdviceChain};
 use crate::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts};
-use crate::dependency::FieldDepType;
+use crate::dependency::{ArgDepType, FieldDepType};
 
 impl Debug for BeanPath {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -36,6 +36,18 @@ impl Debug for BeanDefinition {
 impl Debug for FieldDepType {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let mut debug_struct = f.debug_struct("DepType");
+        syn_helper::debug_debug_struct_field_opt(&mut debug_struct, &self.bean_type, "bean_type");
+        debug_struct.field("bean_info", &self.bean_info);
+        syn_helper::debug_debug_struct_field_opt(&mut debug_struct, &self.bean_type_path, "bean_type_path");
+        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.lifetime, "lifetime");
+        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.array_type, "array_type");
+        debug_struct.finish()
+    }
+}
+
+impl Debug for ArgDepType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let mut debug_struct = f.debug_struct("ArgDepType");
         syn_helper::debug_debug_struct_field_opt(&mut debug_struct, &self.bean_type, "bean_type");
         debug_struct.field("bean_info", &self.bean_info);
         syn_helper::debug_debug_struct_field_opt(&mut debug_struct, &self.bean_type_path, "bean_type_path");

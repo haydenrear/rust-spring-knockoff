@@ -50,7 +50,7 @@ impl HandlerMappingBuilder {
         b.struct_found.as_ref()
             .map(|s| SynHelper::get_attr_from_vec(
                 &s.attrs,
-                vec!["controller", "rest_controller"])
+                &vec!["controller", "rest_controller"])
             )
             .flatten()
             .is_some()
@@ -58,43 +58,53 @@ impl HandlerMappingBuilder {
 
     fn create_controller_beans(bean: &BeanDefinition) -> Vec<ControllerBean> {
         bean.traits_impl.iter()
-            .flat_map(|b| {
-                b.item_impl.as_ref().map(|item| item.items.iter()
-                    .flat_map(|i| {
-                        match i {
-                            ImplItem::Method(impl_item_method) => {
-                                vec![(b.clone(), Self::create_request_matcher(&impl_item_method.attrs))]
-                            }
-                            _ => {
-                                vec![]
-                            }
-                        }
-                    })
-                    .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>)>>())
-                    .or(Some(vec![]))
-                    .unwrap()
+            .flat_map(|b| Self::create_req_matcher_tuple(b))
+            .flat_map(|autowire| Self::expand_autowire_for_items(autowire))
+            .flat_map(|i| Self::create_controller_bean(i))
+            .collect::<Vec<ControllerBean>>()
+    }
+
+    fn expand_autowire_for_items(autowire: (DependencyDescriptor, Vec<AntPathRequestMatcher>)) -> Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)> {
+        autowire.0.item_impl
+            .as_ref()
+            .map(|i| i.items.as_ref())
+            .or(Some(&vec![]))
+            .unwrap()
+            .iter()
+            .map(|i| (autowire.0.clone(), autowire.1.clone(), i.clone()))
+            .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)>>()
+    }
+
+    fn create_controller_bean(i: (DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)) -> Vec<ControllerBean> {
+        match i.2 {
+            ImplItem::Method(impl_item_method) => {
+                vec![ControllerBean {
+                    method: impl_item_method.clone(),
+                    ant_path_request_matcher: i.1.clone(),
+                    arguments_resolved: ArgumentResolver::resolve_argument_methods(&impl_item_method)
+                }]
+            }
+            _ => {
+                vec![]
+            }
+        }
+    }
+
+    fn create_req_matcher_tuple(b: &DependencyDescriptor) -> Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>)> {
+        b.item_impl.as_ref().map(|item| item.items.iter()
+            .flat_map(|i| {
+                match i {
+                    ImplItem::Method(impl_item_method) => {
+                        vec![(b.clone(), Self::create_request_matcher(&impl_item_method.attrs))]
+                    }
+                    _ => {
+                        vec![]
+                    }
+                }
             })
-            .flat_map(|autowire| autowire.0.item_impl
-                .as_ref()
-                .map(|i| i.items.as_ref())
-                .or(Some(&vec![]))
-                .unwrap()
-                .iter()
-                .map(|i| (autowire.0.clone(), autowire.1.clone(), i.clone()))
-                .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)>>()
-            )
-            .flat_map(|i| match i.2 {
-                ImplItem::Method(impl_item_method) => {
-                    vec![ControllerBean {
-                        method: impl_item_method.clone(),
-                        ant_path_request_matcher: i.1.clone(),
-                        arguments_resolved: ArgumentResolver::resolve_argument_methods(&impl_item_method)
-                    }]
-                }
-                _ => {
-                    vec![]
-                }
-            }).collect::<Vec<ControllerBean>>()
+            .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>)>>())
+            .or(Some(vec![]))
+            .unwrap()
     }
 
     pub fn generate_token_stream(&self) -> TokenStream {
@@ -239,6 +249,7 @@ impl HandlerMappingBuilder {
         ts.into()
     }
 
+    // Has to be statements or else the {} will not allow the let statements
     fn reparse_method_logic(&self) -> Vec<Vec<&Stmt>> {
         let method_logic = self.controllers.iter()
             .map(|c| {
@@ -251,19 +262,14 @@ impl HandlerMappingBuilder {
     }
 
     fn parse_path_variable_args(&self) -> (Vec<Vec<Ident>>, Vec<Vec<String>>) {
-        let mut path_var_idents = self.controllers.iter()
-            .flat_map(|c| c.arguments_resolved.iter()
-                .map(|a| a.path_variable_arguments.clone())
-                .map(|args| {
-                    args.iter().flat_map(|args| {
-                        // if args.inner.name.len() != 0 {
-                        return vec![Ident::new(args.inner.name.as_str(), Span::call_site())];
-                        // }
-                        // vec![]
-                    }).collect::<Vec<Ident>>()
-                })
-            )
-            .collect::<Vec<Vec<Ident>>>();
+        let path_var_idents = self.get_path_var_idents();
+        let path_var_names = self.get_path_var_names();
+        (path_var_idents, path_var_names)
+    }
+
+    // The path variables will be kept in a map, so you have to have the names to get them from
+    // the map.
+    fn get_path_var_names(&self) -> Vec<Vec<String>> {
         let path_var_names = self.controllers.iter()
             .flat_map(|c| c.arguments_resolved.iter()
                 .filter(|a| {
@@ -277,11 +283,27 @@ impl HandlerMappingBuilder {
                 })
             )
             .collect::<Vec<Vec<String>>>();
-        (path_var_idents, path_var_names)
+        path_var_names
+    }
+
+    fn get_path_var_idents(&self) -> Vec<Vec<Ident>> {
+        let mut path_var_idents = self.controllers.iter()
+            .flat_map(|c| c.arguments_resolved.iter()
+                .map(|a| a.path_variable_arguments.clone())
+                .map(|args| {
+                    args.iter().flat_map(|args| {
+                        if args.inner.name.len() != 0 {
+                            return vec![Ident::new(args.inner.name.as_str(), Span::call_site())];
+                        }
+                        vec![]
+                    }).collect::<Vec<Ident>>()
+                })
+            )
+            .collect::<Vec<Vec<Ident>>>();
+        path_var_idents
     }
 
     fn parse_request_body_args(&self) -> (Vec<Ident>, Vec<Type>, Vec<Type>) {
-// TODO: all other argument resolver types will be added
         let args = self.controllers.iter()
             .flat_map(|c| c.arguments_resolved.iter().filter(|a| {
                 a.request_body_arguments.len() != 0
@@ -323,7 +345,7 @@ impl HandlerMappingBuilder {
 impl HandlerMappingBuilder {
 
     pub(crate) fn create_request_matcher(attr: &Vec<Attribute>) -> Vec<AntPathRequestMatcher> {
-        SynHelper::get_attr_from_vec(&attr, vec!["get_mapping", "post_mapping"])
+        SynHelper::get_attr_from_vec(&attr, &vec!["get_mapping", "post_mapping"])
             .map(|attr| {
                 log_message!("{} is the controller mapping for creating HandlerMapping.", &attr);
                 attr.split(",")
@@ -336,6 +358,7 @@ impl HandlerMappingBuilder {
             .map(|s| AntPathRequestMatcher::new(s.as_str(), "/"))
             .collect::<Vec<AntPathRequestMatcher>>()
     }
+
 }
 
 struct ControllerBean {

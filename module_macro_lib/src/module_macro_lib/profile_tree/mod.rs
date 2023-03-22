@@ -22,7 +22,6 @@ use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifie
 pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;
 pub mod profile_profile_tree_modifier;
-pub mod factory_fn_profile_tree_modifier;
 
 pub struct ProfileTreeBuilder {
     pub tree_modifiers: Vec<Box<dyn ProfileTreeModifier>>,

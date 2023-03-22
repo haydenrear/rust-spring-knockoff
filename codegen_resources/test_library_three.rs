@@ -2,7 +2,7 @@ mod TestLibrary {
     pub trait Found {
     }
 
-    #[singleton("hello_string")]
+    #[service("hello_string")]
     fn this_one() -> Option<&'static str> {
         Some("hello")
     }
@@ -18,7 +18,7 @@ mod TestLibrary {
     }
 
     #[derive(Default, Debug)]
-    #[singleton(four)]
+    #[service(four)]
     pub struct Four {
         two: String
     }
@@ -30,7 +30,7 @@ mod TestLibrary {
         pub four: Four
     }
 
-    #[singleton(Once)]
+    #[service(Once)]
     #[derive(Default, Debug)]
     pub struct Once {
         // pub(crate) fns: Vec<Box<dyn FnOnce(())>>

@@ -25,5 +25,9 @@ members = [
     "authentication_gen",
     "plugin_parser",
     "crate_gen",
-    "security_parse_provider"
+    "security_parse_provider",
+    "knockoff_cli"
+]
+exclude = [
+    "crategen_helper"
 ]

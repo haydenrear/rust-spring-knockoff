@@ -290,7 +290,7 @@ impl Module {
 
     fn do_parse(mut modules: Module) {
         let out_dir = env::var_os("OUT_DIR")
-            .or(Some(OsString::from("/Users/hayde/IdeaProjects/rust-spring-knockoff/test_out"))).unwrap();
+            .or(Some(OsString::from(concat!(project_directory!(), "test_out")))).unwrap();
         let dest_path = Path::new(&out_dir).join("spring-knockoff.rs");
         let out_path = dest_path.to_str().unwrap();
         log_message!("Writing output to {}.", out_path);

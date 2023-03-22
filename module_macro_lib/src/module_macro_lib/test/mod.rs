@@ -1,6 +1,8 @@
 use syn::Item;
 use std::env;
 use syn::__private::str;
+use codegen_utils::env::get_project_dir;
+use codegen_utils::project_directory;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_codegen::aspect::AspectParser;
 use module_macro_shared::bean::BeanDefinition;
@@ -136,7 +138,7 @@ fn get_concrete_beans_with_aspects(container: &mut ParseContainer) -> Vec<BeanDe
 fn set_knockoff_factories(module_app: &str) {
     env::var("PROJECT_BASE_DIRECTORY")
         .ok()
-        .or(Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/".to_string()))
+        .or(Some(project_directory!().to_string()))
         .map(|mut p| {
             p = p + module_app;
             env::set_var("AUG_FILE", p.as_str());

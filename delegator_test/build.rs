@@ -16,7 +16,6 @@ use codegen_utils::project_directory;
 use crate_gen::CrateWriter;
 
 fn main() {
-    CrateWriter::write_dummy_crate(concat!(project_directory!(), "target/knockoff_providers_gen/Cargo.toml"), "knockoff_providers_gen", "".to_string());
     replace_modules(
         Some(get_project_dir("delegator_test/src").as_str()),
         vec![get_project_base_dir().as_str()]

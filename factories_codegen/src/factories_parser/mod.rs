@@ -4,6 +4,7 @@ use toml::{Table, Value};
 use proc_macro2::{Ident, Span};
 use syn::parse_str;
 use std::io::Write;
+use codegen_utils::env::get_project_dir;
 use crate_gen::TomlWriter;
 use crate::parse_container_modifier::ParseContainerModifierProvider;
 use crate::provider::{DelegatingProvider, Provider, ProviderItem};
@@ -52,7 +53,7 @@ impl FactoriesParser {
 
         let knockoff_factories = env::var("KNOCKOFF_FACTORIES")
             .ok()
-            .or(Some("/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/knockoff_factories.toml".to_string()))
+            .or(Some(get_project_dir("codegen_resources/knockoff_factories.toml")))
             .unwrap();
 
         let path = Path::new(knockoff_factories.as_str());

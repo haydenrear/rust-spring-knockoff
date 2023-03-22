@@ -39,7 +39,7 @@ pub trait ResolveArguments {
                 vec![]
             }
             FnArg::Typed(typed_arg) => {
-                SynHelper::get_attr_from_vec(&typed_arg.attrs, vec![attr_name])
+                SynHelper::get_attr_from_vec(&typed_arg.attrs, &vec![attr_name])
                     .map(|attr_item| {
                         if attr_item.len() == 0 {
                             return SynHelper::get_fn_arg_ident_type(typed_arg)

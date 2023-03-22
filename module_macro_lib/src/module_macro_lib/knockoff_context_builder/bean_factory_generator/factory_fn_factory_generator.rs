@@ -30,7 +30,12 @@ impl BeanFactoryGenerator for FactoryFnBeanFactoryGenerator {
         bean_factory_info: &BeanFactoryInfo,
         profile_ident: &Ident,
         concrete_type: &Ident
-    ) -> TokenStream {
+    ) -> Option<TokenStream> {
+
+        if bean_factory_info.factory_fn.is_none() {
+            log_message!("Skipping creation of factory_fn for: {}.", SynHelper::get_str(concrete_type));
+            return None;
+        }
 
         let (field_types, field_idents, concrete_field,
             mutable_identifiers, mutable_field_types, concrete_mutable_type,
@@ -40,9 +45,11 @@ impl BeanFactoryGenerator for FactoryFnBeanFactoryGenerator {
 
         let (fn_args, factory_fn) = Self::get_factory_fn_fn_args(&bean_factory_info);
 
-        log_message!("Creating factory for profile {} for: {}.",
+        log_message!("Creating factory for profile {} for factory_fn with ident {} and struct type: {}, and ident {}.",
             SynHelper::get_str(profile_ident),
-            SynHelper::get_str(&bean_factory_info.concrete_type.as_ref().unwrap())
+            SynHelper::get_str(&bean_factory_info.factory_fn.as_ref().unwrap().fn_found.item_fn.sig.ident),
+            SynHelper::get_str(&bean_factory_info.concrete_type.as_ref().unwrap()),
+            SynHelper::get_str(&bean_factory_info.ident_type.as_ref().unwrap()),
         );
 
         log_message!("{} is number of field idents, {} is number of field types.", field_types.len(), field_idents.len());

@@ -1,11 +1,13 @@
-use syn::{Attribute, Field, Fields, ItemEnum, ItemImpl, ItemStruct, Lifetime, Path, Type, TypeArray};
+use syn::{Attribute, Field, Fields, ItemEnum, ItemImpl, ItemStruct, ItemUse, Lifetime, parse_str, Path, Stmt, Type, TypeArray};
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 use codegen_utils::syn_helper;
 use quote::ToTokens;
 use proc_macro2::{Ident, TokenStream};
 use syn::__private::str;
+use syn::token::Use;
 use codegen_utils::syn_helper::SynHelper;
 use crate::aspect::AspectInfo;
 use crate::dependency::{ArgDepType, AutowiredField, DependencyDescriptor, DependencyMetadata, FieldDepType};
@@ -22,15 +24,6 @@ use crate::profile_tree::ProfileBuilder;
 pub enum BeanType {
     // contains the identifier and the qualifier as string
     Singleton, Prototype
-}
-
-impl BeanType {
-    fn new(name: &str) -> Self {
-        if name.to_lowercase() == "singleton" {
-            return BeanType::Singleton;
-        }
-        BeanType::Prototype
-    }
 }
 
 impl BeanPathParts {
@@ -258,9 +251,85 @@ pub struct BeanDefinition {
     pub bean_type: Option<BeanType>,
     pub mutable: bool,
     pub aspect_info: Vec<AspectInfo>,
-    pub factory_fn: Option<ModulesFunctions>
+    pub factory_fn: Option<ModulesFunctions>,
 }
 
+impl BeanDefinition {
+
+    pub fn get_use_stmts(&self) -> HashMap<String, ItemUse> {
+        log_message!("Adding use statements for {} with {} dependencies and {} traits.", &self.id, self.deps_map.len(), self.traits_impl.len());
+        let mut use_stmts = HashMap::new();
+        self.add_self_value(&mut use_stmts);
+        self.add_abstract(&mut use_stmts);
+        Self::create_use_stmts(&mut use_stmts)
+    }
+
+    fn add_self_value(&self, mut use_stmts: &mut HashMap<String, Vec<String>>) {
+        self.factory_fn.as_ref()
+            .map(|_| self.add_fn_stmt(&mut use_stmts))
+            .or_else(|| {
+                self.add_fn_stmt(&mut use_stmts);
+                None
+            });
+    }
+
+    fn add_fn_stmt(&self, mut use_stmts: &mut HashMap<String, Vec<String>>)  {
+        self.factory_fn.as_ref().map(|f| {
+            self.ident.as_ref()
+                .map(|fn_ident| use_stmts.insert(fn_ident.to_string().clone(), f.path.clone()))
+        });
+    }
+
+    fn add_abstract(&self, mut use_stmts: &mut HashMap<String, Vec<String>>) {
+        self.traits_impl.iter()
+            .for_each(|t| {
+                t.abstract_type.as_ref()
+                    .map(|a| a.get_inner_type())
+                    .map(|a|
+                        a.map(|a| use_stmts.insert(a.to_token_stream().to_string(), t.path_depth.clone()))
+                    );
+            });
+    }
+
+    fn add_self_struct(&self, mut use_stmts: &mut HashMap<String, Vec<String>>) {
+        self.struct_type.as_ref()
+            .map(|s| {
+                let ty = s.to_token_stream().to_string();
+                log_message!("Adding use statement for self ty: {}.", &ty);
+                ty
+            })
+            .or_else(|| {
+                self.ident.as_ref()
+                    .map(|i| i.to_string())
+            })
+            .map(|key| {
+                use_stmts.insert(key, self.path_depth.clone());
+            });
+    }
+
+    fn create_use_stmts(use_stmts: &mut HashMap<String, Vec<String>>) -> HashMap<String, ItemUse> {
+        use_stmts.iter().flat_map(|u| {
+            if u.1.len() != 0 {
+                let mut joined = u.1.join("::");
+                joined += "::";
+                joined += u.0.as_str();
+                let mut use_stmt = "use ".to_string();
+                use_stmt += joined.as_str();
+                use_stmt += ";";
+                return parse_str::<ItemUse>(use_stmt.as_str())
+                    .ok()
+                    .map(|use_stmt| {
+                        vec![(u.0.clone(), use_stmt)]
+                    })
+                    .or(Some(vec![]))
+                    .unwrap();
+            } else {
+                log_message!("Could not create use statement for {} because path was 0.", u.0);
+            }
+            vec![]
+        }).collect::<HashMap<String, ItemUse>>()
+    }
+}
 
 impl  Eq for BeanDefinition {}
 

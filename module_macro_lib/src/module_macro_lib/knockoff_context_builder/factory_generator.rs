@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::__private::{str, TokenStream2};
-use syn::{parse2, Path, Type};
+use syn::{ItemUse, parse2, Path, Type};
 use codegen_utils::syn_helper::SynHelper;
 
 use knockoff_logging::{initialize_log, use_logging};
@@ -73,11 +73,12 @@ pub trait FactoryGenerator: {
     }
 
     fn add_to(identifiers: &mut Vec<Ident>, types: &mut Vec<Type>, bean: &BeanDefinition) where Self: Sized {
-        if bean.ident.is_some() {
+        // Has to be struct_type first because ident can be a function identifier, and that won't work.
+        if bean.struct_type.is_some() {
+            types.push(bean.struct_type.clone().unwrap());
+        } else if bean.ident.is_some() {
             log_message!("Implementing listable bean factory. Including: {}.", bean.ident.to_token_stream().to_string().clone());
             identifiers.push(bean.ident.clone().unwrap());
-        } else if bean.struct_type.is_some() {
-            types.push(bean.struct_type.clone().unwrap());
         }
     }
 }
@@ -130,6 +131,19 @@ impl FactoryGenerator for FactoryGen {
 
 impl FactoryGen {
 
+    pub fn get_use_stmts(beans_to_provide: &Vec<ProviderBean>) -> Vec<ItemUse> {
+        beans_to_provide.iter()
+            .flat_map(|b| {
+                b.bean.get_use_stmts().iter()
+                    .map(|u| (u.0.clone(), u.1.clone()))
+                    .collect::<Vec<(String, ItemUse)>>()
+            })
+            .collect::<HashMap<String, ItemUse>>()
+            .values()
+            .map(|u| u.clone())
+            .collect::<Vec<ItemUse>>()
+    }
+
     pub fn new_listable_bean_factory(beans_to_provide: &Vec<ProviderBean>, profile: &ProfileBuilder) -> TokenStream {
         let profile_name_str = profile.profile.clone();
 
@@ -147,10 +161,21 @@ impl FactoryGen {
         abstract_mutable_paths.iter().for_each(|a_path| {
             log_message!("{} is the abstract mutable path to create.", SynHelper::get_str(&a_path));
         });
+        singleton_types.iter().for_each(|a_path| {
+            log_message!("{} is the singleton type to create.", SynHelper::get_str(&a_path));
+        });
+        singleton_idents.iter().for_each(|a_path| {
+            log_message!("{} is the singleton ident to create.", SynHelper::get_str(&a_path));
+        });
 
-        // TODO: if a bean is mutable it cannot have a reference not through mutex, so there will have
-        //  to be two. However, for the abstract, the reference to the concrete type can be added in the
-        //  map, so that the same bean is used.
+        let use_stmts = Self::get_use_stmts(&beans_to_provide);
+
+        log_message!("There are {} use statements.", use_stmts.len());
+
+        use_stmts.iter().for_each(|u| {
+            log_message!("{} is the next use statement", SynHelper::get_str(u));
+        });
+
         let new_listable_bean_factory = quote! {
 
             pub struct #profile_name {
@@ -176,7 +201,7 @@ impl FactoryGen {
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <dyn BeanFactory<#singleton_types, #profile_name, U = #singleton_idents>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn BeanFactory<#singleton_types, #profile_name, U = #singleton_types>>::get_bean(&listable_bean_factory);
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
@@ -246,11 +271,6 @@ impl FactoryGen {
         for provider_bean in beans_to_provide.iter() {
 
             let bean = &provider_bean.bean;
-
-            // TODO: factory_fn
-            if bean.factory_fn.is_some() && bean.struct_type.is_none() {
-                continue;
-            }
 
             Self::add_provider_bean_to_vec(
                 &mut singleton_idents, &mut singleton_types,

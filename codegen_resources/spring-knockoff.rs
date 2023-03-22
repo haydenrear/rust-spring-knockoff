@@ -1,10 +1,10 @@
 #[module_attr]
 pub mod test_library {
     pub mod test_library_two {
-        use spring_knockoff_boot_macro::{autowired, bean, singleton};
+        use spring_knockoff_boot_macro::{autowired, bean, service};
 
         #[derive(Default, Debug)]
-        #[singleton(Once)]
+        #[service(Once)]
         pub struct Ten {}
 
         pub mod test_library_six {
@@ -16,12 +16,12 @@ pub mod test_library {
 
     pub mod test_library_three {
         use std::sync::{Arc, Mutex};
-        use spring_knockoff_boot_macro::{autowired, bean, singleton};
+        use spring_knockoff_boot_macro::{autowired, bean, service};
         use crate::_one_testOne;
 
         pub trait Found {}
 
-        #[singleton("hello_string")]
+        #[service("hello_string")]
         fn this_one() -> Option<&'static str> { Some("hello") }
 
         impl Found for One {}
@@ -37,7 +37,7 @@ pub mod test_library {
         }
 
         #[derive(Default, Debug)]
-        #[singleton(Four)]
+        #[service(Four)]
         pub struct Four {
             #[autowired]
             #[mutable_bean] pub one: Arc<Mutex<One>>,
@@ -46,12 +46,12 @@ pub mod test_library {
         }
 
         #[derive(Default, Debug, Ord, PartialOrd, Eq, PartialEq)]
-        #[singleton(One)]
+        #[service(One)]
         pub struct One {
             pub two: String,
         }
 
-        #[singleton(Once)]
+        #[service(Once)]
         #[derive(Default, Debug)]
         pub struct Once {}
 

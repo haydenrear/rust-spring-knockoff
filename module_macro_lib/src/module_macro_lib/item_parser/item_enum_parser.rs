@@ -39,7 +39,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                     ident: Some(enum_to_add.ident.clone()),
                     fields: enum_fields,
                     bean_type: BeanDependencyParser::get_bean_type_opt(&enum_to_add.attrs),
-                    mutable: SynHelper::get_attr_from_vec(&enum_to_add.attrs, vec!["mutable_bean"])
+                    mutable: SynHelper::get_attr_from_vec(&enum_to_add.attrs, &vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                     aspect_info: vec![],

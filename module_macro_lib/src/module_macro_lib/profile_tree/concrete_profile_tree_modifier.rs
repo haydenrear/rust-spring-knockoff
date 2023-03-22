@@ -32,14 +32,16 @@ impl ProfileTreeModifier for ConcreteTypeProfileTreeModifier {
                         .filter(|dep_type_bean_path| dep_type_bean_path.bean_path_part_matches(bean_struct_id))
                         .is_some()
                 ) {
-                    dep_type_to_test.set_abstract();
-                    dep_type_to_test.clone().maybe_qualifier().as_ref()
+                    dep_type_to_test.set_is_abstract();
+                    dep_type_to_test.maybe_qualifier().clone().as_ref()
                         .map(|q| self.beans_to_types.beans_to_types.get(q)
                             .map(|type_to_set| dep_type_to_test.set_concrete_field_type(type_to_set.clone()))
                         )
                         .or_else(|| {
                             let bean_path = dep_type_to_test.type_path()
-                                .as_ref().map(|b| b.get_inner_type_id());
+                                .as_ref()
+                                .map(|b| b.get_inner_type_id());
+
                             bean_path.map(|b|
                                     self.beans_to_types.beans_to_types.get(&b)
                                         .map(|inner_type| dep_type_to_test.set_concrete_field_type(inner_type.clone()))

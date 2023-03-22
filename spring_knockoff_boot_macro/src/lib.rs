@@ -52,7 +52,7 @@ pub fn auth_type_aware(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn singleton(attr: TokenStream, input: TokenStream) -> TokenStream {
+pub fn service(attr: TokenStream, input: TokenStream) -> TokenStream {
     strip_autowired(input)
 }
 

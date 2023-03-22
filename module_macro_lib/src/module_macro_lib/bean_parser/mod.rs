@@ -10,7 +10,7 @@ use bean_dependency_path_parser::BeanDependencyPathParser;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{AutowiredField, AutowiredFnArg, DependencyDescriptor, DependencyMetadata, FieldDepType};
+use module_macro_shared::dependency::{ArgDepType, AutowiredField, AutowiredFnArg, AutowiredType, DependencyDescriptor, DependencyMetadata, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
 use module_macro_shared::parse_container::ParseContainer;
@@ -28,12 +28,11 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 
 /// Add the DepType to Bean after all Beans are added.
 impl BeanDependencyParser {
-
     pub(crate) fn get_bean_type_opt(attr: &Vec<Attribute>) -> Option<BeanType> {
-        SynHelper::get_attr_from_vec(attr, vec!["singleton"])
+        SynHelper::get_attr_from_vec(attr, &vec!["service"])
             .map(|singleton_qualifier| BeanType::Singleton)
             .or_else(|| {
-                SynHelper::get_attr_from_vec(attr, vec!["prototype"])
+                SynHelper::get_attr_from_vec(attr, &vec!["prototype"])
                     .map(|singleton_qualifier| BeanType::Prototype)
             })
     }
@@ -41,63 +40,51 @@ impl BeanDependencyParser {
     pub fn add_dependencies(
         mut bean: BeanDefinition,
         injectable_types_builder: &HashMap<String, BeanDefinition>,
-        fns: &HashMap<String, ModulesFunctions>
+        fns: &HashMap<String, ModulesFunctions>,
     ) -> BeanDefinition {
         if bean.factory_fn.as_ref().is_none() {
             Self::add_field_deps(&mut bean, injectable_types_builder, fns);
         } else {
-            Self::add_fn_arg_deps(&mut bean, injectable_types_builder);
+            Self::add_fn_arg_deps(&mut bean, injectable_types_builder, fns);
         }
         bean
     }
 
     fn add_fn_arg_deps(
-        bean: &mut BeanDefinition,
-        injectable_types_builder: &HashMap<String, BeanDefinition>
+        mut bean: &mut BeanDefinition,
+        injectable_types_builder: &HashMap<String, BeanDefinition>,
+        fns: &HashMap<String, ModulesFunctions>
     ) {
-        // TODO: add deps from fn_args, if mutable then add mutable...
-        for mut arg in &bean.factory_fn.as_mut().unwrap().fn_found.args {
-            // arg.2.map(|bean_id| injectable_types_builder.get(&bean_id))
-            //     .flatten()
-            //     .map(|dep_bean| )
-        }
+        Self::add_field_deps(&mut bean, injectable_types_builder, fns)
     }
 
-    /// When the autowire type is a factory_fn, then there is no ImplItem that has been parsed, so they
-    /// must be added again.
-    fn get_dep_impl(qualifier: String, injectable_types: &HashMap<String, BeanDefinition>) -> Option<DependencyDescriptor> {
-        injectable_types.values()
-            .map(|v| {
-                v.deps_map.iter()
-                    .filter(|d| {
-                        d.maybe_qualifier()
-                            .as_ref()
-                            .map(|s| s == &qualifier)
-                            .is_some()
-                    }
-                    )
-                    .map(|d| {
-                        d.type_path().as_ref()
-                            .map(|bean_type_path| {
-                                DependencyDescriptor {
-                                    item_impl: None,
-                                    profile: vec![],
-                                    path_depth: vec![],
-                                    qualifiers: d.maybe_qualifier()
-                                        .as_ref()
-                                        .map(|q| vec![q.to_string()])
-                                        .or(Some(vec![]))
-                                        .unwrap(),
-                                    abstract_type: Some(bean_type_path.clone()),
-                                }
-                            })
-                    })
-                    .flatten()
+    fn add_field_deps(mut bean: &mut BeanDefinition,
+                      injectable_types_builder: &HashMap<String, BeanDefinition>,
+                      fns: &HashMap<String, ModulesFunctions>) {
+        bean.factory_fn.as_ref()
+            .map(|m| m.fn_found.args.clone())
+            .map(|factory_fn| {
+                Self::add_fn_arg_deps_to_bean(&mut bean, injectable_types_builder, fns, factory_fn);
+            }).or_else(|| {
+                Self::add_field_deps_to_bean(&mut bean, injectable_types_builder, fns)
+            });
+    }
+
+    fn add_fn_arg_deps_to_bean(mut bean: &mut &mut BeanDefinition, injectable_types_builder: &HashMap<String, BeanDefinition>, fns: &HashMap<String, ModulesFunctions>, factory_fn: Vec<(Ident, BeanPath, Option<String>, PatType)>) {
+        factory_fn.iter()
+            .for_each(|data| {
+                Self::match_ty_add_dep(
+                    &mut bean,
+                    None,
+                    None,
+                    injectable_types_builder,
+                    fns,
+                    Self::get_autowired_fn_arg_dep(data),
+                )
             })
-            .flatten().next()
     }
 
-    fn add_field_deps(mut bean: &mut BeanDefinition, injectable_types_builder: &HashMap<String, BeanDefinition>, fns: &HashMap<String, ModulesFunctions>) {
+    fn add_field_deps_to_bean(mut bean: &mut &mut BeanDefinition, injectable_types_builder: &HashMap<String, BeanDefinition>, fns: &HashMap<String, ModulesFunctions>) -> Option<()> {
         for fields in bean.fields.clone().iter() {
             match fields.clone() {
                 Fields::Named(fields_named) => {
@@ -106,9 +93,9 @@ impl BeanDependencyParser {
                             &mut bean,
                             None,
                             None,
-                            field.clone(),
                             injectable_types_builder,
-                            fns
+                            fns,
+                            Self::get_autowired_field_dep(&field),
                         );
                     }
                 }
@@ -116,49 +103,50 @@ impl BeanDependencyParser {
                 _ => {}
             };
         }
+        None
     }
 
-    pub fn get_autowired_field_dep(field: Field) -> Option<AutowiredField> {
-        let profile = SynHelper::get_attr_from_vec(&field.attrs, vec!["profile"]);
-        let qualifier = SynHelper::get_attr_from_vec(&field.attrs, vec!["qualifier"]);
-        SynHelper::get_attr_from_vec(&field.attrs, vec!["autowired"])
+    pub fn get_autowired_field_dep(field: &Field) -> Option<AutowiredType> {
+        let profile = SynHelper::get_attr_from_vec(&field.attrs, &vec!["profile"]);
+        let qualifier = SynHelper::get_attr_from_vec(&field.attrs, &vec!["qualifier"]);
+        SynHelper::get_attr_from_vec(&field.attrs, &vec!["autowired"])
             .map(|autowired_value| {
-                let is_mutable = ParseUtil::does_attr_exist(&field.attrs, vec!["mutable_bean", "mutable_field"]);
+                let is_mutable = ParseUtil::does_attr_exist(&field.attrs, &vec!["mutable_bean", "mutable_field"]);
                 Self::log_autowired_info(&field, is_mutable);
-                AutowiredField {
+                AutowiredType::Field(AutowiredField {
                     //TODO: this should be a vec
                     qualifier: Some(autowired_value.clone()).or(qualifier.clone()),
                     //TODO: this should be a vec
                     lazy: false,
                     field: field.clone(),
-                    type_of_field: field.ty.clone(),
+                    autowired_type: field.ty.clone(),
                     concrete_type_of_field_bean_type: None,
                     mutable: is_mutable,
-                }
+                })
             })
     }
 
-    pub fn get_autowired_fn_arg_dep(fn_arg_info: (Ident, BeanPath, Option<String>, PatType)) -> Option<AutowiredFnArg> {
-        let profile = SynHelper::get_attr_from_vec(&fn_arg_info.3.attrs, vec!["profile"]);
-        SynHelper::get_attr_from_vec(&fn_arg_info.3.attrs, vec!["autowired"])
+    pub fn get_autowired_fn_arg_dep(fn_arg_info: &(Ident, BeanPath, Option<String>, PatType)) -> Option<AutowiredType> {
+        let profile = SynHelper::get_attr_from_vec(&fn_arg_info.3.attrs, &vec!["profile"]);
+        SynHelper::get_attr_from_vec(&fn_arg_info.3.attrs, &vec!["autowired"])
             .map(|autowired_value| {
-                let is_mutable = ParseUtil::does_attr_exist(&fn_arg_info.3.attrs, vec!["mutable_bean", "mutable_field"]);
+                let is_mutable = ParseUtil::does_attr_exist(&fn_arg_info.3.attrs, &vec!["mutable_bean", "mutable_field"]);
                 Self::log_autowired_info(&fn_arg_info.3, is_mutable);
-                AutowiredFnArg{
+                AutowiredType::FnArg(AutowiredFnArg {
                     //TODO: this should be a vec
-                    qualifier: fn_arg_info.2.or(Some(autowired_value)),
+                    qualifier: fn_arg_info.2.clone().or(Some(autowired_value)),
                     //TODO: this should be a vec
                     profile: profile.clone(),
                     lazy: false,
-                    fn_arg_ident: fn_arg_info.0,
+                    fn_arg_ident: fn_arg_info.0.clone(),
                     bean_type: fn_arg_info.1.clone(),
-                    type_of_field: fn_arg_info.1.get_inner_type()
+                    autowired_type: fn_arg_info.1.get_inner_type()
                         .or(Some(fn_arg_info.3.ty.deref().clone()))
                         .unwrap(),
                     concrete_type_of_field_bean_type: None,
                     mutable: is_mutable,
-                    fn_arg: fn_arg_info.3,
-                }
+                    fn_arg: fn_arg_info.3.clone(),
+                })
             })
     }
 
@@ -184,116 +172,116 @@ impl BeanDependencyParser {
         dep_impl: &mut BeanDefinition,
         lifetime: Option<Lifetime>,
         array_type: Option<TypeArray>,
-        field: Field,
         injectable_types_builder: &HashMap<String, BeanDefinition>,
-        fns: &HashMap<String, ModulesFunctions>
+        fns: &HashMap<String, ModulesFunctions>,
+        autowired: Option<AutowiredType>,
     ) {
-        let autowired = Self::get_autowired_field_dep(field.clone());
-        match autowired {
-            None => {
-            }
-            Some(autowired) => {
-                log_message!("Found field with type {}.", autowired.field.ty.to_token_stream().to_string().clone());
-                if autowired.field.ident.is_some() {
-                    log_message!("Found field with ident {}.", autowired.field.ident.to_token_stream().to_string().clone());
+        autowired.map(|autowired| {
+            log_message!("Found field with ident {}.", SynHelper::get_str(autowired.autowired_type()));
+            match autowired.autowired_type().clone() {
+                Type::Array(arr) => {
+                    log_message!("found array type {}.", arr.to_token_stream().to_string().clone());
+                    Self::add_type_dep(dep_impl, autowired, lifetime, Some(arr.clone()), injectable_types_builder, fns, None);
                 }
-                match field.ty.clone() {
-                    Type::Array(arr) => {
-                        log_message!("found array type {}.", arr.to_token_stream().to_string().clone());
-                        Self::add_type_dep(dep_impl, autowired, lifetime, Some(arr), injectable_types_builder, fns, None);
-                    }
-                    Type::Path(path) => {
-                        log_message!("Adding {} to bean path.", path.to_token_stream().clone().to_string().as_str());
-                        let type_path = BeanDependencyPathParser::parse_type_path(path);
-                        Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, Some(type_path));
-                    }
-                    Type::Reference(reference_found) => {
-                        let ref_type = reference_found.elem.clone();
-                        log_message!("{} is the ref type", ref_type.to_token_stream());
-                        Self::add_type_dep(dep_impl, autowired, reference_found.lifetime, array_type, injectable_types_builder, fns, None);
-                    }
-                    other => {
-                        log_message!("{} is the other type", other.to_token_stream().to_string().as_str());
-                        Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, None)
-                    }
-                };
-            }
-        };
+                Type::Path(path) => {
+                    log_message!("Adding {} to bean path.", path.to_token_stream().clone().to_string().as_str());
+                    let type_path = BeanDependencyPathParser::parse_type_path(path.clone());
+                    Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, Some(type_path));
+                }
+                Type::Reference(reference_found) => {
+                    let ref_type = reference_found.elem.clone();
+                    log_message!("{} is the ref type", ref_type.to_token_stream());
+                    Self::add_type_dep(dep_impl, autowired, reference_found.clone().lifetime, array_type, injectable_types_builder, fns, None);
+                }
+                other => {
+                    log_message!("{} is the other type", other.to_token_stream().to_string().as_str());
+                    Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, None)
+                }
+            };
+        });
     }
 
     pub fn add_type_dep(
         dep_impl: &mut BeanDefinition,
-        bean_info: AutowiredField,
+        bean_info: AutowiredType,
         lifetime: Option<Lifetime>,
         array_type: Option<TypeArray>,
         injectable_types_builder: &HashMap<String, BeanDefinition>,
         fns: &HashMap<String, ModulesFunctions>,
-        bean_type_path: Option<BeanPath>
+        bean_type_path: Option<BeanPath>,
     )
     {
         log_message!("Adding dependency for {}.", dep_impl.id.clone());
 
-        let autowired_qualifier = bean_info.clone()
-            .qualifier
-            .or(Some(bean_info.type_of_field.to_token_stream().to_string().clone()));
+        let autowired_qualifier = bean_info.qualifier();
 
         if autowired_qualifier.is_some() {
-
-            log_message!("Adding dependency {} for bean with id {}.",  SynHelper::get_str(bean_info.field.clone()), dep_impl.id.clone());
-
-            dep_impl.ident.clone().map(|ident| {
-                log_message!("Adding dependency to struct with id {} to struct_impl of name {}", ident.to_string().clone(), SynHelper::get_str(&bean_info.type_of_field));
-            }).or_else(|| {
-                log_message!("Could not find ident for {} when attempting to add dependency to struct.", dep_impl.id.clone());
-                None
-            });
-
-            bean_type_path.as_ref().map(|ident| {
-                log_message!("Checking if has inner...");
-                ident.get_inner_type().as_ref().map(|inner| {
-                    log_message!("Adding dependency to struct with id {} to struct_impl with inner type {}", &dep_impl.id, SynHelper::get_str(inner));
-                })
-            }).or_else(|| {
-                log_message!("Could not find inner type for dependency for {}.", dep_impl.id.clone());
-                None
-            });
-
             let bean_type = Self::get_bean_type(&bean_info, injectable_types_builder, fns);
-            let item_fn = Self::get_modules_fn(&bean_info, fns);
 
-            if bean_type.is_some() {
-                dep_impl
-                    .deps_map
-                    .push(DependencyMetadata::FieldDepType(FieldDepType {
-                        bean_info,
-                        lifetime,
-                        bean_type,
-                        array_type,
-                        bean_type_path,
-                        is_abstract: None,
-                    }));
-            } else {
-                dep_impl
-                    .deps_map
-                    .push(DependencyMetadata::FieldDepType(FieldDepType {
-                        bean_info,
-                        lifetime,
-                        bean_type: None,
-                        array_type,
-                        bean_type_path,
-                        is_abstract: None,
-                    }));
+            match bean_info {
+                AutowiredType::Field(bean_info) => {
+                    if bean_type.is_some() {
+                        dep_impl
+                            .deps_map
+                            .push(DependencyMetadata::FieldDepType(FieldDepType {
+                                bean_info,
+                                lifetime,
+                                bean_type,
+                                array_type,
+                                bean_type_path,
+                                is_abstract: None,
+                            }));
+                    } else {
+                        dep_impl
+                            .deps_map
+                            .push(DependencyMetadata::FieldDepType(FieldDepType {
+                                bean_info,
+                                lifetime,
+                                bean_type: None,
+                                array_type,
+                                bean_type_path,
+                                is_abstract: None,
+                            }));
+                    }
+                }
+
+                AutowiredType::FnArg(bean_info) => {
+                    if bean_type.is_some() {
+                        dep_impl
+                            .deps_map
+                            .push(DependencyMetadata::ArgDepType(ArgDepType {
+                                bean_info,
+                                lifetime,
+                                bean_type,
+                                array_type,
+                                bean_type_path,
+                                is_abstract: None,
+                            }));
+                    } else {
+                        dep_impl
+                            .deps_map
+                            .push(DependencyMetadata::ArgDepType(ArgDepType {
+                                bean_info,
+                                lifetime,
+                                bean_type: None,
+                                array_type,
+                                bean_type_path,
+                                is_abstract: None,
+                            }));
+                    }
+                }
             }
         }
     }
 
-    fn get_modules_fn(bean_info: &AutowiredField, fns: &HashMap<String, ModulesFunctions>) -> Option<ModulesFunctions> {
-        ItemFnParser::get_fn_for_qualifier(fns, &bean_info.qualifier, &Some(bean_info.type_of_field.clone()))
+
+    fn get_modules_fn(bean_info: &AutowiredType, fns: &HashMap<String, ModulesFunctions>) -> Option<ModulesFunctions> {
+        ItemFnParser::get_fn_for_qualifier(fns, bean_info.qualifier(), &Some(bean_info.autowired_type()))
     }
 
-    fn get_bean_type(bean_info: &AutowiredField, injectable_types_builder: &HashMap<String, BeanDefinition>, fns: &HashMap<String, ModulesFunctions>) -> Option<BeanType> {
-        let bean_type = bean_info.qualifier.as_ref()
-            .map(|q| injectable_types_builder.get(q))
+    fn get_bean_type(bean_info: &AutowiredType, injectable_types_builder: &HashMap<String, BeanDefinition>, fns: &HashMap<String, ModulesFunctions>) -> Option<BeanType> {
+        let bean_type = bean_info.qualifier().clone()
+            .map(|q| injectable_types_builder.get(&q))
             .map(|b| b.map(|b| {
                 b.bean_type.clone()
             }))
@@ -302,8 +290,8 @@ impl BeanDependencyParser {
             .or_else(|| {
                 ItemFnParser::get_fn_for_qualifier(
                     fns,
-                    &bean_info.qualifier,
-                    &Some(bean_info.type_of_field.clone())
+                    bean_info.qualifier(),
+                    &Some(bean_info.autowired_type()),
                 ).map(|f| f.fn_found.bean_type)
             });
         bean_type

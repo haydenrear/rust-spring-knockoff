@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use spring_knockoff_boot_macro::{autowired, bean, singleton, request_body, controller, get_mapping, request_mapping};
+use spring_knockoff_boot_macro::{autowired, bean, service, request_body, controller, get_mapping, request_mapping};
 use crate::*;
 
 pub mod test_library_four;
@@ -9,9 +9,9 @@ pub mod test_library_five;
 pub trait Found: Send + Sync {
 }
 
-#[singleton("hello_string")]
-fn this_one() -> Option<&'static str> {
-    Some("hello")
+#[service("hello_string")]
+pub fn this_one() -> FactoryFnTest {
+    FactoryFnTest {}
 }
 
 impl Found for Four {
@@ -36,7 +36,7 @@ impl Four {
     }
 }
 
-#[singleton(Four)]
+#[service(Four)]
 #[derive(Default)]
 #[controller]
 pub struct Four {
@@ -48,11 +48,13 @@ pub struct Four {
     pub two: String,
 }
 
-#[singleton(One)]
+#[service(One)]
 #[derive(Default)]
 pub struct One {
     pub two: String,
 }
+
+pub struct FactoryFnTest;
 
 // TODO: implement default with dyn beans.
 impl Default for Once {
@@ -65,7 +67,7 @@ impl Default for Once {
     }
 }
 
-#[singleton(Once)]
+#[service(Once)]
 pub struct Once {
     #[autowired]
     pub test_dyn_one: Arc<dyn Found>,

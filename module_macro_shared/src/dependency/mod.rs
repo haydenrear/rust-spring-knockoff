@@ -5,6 +5,7 @@ use codegen_utils::syn_helper;
 use std::cmp::Ordering;
 use proc_macro2::Ident;
 use quote::ToTokens;
+use codegen_utils::syn_helper::SynHelper;
 use crate::bean::{BeanPath, BeanType};
 use crate::profile_tree::ProfileBuilder;
 
@@ -26,7 +27,9 @@ pub struct DependencyDescriptor {
 
 impl PartialEq<Self> for DependencyDescriptor {
     fn eq(&self, other: &Self) -> bool {
-        self.item_impl.eq(&other.item_impl) && self.abstract_type.eq(&other.abstract_type)
+        self.item_impl.as_ref().map(|i| SynHelper::get_str(&i))
+            .eq(&other.item_impl.as_ref().map(|i| SynHelper::get_str(&i)))
+            && self.abstract_type.eq(&other.abstract_type)
     }
 }
 
@@ -37,7 +40,7 @@ pub struct AutowiredField {
     pub qualifier: Option<String>,
     pub lazy: bool,
     pub field: Field,
-    pub type_of_field: Type,
+    pub autowired_type: Type,
     pub concrete_type_of_field_bean_type: Option<Type>,
     pub mutable: bool
 }
@@ -50,10 +53,55 @@ pub struct AutowiredFnArg {
     pub fn_arg: PatType,
     pub fn_arg_ident: Ident,
     pub bean_type: BeanPath,
-    pub type_of_field: Type,
+    pub autowired_type: Type,
     pub concrete_type_of_field_bean_type: Option<Type>,
     pub mutable: bool
 }
+
+pub enum AutowiredType {
+    Field(AutowiredField), FnArg(AutowiredFnArg)
+}
+
+macro_rules! get_attr {
+    ($name:ident, $ty:ty) => {
+        impl AutowiredType {
+            pub fn $name(&self) -> &ty {
+                match self {
+                    AutowiredType::Field(field) => {
+                        &field.$name
+                    }
+                    AutowiredType::FnArg(fn_arg) => {
+                        &fn_arg.$name
+                    }
+                }
+            }
+        }
+    }
+}
+
+macro_rules! get_ref {
+    ($($name:ident, $ty:ty),*) => {
+        $(
+            impl AutowiredType {
+                pub fn $name<'a>(&'a self) -> &'a $ty {
+                    match self {
+                        AutowiredType::Field(field) => {
+                            &field.$name
+                        }
+                        AutowiredType::FnArg(fn_arg) => {
+                            &fn_arg.$name
+                        }
+                    }
+                }
+            }
+        )*
+    }
+}
+
+get_ref!(
+    autowired_type, Type,
+    qualifier, Option<String>
+);
 
 impl Debug for AutowiredField {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -169,7 +217,7 @@ impl DependencyMetadata {
         }
     }
 
-    pub fn set_abstract(&mut self) {
+    pub fn set_is_abstract(&mut self) {
         match self {
             DependencyMetadata::FieldDepType(dep_type) => {
                 dep_type.is_abstract = Some(true);
@@ -241,7 +289,7 @@ impl DepType for FieldDepType {
     }
 
     fn field_type(&self) -> &Type {
-        &self.bean_info.type_of_field
+        &self.bean_info.autowired_type
     }
 }
 impl DepType for ArgDepType {
@@ -270,7 +318,7 @@ impl DepType for ArgDepType {
     }
 
     fn field_type(&self) -> &Type {
-        &self.bean_info.type_of_field
+        &self.bean_info.autowired_type
     }
 }
 
@@ -284,7 +332,7 @@ pub struct FieldDepType {
     pub is_abstract: Option<bool>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ArgDepType {
     pub bean_info: AutowiredFnArg,
     pub lifetime: Option<Lifetime>,

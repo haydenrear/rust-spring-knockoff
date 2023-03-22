@@ -16,6 +16,7 @@ base64 = "0.13.0"
 executors = "0.9.0"
 paste = "1.0.12"
 rand = "0.8.5"
+#knockoff_providers_gen = { path = "../target/knockoff_providers_gen" }
 
 [build-dependencies.build_lib]
 path = "../build_lib"
@@ -33,8 +34,7 @@ path = "../spring_knockoff_boot_macro"
 path = "../module_macro_codegen"
 [dependencies.codegen_utils]
 path = "../codegen_utils"
-[dependencies.knockoff_providers_gen]
-path = "../target/knockoff_providers_gen"
+
 
 [build-dependencies.crate_gen]
 path = "../crate_gen"
@@ -59,3 +59,4 @@ syn = {version = "1.0", features = ["full"]}
 executors = "0.9.0"
 lazy_static = "1.4.0"
 paste = "1.0.12"
+

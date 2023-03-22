@@ -17,7 +17,7 @@ fn test_syn_helper() {
 #[test]
 fn test_get_attr_from_vec() {
     let out = do_test(&|attribute| {
-        let attr = SynHelper::get_attr_from_vec(&vec![attribute.clone()], vec!["aspect"]);
+        let attr = SynHelper::get_attr_from_vec(&vec![attribute.clone()], &vec!["aspect"]);
         println!("{} is attr.", attr.clone().unwrap().as_str());
         attr.is_some() && attr.unwrap() == "*"
     });

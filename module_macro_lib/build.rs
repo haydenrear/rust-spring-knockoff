@@ -9,10 +9,11 @@ use syn::__private::{Span, ToTokens};
 use syn::{braced, Fields, Ident, Item, ItemMod, ItemStruct, Token, token, Visibility, VisPublic};
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
-use codegen_utils::env::get_project_base_dir;
+use codegen_utils::env::{get_project_base_dir, get_project_dir};
 use codegen_utils::project_directory;
 use module_macro_codegen::parser::LibParser;
 use crate_gen::CrateWriter;
+use std::fmt::Write as write;
 
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
 
@@ -21,7 +22,9 @@ initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_director
 initialize_log!();
 
 fn main() {
-    CrateWriter::write_dummy_crate(concat!(project_directory!(), "target/knockoff_providers_gen/Cargo.toml"), "knockoff_providers_gen", "".to_string());
+    //TODO:
+    // println!("cargo:rustc-link-search=/Users/hayde/IdeaProjects/rust-spring-knockoff/target/debug");
+    // println!("cargo:rustc-link-lib=static=knockoff_providers_gen");
     log_message!("Initializing module macro lib.");
     let aug_file = get_aug_file();
     log_message!("Found augmented file: {}.", aug_file.as_str());
@@ -33,7 +36,7 @@ fn main() {
 
 fn get_aug_file() -> String {
     let aug_file = env::var("AUG_FILE").ok()
-        .or(Some(String::from("~/IdeaProject/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs")))
+        .or(Some(String::from(get_project_dir("codegen_resources/knockoff_test_aug.rs"))))
         .unwrap();
     aug_file
 }

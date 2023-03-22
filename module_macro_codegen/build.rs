@@ -103,6 +103,11 @@ fn create_cargo_toml(cargo_file: &str, knockoff_providers_dep: Vec<&str>, parsed
          .unwrap();
      writeln!(&mut cargo_file, "path = \"../../module_macro_shared\"")
          .unwrap();
+     writeln!(&mut cargo_file, "{}", "[lib]")
+         .unwrap();
+     writeln!(&mut cargo_file, "{}", "crate-type = [\"rlib\"]")
+         .unwrap();
+
 }
 
 fn get_starting_toml_prelude() -> String {

@@ -2,7 +2,7 @@
 pub mod test_library {
     pub mod test_library_two {
         use std::fmt::{Debug, Formatter};
-        use spring_knockoff_boot_macro::{autowired, bean, singleton};
+        use spring_knockoff_boot_macro::{autowired, bean, service};
         use crate::test_library::test_library_three::One;
 
         #[derive(Default, Debug)]

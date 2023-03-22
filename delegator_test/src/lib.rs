@@ -10,7 +10,7 @@ use syn::token::Type;
 use module_macro::{module_attr};
 
 use crate::test_library::*;
-use crate::test_library::test_library_three::{Four, Once, One};
+use crate::test_library::test_library_three::{Four, Once, One, this_one};
 use crate::test_library::test_library_two::Ten;
 use crate::test_library_three::Found;
 use std::any::Any;
@@ -22,6 +22,8 @@ use syn::parse::Parser;
 use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
 use spring_knockoff_boot_macro::initializer;
 use crate::test_library_three::ReturnRequest;
+// these imports are necessary because the generated code does not contain the imports.
+use crate::test_library_three::FactoryFnTest;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 

@@ -19,6 +19,11 @@ pub struct ItemStructParser;
 
 impl ItemParser<ItemStruct> for ItemStructParser {
     fn parse_item(parse_container: &mut ParseContainer, item_struct: &mut ItemStruct, path_depth: Vec<String>) {
+        // TODO: filter
+        if !Self::is_bean(&item_struct.attrs) {
+            return;
+        }
+
         log_message!("adding type with name {}", item_struct.ident.clone().to_token_stream().to_string());
 
         let field_augmenter = FieldAugmenterImpl {};
@@ -32,6 +37,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                 struct_impl.fields = vec![item_struct.fields.clone()];
                 struct_impl.bean_type = BeanDependencyParser::get_bean_type_opt(&item_struct.attrs);
                 struct_impl.id = item_struct.ident.clone().to_string();
+                struct_impl.path_depth = path_depth.clone();
             })
             .or_else(|| {
                 let item_struct_ident = &item_struct.ident;
@@ -51,7 +57,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     ident: Some(item_struct.ident.clone()),
                     fields: vec![item_struct.fields.clone()],
                     bean_type: BeanDependencyParser::get_bean_type_opt(&item_struct.attrs),
-                    mutable: ParseUtil::does_attr_exist(&item_struct.attrs, vec!["mutable_bean"]),
+                    mutable: ParseUtil::does_attr_exist(&item_struct.attrs, &vec!["mutable_bean"]),
                     aspect_info: vec![],
                     factory_fn: None,
                 };

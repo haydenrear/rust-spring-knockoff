@@ -3,7 +3,7 @@ use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use module_macro_shared::bean::BeanDefinition;
+use module_macro_shared::bean::{BeanDefinition, BeanPath};
 use module_macro_shared::parse_container::ParseContainer;
 
 pub struct ItemImplParser;
@@ -11,6 +11,7 @@ pub struct ItemImplParser;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::profile_tree::ProfileBuilder;
+use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
 use_logging!();
 initialize_log!();
 use crate::module_macro_lib::logging::executor;
@@ -28,13 +29,61 @@ impl ItemImplParser{
     }
 
     fn get_profile(attrs: &Vec<Attribute>) -> Option<String> {
-        SynHelper::get_attr_from_vec(attrs, vec!["profile"])
+        SynHelper::get_attr_from_vec(attrs, &vec!["profile"])
     }
 
     fn get_qualifier(attrs: &Vec<Attribute>) -> Option<String> {
-        SynHelper::get_attr_from_vec(attrs, vec!["qualifier"])
+        SynHelper::get_attr_from_vec(attrs, &vec!["qualifier"])
     }
 
+    fn add_bean_defn(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl,
+                     mut path_depth: &mut Vec<String>, id: &String, profile: &Vec<ProfileBuilder>,
+                     qualifiers: &Vec<String>) {
+
+        let abstract_type = item_impl.trait_.as_ref()
+            .map(|trait_impl| BeanDependencyPathParser::parse_path_to_bean_path(&trait_impl.1));
+
+        &mut parse_container.injectable_types_builder.get_mut(id)
+            .map(|bean: &mut BeanDefinition| {
+                bean.traits_impl.push(
+                    DependencyDescriptor {
+                        item_impl: Some(item_impl.clone()),
+                        abstract_type: abstract_type.clone(),
+                        profile: profile.clone(),
+                        path_depth: path_depth.clone(),
+                        qualifiers: qualifiers.clone()
+                    }
+                );
+            })
+            .or_else(|| {
+                let mut impl_found = BeanDefinition {
+                    struct_type: Some(item_impl.self_ty.deref().clone()),
+                    struct_found: None,
+                    traits_impl: vec![
+                        DependencyDescriptor {
+                            item_impl: Some(item_impl.clone()),
+                            abstract_type,
+                            profile: profile.clone(),
+                            path_depth: path_depth.clone(),
+                            qualifiers: qualifiers.clone()
+                        }
+                    ],
+                    enum_found: None,
+                    deps_map: vec![],
+                    id: id.clone(),
+                    path_depth: vec![],
+                    profile: get_profiles(&item_impl.attrs),
+                    ident: None,
+                    fields: vec![],
+                    bean_type: None,
+                    mutable: ParseUtil::does_attr_exist(&item_impl.attrs, &vec!["mutable_bean"]),
+                    aspect_info: vec![],
+                    factory_fn: None,
+                };
+                parse_container.injectable_types_builder.insert(id.clone(), impl_found);
+                None
+            });
+    }
 }
 
 pub fn matches_ignore_traits(matches_ignore_traits: &str) -> bool {
@@ -53,7 +102,9 @@ pub fn is_ignore_trait(item_impl: &ItemImpl) -> bool {
 impl ItemParser<ItemImpl> for ItemImplParser {
     fn parse_item(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl, mut path_depth: Vec<String>) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
+
         log_message!("Doing create update impl for id: {}", id);
+
         item_impl.trait_.as_ref().map(|t| {
             log_message!("Doing create update impl for trait impl: {}", SynHelper::get_str(&t.1));
         });
@@ -68,51 +119,7 @@ impl ItemParser<ItemImpl> for ItemImplParser {
 
         let qualifiers = ParseUtil::get_qualifiers(&item_impl.attrs);
 
-        &mut parse_container.injectable_types_builder.get_mut(&id)
-            .map(|bean: &mut BeanDefinition| {
-                bean.traits_impl.push(
-                    DependencyDescriptor {
-                        item_impl: Some(item_impl.clone()),
-                        abstract_type: None,
-                        profile: profile.clone(),
-                        path_depth: path_depth.clone(),
-                        qualifiers: qualifiers.clone()
-                    }
-                );
-            })
-            .or_else(|| {
-                let mut impl_found = BeanDefinition {
-                    struct_type: Some(item_impl.self_ty.deref().clone()),
-                    struct_found: None,
-                    traits_impl: vec![
-                        DependencyDescriptor {
-                            item_impl: Some(item_impl.clone()),
-                            abstract_type: None,
-                            profile: profile.clone(),
-                            path_depth: path_depth.clone(),
-                            qualifiers: qualifiers.clone()
-                        }
-                    ],
-                    enum_found: None,
-                    deps_map: vec![],
-                    id: id.clone(),
-                    path_depth: vec![],
-                    profile: get_profiles(&item_impl.attrs),
-                    ident: None,
-                    fields: vec![],
-                    bean_type: None,
-                    mutable: ParseUtil::does_attr_exist(&item_impl.attrs, vec!["mutable_bean"]),
-                    aspect_info: vec![],
-                    factory_fn: None,
-                };
-                parse_container.injectable_types_builder.insert(id.clone(), impl_found);
-                None
-            });
-
-        log_message!("Adding method advice aspect now.");
-
-        // let aspect_modifier = AspectModifier{};
-        // aspect_modifier.add_method_advice_aspect(parse_container, item_impl, &mut path_depth, &id);
+        Self::add_bean_defn(parse_container, item_impl, &mut path_depth, &id, &profile, &qualifiers);
     }
 }
 

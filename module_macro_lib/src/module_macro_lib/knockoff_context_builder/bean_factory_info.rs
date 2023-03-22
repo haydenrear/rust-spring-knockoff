@@ -29,7 +29,7 @@ pub struct BeanFactoryInfo {
     pub(crate) abstract_type: Option<Type>,
     pub(crate) ident_type: Option<Ident>,
     pub(crate) profile: Option<ProfileBuilder>,
-    pub(crate) factory_fn: Option<ModulesFunctions>
+    pub(crate) factory_fn: Option<ModulesFunctions>,
 }
 
 #[derive(Clone)]
@@ -190,12 +190,14 @@ pub trait BeanFactoryInfoFactory<T> {
     fn get_default_fields(bean: &BeanDefinition) -> Vec<DefaultFieldInfo> {
         if bean.fields.len() > 1 {
             panic!("Type had more than one set of fields Enum is not ready to be autowired!");
+        } else if bean.fields.len() == 0 {
+            return vec![];
         }
         match &bean.fields[0] {
             Fields::Named(n) => {
                 n.named.iter()
                     .filter(|f|
-                        SynHelper::get_attr_from_vec(&f.attrs, vec!["autowired"]).is_none()
+                        SynHelper::get_attr_from_vec(&f.attrs, &vec!["autowired"]).is_none()
                     )
                     .map(|f| DefaultFieldInfo{ field_type: f.ty.clone(), field_ident: f.ident.as_ref().unwrap().clone() } )
                     .collect::<Vec<DefaultFieldInfo>>()
@@ -289,7 +291,7 @@ pub trait BeanFactoryInfoFactory<T> {
         creator: &dyn Fn(&DependencyMetadata) -> Option<U>
     ) -> Vec<U> {
         let field_types = token_type.deps_map
-            .clone().iter()
+            .iter()
             .flat_map(|d| creator(d)
                 .map(|item| vec![item])
                 .or(Some(vec![]))
@@ -309,11 +311,6 @@ pub struct ConcreteBeanFactoryInfo;
 impl BeanFactoryInfoFactory<BeanDefinition> for ConcreteBeanFactoryInfo {
 
     fn create_bean_factory_info(bean: &BeanDefinition) -> Vec<BeanFactoryInfo> {
-
-        // TODO: factory_fn
-        if bean.factory_fn.is_some() {
-            return vec![];
-        }
 
         log_message!("Creating bean factory info for bean with id {} with has {} dependencies.", &bean.id, bean.deps_map.len());
 
@@ -346,12 +343,6 @@ pub struct AbstractBeanFactoryInfo;
 impl BeanFactoryInfoFactory<(BeanDefinition, DependencyDescriptor, ProfileBuilder)> for AbstractBeanFactoryInfo {
 
     fn create_bean_factory_info(bean_type: &(BeanDefinition, DependencyDescriptor, ProfileBuilder)) -> Vec<BeanFactoryInfo> {
-
-        // TODO: factory_fn
-        if bean_type.0.factory_fn.is_some() {
-            return vec![];
-        }
-
         let bean = &bean_type.0;
 
         let abstract_type = BeanFactoryInfo::get_abstract_type(&bean_type.1);

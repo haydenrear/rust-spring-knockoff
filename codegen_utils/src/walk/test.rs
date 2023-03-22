@@ -1,10 +1,12 @@
+use crate::env::get_project_dir;
 use crate::walk::DirectoryWalker;
 
 #[test]
 fn test_directory_walker() {
-    test_walk("test_library_three", "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test");
-    test_walk("test_library_four/test", "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test");
-    test_walk("test_library_five.rs", "/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test");
+    let delegator_test = get_project_dir("delegator_test").as_str();
+    test_walk("test_library_three", delegator_test);
+    test_walk("test_library_four/test", delegator_test);
+    test_walk("test_library_five.rs", delegator_test);
 }
 
 fn test_walk(name: &str, dir: &str) {

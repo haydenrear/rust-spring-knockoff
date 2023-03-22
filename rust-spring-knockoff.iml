@@ -50,9 +50,12 @@
       <sourceFolder url="file://$MODULE_DIR$/crate_gen/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugin_parser/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/security_parse_provider/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crategen_helper/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/knockoff_cli/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />
+      <excludeFolder url="file://$MODULE_DIR$/module_macro_codegen/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

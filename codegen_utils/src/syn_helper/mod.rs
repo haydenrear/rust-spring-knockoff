@@ -21,7 +21,7 @@ impl SynHelper {
             .map(|stripped| stripped.to_string())
     }
 
-    pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: Vec<&str>) -> Option<String> {
+    pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: &Vec<&str>) -> Option<String> {
         autowired_attr.iter()
             .filter(|a| matcher_str.iter().any(|m| Self::get_str(a).as_str().contains(*m)))
             .next()
