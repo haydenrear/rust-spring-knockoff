@@ -15,6 +15,7 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 use knockoff_providers_gen::DelegatingParseProvider;
 
 use quote::ToTokens;
+use module_macro_shared::parse_container::parse_container_modifier::ParseContainerItemUpdater;
 
 pub struct ItemModParser;
 

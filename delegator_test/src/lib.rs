@@ -74,6 +74,9 @@ fn test_module_macro() {
     let mutable_bean_one = BeanContainer::<Mutex<Box<dyn Found>>>::fetch_bean(&listable);
     assert!(mutable_bean_one.is_some());
 
+    let one = PrototypeBeanContainer::<One>::fetch_bean(&listable);
+
+
 }
 
 #[test]

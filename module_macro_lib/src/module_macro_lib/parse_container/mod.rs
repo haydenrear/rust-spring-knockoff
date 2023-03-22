@@ -27,7 +27,6 @@ use codegen_utils::syn_helper::SynHelper;
 use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::bean_parser::BeanDependencyParser;
 use crate::module_macro_lib::context_builder::ContextBuilder;
-use crate::module_macro_lib::module_tree::{InjectableTypeKey};
 use crate::module_macro_lib::profile_tree::ProfileTreeBuilder;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
@@ -69,6 +68,10 @@ impl BuildParseContainer for ParseContainerBuilder {
 }
 
 impl ParseContainerBuilder {
+
+    pub fn build_parse_container(parse_container: &mut ParseContainer) {
+        ParseContainerBuilder::new().build(parse_container);
+    }
 
     pub fn new() -> Self {
         Self {

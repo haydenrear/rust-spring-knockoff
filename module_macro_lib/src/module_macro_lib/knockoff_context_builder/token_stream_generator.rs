@@ -5,6 +5,8 @@ use module_macro_codegen::parser::CodegenItem;
 use module_macro_shared::profile_tree::ProfileTree;
 use knockoff_providers_gen::DelegatingTokenProvider;
 
+use module_macro_shared::token_provider::ProfileTreeTokenProvider;
+
 pub trait TokenStreamGenerator {
     fn generate_token_stream(&self) -> TokenStream;
 }

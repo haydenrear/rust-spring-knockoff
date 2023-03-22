@@ -13,7 +13,7 @@ use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::Concr
 use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
-
+use module_macro_shared::parse_container::parse_container_modifier::ParseContainerModifier;
 
 pub struct DelegateParseContainerModifier;
 

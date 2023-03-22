@@ -45,9 +45,9 @@ impl ParseProvider {
             pub struct #provider_ident {
             }
 
-            impl #provider_ident {
+            impl ParseContainerItemUpdater for #provider_ident {
 
-                pub fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
+                fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
                     #builder_path::parse_update(items, parse_container);
                 }
             }
@@ -68,9 +68,9 @@ impl ParseProvider {
             pub struct DelegatingParseProvider {
             }
 
-            impl DelegatingParseProvider {
+            impl ParseContainerItemUpdater for DelegatingParseProvider {
 
-                pub fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
+                fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
                     #(
                         #provider_type::parse_update(items, parse_container);
                     )*
@@ -92,6 +92,7 @@ impl ParseProvider {
         let imports = quote! {
             use syn::Item;
             use module_macro_shared::parse_container::ParseContainer;
+            use module_macro_shared::parse_container::parse_container_modifier::ParseContainerItemUpdater;
         }.into();
         imports
     }

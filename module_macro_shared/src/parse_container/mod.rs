@@ -20,6 +20,7 @@ use crate::logging::StandardLoggingFacade;
 use crate::parse_container::parse_container_builder::BuildParseContainer;
 
 pub mod parse_container_builder;
+pub mod parse_container_modifier;
 
 #[derive(Default)]
 pub struct ParseContainer {

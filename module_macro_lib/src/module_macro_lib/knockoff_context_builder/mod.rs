@@ -4,6 +4,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use syn::__private::TokenStream2;
 use syn::Type;
+use bean_factory_generator::factory_factory_generator::FactoryBeanBeanFactoryGenerator;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 
@@ -13,7 +14,7 @@ use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
-use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::{BeanFactoryGenerator, FactoryBeanBeanFactoryGenerator};
+use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::BeanFactoryGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
 use crate::module_macro_lib::knockoff_context_builder::factory_generator::{FactoryGen, FactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::{TokenStreamGenerator, UserProvidedTokenStreamGenerator};
@@ -64,10 +65,13 @@ impl ApplicationContextGenerator {
 
         let factory_generators = Self::factory_generators(profile_tree);
         let bean_factory_generators = Self::create_bean_factory_generators(
-            concrete_bean_factory_info.clone(), abstract_bean_factory_info
+            &concrete_bean_factory_info, &abstract_bean_factory_info
         );
         let constructor_generator = vec![BeanConstructorGenerator::create_bean_constructor_generator(
-            concrete_bean_factory_info.clone()
+            concrete_bean_factory_info.iter()
+                .filter(|c| c.factory_fn.is_none())
+                .map(|b| b.clone())
+                .collect::<Vec<BeanFactoryInfo>>()
         )];
 
         let profiles = profile_tree.injectable_types.keys()
@@ -87,7 +91,7 @@ impl ApplicationContextGenerator {
     }
 
     /// Parse the ProfileTree into BeanFactoryInfo objects, which will then be used to generate the BeanFactories for each bean.
-    fn create_bean_factory_info(profile_tree: &&ProfileTree) -> (Vec<BeanFactoryInfo>, Vec<BeanFactoryInfo>) {
+    fn create_bean_factory_info(profile_tree: &ProfileTree) -> (Vec<BeanFactoryInfo>, Vec<BeanFactoryInfo>) {
         let concrete_bean_factory_info = Self::get_concrete_beans(&profile_tree.injectable_types).iter()
             .flat_map(|b| ConcreteBeanFactoryInfo::create_bean_factory_info(b))
             .collect::<Vec<BeanFactoryInfo>>();
@@ -113,7 +117,7 @@ impl ApplicationContextGenerator {
         ]
     }
 
-    fn create_bean_factory_generators(concrete: Vec<BeanFactoryInfo>, abstract_beans: Vec<BeanFactoryInfo>) -> Vec<Box<dyn TokenStreamGenerator>> {
+    fn create_bean_factory_generators(concrete: &Vec<BeanFactoryInfo>, abstract_beans: &Vec<BeanFactoryInfo>) -> Vec<Box<dyn TokenStreamGenerator>> {
         FactoryBeanBeanFactoryGenerator::new_bean_factory_generators(
             concrete,
             abstract_beans,
@@ -186,11 +190,6 @@ impl ApplicationContextGenerator {
                 pub inner: Arc<T>
             }
 
-            #[derive(Debug)]
-            pub struct PrototypeBeanDefinition<T: ?Sized> {
-                pub inner: Arc<T>
-            }
-
             impl <T: 'static + Send + Sync> MutableBeanDefinition<T> {
                 fn to_any(&self) -> MutableBeanDefinition<dyn Any + Send + Sync> {
                     let inner: Arc<dyn Any + Send + Sync> = self.inner.clone() as Arc<dyn Any + Send + Sync>;
@@ -201,19 +200,6 @@ impl ApplicationContextGenerator {
 
                 fn get_bean_type_id(&self) -> TypeId {
                     self.inner.type_id().clone()
-                }
-            }
-
-            impl <T: 'static + Send + Sync> PrototypeBeanDefinition<T> {
-                fn to_any(&self) -> PrototypeBeanDefinition<dyn Any + Send + Sync> {
-                    let inner: Arc<dyn Any + Send + Sync> = self.inner.clone() as Arc<dyn Any + Send + Sync>;
-                    PrototypeBeanDefinition {
-                        inner
-                    }
-                }
-
-                fn get_bean_type_id(&self) -> TypeId {
-                    self.inner.deref().type_id().clone()
                 }
             }
 
@@ -245,8 +231,14 @@ impl ApplicationContextGenerator {
                 fn fetch_bean_profile(&self) -> Option<Arc<Self::U>>;
             }
 
-            pub trait PrototypeBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_bean(&self) -> PrototypeBeanDefinition<T>;
+            pub trait PrototypeBeanContainer<T: 'static + Send + Sync + ?Sized> {
+                type U;
+                fn fetch_bean(&self) -> Self::U;
+            }
+
+            pub trait PrototypeBeanContainerProfile<T: 'static + Send + Sync + ?Sized, P: Profile> {
+                type U;
+                fn fetch_bean_profile(&self) -> Self::U;
             }
 
             pub trait MutableBeanFactory<T: 'static + Send + Sync + ?Sized, P: Profile> {
@@ -268,9 +260,9 @@ impl ApplicationContextGenerator {
                 fn is_singleton() -> bool;
             }
 
-            pub trait PrototypeFactoryBean<T: 'static + Send + Sync + ?Sized, P: Profile> {
-                fn get_prototype_bean(&self) -> PrototypeBeanDefinition<T>;
-                fn get_bean_type_id() -> TypeId;
+            pub trait PrototypeBeanFactory<T: ?Sized + Send + Sync, P: Profile> {
+                type U;
+                fn get_prototype_bean(listable_bean_factory: &ListableBeanFactory) -> Self::U;
             }
 
             #[derive(Default)]

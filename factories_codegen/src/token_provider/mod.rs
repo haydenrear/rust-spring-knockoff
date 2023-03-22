@@ -49,8 +49,8 @@ impl TokenProvider {
                 token_delegate: #builder_path
             }
 
-            impl #provider_ident {
-                pub fn new(items: &ProfileTree) -> #provider_ident {
+            impl ProfileTreeTokenProvider for #provider_ident {
+                fn new(items: &ProfileTree) -> #provider_ident {
                     let profile_tree = items.clone();
                     let token_delegate = #builder_path::new(items);
                     Self {
@@ -58,7 +58,7 @@ impl TokenProvider {
                         token_delegate
                     }
                 }
-                pub fn generate_token_stream(&self) -> TokenStream {
+                fn generate_token_stream(&self) -> TokenStream {
                     self.token_delegate.generate_token_stream()
                 }
             }
@@ -92,8 +92,8 @@ impl TokenProvider {
                 #(#provider_idents: #provider_type,)*
             }
 
-            impl DelegatingTokenProvider {
-                pub fn new(profile_tree: &ProfileTree) -> Self {
+            impl ProfileTreeTokenProvider for DelegatingTokenProvider {
+                fn new(profile_tree: &ProfileTree) -> Self {
                     #(
                         let #provider_idents = #provider_type::new(profile_tree);
                     )*
@@ -102,7 +102,7 @@ impl TokenProvider {
                     }
                 }
 
-                pub fn generate_token_stream(&self) -> TokenStream {
+                fn generate_token_stream(&self) -> TokenStream {
                     let mut ts = TokenStream::default();
                     #(
                         ts.append_all(self.#provider_idents.generate_token_stream());
@@ -120,6 +120,7 @@ impl TokenProvider {
             use module_macro_shared::profile_tree::ProfileTree;
             use proc_macro2::TokenStream;
             use quote::TokenStreamExt;
+            use module_macro_shared::token_provider::ProfileTreeTokenProvider;
         }.into();
         imports
     }

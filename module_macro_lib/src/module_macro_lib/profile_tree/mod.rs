@@ -6,7 +6,6 @@ use quote::{quote, ToTokens};
 use syn::{parse2, Type};
 use codegen_utils::syn_helper::SynHelper;
 use concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
-use crate::module_macro_lib::module_tree::InjectableTypeKey;
 
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
@@ -20,7 +19,6 @@ use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 
-pub mod profile_tree_modifier;
 pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;
 pub mod profile_profile_tree_modifier;

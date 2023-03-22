@@ -4,7 +4,7 @@ use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_codegen::aspect::AspectParser;
 use module_macro_shared::bean::BeanDefinition;
-use module_macro_shared::dependency::{DependencyDescriptor, FieldDepType};
+use module_macro_shared::dependency::{DependencyDescriptor, DependencyMetadata, FieldDepType};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::item_parser::item_mod_parser::ItemModParser;
 use crate::module_macro_lib::item_parser::ItemParser;
@@ -73,9 +73,13 @@ fn get_module_item(module_app: &str, factories: &str) -> Option<Item> {
 fn get_deps_map(concrete_beans: Vec<BeanDefinition>, bean_id: &str) -> Vec<FieldDepType> {
     let one_num_deps = concrete_beans.iter()
         .filter(|b| b.id == bean_id.to_string())
-        .map(|b| b.field_deps_map.clone())
-        .next()
-        .unwrap();
+        .map(|b| b.deps_map.clone())
+        .flat_map(|b| b)
+        .flat_map(|b| match b {
+            DependencyMetadata::FieldDepType(f) => {vec![f]}
+            DependencyMetadata::ArgDepType(a) => {vec![]}
+        })
+        .collect::<Vec<FieldDepType>>();
     one_num_deps
 }
 

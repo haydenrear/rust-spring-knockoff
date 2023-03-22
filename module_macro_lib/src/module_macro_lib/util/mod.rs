@@ -21,7 +21,7 @@ impl ParseUtil {
         Self::get_attr_csv_if_exists(&attr, "prototype")
     }
 
-    pub fn get_attr_csv_if_exists(attr: &&Vec<Attribute>, x: &str) -> Option<Vec<String>> {
+    pub fn get_attr_csv_if_exists(attr: &Vec<Attribute>, x: &str) -> Option<Vec<String>> {
         if Self::does_attr_exist(&attr, vec![x]) {
             return Some(Self::get_attr_csv(&attr, x))
         }
@@ -37,7 +37,7 @@ impl ParseUtil {
             .collect::<Vec<ProfileBuilder>>()
     }
 
-    fn get_attr_csv(attr: &&Vec<Attribute>, x: &str) -> Vec<String> {
+    fn get_attr_csv(attr: &Vec<Attribute>, x: &str) -> Vec<String> {
         let found = Self::get_attr_path(&attr, vec![x])
             .map(|profile| profile.split(", ")
                 .map(|profile| profile.to_string())

@@ -44,12 +44,11 @@ impl ParseContainerModifierProvider {
             use #builder_path;
 
             pub struct #provider_ident {
-                parse_container_modifier_delegate: #builder_path
             }
 
-            impl #provider_ident {
+            impl ParseContainerModifier for #provider_ident {
                 pub fn do_modify(items: &mut ParseContainer) {
-                    self.parse_container_modifier_delegate.do_modify(items);
+                    #provider_ident::do_modify(items);
                 }
             }
 
@@ -84,7 +83,11 @@ impl ParseContainerModifierProvider {
                     Self {}
                 }
 
-                pub fn do_modify(items: &mut ParseContainer) {
+            }
+
+            impl ParseContainerModifier for DelegatingParseContainerModifierProvider {
+
+                fn do_modify(items: &mut ParseContainer) {
                     #(
                         #provider_type::do_modify(items);
                     )*
@@ -97,6 +100,7 @@ impl ParseContainerModifierProvider {
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
+            use module_macro_shared::parse_container::parse_container_modifier::ParseContainerModifier;
         }.into();
         imports
     }

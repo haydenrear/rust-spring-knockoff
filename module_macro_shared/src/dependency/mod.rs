@@ -32,7 +32,6 @@ impl PartialEq<Self> for DependencyDescriptor {
 
 impl Eq for DependencyDescriptor {}
 
-
 #[derive(Clone)]
 pub struct AutowiredField {
     pub qualifier: Option<String>,
@@ -98,26 +97,65 @@ pub enum DependencyMetadata {
 }
 
 impl DependencyMetadata {
-    pub fn qualifier(&self) -> String {
+
+    pub fn get<T>(&self, getter: &dyn Fn(&dyn DepType) -> T) -> T {
         match self {
             DependencyMetadata::FieldDepType(dep_type) => {
-                dep_type.qualifier()
+               getter(dep_type)
             }
             DependencyMetadata::ArgDepType(dep_type) => {
-                dep_type.qualifier()
+                getter(dep_type)
             }
         }
     }
 
-    pub fn mutable(&self) -> bool {
+    pub fn get_ref<'a, T>(&'a self, getter: &'a dyn Fn(&'a dyn DepType) -> &'a T) -> &'a T {
         match self {
             DependencyMetadata::FieldDepType(dep_type) => {
-                dep_type.mutable()
+                getter(dep_type)
             }
             DependencyMetadata::ArgDepType(dep_type) => {
-                dep_type.mutable()
+                getter(dep_type)
             }
         }
+    }
+
+    pub fn qualifier(&self) -> String {
+        self.get(&|d| d.qualifier())
+    }
+
+    pub fn is_abstract(&self) -> bool {
+        self.get(&|d| d.is_abstract())
+    }
+
+    pub fn bean_type_path(&self) -> &Option<BeanPath> {
+        self.get_ref(&|d| d.bean_type_path())
+    }
+
+    pub fn concrete_type(&self) -> &Option<Type> {
+        self.get_ref(&|d| d.concrete_type())
+    }
+
+    pub fn field_ident(&self) -> Ident {
+        self.get(&|d| d.field_ident())
+    }
+
+    pub fn mutable(&self) -> bool {
+        self.get(&|d| d.mutable())
+    }
+
+
+    pub fn maybe_qualifier(& self) -> &Option<String> {
+        self.get_ref(&|d| d.maybe_qualifier())
+    }
+
+
+    pub fn type_path(&self) -> &Option<BeanPath> {
+        self.get_ref(&|d| d.bean_type_path())
+    }
+
+    pub fn identifier(&self) -> String {
+        self.get(&|d| d.identifier())
     }
 
     pub fn set_mutable(&mut self) {
@@ -142,17 +180,6 @@ impl DependencyMetadata {
         }
     }
 
-    pub fn maybe_qualifier(&self) -> &Option<String> {
-        match self {
-            DependencyMetadata::FieldDepType(dep_type) => {
-                dep_type.maybe_qualifier()
-            }
-            DependencyMetadata::ArgDepType(dep_type) => {
-                dep_type.maybe_qualifier()
-            }
-        }
-    }
-
     pub fn set_concrete_field_type(&mut self, concrete_field_type: Type) {
         match self {
             DependencyMetadata::FieldDepType(dep_type) => {
@@ -164,27 +191,6 @@ impl DependencyMetadata {
         }
     }
 
-    pub fn type_path(&self) -> &Option<BeanPath> {
-        match self {
-            DependencyMetadata::FieldDepType(dep_type) => {
-                dep_type.bean_type_path()
-            }
-            DependencyMetadata::ArgDepType(dep_type) => {
-                dep_type.bean_type_path()
-            }
-        }
-    }
-
-    pub fn identifier(&self) -> String {
-        match self {
-            DependencyMetadata::FieldDepType(dep_type) => {
-                dep_type.identifier()
-            }
-            DependencyMetadata::ArgDepType(dep_type) => {
-                dep_type.identifier()
-            }
-        }
-    }
 }
 
 pub trait DepType {

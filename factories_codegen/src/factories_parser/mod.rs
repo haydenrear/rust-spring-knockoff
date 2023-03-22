@@ -129,7 +129,13 @@ impl FactoriesParser {
 
     pub fn get_dependency(mut cargo_file: &mut Vec<u8>, dep: Dependency) {
         dep.version.map(|version| {
-            writeln!(&mut cargo_file, "{} = \"{}\"", dep.dep_name, version).unwrap();
+            let features = dep.features.join("\", \"");
+            if features.len() != 0 {
+                writeln!(&mut cargo_file, "{} = {{ version = \"{}\", features = [\"{}\"] }}", dep.dep_name, version, features)
+                    .unwrap();
+            } else {
+                writeln!(&mut cargo_file, "{} = \"{}\"", dep.dep_name, version).unwrap();
+            }
         }).or_else(|| {
             dep.path.map(|path| {
                 writeln!(&mut cargo_file, "[dependencies.{}]", dep.dep_name).unwrap();
@@ -143,19 +149,49 @@ impl FactoriesParser {
             return vec![];
         }
         let deps = &table["dependencies"];
-        deps.as_table().map(|t| t.keys().flat_map(|k| {
-            deps[k].as_table()
-                .map(|t| {
-                    vec![Dependency {
-                        name: k.to_string(),
-                        path: Self::get_for_key_or_none(t, "path"),
-                        dep_name: k.to_string(),
-                        version: Self::get_for_key_or_none(t, "version")
-                    }]
-                })
-                .or(Some(vec![]))
-                .unwrap()
-        }).collect::<Vec<Dependency>>()).or(Some(vec![])).unwrap()
+        deps.as_table().map(|t| {
+            t.keys().flat_map(|k| {
+                deps[k].as_table()
+                    .map(|d| {
+                        let features = Self::get_features(d);
+                        vec![Dependency {
+                            name: k.to_string(),
+                            path: Self::get_for_key_or_none(d, "path"),
+                            dep_name: k.to_string(),
+                            version: Self::get_for_key_or_none(d, "version"),
+                            features,
+                        }]
+                    })
+                    .or_else(|| {
+                        t[k].as_str()
+                            .map(|version| {
+                                vec![Dependency {
+                                    name: k.to_string(),
+                                    path: None,
+                                    dep_name: k.to_string(),
+                                    version: Some(version.to_string()),
+                                    features: vec![],
+                                }]
+                            })
+                    })
+                    .or(Some(vec![]))
+                    .unwrap()
+            })
+                .collect::<Vec<Dependency>>()
+        })
+            .or(Some(vec![]))
+            .unwrap()
+    }
+
+    fn get_features(d: &Table) -> Vec<String> {
+        if !d.contains_key("features") {
+            return vec![]
+        }
+        d["features"].as_array().or(Some(&vec![]))
+            .unwrap()
+            .iter()
+            .flat_map(|v| v.as_str().map(|s| vec![s.to_string()]).or(Some(vec![])).unwrap())
+            .collect::<Vec<String>>()
     }
 
     fn get_for_key_or_none(t: &Table, x: &str) -> Option<String> {
@@ -183,5 +219,6 @@ pub struct Dependency {
     pub name: String,
     pub path: Option<String>,
     pub dep_name: String,
-    pub version: Option<String>
+    pub version: Option<String>,
+    pub features: Vec<String>
 }
