@@ -17,12 +17,13 @@ executors = "0.9.0"
 
 [dependencies.module_macro_shared]
 path = "../module_macro_shared"
+version = "0.1.0"
 [dependencies.module_macro_lib]
 path = "../module_macro_lib"
-[dependencies.rust_spring_macro]
-path = "../rust_spring_macro"
+version = "0.1.0"
 [dependencies.build_lib]
 path = "../build_lib"
+version = "0.1.0"
 
 [lib]
 proc-macro = true

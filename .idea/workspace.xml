@@ -7,22 +7,17 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="use statements for the beans">
-      <change afterPath="$PROJECT_DIR$/knockoff_cli/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_cli/src/main.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_cli/src/parse_args/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="adding cargo add-on to facilitate building of the codegen service loader">
+      <change beforePath="$PROJECT_DIR$/.cargo/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.cargo/config.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wait_for/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/wait_for/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wait_for/src/wait_for/wait_async/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/wait_for/src/wait_for/wait_async/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_cli/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_cli/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_cli/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_cli/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust_spring_macro/Cargo.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust_spring_macro/src/lib.rs" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,35 +87,35 @@
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "aspect.path.notification.shown": "true",
-    "go.import.settings.migrated": "true",
-    "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/target/debug",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
-    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/target/debug&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs&quot;: &quot;true&quot;,
+    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.ide.settings.new.ui&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/target/debug" />
@@ -137,9 +132,9 @@
       <recent name="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test item_parser_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::test::item_parser_test" />
+  <component name="RunManager" selected="Cargo.Test test_module_macro_lib">
+    <configuration name="Test copy_dir_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_cli --bin knockoff_cli copy_dir_test -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -155,8 +150,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test module_macro_lib::test::item_parser_test::test_injectable_types" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::test::item_parser_test::test_injectable_types -- --exact" />
+    <configuration name="Test test_download_lib" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_cli --bin knockoff_cli test_download_lib -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -172,8 +167,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test module_tree_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_lib --lib module_macro_lib::test::module_tree_test" />
+    <configuration name="Test test_generate_knockoff_builder" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_cli --bin knockoff_cli test_generate_knockoff_builder -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -189,8 +184,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::test_token_providers::test_factories_parser" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_factories_parser -- --exact" />
+    <configuration name="Test test_module_macro_lib" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_cli --bin knockoff_cli test_module_macro_lib -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -206,8 +201,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
+    <configuration name="Test try_compile_cargo" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_cli --bin knockoff_cli try_compile_cargo -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -216,9 +211,7 @@
       <option name="withSudo" value="false" />
       <option name="buildTarget" value="REMOTE" />
       <option name="backtrace" value="SHORT" />
-      <envs>
-        <env name="DYLD_LIBRARY_PATH" value="$PROJECT_DIR$/target/debug" />
-      </envs>
+      <envs />
       <option name="isRedirectInput" value="false" />
       <option name="redirectInputPath" value="" />
       <method v="2">
@@ -244,19 +237,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test item_parser_test" />
-      <item itemvalue="Cargo.Test module_macro_lib::test::item_parser_test::test_injectable_types" />
-      <item itemvalue="Cargo.Test module_tree_test" />
-      <item itemvalue="Cargo.Test test::test_token_providers::test_factories_parser" />
-      <item itemvalue="Cargo.Test test_module_macro" />
+      <item itemvalue="Cargo.Test copy_dir_test" />
+      <item itemvalue="Cargo.Test test_download_lib" />
+      <item itemvalue="Cargo.Test test_generate_knockoff_builder" />
+      <item itemvalue="Cargo.Test test_module_macro_lib" />
+      <item itemvalue="Cargo.Test try_compile_cargo" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test module_macro_lib::test::item_parser_test::test_injectable_types" />
-        <item itemvalue="Cargo.Test item_parser_test" />
-        <item itemvalue="Cargo.Test test::test_token_providers::test_factories_parser" />
-        <item itemvalue="Cargo.Test module_tree_test" />
+        <item itemvalue="Cargo.Test test_module_macro_lib" />
+        <item itemvalue="Cargo.Test copy_dir_test" />
+        <item itemvalue="Cargo.Test test_download_lib" />
+        <item itemvalue="Cargo.Test try_compile_cargo" />
+        <item itemvalue="Cargo.Test test_generate_knockoff_builder" />
       </list>
     </recent_temporary>
   </component>
@@ -324,27 +317,8 @@
       <workItem from="1678458623911" duration="19007000" />
       <workItem from="1678975680993" duration="96334000" />
       <workItem from="1679490664007" duration="14314000" />
-    </task>
-    <task id="LOCAL-00127" summary="inject dyn">
-      <created>1678651162959</created>
-      <option name="number" value="00127" />
-      <option name="presentableId" value="LOCAL-00127" />
-      <option name="project" value="LOCAL" />
-      <updated>1678651162959</updated>
-    </task>
-    <task id="LOCAL-00128" summary="fix bug">
-      <created>1678659576605</created>
-      <option name="number" value="00128" />
-      <option name="presentableId" value="LOCAL-00128" />
-      <option name="project" value="LOCAL" />
-      <updated>1678659576605</updated>
-    </task>
-    <task id="LOCAL-00129" summary="inject/provide dyn Mutex">
-      <created>1678672902011</created>
-      <option name="number" value="00129" />
-      <option name="presentableId" value="LOCAL-00129" />
-      <option name="project" value="LOCAL" />
-      <updated>1678672902011</updated>
+      <workItem from="1679682243845" duration="271000" />
+      <workItem from="1679682519882" duration="14044000" />
     </task>
     <task id="LOCAL-00130" summary="update">
       <created>1678683312431</created>
@@ -668,7 +642,28 @@
       <option name="project" value="LOCAL" />
       <updated>1679606782348</updated>
     </task>
-    <option name="localTasksCounter" value="176" />
+    <task id="LOCAL-00176" summary="use statements for the beans">
+      <created>1679675453116</created>
+      <option name="number" value="00176" />
+      <option name="presentableId" value="LOCAL-00176" />
+      <option name="project" value="LOCAL" />
+      <updated>1679675453116</updated>
+    </task>
+    <task id="LOCAL-00177" summary="use statements for the beans">
+      <created>1679675459965</created>
+      <option name="number" value="00177" />
+      <option name="presentableId" value="LOCAL-00177" />
+      <option name="project" value="LOCAL" />
+      <updated>1679675459965</updated>
+    </task>
+    <task id="LOCAL-00178" summary="adding cargo add-on to facilitate building of the codegen service loader">
+      <created>1679775621733</created>
+      <option name="number" value="00178" />
+      <option name="presentableId" value="LOCAL-00178" />
+      <option name="project" value="LOCAL" />
+      <updated>1679775621734</updated>
+    </task>
+    <option name="localTasksCounter" value="179" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -718,7 +713,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix bug" />
     <MESSAGE value="inject/provide dyn Mutex" />
     <MESSAGE value="update" />
     <MESSAGE value="refactor test and beanfactoryinfo" />
@@ -743,7 +737,8 @@
     <MESSAGE value="updated factories codegen to add features to dependencies and add interfaces for to extend." />
     <MESSAGE value="first factory_fn bean" />
     <MESSAGE value="use statements for the beans" />
-    <option name="LAST_COMMIT_MESSAGE" value="use statements for the beans" />
+    <MESSAGE value="adding cargo add-on to facilitate building of the codegen service loader" />
+    <option name="LAST_COMMIT_MESSAGE" value="adding cargo add-on to facilitate building of the codegen service loader" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
@@ -831,6 +826,26 @@
           <url>file://$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs</url>
           <line>38</line>
           <option name="timeStamp" value="221" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/cargo-0.69.0/src/cargo/core/workspace.rs</url>
+          <line>618</line>
+          <option name="timeStamp" value="228" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/cargo-0.69.0/src/cargo/core/workspace.rs</url>
+          <line>1543</line>
+          <option name="timeStamp" value="230" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/cargo-0.69.0/src/cargo/util/toml/mod.rs</url>
+          <line>61</line>
+          <option name="timeStamp" value="231" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/cargo-0.69.0/src/cargo/sources/git/source.rs</url>
+          <line>210</line>
+          <option name="timeStamp" value="239" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

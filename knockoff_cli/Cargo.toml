@@ -8,3 +8,5 @@ description = "cargo tool that will build module macro lib with factories."
 
 [dependencies]
 cargo = "0.69.0"
+codegen_utils = {path = "../codegen_utils"}
+url = "2.3.1"

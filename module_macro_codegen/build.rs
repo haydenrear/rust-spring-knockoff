@@ -3,7 +3,7 @@ use std::fmt::Error;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use codegen_utils::{parse, project_directory, syn_helper};
-use codegen_utils::env::get_project_base_dir;
+use codegen_utils::env::{get_project_base_dir, get_project_dir};
 use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
 use std::io::Write;
 use factories_codegen::factories_parser::{Dependency, FactoriesParser};
@@ -21,6 +21,7 @@ initialize_log!();
 /// to generate tokens dynamically from user, with the ProfileTree as a dependency provided to the user
 /// or other library author to generate the tokens from.
 fn main() {
+
      let parsed_factories = <FactoriesParser as DelegatingProvider>::deps();
      let knockoff_providers_dep = parsed_factories
          .iter().map(|provider| provider.dep_name.as_str())
@@ -58,18 +59,7 @@ fn write_lib_rs(mut lib_rs_file: &mut File) -> Option<()> {
 }
 
 fn get_directories() -> (String, String, String) {
-     let out_directory = env::var("CARGO_TARGET_DIR").ok().map(|r| {
-          log_message!("{} is the target dir.", &r);
-          r
-     }).or_else(|| {
-          log_message!("Could not find env with name CARGO_TARGET_DIR.");
-          let mut project_dir = get_project_base_dir();
-          project_dir += "target";
-          Some(project_dir)
-     }).map(|project_dir| {
-          log_message!("{} is project directory", project_dir);
-          project_dir
-     }).unwrap();
+     let out_directory = get_project_dir("target");
 
      log_message!("{} is out", &out_directory);
      let mut out_lib_dir = out_directory.clone();

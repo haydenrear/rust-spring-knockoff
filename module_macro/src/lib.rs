@@ -11,7 +11,6 @@ use syn::{Attribute, Data, DeriveInput, Field, Fields, FieldsNamed, FieldsUnname
 use syn::__private::str;
 use syn::parse::Parser;
 use syn::spanned::Spanned;
-use rust_spring_macro::module_post_processor::{ModuleFieldPostProcessor, ModuleStructPostProcessor};
 use syn::{
     Ident,
     LitStr,

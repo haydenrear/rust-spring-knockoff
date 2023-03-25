@@ -4,3 +4,5 @@ KNOCKOFF_FACTORIES = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_res
 LOGGING_DIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/log.log"
 KNOCKOFF_LOGGING_TEST_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log"
 PROJECT_BASE_DIRECTORY = "/Users/hayde/IdeaProjects/rust-spring-knockoff/"
+[registries]
+estuary = { index = "http://localhost:1234/git/index" }
