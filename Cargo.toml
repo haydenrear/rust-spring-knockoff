@@ -22,11 +22,10 @@ members = [
     "handler_mapping",
     "factories_codegen",
     "authentication_gen",
-    "plugin_parser",
     "crate_gen",
     "security_parse_provider",
     "knockoff_cli"
 ]
 exclude = [
-    "crategen_helper"
+    "target/knockoff_providers_gen"
 ]

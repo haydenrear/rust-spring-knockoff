@@ -52,10 +52,15 @@
       <sourceFolder url="file://$MODULE_DIR$/security_parse_provider/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crategen_helper/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test_two/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />
       <excludeFolder url="file://$MODULE_DIR$/module_macro_codegen/target" />
+      <excludeFolder url="file://$MODULE_DIR$/knockoff_cli/target" />
+      <excludeFolder url="file://$MODULE_DIR$/test/target" />
+      <excludeFolder url="file://$MODULE_DIR$/test_two/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

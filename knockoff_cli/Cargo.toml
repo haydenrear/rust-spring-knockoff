@@ -1,6 +1,6 @@
 [package]
 name = "knockoff_cli"
-version = "0.1.0"
+version = "0.1.4"
 edition = "2021"
 description = "cargo tool that will build module macro lib with factories."
 
@@ -8,5 +8,9 @@ description = "cargo tool that will build module macro lib with factories."
 
 [dependencies]
 cargo = "0.69.0"
-codegen_utils = {path = "../codegen_utils"}
 url = "2.3.1"
+toml = "0.7.3"
+[dependencies.codegen_utils]
+version = "0.1.4"
+registry = "estuary"
+path = "../codegen_utils"

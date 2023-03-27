@@ -1,6 +1,6 @@
 [package]
 name = "build_lib"
-version = "0.1.0"
+version = "0.1.4"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -17,10 +17,11 @@ syn = {version = "1.0", features = ["full"]}
 lazy_static = "1.4.0"
 executors = "0.9.0"
 [dependencies.knockoff_logging]
-#path = "../knockoff_logging"
-version = "0.1.0"
+path = "../knockoff_logging"
+version = "0.1.4"
 registry = "estuary"
 [dependencies.codegen_utils]
-#path = "../codegen_utils"
-version = "0.1.0"
+path = "../codegen_utils"
+version = "0.1.4"
 registry = "estuary"
+

@@ -19,7 +19,7 @@ use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use codegen_utils::env::{get_project_base_dir, get_project_dir};
+use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
 use codegen_utils::{parse, project_directory, syn_helper};
 use codegen_utils::syn_helper::SynHelper;
 use codegen_utils::walk::DirectoryWalker;
@@ -32,8 +32,8 @@ initialize_log!();
 #[test]
 fn do_test() {
     replace_modules(
-        Some(get_project_dir("delegator_test/src").as_str()),
-        vec![get_project_base_dir().as_str()]
+        Some(get_build_project_dir("delegator_test/src").as_str()),
+        vec![get_project_base_build_dir().as_str()]
     );
 }
 

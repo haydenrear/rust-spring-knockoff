@@ -2,7 +2,7 @@ use std::{env, fs};
 use std::fs::File;
 use std::path::Path;
 use std::io::Write;
-use codegen_utils::env::get_project_base_dir;
+use codegen_utils::env::get_project_base_build_dir;
 use codegen_utils::project_directory;
 
 pub struct CrateWriter;
@@ -65,7 +65,7 @@ impl TomlWriter {
         writeln!(&mut prelude,
 "[package]
 name = \"{}\"
-version = \"0.1.0\"
+version = \"0.1.4\"
 edition = \"2021\"
 ", name);
         prelude

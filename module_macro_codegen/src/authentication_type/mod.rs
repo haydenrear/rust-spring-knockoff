@@ -27,7 +27,6 @@ pub struct AuthenticationTypeCodegen {
 }
 
 impl AuthenticationTypeCodegen {
-
     pub(crate) fn new_dyn_codegen(item: &Vec<Item>) -> Option<CodegenItemType> {
         Self::new(item)
             .map(|i| CodegenItemType::AuthenticationType(i))
@@ -128,103 +127,105 @@ impl AuthenticationTypeCodegen {
 
         let t = quote! {
 
-                #(#types_tokens)*
+            #(#types_tokens)*
 
-                #(#impl_tokens)*
+            #(#impl_tokens)*
 
-                #(#auth_aware)*
+            #(#auth_aware)*
 
-                impl Default for AuthenticationType {
-                    fn default() -> Self {
-                        AuthenticationType::Unauthenticated(Anonymous::default())
-                    }
+            impl Default for AuthenticationType {
+                fn default() -> Self {
+                    AuthenticationType::Unauthenticated(Anonymous::default())
                 }
+            }
 
-                impl AuthType for AuthenticationType {
-                    const AUTH_TYPE: &'static str = "";
-                    fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
-                        Err(AuthenticationConversionError::new(String::from("Authentication type was empty.")))
-                    }
+            impl AuthType for AuthenticationType {
+                const AUTH_TYPE: &'static str = "";
+                fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+                    Err(AuthenticationConversionError::new(String::from("Authentication type was empty.")))
                 }
+            }
 
-                #[derive(Clone, Debug, Serialize, Deserialize)]
-                pub enum AuthenticationType
-                {
-                    Jwt(JwtToken),
-                    SAML(OpenSamlAssertion),
-                    Password(UsernamePassword),
-                    Unauthenticated(Anonymous),
-                    #(#enum_names(#types)),*
-                }
+            #[derive(Clone, Debug, Serialize, Deserialize)]
+            pub enum AuthenticationType
+            {
+                Jwt(JwtToken),
+                SAML(OpenSamlAssertion),
+                Password(UsernamePassword),
+                Unauthenticated(Anonymous),
+                #(#enum_names(#types)),*
+            }
 
-                impl AuthenticationType {
-                    fn auth_type_action<T>(&self, action: &dyn Fn(&dyn AuthenticationAware) -> T, default: T) -> T {
-                        match self {
-                            #(AuthenticationType::#types(auth_type) => {
-                                action(auth_type as &dyn AuthenticationAware)
-                            })*
-                            AuthenticationType::Jwt(jwt) => {
-                                action(jwt as &dyn AuthenticationAware)
-                            }
-                            AuthenticationType::SAML(saml) => {
-                                action(saml as &dyn AuthenticationAware)
-                            }
-                            AuthenticationType::Password(password) => {
-                                action(password as &dyn AuthenticationAware)
-                            }
-                            AuthenticationType::Unauthenticated(anon) => {
-                                action(anon as &dyn AuthenticationAware)
-                            }
-                            _ => {
-                                default
-                            }
+            macro_rules! call {
+                ($call:ident, $self_val:ident) => {
+                    match $self_val {
+                        #(AuthenticationType::#types(auth_type) => {
+                            auth_type.$call()
+                        })*
+                        AuthenticationType::Jwt(auth_type) => {
+                            auth_type.$call()
+                        }
+                        AuthenticationType::SAML(auth_type) => {
+                            auth_type.$call()
+                        }
+                        AuthenticationType::Password(auth_type) => {
+                            auth_type.$call()
+                        }
+                        AuthenticationType::Unauthenticated(auth_type) => {
+                            auth_type.$call()
+                        }
+                    };
+                };
+                ($call:ident, $item:tt, $self_val:ident) => {
+                    match $self_val {
+                        #(AuthenticationType::#types(auth_type) => {
+                            auth_type.$call($item)
+                        })*
+                        AuthenticationType::Jwt(auth_type) => {
+                            auth_type.$call($item)
+                        }
+                        AuthenticationType::SAML(auth_type) => {
+                            auth_type.$call($item)
+                        }
+                        AuthenticationType::Password(auth_type) => {
+                            auth_type.$call($item)
+                        }
+                        AuthenticationType::Unauthenticated(auth_type) => {
+                            auth_type.$call($item)
+                        }
+                    };
+                };
+            }
+
+
+            macro_rules! impl_auth_type {
+                () => {
+                    impl AuthenticationAware for AuthenticationType {
+
+                        fn get_authorities(&self) -> Vec<GrantedAuthority> {
+                            call!(get_authorities, self)
+                        }
+
+                        fn get_credentials(&self) -> Option<String> {
+                            call!(get_credentials, self)
+                        }
+
+                        fn get_principal(&self) -> Option<String> {
+                            call!(get_principal, self)
+                        }
+
+                        fn set_credentials(&mut self, credential: String) {
+                            call!(set_credentials, credential, self)
+                        }
+
+                        fn set_principal(&mut self, principal: String) {
+                            call!(set_principal, principal, self)
                         }
                     }
-
-                    fn auth_type_action_no_return(&mut self, action: Box<dyn FnOnce(&mut dyn AuthenticationAware)>) {
-                        match self {
-                            #(AuthenticationType::#types(auth_type) => {
-                                action(auth_type as &mut dyn AuthenticationAware);
-                            })*
-                            AuthenticationType::Jwt(jwt) => {
-                                action(jwt as &mut dyn AuthenticationAware);
-                            }
-                            AuthenticationType::SAML(saml) => {
-                                action(saml as &mut dyn AuthenticationAware);
-                            }
-                            AuthenticationType::Password(password) => {
-                                action(password as &mut dyn AuthenticationAware);
-                            }
-                            AuthenticationType::Unauthenticated(anon) => {
-                                action(anon as &mut dyn AuthenticationAware);
-                            }
-                        };
-                    }
                 }
+            }
 
-                ///TODO: macro..
-                impl AuthenticationAware for AuthenticationType {
-                    fn get_authorities(&self) -> Vec<GrantedAuthority> {
-                        self.auth_type_action(&|auth: &dyn AuthenticationAware| auth.get_authorities().clone(), vec![])
-                    }
-
-                    fn get_credentials(&self) -> Option<String> {
-                        self.auth_type_action(&|auth: &dyn AuthenticationAware| auth.get_credentials(), None)
-                    }
-
-
-                    fn get_principal(&self) -> Option<String> {
-                        self.auth_type_action(&|auth: &dyn AuthenticationAware| auth.get_principal(), None)
-                    }
-
-                    fn set_credentials(&mut self, credential: String) {
-                        self.auth_type_action_no_return(Box::new(|auth: &mut dyn AuthenticationAware| auth.set_credentials(credential)));
-                    }
-
-                    fn set_principal(&mut self, principal: String) {
-                        self.auth_type_action_no_return(Box::new(|auth: &mut dyn AuthenticationAware| auth.set_principal(principal)));
-                    }
-                }
+            impl_auth_type!();
 
          };
         t.into()
@@ -340,7 +341,6 @@ struct NextAuthType {
 }
 
 impl CodegenItem for AuthenticationTypeCodegen {
-
     fn supports_item(impl_item: &Vec<Item>) -> bool where Self: Sized {
         impl_item.iter().any(|impl_item| {
             match impl_item {
@@ -367,7 +367,6 @@ impl CodegenItem for AuthenticationTypeCodegen {
         }
 
         let auth_types: Vec<NextAuthType> = self.item.iter().clone().flat_map(|item| {
-
             match item {
                 Item::Mod(item_mod) => {
                     let mut to_add_map: HashMap<String, NextAuthType> = HashMap::new();
@@ -381,7 +380,6 @@ impl CodegenItem for AuthenticationTypeCodegen {
                         .map(|next| next.to_owned().clone())
                         .collect::<Vec<NextAuthType>>();
                     auth_types
-
                 }
                 _ => {
                     vec![]

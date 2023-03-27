@@ -1,6 +1,6 @@
 [package]
 name = "web_framework_shared"
-version = "0.1.0"
+version = "0.1.4"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -15,4 +15,6 @@ derive-syn-parse = "0.1.5"
 circular = "0.3.0"
 
 [dependencies.codegen_utils]
-path = "../codegen_utils"
+path ="../codegen_utils"
+registry = "estuary"
+version = "0.1.4"

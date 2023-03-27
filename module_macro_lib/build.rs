@@ -9,7 +9,7 @@ use syn::__private::{Span, ToTokens};
 use syn::{braced, Fields, Ident, Item, ItemMod, ItemStruct, Token, token, Visibility, VisPublic};
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
-use codegen_utils::env::{get_project_base_dir, get_project_dir};
+use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
 use codegen_utils::project_directory;
 use module_macro_codegen::parser::LibParser;
 use crate_gen::CrateWriter;
@@ -30,13 +30,13 @@ fn main() {
     log_message!("Found augmented file: {}.", aug_file.as_str());
     LibParser::do_codegen(&aug_file, "codegen.rs");
     let mut cargo_change = "cargo:rerun-if-changed=".to_string();
-    cargo_change += get_project_base_dir().as_str();
+    cargo_change += get_project_base_build_dir().as_str();
     println!("{}", cargo_change);
 }
 
 fn get_aug_file() -> String {
     let aug_file = env::var("AUG_FILE").ok()
-        .or(Some(String::from(get_project_dir("codegen_resources/knockoff_test_aug.rs"))))
+        .or(Some(String::from(get_build_project_dir("codegen_resources/knockoff_test_aug.rs"))))
         .unwrap();
     aug_file
 }

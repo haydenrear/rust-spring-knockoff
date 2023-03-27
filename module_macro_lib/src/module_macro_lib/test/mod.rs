@@ -1,7 +1,7 @@
 use syn::Item;
 use std::env;
 use syn::__private::str;
-use codegen_utils::env::get_project_dir;
+use codegen_utils::env::get_build_project_dir;
 use codegen_utils::project_directory;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_codegen::aspect::AspectParser;

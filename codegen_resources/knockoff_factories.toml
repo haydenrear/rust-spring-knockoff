@@ -1,21 +1,35 @@
-[token_provider.handler_mapping]
-provider_path = "handler_mapping::HandlerMappingBuilder"
-provider_ident = "HandlerMappingTokenProvider"
-path = "../../handler_mapping"
-
-[token_provider.handler_mapping.dependencies]
+[dependencies]
 quote = "1.0"
 syn = {version = "1.0", features = ["full"]}
 proc-macro2 = "1.0"
 serde = "1.0.137"
-[token_provider.handler_mapping.dependencies.web_framework]
+[dependencies.web_framework]
 path = "../../web_framework"
 name = "web_framework"
-[token_provider.handler_mapping.dependencies.web_framework_shared]
-path = "../../web_framework_shared"
+version = "0.1.4"
+registry = "estuary"
+[dependencies.web_framework_shared]
+path ="../../web_framework_shared"
 name = "web_framework_shared"
+version = "0.1.4"
+registry = "estuary"
+[dependencies.module_macro_shared]
+path ="../../module_macro_shared"
+name = "module_macro_shared"
+version = "0.1.4"
+registry = "estuary"
 
-[parse_provider.security_parse_provider]
+[token_provider.handler_mapping.provider_data]
+provider_path = "handler_mapping::HandlerMappingBuilder"
+provider_ident = "HandlerMappingTokenProvider"
+[token_provider.handler_mapping.dependency_data]
+path ="../../handler_mapping"
+version = "0.1.4"
+registry = "estuary"
+[parse_provider.security_parse_provider.provider_data]
 provider_path = "security_parse_provider::SecurityParseProvider"
 provider_ident = "SecurityParseProviderBuilder"
+[parse_provider.security_parse_provider.dependency_data]
 path = "../../security_parse_provider"
+registry = "estuary"
+version = "0.1.4"
