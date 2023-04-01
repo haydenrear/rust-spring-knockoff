@@ -252,6 +252,7 @@ pub struct BeanDefinition {
     pub mutable: bool,
     pub aspect_info: Vec<AspectInfo>,
     pub factory_fn: Option<ModulesFunctions>,
+    pub metadata: String
 }
 
 impl BeanDefinition {
@@ -368,6 +369,7 @@ impl  Default for BeanDefinition {
             aspect_info: vec![],
             factory_fn: None,
             deps_map: vec![],
+            metadata: "".to_string(),
         }
     }
 }

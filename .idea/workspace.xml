@@ -7,12 +7,8 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services.">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_cli.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build_cli.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,7 +89,7 @@
     &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/target&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/factories_codegen/src/profile_tree_finalizer&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -113,11 +109,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/factories_codegen/src/profile_tree_finalizer" />
       <recent name="$PROJECT_DIR$/target" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/target/debug" />
       <recent name="$PROJECT_DIR$/test_dylib" />
-      <recent name="$PROJECT_DIR$/crate_gen" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -318,21 +314,7 @@
       <workItem from="1679682519882" duration="31062000" />
       <workItem from="1679864543523" duration="22367000" />
       <workItem from="1680355215220" duration="6090000" />
-      <workItem from="1680364397397" duration="1197000" />
-    </task>
-    <task id="LOCAL-00134" summary="constructor">
-      <created>1678745115381</created>
-      <option name="number" value="00134" />
-      <option name="presentableId" value="LOCAL-00134" />
-      <option name="project" value="LOCAL" />
-      <updated>1678745115381</updated>
-    </task>
-    <task id="LOCAL-00135" summary="start HandlerMapping">
-      <created>1678806779052</created>
-      <option name="number" value="00135" />
-      <option name="presentableId" value="LOCAL-00135" />
-      <option name="project" value="LOCAL" />
-      <updated>1678806779052</updated>
+      <workItem from="1680364397397" duration="6275000" />
     </task>
     <task id="LOCAL-00136" summary="start HandlerMapping">
       <created>1678811798926</created>
@@ -663,7 +645,21 @@
       <option name="project" value="LOCAL" />
       <updated>1680359967974</updated>
     </task>
-    <option name="localTasksCounter" value="183" />
+    <task id="LOCAL-00183" summary="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services.">
+      <created>1680365606869</created>
+      <option name="number" value="00183" />
+      <option name="presentableId" value="LOCAL-00183" />
+      <option name="project" value="LOCAL" />
+      <updated>1680365606869</updated>
+    </task>
+    <task id="LOCAL-00184" summary="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di.">
+      <created>1680368202939</created>
+      <option name="number" value="00184" />
+      <option name="presentableId" value="LOCAL-00184" />
+      <option name="project" value="LOCAL" />
+      <updated>1680368202939</updated>
+    </task>
+    <option name="localTasksCounter" value="185" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -713,7 +709,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="constructor" />
     <MESSAGE value="start HandlerMapping" />
     <MESSAGE value="parse factories" />
     <MESSAGE value="Prepare for HandlerMapping" />
@@ -738,7 +733,8 @@
     <MESSAGE value="udpated" />
     <MESSAGE value="updated" />
     <MESSAGE value="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services." />
+    <MESSAGE value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
+    <option name="LAST_COMMIT_MESSAGE" value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

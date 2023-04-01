@@ -23,7 +23,11 @@ use knockoff_logging::knockoff_logging::default_logging::executor;
 use knockoff_logging::knockoff_logging::default_logging::StandardLoggingFacade;
 
 use crate::provider::ProviderProvider;
+use crate::profile_tree_modifier::ProfileTreeModifierProvider;
+use crate::profile_tree_finalizer::ProfileTreeFinalizerProvider;
+
 pub struct FactoriesParser;
+
 
 macro_rules! providers {
 
@@ -69,6 +73,16 @@ macro_rules! providers {
             }
         )*
 
+        impl Factories {
+            pub fn get_providers(&self) -> HashMap<String, Provider> {
+                let mut provider_map = HashMap::new();
+                $(
+                    self.insert_provider(&mut provider_map, &self.$factory_name);
+                )*
+                provider_map
+            }
+
+        }
 
     }
 }
@@ -76,17 +90,12 @@ macro_rules! providers {
 providers!(
     (ParseProvider, parse_provider),
     (TokenProvider, token_provider),
-    (ParseContainerModifierProvider, parse_container_modifier)
+    (ParseContainerModifierProvider, parse_container_modifier),
+    (ProfileTreeModifierProvider, profile_tree_modifier_provider),
+    (ProfileTreeFinalizerProvider, profile_tree_finalizer)
 );
 
 impl Factories {
-    pub fn get_providers(&self) -> HashMap<String, Provider> {
-        let mut provider_map = HashMap::new();
-        self.insert_provider(&mut provider_map, &self.token_provider);
-        self.insert_provider(&mut provider_map, &self.parse_provider);
-        self.insert_provider(&mut provider_map, &self.parse_container_modifier);
-        provider_map
-    }
 
     fn insert_provider(&self, mut provider_map: &mut HashMap<String, Provider>, option: &Option<HashMap<String, Provider>>) {
         option.as_ref().map(|token_provider| {

@@ -6,4 +6,5 @@ pub trait ProfileTreeModifier {
     fn modify_bean(&self, dep_type: &mut BeanDefinition, profile_tree: &mut ProfileTree);
     fn new(profile_tree_items: &HashMap<String, BeanDefinition>) -> Self
     where Self: Sized;
+
 }

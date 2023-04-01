@@ -20,7 +20,6 @@ pub struct MutableProfileTreeModifier {
 
 impl ProfileTreeModifier for MutableProfileTreeModifier {
 
-
     fn modify_bean(&self, d: &mut BeanDefinition, profile_tree: &mut ProfileTree) {
         self.bean_id_types.mutable_field_types.iter().for_each(|i| {
             log_message!("Making {} mutable field.", i.as_str());
@@ -36,7 +35,6 @@ impl ProfileTreeModifier for MutableProfileTreeModifier {
                     }
                 });
         });
-
     }
 
     fn new(profile_tree_items: &HashMap<String, BeanDefinition>) -> Self {

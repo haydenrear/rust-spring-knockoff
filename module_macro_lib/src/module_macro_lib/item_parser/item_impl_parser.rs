@@ -79,6 +79,7 @@ impl ItemImplParser{
                     mutable: ParseUtil::does_attr_exist(&item_impl.attrs, &vec!["mutable_bean"]),
                     aspect_info: vec![],
                     factory_fn: None,
+                    metadata: "".to_string(),
                 };
                 parse_container.injectable_types_builder.insert(id.clone(), impl_found);
                 None

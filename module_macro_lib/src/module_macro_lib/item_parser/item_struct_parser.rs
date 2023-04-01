@@ -60,6 +60,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     mutable: ParseUtil::does_attr_exist(&item_struct.attrs, &vec!["mutable_bean"]),
                     aspect_info: vec![],
                     factory_fn: None,
+                    metadata: "".to_string(),
                 };
                 parse_container.injectable_types_builder.insert(item_struct.ident.to_string().clone(), impl_found);
                 None

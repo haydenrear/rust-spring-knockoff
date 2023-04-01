@@ -10,6 +10,7 @@ use std::ptr::slice_from_raw_parts;
 use std::slice::Iter;
 use std::str::pattern::Pattern;
 use std::sync::Arc;
+use knockoff_providers_gen::{DelegatingProfileTreeFinalizerProvider, DelegatingProfileTreeModifierProvider};
 use proc_macro2::{Span, TokenStream};
 use syn::{Attribute, Block, Data, DeriveInput, Expr, Field, Fields, FieldsNamed, FieldsUnnamed, FnArg, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Pat, Path, PatType, QSelf, ReturnType, Stmt, TraitItem, Type, TypeArray, TypePath};
 use syn::parse::Parser;
@@ -42,6 +43,7 @@ use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
 use module_macro_shared::item_modifier::DelegatingItemModifier;
 use module_macro_shared::parse_container::parse_container_builder::BuildParseContainer;
 use module_macro_shared::parse_container::ParseContainer;
+use module_macro_shared::profile_tree::profile_tree_finalizer::ProfileTreeFinalizer;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use_logging!();
 initialize_log!();
@@ -95,13 +97,16 @@ impl ParseContainerBuilder {
         let modifiers = vec![
             Box::new(ConcreteTypeProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
             Box::new(MutableProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
-            Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
+            Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
+            Box::new(DelegatingProfileTreeModifierProvider::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
         ];
 
         parse_container.profile_tree = ProfileTreeBuilder::build_profile_tree(
             &mut parse_container.injectable_types_builder,
             modifiers
         );
+
+        DelegatingProfileTreeFinalizerProvider::finalize(parse_container);
 
         log_message!("{} is the number of injectable types in the profile tree.", &parse_container.profile_tree.injectable_types.values().len());
         log_message!("{:?} is the parsed and modified profile tree.", &parse_container.profile_tree);

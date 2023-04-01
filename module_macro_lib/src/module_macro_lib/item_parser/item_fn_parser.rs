@@ -71,6 +71,7 @@ impl ItemFnParser {
             mutable: false,
             aspect_info: vec![],
             factory_fn: Some(factory_fn.clone()),
+            metadata: "".to_string(),
         }
     }
 
