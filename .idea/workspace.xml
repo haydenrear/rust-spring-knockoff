@@ -7,7 +7,7 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di.">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Remove dummy app used only to test some random functionaliyu">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -87,6 +87,7 @@
     &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/factories_codegen/src/profile_tree_finalizer&quot;,
@@ -103,7 +104,7 @@
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.ide.settings.new.ui&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.plantuml.idea.settings.PlantUmlSettingsPage&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -315,13 +316,9 @@
       <workItem from="1679864543523" duration="22367000" />
       <workItem from="1680355215220" duration="6090000" />
       <workItem from="1680364397397" duration="6275000" />
-    </task>
-    <task id="LOCAL-00136" summary="start HandlerMapping">
-      <created>1678811798926</created>
-      <option name="number" value="00136" />
-      <option name="presentableId" value="LOCAL-00136" />
-      <option name="project" value="LOCAL" />
-      <updated>1678811798926</updated>
+      <workItem from="1680377038453" duration="33000" />
+      <workItem from="1684170133888" duration="349000" />
+      <workItem from="1692907573260" duration="5620000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -659,7 +656,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680368202939</updated>
     </task>
-    <option name="localTasksCounter" value="185" />
+    <task id="LOCAL-00185" summary="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di.">
+      <created>1680377043223</created>
+      <option name="number" value="00185" />
+      <option name="presentableId" value="LOCAL-00185" />
+      <option name="project" value="LOCAL" />
+      <updated>1680377043223</updated>
+    </task>
+    <option name="localTasksCounter" value="191" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -709,7 +713,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="start HandlerMapping" />
     <MESSAGE value="parse factories" />
     <MESSAGE value="Prepare for HandlerMapping" />
     <MESSAGE value="Updated so that web_framework can be imported into factories_codegen to create handler_mapping amongst other" />
@@ -734,7 +737,8 @@
     <MESSAGE value="updated" />
     <MESSAGE value="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services." />
     <MESSAGE value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
-    <option name="LAST_COMMIT_MESSAGE" value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
+    <MESSAGE value="Remove dummy app used only to test some random functionaliyu" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove dummy app used only to test some random functionaliyu" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

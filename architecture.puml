@@ -1,0 +1,30 @@
+@startuml
+
+component BuildLib
+component ModuleMacro
+component KnockoffCli
+component ModuleMacroCodegen
+component KnockoffProvidersGen
+component FactoriesCodegen
+component KnockoffBuilder
+component ModuleMacroLi
+component UserCode
+component KnockoffFactoriesResources
+component ModuleMacroLib
+'Requires get un-compiled code from registry so that user code can be included, so that user code can run in framework macro, to add user hooks to container.
+
+KnockoffCli ---> KnockoffBuilder: Create a package that imports \n module macro codegen to compile user \n provided code with knockoff code \n download uncompiled module_macro_lib and module_macro to user target/
+
+KnockoffBuilder ---> ModuleMacroCodegen: Start codegen
+ModuleMacroCodegen ---> FactoriesCodegen: Parse user provided factories \n to generate knockoff providers gen into KnockoffProvidersGen
+FactoriesCodegen ---> KnockoffProvidersGen: Create KnockoffProvidersGen crate \n from user provided factory crates, \n put KnockoffProvidersGen location to be compiled
+
+UserCode --> ModuleMacroCodegen: Import module macro, module_macro_lib from \n target/module_macro_lib other deps
+UserCode -> KnockoffProvidersGen: Import providers gen, module macro, build lib
+
+ModuleMacro --> BuildLib: In-line code from modules in other files, create DI code, and interleave knockoff code \n with user provided code from KnockoffProvidersGen
+
+
+
+
+@enduml

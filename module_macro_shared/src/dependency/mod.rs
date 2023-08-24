@@ -62,23 +62,6 @@ pub enum AutowiredType {
     Field(AutowiredField), FnArg(AutowiredFnArg)
 }
 
-macro_rules! get_attr {
-    ($name:ident, $ty:ty) => {
-        impl AutowiredType {
-            pub fn $name(&self) -> &ty {
-                match self {
-                    AutowiredType::Field(field) => {
-                        &field.$name
-                    }
-                    AutowiredType::FnArg(fn_arg) => {
-                        &fn_arg.$name
-                    }
-                }
-            }
-        }
-    }
-}
-
 macro_rules! get_ref {
     ($($name:ident, $ty:ty),*) => {
         $(

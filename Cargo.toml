@@ -9,7 +9,6 @@ members = [
     "module_macro",
     "delegator_test",
     "hyper",
-    "test_app",
     "knockoff_logging",
     "wait_for",
     "module_macro_codegen",
