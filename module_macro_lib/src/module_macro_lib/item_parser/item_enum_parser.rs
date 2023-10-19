@@ -42,9 +42,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                     mutable: SynHelper::get_attr_from_vec(&enum_to_add.attrs, &vec!["mutable_bean"])
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
-                    aspect_info: vec![],
                     factory_fn: None,
-                    metadata: "".to_string(),
                 };
                 parse_container.injectable_types_builder.insert(enum_to_add.ident.to_string().clone(), impl_found);
                 None

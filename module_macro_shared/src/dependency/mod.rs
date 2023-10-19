@@ -13,8 +13,8 @@ use knockoff_logging::{initialize_log, use_logging};
 use crate::functions::{FunctionType, ModulesFunctions};
 use_logging!();
 initialize_log!();
-use crate::logging::executor;
-use crate::logging::StandardLoggingFacade;
+use crate::logger::executor;
+use crate::logger::StandardLoggingFacade;
 
 #[derive(Clone)]
 pub struct DependencyDescriptor {

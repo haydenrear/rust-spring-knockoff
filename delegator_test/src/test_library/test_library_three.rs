@@ -17,6 +17,7 @@ pub fn this_one() -> FactoryFnTest {
 impl Found for Four {
 }
 
+
 impl One {
     pub fn one_two_three(&self, one: One) -> String {
         print!("testing...");

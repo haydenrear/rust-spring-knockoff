@@ -3,7 +3,6 @@ use std::fmt;
 use codegen_utils::syn_helper;
 use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
-use crate::aspect::{AspectInfo, MethodAdviceChain};
 use crate::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts};
 use crate::dependency::{ArgDepType, FieldDepType};
 
@@ -25,7 +24,6 @@ impl Debug for BeanDefinition {
         syn_helper::debug_struct_vec_field_tokens("fields", &mut debug_struct, &self.fields.as_ref());
         syn_helper::debug_struct_vec_field_debug("profile", &mut debug_struct, &self.profile);
         syn_helper::debug_struct_vec_field_debug("traits_impl", &mut debug_struct, &self.traits_impl);
-        syn_helper::debug_struct_vec_field_debug("aspect_info", &mut debug_struct, &self.aspect_info);
         syn_helper::debug_struct_vec_field_debug("path_dep", &mut debug_struct, &self.path_depth);
         syn_helper::debug_struct_vec_field_debug("deps_map", &mut debug_struct, &self.deps_map);
         Ok(())
@@ -53,37 +51,6 @@ impl Debug for ArgDepType {
         syn_helper::debug_debug_struct_field_opt(&mut debug_struct, &self.bean_type_path, "bean_type_path");
         syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.lifetime, "lifetime");
         syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.array_type, "array_type");
-        debug_struct.finish()
-    }
-}
-
-impl Debug for MethodAdviceChain {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut debug_struct = f.debug_struct("MethoAdviceChain");
-        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.before_advice, "before_advice");
-        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.after_advice, "after_advice");
-        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.proceed_statement, "proceed_statement");
-        debug_struct.finish()
-    }
-}
-
-impl Debug for AspectInfo {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut debug_struct = f.debug_struct("AspectInfo");
-        syn_helper::debug_struct_vec_field_debug("advice chain", &mut debug_struct, &self.advice_chain);
-        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.return_type, "return_type");
-        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.method, "method_before");
-        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.method_after, "method_after");
-        syn_helper::debug_struct_field_opt_tokens(&mut debug_struct, &self.original_fn_logic, "original_fn_logic");
-        debug_struct.field("method_advice_aspect", &self.method_advice_aspect);
-        debug_struct.field("mutable", &self.mutable.to_string().as_str());
-        debug_struct.field("args", &self.args.iter().map(|a| {
-            let mut type_and_ident = "Ident: ".to_string();
-            type_and_ident +=  a.0.to_string().as_str();
-            type_and_ident += "Type: ";
-            type_and_ident += a.0.to_string().as_str();
-            type_and_ident
-        }).collect::<Vec<String>>().join(", ").as_str());
         debug_struct.finish()
     }
 }

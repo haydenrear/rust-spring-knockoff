@@ -22,7 +22,7 @@ pub mod handler_mapping_token_provider {
     }
 
     impl TokenStreamProvider for HandlerMappingTokenProvider {
-        fn new(items: &ProfileTree) -> Self {
+        fn new(items: &mut ProfileTree) -> Self {
             Self {
                 mapping_builder: HandlerMappingBuilder::new(items)
             }

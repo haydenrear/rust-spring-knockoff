@@ -58,9 +58,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     fields: vec![item_struct.fields.clone()],
                     bean_type: BeanDependencyParser::get_bean_type_opt(&item_struct.attrs),
                     mutable: ParseUtil::does_attr_exist(&item_struct.attrs, &vec!["mutable_bean"]),
-                    aspect_info: vec![],
                     factory_fn: None,
-                    metadata: "".to_string(),
                 };
                 parse_container.injectable_types_builder.insert(item_struct.ident.to_string().clone(), impl_found);
                 None

@@ -16,7 +16,7 @@ pub struct UserProvidedTokenStreamGenerator {
 }
 
 impl UserProvidedTokenStreamGenerator {
-    pub(crate) fn new(profile_tree: &ProfileTree) -> Self {
+    pub(crate) fn new(profile_tree: &mut ProfileTree) -> Self {
         let handler_mapping_token_provider = DelegatingTokenProvider::new(profile_tree);
         Self {
             handler_mapping_token_provider

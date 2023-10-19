@@ -69,9 +69,7 @@ impl ItemFnParser {
             fields: vec![],
             bean_type: Some(factory_fn.fn_found.bean_type.clone()),
             mutable: false,
-            aspect_info: vec![],
             factory_fn: Some(factory_fn.clone()),
-            metadata: "".to_string(),
         }
     }
 

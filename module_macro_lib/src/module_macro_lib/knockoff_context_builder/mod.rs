@@ -9,10 +9,8 @@ use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_codegen::aspect::AspectParser;
 use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::profile_tree::ProfileBuilder;
-use crate::module_macro_lib::knockoff_context_builder::aspect_generator::AspectGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::BeanFactoryGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
@@ -27,7 +25,6 @@ use module_macro_shared::profile_tree::ProfileTree;
 pub mod factory_generator;
 pub mod bean_factory_generator;
 pub mod token_stream_generator;
-pub mod aspect_generator;
 pub mod bean_factory_info;
 pub mod bean_constructor_generator;
 
@@ -35,7 +32,6 @@ pub mod bean_constructor_generator;
 pub struct ApplicationContextGenerator {
     factory_generators: Vec<Box<dyn TokenStreamGenerator>>,
     bean_factory_generators: Vec<Box<dyn TokenStreamGenerator>>,
-    aspect_generators: Vec<Box<dyn TokenStreamGenerator>>,
     constructor_generator: Vec<Box<dyn TokenStreamGenerator>>,
     dynamic_token_provider: Vec<Box<dyn TokenStreamGenerator>>,
     profiles: Vec<ProfileBuilder>,
@@ -60,7 +56,7 @@ impl TokenStreamGenerator for ApplicationContextGenerator {
 
 impl ApplicationContextGenerator {
 
-    pub fn create_context_generator(profile_tree: &ProfileTree) -> Self {
+    pub fn create_context_generator(profile_tree: &mut ProfileTree) -> Self {
         let (concrete_bean_factory_info, abstract_bean_factory_info) = Self::create_bean_factory_info(&profile_tree);
 
         let factory_generators = Self::factory_generators(profile_tree);
@@ -77,14 +73,12 @@ impl ApplicationContextGenerator {
         let profiles = profile_tree.injectable_types.keys()
             .map(|p| p.clone())
             .collect();
-        let aspect_generators = vec![Self::create_aspect_generator(&profile_tree)];
-        let dynamic_token_provider = vec![Box::new(UserProvidedTokenStreamGenerator::new(&profile_tree)) as Box<dyn TokenStreamGenerator>];
+        let dynamic_token_provider = vec![Box::new(UserProvidedTokenStreamGenerator::new(profile_tree)) as Box<dyn TokenStreamGenerator>];
 
         Self {
             factory_generators,
             bean_factory_generators,
             profiles,
-            aspect_generators,
             constructor_generator,
             dynamic_token_provider
         }
@@ -105,10 +99,6 @@ impl ApplicationContextGenerator {
         profile_tree.injectable_types.iter()
             .flat_map(|bean_def_type_profile| Self::create_factory_generators(&bean_def_type_profile))
             .collect::<Vec<Box<dyn TokenStreamGenerator>>>()
-    }
-
-    fn create_aspect_generator(from: &ProfileTree) -> Box<dyn TokenStreamGenerator> {
-        Box::new(AspectGenerator::new(from))
     }
 
     fn create_factory_generators(from: &(&ProfileBuilder, &Vec<BeanDefinitionType>)) -> Vec<Box<dyn TokenStreamGenerator>> {
@@ -395,10 +385,6 @@ impl ApplicationContextGenerator {
         self.factory_generators.iter()
             .for_each(|factory_gens|
                 ts.append_all(factory_gens.generate_token_stream())
-            );
-        self.aspect_generators.iter()
-            .for_each(|aspect_generator|
-                ts.append_all(aspect_generator.generate_token_stream())
             );
         self.constructor_generator.iter()
             .for_each(|constructor_gen|

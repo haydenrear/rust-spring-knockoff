@@ -8,9 +8,9 @@ use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
 use module_macro_shared::profile_tree::ProfileTree;
 use web_framework_shared::matcher::{AntPathRequestMatcher, AntStringRequestMatcher, Matcher};
 
-use module_macro_shared::logging::StandardLoggingFacade;
-use module_macro_shared::logging::executor;
-use module_macro_shared::logging::logger;
+use module_macro_shared::logger::StandardLoggingFacade;
+use module_macro_shared::logger::executor;
+use module_macro_shared::logger::logger;
 
 use knockoff_logging::knockoff_logging::logging_facade::LoggingFacade;
 use knockoff_logging::knockoff_logging::log_level::LogLevel;
@@ -25,7 +25,7 @@ pub struct HandlerMappingBuilder {
 
 impl HandlerMappingBuilder {
 
-    pub fn new(items: &ProfileTree) -> Self {
+    pub fn new(items: &mut ProfileTree) -> Self {
         let controller_beans = items.injectable_types.iter()
             .flat_map(|b| b.1.iter())
             .flat_map(|b| match b {

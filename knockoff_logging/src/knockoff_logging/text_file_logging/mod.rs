@@ -8,6 +8,7 @@ use std::io::{Seek, SeekFrom, Write};
 use std::ops::DerefMut;
 use std::os::fd::AsFd;
 use std::path::{Path, PathBuf};
+use std::ptr::write;
 use std::sync::{Arc, Mutex};
 use executors::Executor;
 use executors::threadpool_executor::ThreadPoolExecutor;
@@ -86,7 +87,8 @@ impl TextFileLogger<StandardLogData> for TextFileLoggerImpl {
 
     fn new_from_file() -> Option<Self> {
         let logging_file_result = env::var("LOGGING_DIR").ok();
-        print!("Creating logger. {}", logging_file_result.clone().unwrap().as_str().clone());
+
+        print!("Creating logger. {}", logging_file_result.clone().as_ref().unwrap().as_str().clone());
 
         logging_file_result.and_then(|file_path| {
             Self::create_logger(&file_path)
@@ -105,8 +107,7 @@ impl TextFileLoggerImpl {
         if !file_path.exists() {
             let created_file = File::create(file_path);
             if created_file.is_err() {
-                println!("Could not create file.");
-                return None;
+                panic!("Failed to create file: {}!", file_path.to_str().unwrap());
             }
         }
 
@@ -114,5 +115,6 @@ impl TextFileLoggerImpl {
             .ok()
             .and_then(|mut file| Some(TextFileLoggerArgs { file }))
             .map(|logger_args| TextFileLoggerImpl { text_file: Arc::new(Mutex::new(logger_args.file)) })
+            .or_else(|| panic!("Failed to create logger!"))
     }
 }

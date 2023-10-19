@@ -1,6 +1,8 @@
+use std::any::Any;
 use std::collections::HashMap;
-use module_macro_codegen::aspect::AspectParser;
 use std::fmt::{Debug, Formatter};
+use std::hash::Hash;
+use std::sync::Arc;
 use proc_macro2::TokenStream;
 use syn::{Field, Type};
 use codegen_utils::syn_helper::SynHelper;
@@ -8,19 +10,36 @@ use quote::ToTokens;
 use crate::bean::BeanDefinition;
 use crate::dependency::{AutowiredField, FieldDepType};
 use crate::functions::{FunctionType, ModulesFunctions};
-use crate::item_modifier::DelegatingItemModifier;
 use crate::module_tree::Trait;
 use crate::profile_tree::{ProfileBuilder, ProfileTree};
 
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
-use crate::logging::executor;
-use crate::logging::StandardLoggingFacade;
+use crate::logger::executor;
+use crate::logger::StandardLoggingFacade;
 use crate::parse_container::parse_container_builder::BuildParseContainer;
 
 pub mod parse_container_builder;
 pub mod parse_container_modifier;
+
+pub trait MetadataItem: 'static + Debug {
+    fn as_any(&mut self) -> &mut dyn Any;
+}
+
+#[derive(Ord, PartialEq, Hash, Eq, PartialOrd, Clone, Debug)]
+pub struct MetadataItemId {
+    pub item_id: String,
+    pub metadata_item_type_id: String
+}
+
+impl MetadataItemId {
+    pub fn new(item_id: String, metadata_item_type_id: String) -> Self {
+        Self {
+            item_id, metadata_item_type_id
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct ParseContainer {
@@ -29,8 +48,7 @@ pub struct ParseContainer {
     pub traits: HashMap<String, Trait>,
     pub fns: HashMap<String, ModulesFunctions>,
     pub profiles: Vec<ProfileBuilder>,
-    pub aspects: AspectParser,
-    pub item_modifier: DelegatingItemModifier
+    pub provided_items: HashMap<MetadataItemId, Vec<Box<dyn MetadataItem>>>
 }
 
 impl Debug for ParseContainer {

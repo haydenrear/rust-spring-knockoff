@@ -4,8 +4,6 @@ use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_codegen::aspect::{MethodAdviceAspectCodegen, PointCut};
-use module_macro_codegen::aspect::AspectParser;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::profile_tree::ProfileBuilder;
@@ -27,7 +25,7 @@ impl ContextBuilder {
         parse_container.log_app_container_info();
         ParseContainerBuilder::build_parse_container(parse_container);
         let ctx
-            = ApplicationContextGenerator::create_context_generator(&parse_container.profile_tree);
+            = ApplicationContextGenerator::create_context_generator(&mut parse_container.profile_tree);
         ctx.generate_token_stream()
     }
 

@@ -1,12 +1,11 @@
 use std::{env, fs};
 use std::fs::File;
 use std::io::{Read, Write};
-use std::path::Path;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use syn::{Attribute, Item, ItemMod, parse2, parse_str};
+use syn::{Attribute, Item, ItemMod, parse2, parse_str, Path};
 use syn::punctuated::Pair::Punctuated;
 use toml::{Table, Value};
 use crate::factories_parser::{FactoriesParser, Provider};
@@ -18,7 +17,8 @@ pub struct TokenProvider;
 /// based on it. So this will be used in the codegen as a TokenStreamGenerator. It is an extension point
 /// for the framework, to enable decoupling the web framework from the dependency injection.
 impl ProviderProvider for TokenProvider {
-    fn create_delegating_token_provider_tokens(provider_type: Vec<Ident>, provider_idents: Vec<Ident>) -> TokenStream {
+    fn create_delegating_token_provider_tokens(provider_type: Vec<Ident>, provider_idents: Vec<Ident>,
+                                               path: &Vec<Path>) -> TokenStream {
         quote! {
 
             pub struct DelegatingTokenProvider {
@@ -26,7 +26,7 @@ impl ProviderProvider for TokenProvider {
             }
 
             impl ProfileTreeTokenProvider for DelegatingTokenProvider {
-                fn new(profile_tree: &ProfileTree) -> Self {
+                fn new(profile_tree: &mut ProfileTree) -> Self {
                     #(
                         let #provider_idents = #provider_type::new(profile_tree);
                     )*
@@ -59,7 +59,7 @@ impl ProviderProvider for TokenProvider {
                 }
 
                 impl ProfileTreeTokenProvider for #provider_ident {
-                    fn new(items: &ProfileTree) -> #provider_ident {
+                    fn new(items: &mut ProfileTree) -> #provider_ident {
                         let profile_tree = items.clone();
                         let token_delegate = #builder_path::new(items);
                         Self {

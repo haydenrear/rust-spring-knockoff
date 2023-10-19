@@ -7,7 +7,6 @@ use syn::{ItemUse, parse2, Path, Type};
 use codegen_utils::syn_helper::SynHelper;
 
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_codegen::aspect::AspectParser;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor};
 use module_macro_shared::profile_tree::ProfileBuilder;

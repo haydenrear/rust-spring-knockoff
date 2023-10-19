@@ -1,51 +1,59 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::{quote, TokenStreamExt, ToTokens};
-use syn::{Block, Expr, Field, ImplItemMethod, Stmt, Type};
-use module_macro_shared::aspect::{AspectInfo, MethodAdviceChain};
+use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
+use module_macro_shared::profile_tree::ProfileTree;
+use syn::{Block, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::{initialize_log, use_logging};
-use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
-use module_macro_shared::bean::BeanDefinition;
-use crate::module_macro_lib::item_modifier::aspect_modifier::AspectModifier;
-use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use module_macro_shared::bean::BeanDefinitionType;
+
+use quote::{quote, TokenStreamExt, ToTokens};
+use module_macro_shared::parse_container::MetadataItemId;
+use crate::aspect_knockoff_provider::AspectInfo;
 
 use_logging!();
 initialize_log!();
 
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
-use module_macro_shared::profile_tree::ProfileTree;
+use factories_codegen::logger::executor;
+use factories_codegen::logger::StandardLoggingFacade;
 
 pub struct AspectGenerator {
     pub(crate) method_advice_aspects: Vec<(AspectInfo, BeanDefinition)>
 }
 
-impl TokenStreamGenerator for AspectGenerator {
-    fn generate_token_stream(&self) -> TokenStream {
+impl AspectGenerator {
+    pub fn generate_token_stream(&self) -> TokenStream {
         let mut ts = TokenStream::default();
         self.method_advice_aspects.iter()
-            .for_each(|a| {
-                Self::implement_original_fn(&mut ts, a);
-            });
+            .for_each(|a| Self::implement_original_fn(&mut ts, a));
         ts
     }
 }
 
 impl AspectGenerator {
 
-    pub fn new(profile_tree: &ProfileTree) -> Self {
+    pub fn new(profile_tree: &mut ProfileTree) -> Self {
         let method_advice_aspects = profile_tree.injectable_types.iter()
-            .flat_map(|i_type| {
-                i_type.1
-            })
+            .flat_map(|i_type| i_type.1)
             .flat_map(|bean_def| {
                 match bean_def {
                     BeanDefinitionType::Abstract { bean, dep_type } => {
                         vec![]
                     }
                     BeanDefinitionType::Concrete { bean } => {
-                        bean.aspect_info.iter()
+                        let metadata_item = MetadataItemId::new(
+                            bean.id.clone(),
+                            "AspectInfo".to_string()
+                        );
+                        let aspects = profile_tree.provided_items.remove(&metadata_item)
+                            .into_iter().flat_map(|removed| removed.into_iter())
+                            .flat_map(|to_cast|
+                                {
+                                    AspectInfo::parse_values(&mut Some(to_cast))
+                                        .map(|f| f.clone())
+                                        .into_iter()
+                                }
+                            )
+                            .collect::<Vec<AspectInfo>>();
+                        aspects.into_iter()
                             .flat_map(|a| vec![(a.clone(), bean.clone())])
                             .collect::<Vec<(AspectInfo, BeanDefinition)>>()
                     }
@@ -96,7 +104,6 @@ impl AspectGenerator {
             let mut proceed_suffix = "".to_string();
             for advice_index in 0..a.0.advice_chain.len() {
                 a.0.advice_chain.get(advice_index).map(|next_chain| {
-                    log_message!("{:?} is the next in the method advice chain.", next_chain);
                     let mut block_items = vec![];
 
                     next_chain.before_advice

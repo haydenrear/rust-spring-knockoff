@@ -21,10 +21,12 @@ use toml::map::Map;
 use knockoff_logging::knockoff_logging::logger::Logger;
 use knockoff_logging::knockoff_logging::default_logging::executor;
 use knockoff_logging::knockoff_logging::default_logging::StandardLoggingFacade;
+use crate::item_modifier::ItemModifierProvider;
 
 use crate::provider::ProviderProvider;
 use crate::profile_tree_modifier::ProfileTreeModifierProvider;
 use crate::profile_tree_finalizer::ProfileTreeFinalizerProvider;
+use crate::bean_type_providers::BeanTypeProvider;
 
 pub struct FactoriesParser;
 
@@ -92,7 +94,9 @@ providers!(
     (TokenProvider, token_provider),
     (ParseContainerModifierProvider, parse_container_modifier),
     (ProfileTreeModifierProvider, profile_tree_modifier_provider),
-    (ProfileTreeFinalizerProvider, profile_tree_finalizer)
+    (ProfileTreeFinalizerProvider, profile_tree_finalizer),
+    (ItemModifierProvider, item_provider),
+    (BeanTypeProvider, bean_ty_provider)
 );
 
 impl Factories {

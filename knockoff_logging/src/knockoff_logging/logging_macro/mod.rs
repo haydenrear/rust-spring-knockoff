@@ -1,13 +1,13 @@
 #[macro_export]
 macro_rules! initialize_logger {
     ($logger:ident, $log_data:ty) => {
-        create_logger_expr!($logger, $log_data, $logger::new_from_file(), 2);
+        create_logger_expr!($logger, $log_data, $logger::new_from_file(), 1);
     };
     ($logger:ident, $log_data:ty, $log_file:literal) => {
-        create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), 2);
+        create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), 1);
     };
     ($logger:ident, $log_data:ty, $log_file:expr) => {
-        create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), 2);
+        create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), 1);
     };
     ($logger:ident, $log_data:ty, $log_file:literal, $num_cores:literal) => {
         create_logger_expr!($logger, $log_data, $logger::new_from_file_dir($log_file), $num_cores);
@@ -61,7 +61,7 @@ macro_rules! use_logging {
         use knockoff_logging::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
         use knockoff_logging::knockoff_logging::logger::Logger;
         use knockoff_logging::knockoff_logging::logging_facade::LoggingFacade;
-        use $crate::log_message;
+        use knockoff_logging::log_message;
         use executors::Executor;
     }
 }
@@ -82,7 +82,6 @@ macro_rules! use_default_logging {
 #[macro_export]
 macro_rules! initialize_log {
     () => {
-
         macro_rules! log {
             ($log_level:expr, $message:expr, $trace_id:expr) => {
                 let _ = executor.lock()
@@ -115,11 +114,12 @@ macro_rules! initialize_log {
 macro_rules! log_message {
     ($($arg:tt)*) => {
         let message = format!($($arg)*);
-        executor.lock()
-            .map(|exec|  exec.execute(|| StandardLoggingFacade::get_logger().log(LogLevel::Info, message, "1".to_string())))
-            .or_else(|err| {
-                println!("Failed to unlock logger executor pool {}!", err.to_string());
-                Err(err)
-            });
+        StandardLoggingFacade::get_logger().log(LogLevel::Info, message, "1".to_string())
+        // executor.lock()
+        //     .map(|exec|  exec.execute(|| )
+        //     .or_else(|err| {
+        //         println!("Failed to unlock logger executor pool {}!", err.to_string());
+        //         Err(err)
+        //     });
     };
 }

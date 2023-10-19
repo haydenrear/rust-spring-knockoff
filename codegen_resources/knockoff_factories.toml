@@ -1,8 +1,10 @@
 [dependencies]
+# Dependencies necessary to run the providers
 quote = "1.0"
 syn = {version = "1.0", features = ["full"]}
 proc-macro2 = "1.0"
 serde = "1.0.137"
+
 [dependencies.web_framework]
 path = "../../web_framework"
 name = "web_framework"
@@ -19,6 +21,7 @@ name = "module_macro_shared"
 version = "0.1.4"
 registry = "estuary"
 
+# Providers for web endpoints
 [token_provider.handler_mapping.provider_data]
 provider_path = "handler_mapping::HandlerMappingBuilder"
 provider_ident = "HandlerMappingTokenProvider"
@@ -26,10 +29,42 @@ provider_ident = "HandlerMappingTokenProvider"
 path ="../../handler_mapping"
 version = "0.1.4"
 registry = "estuary"
+
+# Providers for authentication types
 [parse_provider.security_parse_provider.provider_data]
 provider_path = "security_parse_provider::SecurityParseProvider"
 provider_ident = "SecurityParseProviderBuilder"
 [parse_provider.security_parse_provider.dependency_data]
 path = "../../security_parse_provider"
+registry = "estuary"
+version = "0.1.4"
+
+# Providers for aspects
+[item_provider.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_item_modifier::AspectParser"
+provider_ident = "AspectParserBuilder"
+[item_provider.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.4"
+[parse_provider.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_parse_provider::ParsedAspects"
+provider_ident = "ParsedAspectsBuilder"
+[parse_provider.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.4"
+[token_provider.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_ts_generator::AspectGenerator"
+provider_ident = "AspectGeneratorBuilder"
+[token_provider.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.4"
+[bean_ty_provider.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::AspectInfo"
+provider_ident = "AspectInfoBuilder"
+[bean_ty_provider.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
 registry = "estuary"
 version = "0.1.4"

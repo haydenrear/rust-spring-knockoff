@@ -7,9 +7,7 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Remove dummy app used only to test some random functionaliyu">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="updated" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -26,6 +24,19 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <excluded-from-favorite>
+      <branch-storage>
+        <map>
+          <entry type="LOCAL">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$" source="main" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </excluded-from-favorite>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$" value="main" />
@@ -39,6 +50,16 @@
     &quot;state&quot;: &quot;OPEN&quot;
   }
 }</component>
+  <component name="GitRewordedCommitMessages">
+    <option name="commitMessagesMapping">
+      <RewordedCommitMessageMapping>
+        <option name="originalMessage" value="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register..." />
+        <option name="rewordedMessage" value="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register..." />
+      </RewordedCommitMessageMapping>
+    </option>
+    <option name="currentCommit" value="1" />
+    <option name="onto" value="98f63e4dfd4a98e13dd589260dcddfda9f76ec1a" />
+  </component>
   <component name="GithubPullRequestsUISettings">
     <option name="selectedUrlAndAccountId">
       <UrlAndAccount>
@@ -71,6 +92,10 @@
   <component name="ProjectCodeStyleSettingsMigration">
     <option name="version" value="2" />
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="2DzlmC4mU0eDEClNIhS74zjTHUO" />
   <component name="ProjectViewState">
     <option name="abbreviatePackageNames" value="true" />
@@ -87,10 +112,10 @@
     &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;remove__augfile&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/factories_codegen/src/profile_tree_finalizer&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/factories_codegen/src&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -104,24 +129,24 @@
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;org.plantuml.idea.settings.PlantUmlSettingsPage&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/factories_codegen/src/profile_tree_finalizer" />
-      <recent name="$PROJECT_DIR$/target" />
-      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/factories_codegen/src" />
+      <recent name="$PROJECT_DIR$/target/debug/test_" />
+      <recent name="$PROJECT_DIR$/target/test_" />
       <recent name="$PROJECT_DIR$/target/debug" />
-      <recent name="$PROJECT_DIR$/test_dylib" />
+      <recent name="$PROJECT_DIR$/target/test" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/target/debug/test_" />
+      <recent name="$PROJECT_DIR$/target/debug" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/crategen_helper" />
       <recent name="$PROJECT_DIR$/module_macro_lib/src" />
-      <recent name="$PROJECT_DIR$/module_macro_lib/src/test_resources" />
-      <recent name="$PROJECT_DIR$/knockoff_security/src/knockoff_security/authentication_type" />
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
@@ -161,8 +186,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test args_parser::test_args" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_cli --bin knockoff_cli args_parser::test_args -- --exact" />
+    <configuration name="Test test::test_token_providers::test_parse_factories" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_parse_factories -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -178,10 +203,10 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::test_token_providers::test_parse_factories" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_parse_factories -- --exact" />
+    <configuration name="Test test_aspect::test_dyn_values" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aspect_knockoff_provider --lib test_aspect::test_dyn_values -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="false" />
+      <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
       <option name="allFeatures" value="false" />
@@ -231,8 +256,8 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test test_aspect::test_dyn_values" />
       <item itemvalue="Cargo.Build mongo_repo" />
-      <item itemvalue="Cargo.Test args_parser::test_args" />
       <item itemvalue="Cargo.Test test::test_token_providers::test_parse_factories" />
       <item itemvalue="Cargo.Run knockoff_cli" />
       <item itemvalue="Cargo.Test test_module_macro" />
@@ -240,10 +265,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test test_aspect::test_dyn_values" />
         <item itemvalue="Cargo.Build mongo_repo" />
         <item itemvalue="Cargo.Test test::test_token_providers::test_parse_factories" />
         <item itemvalue="Cargo.Run knockoff_cli" />
-        <item itemvalue="Cargo.Test args_parser::test_args" />
       </list>
     </recent_temporary>
   </component>
@@ -319,6 +344,10 @@
       <workItem from="1680377038453" duration="33000" />
       <workItem from="1684170133888" duration="349000" />
       <workItem from="1692907573260" duration="5620000" />
+      <workItem from="1692913244997" duration="169000" />
+      <workItem from="1694389970036" duration="23000" />
+      <workItem from="1695248926303" duration="3857000" />
+      <workItem from="1697640380113" duration="41821000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -663,7 +692,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="191" />
+    <option name="localTasksCounter" value="195" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -677,7 +706,17 @@
             <list>
               <RecentGroup>
                 <option name="FILTER_VALUES">
+                  <option value="remove_augfile" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
                   <option value="main" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="origin/main" />
                 </option>
               </RecentGroup>
               <RecentGroup>
@@ -700,7 +739,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="main" />
+                        <option value="remove_augfile" />
                       </list>
                     </value>
                   </entry>
@@ -734,11 +773,11 @@
     <MESSAGE value="adding cargo add-on to facilitate building of the codegen service loader" />
     <MESSAGE value="fixing" />
     <MESSAGE value="udpated" />
-    <MESSAGE value="updated" />
     <MESSAGE value="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services." />
     <MESSAGE value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
     <MESSAGE value="Remove dummy app used only to test some random functionaliyu" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove dummy app used only to test some random functionaliyu" />
+    <MESSAGE value="updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

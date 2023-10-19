@@ -32,15 +32,11 @@ use crate::module_macro_lib::profile_tree::ProfileTreeBuilder;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::{create_logger_expr, initialize_log, use_logging};
-use module_macro_codegen::aspect::{AspectParser, MethodAdviceAspectCodegen};
-use module_macro_shared::aspect::AspectInfo;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor, DependencyMetadata, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use module_macro_shared::module_tree::Trait;
-use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
-use module_macro_shared::item_modifier::DelegatingItemModifier;
 use module_macro_shared::parse_container::parse_container_builder::BuildParseContainer;
 use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::profile_tree::profile_tree_finalizer::ProfileTreeFinalizer;
@@ -103,7 +99,8 @@ impl ParseContainerBuilder {
 
         parse_container.profile_tree = ProfileTreeBuilder::build_profile_tree(
             &mut parse_container.injectable_types_builder,
-            modifiers
+            modifiers,
+            &mut parse_container.provided_items
         );
 
         DelegatingProfileTreeFinalizerProvider::finalize(parse_container);

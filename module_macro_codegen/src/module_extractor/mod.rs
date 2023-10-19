@@ -6,10 +6,10 @@ use quote::{quote, ToTokens};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use syn::Item;
-use knockoff_logging::{initialize_log, use_logging};
 use crate::codegen_items;
 use crate::parser::{CodegenItem, CodegenItems, CodegenItemType, get_codegen_item, LibParser};
 
+use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
 

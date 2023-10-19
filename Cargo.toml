@@ -23,7 +23,9 @@ members = [
     "authentication_gen",
     "crate_gen",
     "security_parse_provider",
-    "knockoff_cli"
+    "knockoff_cli",
+    "aspect_knockoff_provider",
+    "collection_util"
 ]
 exclude = [
     "target/knockoff_providers_gen"

@@ -27,6 +27,7 @@ use crate::test_library_three::FactoryFnTest;
 
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
+
 #[module_attr]
 #[cfg(springknockoff)]
 pub mod test_library {
@@ -34,6 +35,30 @@ pub mod test_library {
     pub mod test_library_two;
 
     pub mod test_library_three;
+
+    #[aspect(test_library.test_library_three.One.*)]
+    #[ordered(0)]
+    #[cfg(springknockoff)]
+    pub fn do_aspect(&self, one: One) -> String {
+        println!("hello");
+        println!("{}", self.two.clone());
+        let found = self.proceed(one);
+        let mut three_four = "four three ".to_string() + found.as_str();
+        three_four
+    }
+
+    #[aspect(test_library.test_library_three.One.*)]
+    #[ordered(1)]
+    #[cfg(springknockoff)]
+    pub fn do_aspect_again(&self, one: One) -> String {
+        println!("hello");
+        println!("{}", self.two.clone());
+        let found = self.proceed(one);
+        let mut zero = " zero".to_string();
+        zero = found + zero.as_str();
+        zero
+    }
+
 
 }
 
@@ -62,9 +87,6 @@ fn test_module_macro() {
     let four_found_third: Option<Arc<Four>> = BeanContainer::<Four>::fetch_bean(&listable);
     assert_eq!(four_found_third.unwrap().one.lock().unwrap().two, "another".to_string());
 
-    assert!(one_found_again.as_ref().is_some());
-    assert_eq!(one_found_again.unwrap().one_two_three(One{ two: "".to_string(), a: "".to_string() }), "four three two one zero".to_string());
-
     let found = BeanContainer::<dyn Found>::fetch_bean(&listable);
     assert!(found.is_some());
     let found = BeanContainerProfile::<dyn Found, DefaultProfile>::fetch_bean_profile(&listable);
@@ -77,6 +99,11 @@ fn test_module_macro() {
     assert!(mutable_bean_one.is_some());
 
     let one = PrototypeBeanContainer::<One>::fetch_bean(&listable);
+
+    assert!(one_found_again.as_ref().is_some());
+    let wrapped = one_found_again.unwrap().one_two_three(One { two: "".to_string(), a: "".to_string() });
+
+    assert_eq!(wrapped, "four three two one zero".to_string());
 
 
 }

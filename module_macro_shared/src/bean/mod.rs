@@ -9,21 +9,22 @@ use proc_macro2::{Ident, TokenStream};
 use syn::__private::str;
 use syn::token::Use;
 use codegen_utils::syn_helper::SynHelper;
-use crate::aspect::AspectInfo;
 use crate::dependency::{ArgDepType, AutowiredField, DependencyDescriptor, DependencyMetadata, FieldDepType};
 
-use knockoff_logging::{initialize_log, use_logging};
 use crate::functions::ModulesFunctions;
+use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
-use crate::logging::executor;
-use crate::logging::StandardLoggingFacade;
+use crate::logger::executor;
+use crate::logger::StandardLoggingFacade;
+use crate::parse_container::MetadataItem;
 use crate::profile_tree::ProfileBuilder;
 
 #[derive(Clone, Debug)]
 pub enum BeanType {
     // contains the identifier and the qualifier as string
-    Singleton, Prototype
+    Singleton,
+    Prototype,
 }
 
 impl BeanPathParts {
@@ -250,9 +251,7 @@ pub struct BeanDefinition {
     pub fields: Vec<Fields>,
     pub bean_type: Option<BeanType>,
     pub mutable: bool,
-    pub aspect_info: Vec<AspectInfo>,
     pub factory_fn: Option<ModulesFunctions>,
-    pub metadata: String
 }
 
 impl BeanDefinition {
@@ -366,10 +365,8 @@ impl  Default for BeanDefinition {
             fields: vec![],
             bean_type: None,
             mutable: false,
-            aspect_info: vec![],
             factory_fn: None,
             deps_map: vec![],
-            metadata: "".to_string(),
         }
     }
 }

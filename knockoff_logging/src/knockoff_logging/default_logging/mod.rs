@@ -3,4 +3,4 @@ use codegen_utils::project_directory;
 
 use_default_logging!();
 
-initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/default_log.log"));
+initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "/log_out/default_log.log"));

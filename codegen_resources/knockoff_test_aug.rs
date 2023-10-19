@@ -30,17 +30,6 @@ pub fn do_aspect(&self, one: One) -> String {
     three_four
 }
 
-#[aspect(test_library.test_library_three.One.*)]
-#[ordered(1)]
-pub fn do_aspect_again(&self, one: One) -> String {
-    println!("hello");
-    println!("{}", self.two.clone());
-    let found = self.proceed(one);
-    let mut zero = " zero".to_string();
-    zero = found + zero.as_str();
-    zero
-}
-
 #[authentication_type]
 #[cfg(authentication_type)]
 pub mod authentication_type {

@@ -9,7 +9,6 @@ use std::sync::Arc;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Item, ItemFn};
 use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
-use crate::aspect::{AspectMatcher, MethodAdviceAspectCodegen, ParsedAspects};
 use crate::authentication_type::AuthenticationTypeCodegen;
 use crate::codegen_items;
 use crate::initializer::Initializer;
@@ -24,7 +23,6 @@ use crate::module_extractor::ModuleParser;
 
 codegen_items!(
     (AuthenticationTypeCodegen, AuthenticationType),
-    (ParsedAspects, Aspect),
     (FieldAug, FieldAug),
     (ModuleParser, Module),
     (Initializer, ContextInitializer)

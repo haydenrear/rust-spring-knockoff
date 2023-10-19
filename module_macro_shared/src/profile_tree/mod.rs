@@ -5,18 +5,19 @@ use std::fmt::{Debug, Formatter};
 use std::fmt;
 use codegen_utils::syn_helper;
 use syn::__private::str;
-use module_macro_codegen::aspect::MethodAdviceAspectCodegen;
 use proc_macro2::Ident;
 use codegen_utils::syn_helper::SynHelper;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 use crate::bean::{BeanDefinition, BeanDefinitionType};
 use crate::dependency::{DependencyDescriptor, DependencyMetadata, FieldDepType};
 use knockoff_logging::{initialize_log, use_logging};
 use_logging!();
 initialize_log!();
-use crate::logging::executor;
-use crate::logging::StandardLoggingFacade;
+use crate::logger::executor;
+use crate::logger::StandardLoggingFacade;
+use crate::parse_container::{MetadataItem, MetadataItemId};
 
 pub mod profile_tree_modifier;
 pub mod profile_tree_finalizer;
@@ -34,10 +35,20 @@ impl Default for ProfileBuilder {
     }
 }
 
-#[derive(Clone, Default, Debug)]
+#[derive(Default, Debug)]
 pub struct ProfileTree {
     /// for profile implementations.
     pub injectable_types: HashMap<ProfileBuilder, Vec<BeanDefinitionType>>,
+    pub provided_items: HashMap<MetadataItemId, Vec<Box<dyn MetadataItem>>>
+}
+
+impl Clone for ProfileTree {
+    fn clone(&self) -> Self {
+        Self {
+            injectable_types: self.injectable_types.clone(),
+            provided_items: HashMap::new()
+        }
+    }
 }
 
 impl ProfileTree {

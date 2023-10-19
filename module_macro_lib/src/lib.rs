@@ -11,7 +11,6 @@ pub mod module_macro_lib {
     pub mod bean_parser;
     pub mod context_builder;
     pub mod knockoff_context;
-    pub mod debug;
     pub mod logging;
     pub mod item_parser;
     pub mod item_modifier;

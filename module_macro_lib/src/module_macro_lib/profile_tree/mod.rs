@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
+use std::sync::Arc;
 use proc_macro2::Ident;
 use quote::{quote, ToTokens};
 use syn::{parse2, Type};
@@ -10,6 +11,7 @@ use concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::dependency::{DependencyDescriptor, FieldDepType};
+use module_macro_shared::parse_container::{MetadataItem, MetadataItemId};
 use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
 use mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use_logging!();
@@ -31,14 +33,19 @@ pub struct ProfileTreeBuilder {
 impl ProfileTreeBuilder {
     pub fn build_profile_tree(
         beans: &mut HashMap<String, BeanDefinition>,
-        tree_modifiers: Vec<Box<dyn ProfileTreeModifier>>
+        tree_modifiers: Vec<Box<dyn ProfileTreeModifier>>,
+        provided_items: &mut HashMap<MetadataItemId, Vec<Box<dyn MetadataItem>>>
     ) -> ProfileTree
     {
 
         let mut injectable_types = ProfileTree::create_initial(&beans);
 
+        let mut to_swap = HashMap::new();
+        std::mem::swap(&mut to_swap, provided_items);
+
         let mut profile_tree = ProfileTree {
             injectable_types,
+            provided_items: to_swap
         };
 
         let default_profile = ProfileBuilder::default();
