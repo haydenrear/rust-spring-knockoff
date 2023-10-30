@@ -1,23 +1,21 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{Attribute, Block, FnArg, ImplItem, ImplItemMethod, Stmt, Type};
-use codegen_utils::project_directory;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::log_message;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
 use module_macro_shared::profile_tree::ProfileTree;
 use web_framework_shared::matcher::{AntPathRequestMatcher, AntStringRequestMatcher, Matcher};
 
-use module_macro_shared::logger::StandardLoggingFacade;
-use module_macro_shared::logger::executor;
-use module_macro_shared::logger::logger;
-
-use knockoff_logging::knockoff_logging::logging_facade::LoggingFacade;
-use knockoff_logging::knockoff_logging::log_level::LogLevel;
-use executors::common::Executor;
-use knockoff_logging::knockoff_logging::logger::Logger;
 use module_macro_shared::dependency::DependencyDescriptor;
 use web_framework_shared::argument_resolver::{ArgumentResolver, ResolveArguments};
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/handler_mapping.log"));
+
 
 pub struct HandlerMappingBuilder {
     controllers: Vec<ControllerBean>,

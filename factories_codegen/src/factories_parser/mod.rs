@@ -12,21 +12,24 @@ use crate::parse_container_modifier::ParseContainerModifierProvider;
 use crate::provider::{DelegatingProvider};
 use crate::parse_provider::ParseProvider;
 use crate::token_provider::TokenProvider;
-use knockoff_logging::log_message;
-use knockoff_logging::knockoff_logging::logging_facade::LoggingFacade;
-use knockoff_logging::knockoff_logging::log_level::LogLevel;
 use executors::common::Executor;
 use serde::{Deserialize, Serialize};
 use toml::map::Map;
-use knockoff_logging::knockoff_logging::logger::Logger;
-use knockoff_logging::knockoff_logging::default_logging::executor;
-use knockoff_logging::knockoff_logging::default_logging::StandardLoggingFacade;
 use crate::item_modifier::ItemModifierProvider;
 
 use crate::provider::ProviderProvider;
 use crate::profile_tree_modifier::ProfileTreeModifierProvider;
 use crate::profile_tree_finalizer::ProfileTreeFinalizerProvider;
 use crate::bean_type_providers::BeanTypeProvider;
+
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+
+import_logger!("factories_parser.rs");
 
 pub struct FactoriesParser;
 

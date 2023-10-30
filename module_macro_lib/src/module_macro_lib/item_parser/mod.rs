@@ -9,19 +9,22 @@ use codegen_utils::syn_helper::SynHelper;
 use item_impl_parser::ItemImplParser;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 
-use crate::module_macro_lib::logging::StandardLoggingFacade;
-use crate::module_macro_lib::logging::executor;
 use module_macro_shared::module_tree::Trait;
 use module_macro_shared::parse_container::ParseContainer;
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::functions::ModulesFunctions;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::util::ParseUtil;
-use_logging!();
-initialize_log!();
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("item_parser.rs");
+
 
 pub mod item_impl_parser;
 pub mod item_enum_parser;

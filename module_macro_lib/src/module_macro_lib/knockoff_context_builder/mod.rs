@@ -8,7 +8,6 @@ use bean_factory_generator::factory_factory_generator::FactoryBeanBeanFactoryGen
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
@@ -16,11 +15,15 @@ use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::B
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
 use crate::module_macro_lib::knockoff_context_builder::factory_generator::{FactoryGen, FactoryGenerator};
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::{TokenStreamGenerator, UserProvidedTokenStreamGenerator};
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use module_macro_shared::profile_tree::ProfileTree;
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("bean_factory_generator.rs");
+
 
 pub mod factory_generator;
 pub mod bean_factory_generator;

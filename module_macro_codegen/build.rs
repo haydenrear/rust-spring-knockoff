@@ -3,18 +3,18 @@ use std::collections::HashMap;
 use std::fmt::Error;
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use codegen_utils::{parse, project_directory, syn_helper};
 use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
-use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
 use std::io::Write;
 use toml::Table;
 use factories_codegen::factories_parser::{Factories, FactoriesParser, Provider};
 use factories_codegen::parse_provider::ParseProvider;
 use factories_codegen::provider::DelegatingProvider;
 
-use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/module_macro_codegen_build_rs.log"));
-initialize_log!();
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+import_logger_root!("lib.rs", concat!(project_directory!(), "log_out/module_macro_codegen_build_rs.log"));
 
 /// The token stream providers need to depend on user provided crate, so that means we need to
 /// generate a crate that depends on those user provided crates. We will then delegate to the user

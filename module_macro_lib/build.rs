@@ -15,11 +15,14 @@ use module_macro_codegen::parser::LibParser;
 use crate_gen::CrateWriter;
 use std::fmt::Write as write;
 
-use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
 
-use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/module_macro_lib.log"));
-initialize_log!();
+
+use knockoff_logging::*;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/module_macro_lib_build.log"));
+
 
 fn main() {
     //TODO:

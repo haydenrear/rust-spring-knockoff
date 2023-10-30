@@ -9,12 +9,12 @@ use syn::Item;
 use crate::codegen_items;
 use crate::parser::{CodegenItem, CodegenItems, CodegenItemType, get_codegen_item, LibParser};
 
-use knockoff_logging::{initialize_log, use_logging};
-use_logging!();
-initialize_log!();
-
-use crate::logger::executor;
-use crate::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("module_extractor.rs");
 
 #[derive(Default, Clone)]
 pub struct ModuleParser {

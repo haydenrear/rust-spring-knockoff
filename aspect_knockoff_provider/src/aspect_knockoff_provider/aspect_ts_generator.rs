@@ -3,23 +3,25 @@ use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
 use module_macro_shared::profile_tree::ProfileTree;
 use syn::{Block, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
-use knockoff_logging::{initialize_log, use_logging};
 
 use quote::{quote, TokenStreamExt, ToTokens};
 use module_macro_shared::parse_container::MetadataItemId;
 use crate::aspect_knockoff_provider::AspectInfo;
 
-use_logging!();
-initialize_log!();
-
-use factories_codegen::logger::executor;
-use factories_codegen::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("aspect_ts_generator.rs");
 
 pub struct AspectGenerator {
     pub(crate) method_advice_aspects: Vec<(AspectInfo, BeanDefinition)>
 }
 
 impl AspectGenerator {
+
+    /// This generates the aspect.
     pub fn generate_token_stream(&self) -> TokenStream {
         let mut ts = TokenStream::default();
         self.method_advice_aspects.iter()

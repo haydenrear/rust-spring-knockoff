@@ -20,16 +20,6 @@ pub fn field_aug(struct_item: &mut ItemStruct) {
     }
 }
 
-#[aspect(test_library.test_library_three.One.*)]
-#[ordered(0)]
-pub fn do_aspect(&self, one: One) -> String {
-    println!("hello");
-    println!("{}", self.two.clone());
-    let found = self.proceed(one);
-    let mut three_four = "four three ".to_string() + found.as_str();
-    three_four
-}
-
 #[authentication_type]
 #[cfg(authentication_type)]
 pub mod authentication_type {

@@ -12,13 +12,14 @@ use quote::__private::ext::RepToTokensExt;
 use syn::{Attribute, Item, ItemFn, ItemImpl, ItemStruct, Type};
 use syn::__private::str;
 use syn::token::Token;
-use knockoff_logging::use_logging;
 use crate::parser::{CodegenItem, CodegenItemType, LibParser};
 
-use_logging!();
-
-use crate::logger::executor;
-use crate::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("authentication_type.rs");
 
 #[derive(Clone, Default)]
 pub struct AuthenticationTypeCodegen {

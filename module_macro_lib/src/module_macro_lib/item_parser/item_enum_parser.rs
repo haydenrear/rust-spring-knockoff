@@ -8,11 +8,12 @@ use quote::ToTokens;
 
 pub struct ItemEnumParser;
 
-use knockoff_logging::{initialize_log, use_logging};
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("item_enum_parser.rs");
 
 //TODO: the fields here may screw things up. Enum is not ready to be autowired...
 impl ItemParser<ItemEnum> for ItemEnumParser {

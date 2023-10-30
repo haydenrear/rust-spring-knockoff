@@ -23,11 +23,11 @@ use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
 use codegen_utils::{parse, project_directory, syn_helper};
 use codegen_utils::syn_helper::SynHelper;
 use codegen_utils::walk::DirectoryWalker;
-use knockoff_logging::{create_logger_expr, initialize_log, initialize_logger, use_logging};
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
 
-use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/build_lib.log"));
-initialize_log!();
+import_logger_root!("lib.rs", concat!(project_directory!(), "log_out/build_lib.log"));
 
 #[test]
 fn do_test() {

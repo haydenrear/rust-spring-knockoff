@@ -1,3 +1,5 @@
+use knockoff_logging::import_logger_root;
+
 /**
 At each stage of the injection, you have a plugin point.
 1. ParseContainerModifier: decide which beans to add to the parse container.
@@ -22,5 +24,11 @@ pub mod profile_tree_modifier;
 pub mod profile_tree_finalizer;
 pub mod item_modifier;
 pub mod bean_type_providers;
-pub mod logger;
 pub mod test;
+
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/factories_codegen.log"));

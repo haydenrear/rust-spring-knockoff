@@ -8,17 +8,17 @@ use std::path::Path;
 use std::sync::Arc;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Item, ItemFn};
-use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
 use crate::authentication_type::AuthenticationTypeCodegen;
 use crate::codegen_items;
 use crate::initializer::Initializer;
 use crate::field_aug::FieldAug;
 
-use_logging!();
-initialize_log!();
-
-use crate::logger::executor;
-use crate::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("parser.rs");
 use crate::module_extractor::ModuleParser;
 
 codegen_items!(

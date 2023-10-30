@@ -8,7 +8,6 @@ use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, PathArguments, PatType, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use bean_dependency_path_parser::BeanDependencyPathParser;
 use codegen_utils::syn_helper::SynHelper;
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::dependency::{ArgDepType, AutowiredField, AutowiredFnArg, AutowiredType, DependencyDescriptor, DependencyMetadata, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
@@ -20,11 +19,12 @@ pub mod bean_dependency_path_parser;
 
 pub struct BeanDependencyParser;
 
-use_logging!();
-initialize_log!();
-
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("bean_parser.rs");
 
 /// Add the DepType to Bean after all Beans are added.
 impl BeanDependencyParser {

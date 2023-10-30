@@ -7,11 +7,12 @@ use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::T
 
 use crate::module_macro_lib::knockoff_context_builder::SynHelper;
 
-use knockoff_logging::{initialize_log, use_logging};
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("factory_factory_generator.rs");
 
 pub struct FactoryBeanBeanFactoryGenerator {
     concrete_bean_factories: Vec<BeanFactoryInfo>,

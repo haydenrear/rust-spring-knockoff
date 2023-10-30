@@ -14,13 +14,12 @@ use crate::aspect_knockoff_provider;
 use crate::aspect_knockoff_provider::aspect_parse_provider::MethodAdviceAspectCodegen;
 use crate::aspect_knockoff_provider::{AspectInfo, MethodAdviceChain};
 
-use knockoff_logging::{initialize_log, use_logging};
-
-use_logging!();
-initialize_log!();
-
-use factories_codegen::logger::executor;
-use factories_codegen::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("aspect_knockoff_provider.rs");
 
 #[derive(Default, Clone)]
 pub struct AspectParser;
@@ -32,6 +31,8 @@ impl AspectParser {
         Self {}
     }
 
+    /// This runs after the parse provider, which means that the aspects from the program have already
+    /// been loaded into the ParseContainer. So now the item can be modified to add the aspect.
     pub fn modify_item(parse_container: &mut ParseContainer,
                        item: &mut Item, path_depth: Vec<String>) {
         match item {

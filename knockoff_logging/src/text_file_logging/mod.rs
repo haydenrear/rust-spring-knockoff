@@ -10,15 +10,15 @@ use std::os::fd::AsFd;
 use std::path::{Path, PathBuf};
 use std::ptr::write;
 use std::sync::{Arc, Mutex};
-use executors::Executor;
-use executors::threadpool_executor::ThreadPoolExecutor;
-use crate::knockoff_logging::log_format::{LogData, LogFormatter};
-use crate::knockoff_logging::log_level::LogLevel;
-use crate::knockoff_logging::logger::{AsyncLogger, Logger, LoggerArgs};
-use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
+use lazy_static::lazy_static;
+use crate::log_format::{LogData, LogFormatter};
+use crate::log_level::LogLevel;
+use crate::logger::{AsyncLogger, Logger, LoggerArgs};
+use crate::standard_formatter::{StandardLogData, StandardLogFormatter};
 
 pub struct TextFileLoggerImpl {
-    pub(crate) text_file: Arc<Mutex<File>>,
+    pub(crate) text_file: File,
+
 }
 
 impl Debug for TextFileLoggerImpl {
@@ -53,14 +53,20 @@ pub trait TextFileLogger<T: LogData>: Logger<T> {
     fn new_from_file_dir(logging_dir: &str) -> Option<Self> where Self: Sized;
 }
 
+lazy_static! {
+    pub static ref static_: Mutex<String> = {
+        Mutex::new(String::from(""))
+    };
+}
 
 impl Logger<StandardLogData> for TextFileLoggerImpl {
     type LogFormatterType = StandardLogFormatter;
     type LoggerArgsType = TextFileLoggerArgs;
 
     fn new(log_args: TextFileLoggerArgs) -> Self {
+        let out = static_.lock().as_mut().unwrap();
         TextFileLoggerImpl {
-            text_file: Arc::new(Mutex::new(log_args.file)),
+            text_file: log_args.file,
         }
     }
 
@@ -69,17 +75,10 @@ impl Logger<StandardLogData> for TextFileLoggerImpl {
         todo!()
     }
 
-    fn write_log(&self, log_data: String) {
-        self.text_file.lock().and_then(|mut file| {
-            file.seek(SeekFrom::End(0)).ok().and_then(|seeked| {
-                file.write(log_data.as_bytes()).ok()
-            })
-                .or_else(|| {
-                    println!("Failed to log." );
-                    None
-                });
-            Ok(())
-        }).unwrap();
+    fn write_log(&mut self, log_data: String) {
+        let _ = self.text_file.write(log_data.as_bytes()).map_err(|e| {
+            println!("Failed to log {}", e.to_string().as_str());
+        });
     }
 }
 
@@ -114,7 +113,7 @@ impl TextFileLoggerImpl {
         File::create(file_path)
             .ok()
             .and_then(|mut file| Some(TextFileLoggerArgs { file }))
-            .map(|logger_args| TextFileLoggerImpl { text_file: Arc::new(Mutex::new(logger_args.file)) })
+            .map(|logger_args| TextFileLoggerImpl { text_file: logger_args.file}  )
             .or_else(|| panic!("Failed to create logger!"))
     }
 }

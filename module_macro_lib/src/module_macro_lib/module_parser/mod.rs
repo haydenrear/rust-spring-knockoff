@@ -25,7 +25,6 @@ use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::FieldAugmenterImpl;
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_codegen::module_extractor::ModuleParser;
 use module_macro_codegen::parser::LibParser;
 use module_macro_shared::item_modifier::ItemModifier;
@@ -36,12 +35,12 @@ use crate::module_macro_lib::item_parser::item_struct_parser::ItemStructParser;
 use crate::module_macro_lib::item_parser::item_trait_parser::ItemTraitParser;
 use crate::module_macro_lib::item_parser::ItemParser;
 
-use_logging!();
-initialize_log!();
-
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::parse_container::ParseContainerBuilder;
+
+use knockoff_logging::*;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("module_parser.rs");
 
 pub fn parse_module(mut found: Item) -> TokenStream {
     create_initial_parse_container(&mut found).as_mut()

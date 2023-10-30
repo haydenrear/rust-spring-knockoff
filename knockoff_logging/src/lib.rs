@@ -1,17 +1,23 @@
 #![feature(async_fn_in_trait)]
 #![feature(future_join)]
-pub mod knockoff_logging {
-    pub mod logger;
-    pub mod text_file_logging;
-    pub mod log_level;
-    pub mod log_format;
-    pub mod standard_formatter;
-    pub mod print_logging;
-    pub mod aggregate_logging;
-    pub mod logging_macro;
-    pub mod logging_facade;
-    pub mod default_logging;
-}
+pub mod logger;
+pub use crate::logger::*;
+pub mod text_file_logging;
+pub use crate::text_file_logging::*;
+pub mod log_level;
+pub use crate::log_level::*;
+pub mod log_format;
+pub use crate::log_format::*;
+pub mod standard_formatter;
+pub use crate::standard_formatter::*;
+pub mod print_logging;
+pub mod aggregate_logging;
+pub mod logging_macro;
+pub use crate::logging_macro::*;
+pub mod logging_facade;
+pub use crate::logging_facade::*;
+pub mod default_logging;
+
 
 #[cfg(test)]
 mod test {
@@ -22,26 +28,18 @@ mod test {
     use std::io::Read;
     use std::ops::Add;
     use std::path::{Path, PathBuf};
-    use executors::{futures_executor, JoinHandle};
-    use crate::{initialize_log, initialize_logger, log_message, use_logging, create_logger_expr};
-    use crate::knockoff_logging::log_level::LogLevel;
-    use crate::knockoff_logging::logger::Logger;
-    use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
     use std::sync::Arc;
     use std::thread::spawn;
     use std::time::{Duration, Instant};
     use wait_for::wait_for::wait_async::WaitFor;
-    use crate::knockoff_logging::logging_facade::{LoggingFacade};
-    use crate::knockoff_logging::text_file_logging::{TextFileLoggerImpl, TextFileLoggerArgs};
-    use crate::knockoff_logging::log_format::LogData;
-    use crate::knockoff_logging::logger::LoggerArgs;
-    use crate::knockoff_logging::log_format::LogFormatter;
-    use crate::knockoff_logging::text_file_logging::TextFileLogger;
-    use crate::executor;
-    use executors::Executor;
+    use codegen_utils::project_directory;
+    use std::sync::{MutexGuard, PoisonError};
+    use crate::{import_logger, initialize_logger};
+    use crate::*;
+    use lazy_static::lazy_static;
+    use std::sync::Mutex;
 
-    initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/knockoff_logging_test.log"));
-    initialize_log!();
+    import_logger_root!("lib.rs", env!("KNOCKOFF_LOGGING_TEST_FILE"));
 
     #[test]
     fn test_text_logging() {
@@ -107,16 +105,17 @@ mod test {
     }
 
     fn assert_test_message(logging_path: PathBuf, test_message: &str) {
-        let asserted = WaitFor::wait_for(Duration::from_millis(20000), &|| {
+        let asserted = WaitFor::<()>::wait_for(Duration::from_millis(20000), &|| {
             let file = File::open(logging_path.clone());
             assert!(file.is_ok());
             let mut out = "".to_string();
             file.unwrap().read_to_string(&mut out);
             String::from(out)
         }, &|out_str| {
+            println!("Testing if {} container {}", out_str, test_message);
             out_str.as_str().contains(test_message)
         });
-        assert!(asserted);
+        assert!(asserted, "Asserted was not correct {}", test_message);
     }
 
     fn create_log_path() -> PathBuf {

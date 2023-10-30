@@ -8,15 +8,18 @@ use module_macro_shared::parse_container::ParseContainer;
 
 pub struct ItemImplParser;
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::dependency::DependencyDescriptor;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::util::ParseUtil;
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("item_impl_parser.rs");
+
 
 impl ItemImplParser{
     fn add_path(path_depth: &mut Vec<String>, impl_found: &ItemImpl) {

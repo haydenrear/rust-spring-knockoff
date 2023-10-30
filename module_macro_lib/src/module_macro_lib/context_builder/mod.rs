@@ -3,7 +3,6 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use syn::Type;
 use codegen_utils::syn_helper::SynHelper;
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::profile_tree::ProfileBuilder;
@@ -13,11 +12,12 @@ use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::T
 
 pub struct ContextBuilder;
 
-use_logging!();
-initialize_log!();
-
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("context_builder.rs");
 
 impl ContextBuilder {
 

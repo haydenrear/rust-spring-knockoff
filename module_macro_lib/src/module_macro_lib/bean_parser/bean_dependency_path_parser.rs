@@ -7,7 +7,6 @@ use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, parse2, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use codegen_utils::syn_helper::SynHelper;
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::bean::BeanPathParts::GenType;
 use module_macro_shared::dependency::{AutowiredField, FieldDepType};
@@ -17,11 +16,12 @@ use module_macro_shared::parse_container::ParseContainer;
 use crate::module_macro_lib::util::ParseUtil;
 
 
-use_logging!();
-initialize_log!();
-
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("bean_dependency_path.rs");
 
 
 pub struct BeanDependencyPathParser;

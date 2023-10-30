@@ -2,13 +2,14 @@ use std::collections::HashMap;
 use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 use module_macro_shared::profile_tree::ProfileTree;
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("profile_profile_tree_modifier.rs");
 
 pub struct ProfileProfileTreeModifier {
     default_profile: ProfileBuilder

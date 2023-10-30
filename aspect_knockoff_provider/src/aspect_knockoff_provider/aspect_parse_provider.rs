@@ -11,13 +11,13 @@ use module_macro_shared::parse_container::{MetadataItemId, ParseContainer};
 use web_framework_shared::matcher::Matcher;
 use crate::aspect_knockoff_provider::{AspectMatcher, PointCut};
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::impl_parse_values;
-use_logging!();
-initialize_log!();
-
-use factories_codegen::logger::executor;
-use factories_codegen::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("aspect_parse_provider.rs");
 
 
 #[derive(Clone, Default)]

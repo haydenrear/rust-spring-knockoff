@@ -7,10 +7,10 @@ use std::ops::DerefMut;
 use std::os::fd::AsFd;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use crate::knockoff_logging::log_format::LogFormatter;
-use crate::knockoff_logging::log_level::LogLevel;
-use crate::knockoff_logging::logger::{Logger, LoggerArgs};
-use crate::knockoff_logging::standard_formatter::{StandardLogData, StandardLogFormatter};
+use crate::log_format::LogFormatter;
+use crate::log_level::LogLevel;
+use crate::logger::{Logger, LoggerArgs};
+use crate::standard_formatter::{StandardLogData, StandardLogFormatter};
 
 pub struct PrintLogger;
 
@@ -31,7 +31,7 @@ impl Logger<StandardLogData> for PrintLogger {
         todo!()
     }
 
-    fn write_log(&self, log_data: String) {
+    fn write_log(&mut self, log_data: String) {
         println!("{}", log_data);
     }
 

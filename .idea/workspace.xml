@@ -5,9 +5,13 @@
   </component>
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/tokio_util/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="updated" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Aspect provider">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wait_for/src/wait_for/wait_async/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/wait_for/src/wait_for/wait_async/mod.rs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -53,12 +57,12 @@
   <component name="GitRewordedCommitMessages">
     <option name="commitMessagesMapping">
       <RewordedCommitMessageMapping>
-        <option name="originalMessage" value="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register..." />
-        <option name="rewordedMessage" value="registered filter... removed 'static lifetime from filter registry, but had to make filters Box...  in order to be able to register..." />
+        <option name="originalMessage" value="updated" />
+        <option name="rewordedMessage" value="Aspect provider" />
       </RewordedCommitMessageMapping>
     </option>
     <option name="currentCommit" value="1" />
-    <option name="onto" value="98f63e4dfd4a98e13dd589260dcddfda9f76ec1a" />
+    <option name="onto" value="296098eba5a70dceaea80f33ad245190884b3da8" />
   </component>
   <component name="GithubPullRequestsUISettings">
     <option name="selectedUrlAndAccountId">
@@ -105,6 +109,15 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Cargo.Test lib::test.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test test::test_logging_facade.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test test::test_logging_macro.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test test::test_logging_macro_concurrent.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test test::test_text_logging.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test test_module_macro.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test wait_for::wait_async::test_async.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test wait_for::wait_async::test_async_multiple.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Tests in 'knockoff_logging'.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
@@ -112,10 +125,10 @@
     &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;remove__augfile&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/factories_codegen/src&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -142,18 +155,18 @@
       <recent name="$PROJECT_DIR$/target/test" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/knockoff_logging/src" />
       <recent name="$PROJECT_DIR$/target/debug/test_" />
       <recent name="$PROJECT_DIR$/target/debug" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/crategen_helper" />
-      <recent name="$PROJECT_DIR$/module_macro_lib/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Build mongo_repo" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="build --package mongo_repo --lib" />
+  <component name="RunManager" selected="Cargo.Test wait_for::wait_async::test_async_multiple">
+    <configuration name="Test lib::test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="false" />
+      <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
       <option name="allFeatures" value="false" />
@@ -167,44 +180,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Run knockoff_cli" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="run --package knockoff_cli --bin knockoff_cli" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="false" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs>
-        <env name="KNOCKOFF_DEV" value="&quot;true&quot;" />
-      </envs>
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test test::test_token_providers::test_parse_factories" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_parse_factories -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="false" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test test_aspect::test_dyn_values" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package aspect_knockoff_provider --lib test_aspect::test_dyn_values -- --exact" />
+    <configuration name="Test test::test_logging_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging --lib test::test_logging_macro -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
@@ -223,7 +200,24 @@
     <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="false" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test wait_for::wait_async::test_async_multiple" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package wait_for --lib wait_for::wait_async::test_async_multiple -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
       <option name="allFeatures" value="false" />
@@ -254,21 +248,38 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Tests in 'knockoff_logging'" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package knockoff_logging" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test test_aspect::test_dyn_values" />
-      <item itemvalue="Cargo.Build mongo_repo" />
-      <item itemvalue="Cargo.Test test::test_token_providers::test_parse_factories" />
-      <item itemvalue="Cargo.Run knockoff_cli" />
+      <item itemvalue="Cargo.Test lib::test" />
       <item itemvalue="Cargo.Test test_module_macro" />
+      <item itemvalue="Cargo.Test wait_for::wait_async::test_async_multiple" />
+      <item itemvalue="Cargo.Tests in 'knockoff_logging'" />
+      <item itemvalue="Cargo.Test test::test_logging_macro" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test wait_for::wait_async::test_async_multiple" />
         <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test test_aspect::test_dyn_values" />
-        <item itemvalue="Cargo.Build mongo_repo" />
-        <item itemvalue="Cargo.Test test::test_token_providers::test_parse_factories" />
-        <item itemvalue="Cargo.Run knockoff_cli" />
+        <item itemvalue="Cargo.Test lib::test" />
+        <item itemvalue="Cargo.Test test::test_logging_macro" />
+        <item itemvalue="Cargo.Tests in 'knockoff_logging'" />
       </list>
     </recent_temporary>
   </component>
@@ -348,6 +359,12 @@
       <workItem from="1694389970036" duration="23000" />
       <workItem from="1695248926303" duration="3857000" />
       <workItem from="1697640380113" duration="41821000" />
+      <workItem from="1698428873025" duration="25000" />
+      <workItem from="1698449079127" duration="9128000" />
+      <workItem from="1698598898247" duration="5000" />
+      <workItem from="1698601112031" duration="10049000" />
+      <workItem from="1698613640941" duration="11443000" />
+      <workItem from="1698626609916" duration="5243000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -692,7 +709,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="195" />
+    <option name="localTasksCounter" value="196" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -752,9 +769,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="parse factories" />
-    <MESSAGE value="Prepare for HandlerMapping" />
-    <MESSAGE value="Updated so that web_framework can be imported into factories_codegen to create handler_mapping amongst other" />
     <MESSAGE value="Updated" />
     <MESSAGE value="Implemented method argument" />
     <MESSAGE value="Fixed aspect issue." />
@@ -777,7 +791,10 @@
     <MESSAGE value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
     <MESSAGE value="Remove dummy app used only to test some random functionaliyu" />
     <MESSAGE value="updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated" />
+    <MESSAGE value="Removed augfile for aspects." />
+    <MESSAGE value="Aspect provider" />
+    <MESSAGE value="Fixed logging" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed logging" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

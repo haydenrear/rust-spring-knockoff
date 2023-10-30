@@ -6,17 +6,19 @@ use syn::__private::{str, TokenStream2};
 use syn::{ItemUse, parse2, Path, Type};
 use codegen_utils::syn_helper::SynHelper;
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::BeanFactoryGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("factory_generator.rs");
 
 pub trait FactoryGenerator: {
 

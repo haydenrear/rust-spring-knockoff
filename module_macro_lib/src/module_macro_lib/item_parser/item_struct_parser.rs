@@ -6,14 +6,17 @@ use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
 use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::parse_container::ParseContainer;
 
-use knockoff_logging::{initialize_log, use_logging};
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use quote::{quote, ToTokens};
-use crate::FieldAugmenterImpl;
 use crate::module_macro_lib::util::ParseUtil;
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("item_struct_parser.rs");
+
+use crate::FieldAugmenterImpl;
 
 pub struct ItemStructParser;
 

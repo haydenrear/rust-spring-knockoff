@@ -12,16 +12,16 @@ use rand::Rng;
 use syn::{Block, ImplItemMethod, ItemImpl, Stmt, Type};
 use aspect_parse_provider::MethodAdviceAspectCodegen;
 use codegen_utils::syn_helper::SynHelper;
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::impl_parse_values;
 use module_macro_shared::parse_container::{MetadataItem, ParseContainer};
 use web_framework_shared::matcher::{AntStringRequestMatcher, Matcher};
 
-use_logging!();
-initialize_log!();
-
-use factories_codegen::logger::executor;
-use factories_codegen::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("provider.rs");
 
 pub mod aspect_parse_provider;
 pub mod aspect_ts_generator;

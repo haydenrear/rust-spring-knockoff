@@ -8,12 +8,14 @@ use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
 use module_macro_shared::parse_container::ParseContainer;
 
-use knockoff_logging::{initialize_log, use_logging};
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanType};
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use crate::logger_lazy;
+import_logger!("item_fn_parser.rs");
+
 use module_macro_shared::bean::BeanPathParts::FnType;
 use module_macro_shared::dependency::FieldDepType;
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};

@@ -1,4 +1,3 @@
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::functions::FunctionType;
 use module_macro_shared::parse_container::parse_container_builder::BuildParseContainer;
 use module_macro_shared::parse_container::ParseContainer;
@@ -6,15 +5,19 @@ use crate::module_macro_lib::bean_parser::BeanDependencyParser;
 
 use knockoff_providers_gen::DelegatingParseContainerModifierProvider;
 
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::StandardLoggingFacade;
-use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 use module_macro_shared::parse_container::parse_container_modifier::ParseContainerModifier;
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("parse_container_dependency.rs");
+
 pub struct DelegateParseContainerModifier;
 
 impl BuildParseContainer for DelegateParseContainerModifier {

@@ -2,12 +2,14 @@ use quote::ToTokens;
 use syn::Attribute;
 use codegen_utils::syn_helper::SynHelper;
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::profile_tree::ProfileBuilder;
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("util.rs");
+
 
 pub struct ParseUtil;
 

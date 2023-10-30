@@ -25,7 +25,9 @@ members = [
     "security_parse_provider",
     "knockoff_cli",
     "aspect_knockoff_provider",
-    "collection_util"
+    "collection_util",
+    "knockoff_tokio_util",
+    "knockoff_env"
 ]
 exclude = [
     "target/knockoff_providers_gen"

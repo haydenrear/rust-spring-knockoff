@@ -7,16 +7,16 @@ use syn::token::Struct;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::BeanDefinition;
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::dependency::{ArgDepType, AutowiredField, DependencyDescriptor, DependencyMetadata, DepType, FieldDepType};
 use module_macro_shared::functions::ModulesFunctions;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
-use_logging!();
-initialize_log!();
-
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("bean_factory_info.rs");
 
 #[derive(Clone, Default)]
 pub struct BeanFactoryInfo {

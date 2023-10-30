@@ -12,14 +12,15 @@ use syn::parse::{ParseBuffer, ParseStream};
 use syn::token::Brace;
 use build_lib::replace_modules;
 use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
-use codegen_utils::project_directory;
 use module_macro_codegen::parser::LibParser;
 
-use knockoff_logging::{initialize_log, initialize_logger, use_logging, create_logger_expr};
+use knockoff_logging::*;
 
-use_logging!();
-initialize_logger!(TextFileLoggerImpl, StandardLogData, concat!(project_directory!(), "log_out/authentication_gen.log"));
-initialize_log!();
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/authentication_gen_build.log"));
 
 fn main() {
     log_message!("Initializing module macro lib.");

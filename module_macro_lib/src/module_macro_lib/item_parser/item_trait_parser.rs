@@ -4,11 +4,12 @@ use crate::module_macro_lib::item_parser::ItemParser;
 use module_macro_shared::module_tree::Trait;
 use module_macro_shared::parse_container::ParseContainer;
 
-use knockoff_logging::{initialize_log, use_logging};
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("item_trait_parser.rs");
 
 pub struct ItemTraitParser;
 

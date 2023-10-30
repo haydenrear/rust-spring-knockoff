@@ -57,6 +57,8 @@
       <sourceFolder url="file://$MODULE_DIR$/aspect_knockoff_provider/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/codegen_resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/collection_util/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/knockoff_tokio_util/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/knockoff_env/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

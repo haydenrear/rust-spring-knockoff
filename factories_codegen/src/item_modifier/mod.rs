@@ -1,14 +1,15 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::Path;
-use knockoff_logging::{initialize_log, use_logging};
+use knockoff_logging::*;
 use crate::provider::ProviderProvider;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
 
-use_logging!();
-initialize_log!();
-
-use crate::logger::executor;
-use crate::logger::StandardLoggingFacade;
+import_logger!("item_modifier.rs");
 
 pub struct ItemModifierProvider;
 

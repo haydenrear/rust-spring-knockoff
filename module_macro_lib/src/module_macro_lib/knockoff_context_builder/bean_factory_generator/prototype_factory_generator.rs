@@ -5,11 +5,12 @@ use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::B
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 
-use knockoff_logging::{initialize_log, use_logging};
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("prototype_factory_generator.rs");
 
 pub struct PrototypeBeanFactoryGenerator {
     concrete_bean_factories: Vec<BeanFactoryInfo>,

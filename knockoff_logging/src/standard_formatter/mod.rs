@@ -1,6 +1,6 @@
 use std::fmt::Formatter;
-use crate::knockoff_logging::log_format::{LogData, LogFormatter};
-use crate::knockoff_logging::log_level::{LogLevel, LogLevels};
+use crate::log_format::{LogData, LogFormatter};
+use crate::log_level::{LogLevel, LogLevels};
 
 pub struct StandardLogFormatter;
 

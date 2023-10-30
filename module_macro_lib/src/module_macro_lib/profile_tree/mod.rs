@@ -8,18 +8,21 @@ use syn::{parse2, Type};
 use codegen_utils::syn_helper::SynHelper;
 use concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 
-use knockoff_logging::{initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
 use module_macro_shared::dependency::{DependencyDescriptor, FieldDepType};
 use module_macro_shared::parse_container::{MetadataItem, MetadataItemId};
 use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
 use mutable_profile_tree_modifier::MutableProfileTreeModifier;
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("profile_tree.rs");
+
 
 pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;

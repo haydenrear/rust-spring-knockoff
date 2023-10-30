@@ -14,12 +14,13 @@ use module_macro_shared::profile_tree::ProfileBuilder;
 use mutable_factory_generator::MutableBeanFactoryGenerator;
 use prototype_factory_generator::PrototypeBeanFactoryGenerator;
 
-use knockoff_logging::{initialize_log, use_logging};
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::factory_fn_factory_generator::FactoryFnBeanFactoryGenerator;
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::executor;
-use crate::module_macro_lib::logging::StandardLoggingFacade;
+import_logger!("bean_factory_generator.rs");
 
 pub mod mutable_factory_generator;
 pub mod prototype_factory_generator;

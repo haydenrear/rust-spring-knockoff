@@ -31,7 +31,6 @@ use crate::module_macro_lib::context_builder::ContextBuilder;
 use crate::module_macro_lib::profile_tree::ProfileTreeBuilder;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
-use knockoff_logging::{create_logger_expr, initialize_log, use_logging};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor, DependencyMetadata, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
@@ -41,15 +40,18 @@ use module_macro_shared::parse_container::parse_container_builder::BuildParseCon
 use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::profile_tree::profile_tree_finalizer::ProfileTreeFinalizer;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
-use_logging!();
-initialize_log!();
-use crate::module_macro_lib::logging::StandardLoggingFacade;
-use crate::module_macro_lib::logging::executor;
 use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 use crate::module_macro_lib::parse_container::parse_container_dependencies::{BuildDependencyParseContainer, DelegateParseContainerModifier};
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("parse_container.rs");
 
 pub mod parse_container_dependencies;
 

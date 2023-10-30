@@ -1,4 +1,4 @@
-use crate::knockoff_logging::log_level::LogLevel;
+use crate::log_level::LogLevel;
 
 pub trait LogFormatter<T> {
     fn format_log(log_level: LogLevel, text: String, id: String) -> String;

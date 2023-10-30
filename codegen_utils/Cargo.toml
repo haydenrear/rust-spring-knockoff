@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 syn = {version = "1.0", features = ["full"]}
+knockoff_env = {path = "../knockoff_env"}

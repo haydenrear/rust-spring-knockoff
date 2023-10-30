@@ -4,11 +4,12 @@ use proc_macro2::Ident;
 use codegen_utils::syn_helper;
 use quote::ToTokens;
 use crate::bean::{BeanPath, BeanType};
-use knockoff_logging::{initialize_log, use_logging};
-use_logging!();
-initialize_log!();
-use crate::logger::executor;
-use crate::logger::StandardLoggingFacade;
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("functions.rs");
 use crate::profile_tree::ProfileBuilder;
 
 /**
