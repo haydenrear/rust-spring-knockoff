@@ -1,6 +1,6 @@
 [package]
 name = "authentication_gen"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -19,64 +19,64 @@ rand = "0.8.5"
 
 [build-dependencies.build_lib]
 path ="../build_lib"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.module_macro_shared]
 path ="../module_macro_shared"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.knockoff_logging]
 path ="../knockoff_logging"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.web_framework_shared]
 path ="../web_framework_shared"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.knockoff_security]
 path ="../knockoff_security"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.spring_knockoff_boot_macro]
 path ="../spring_knockoff_boot_macro"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.module_macro_codegen]
 path ="../module_macro_codegen"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.codegen_utils]
 path ="../codegen_utils"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 
 [build-dependencies.codegen_utils]
 path = "../codegen_utils"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [build-dependencies.knockoff_logging]
 path = "../knockoff_logging"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [build-dependencies.spring_knockoff_boot_macro]
 path = "../spring_knockoff_boot_macro"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [build-dependencies.knockoff_security]
 path = "../knockoff_security"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [build-dependencies.module_macro_codegen]
 path = "../module_macro_codegen"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [build-dependencies.module_macro_shared]
 path = "../module_macro_shared"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [build-dependencies.web_framework_shared]
 path = "../web_framework_shared"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 
 [build-dependencies]

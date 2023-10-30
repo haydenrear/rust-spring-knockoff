@@ -1,6 +1,6 @@
 [package]
 name = "web_framework"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 
@@ -21,41 +21,41 @@ syn = {version = "1.0", features = ["full"]}
 quote = "1.0"
 dynpath = "0.1.4"
 [dependencies.data_framework]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../data_framework"
 [dependencies.mongo_repo]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ='../mongo_repo'
 [dependencies.knockoff_security]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../knockoff_security"
 [dependencies.web_framework_shared]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../web_framework_shared"
 [dependencies.codegen_utils]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../codegen_utils"
 [dependencies.authentication_gen]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../authentication_gen"
 
 [build-dependencies]
 syn = {version = "1.0", features = ["full"]}
 [build-dependencies.codegen_utils]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../codegen_utils"
 [build-dependencies.build_lib]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../build_lib"
 [build-dependencies.web_framework_shared]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../web_framework_shared"

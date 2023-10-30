@@ -14,7 +14,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
-import_logger_root!("lib.rs", concat!(project_directory!(), "log_out/module_macro_codegen_build_rs.log"));
+import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/module_macro_codegen_build_rs.log"));
 
 /// The token stream providers need to depend on user provided crate, so that means we need to
 /// generate a crate that depends on those user provided crates. We will then delegate to the user
@@ -23,6 +23,8 @@ import_logger_root!("lib.rs", concat!(project_directory!(), "log_out/module_macr
 /// or other library author to generate the tokens from.
 fn main() {
      let mut directory_tuple = get_create_directories();
+
+     info!("Writing output directory: {:?}", &directory_tuple);
 
      FactoriesParser::write_cargo_toml(&directory_tuple.1, directory_tuple.3);
      FactoriesParser::write_tokens_lib_rs(directory_tuple.2);
@@ -44,10 +46,22 @@ fn get_create_directories() -> (String, String, String, String) {
      cargo_toml += "/knockoff_providers_gen/Cargo.toml";
      let mut out_lib_rs = out_directory.clone();
      out_lib_rs += "/knockoff_providers_gen/src/lib.rs";
-     fs::remove_dir_all(&out_lib_dir);
-     fs::create_dir_all(&out_lib_dir);
+     let _ = fs::remove_dir_all(&out_lib_dir)
+         .map_err(|err| {
+              write_error_creating_out_lib(&mut out_lib_rs, &err);
+              Ok::<(), Error>(())
+         });
+     let _ = fs::create_dir_all(&out_lib_dir)
+          .map_err(|err| {
+               write_error_creating_out_lib(&mut out_lib_rs, &err);
+               Ok::<(), Error>(())
+          });
 
      (out_lib_dir, cargo_toml, out_lib_rs, base_dir)
+}
+
+fn write_error_creating_out_lib(mut out_lib_rs: &mut String, err: &dyn std::error::Error)  {
+     error!("Tried to create {}. Error creating knockoff providers gen: {}.", out_lib_rs, err.to_string().as_str());
 }
 
 

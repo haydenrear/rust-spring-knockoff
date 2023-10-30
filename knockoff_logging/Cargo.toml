@@ -1,6 +1,6 @@
 [package]
 name = "knockoff_logging"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,9 +11,9 @@ log = "0.4.20"
 
 [dependencies.wait_for]
 path = "../wait_for"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 [dependencies.codegen_utils]
-version = "0.1.4"
+version = "0.1.5"
 path = "../codegen_utils"
 registry = "estuary"

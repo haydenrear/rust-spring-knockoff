@@ -1,6 +1,6 @@
 [package]
 name = "knockoff_security"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,10 +10,10 @@ serde = { version = "1.0", features = ["derive"] }
 base64 = "0.21.0"
 
 [dependencies.web_framework_shared]
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 path ="../web_framework_shared"
 [dependencies.data_framework]
 path ="../data_framework"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"

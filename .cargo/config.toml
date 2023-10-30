@@ -3,7 +3,7 @@ AUG_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/kno
 KNOCKOFF_FACTORIES = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/knockoff_factories.toml"
 LOGGING_DIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/log.log"
 KNOCKOFF_LOGGING_TEST_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log"
-PROJECT_BASE_DIRECTORY = "/Users/hayde/IdeaProjects/rust-spring-knockoff/"
+PROJECT_BASE_DIRECTORY = "/Users/hayde/IdeaProjects/rust-spring-knockoff"
 MODULE_MACRO_REGISTRY_INDEX_URI = "http://localhost:1234/git/index"
 KNOCKOFF_DEV = "true"
 [registries]

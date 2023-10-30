@@ -15,8 +15,6 @@ use module_macro_codegen::parser::LibParser;
 use crate_gen::CrateWriter;
 use std::fmt::Write as write;
 
-
-
 use knockoff_logging::*;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
@@ -25,9 +23,6 @@ import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/module_m
 
 
 fn main() {
-    //TODO:
-    // println!("cargo:rustc-link-search=/Users/hayde/IdeaProjects/rust-spring-knockoff/target/debug");
-    // println!("cargo:rustc-link-lib=static=knockoff_providers_gen");
     log_message!("Initializing module macro lib.");
     let aug_file = get_aug_file();
     log_message!("Found augmented file: {}.", aug_file.as_str());

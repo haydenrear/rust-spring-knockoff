@@ -147,7 +147,7 @@ fn update_module_macro_data(t: &mut Table, macro_type: &str) {
 
 fn download_update_providers_gen_dependent(registry_id: &SourceId, module_macro_lib: &str) {
     let config = Config::default().unwrap();
-    download_cargo_crate(module_macro_lib, "0.1.4", registry_id, config)
+    download_cargo_crate(module_macro_lib, "0.1.5", registry_id, config)
         .map(|pkg|
             copy_cargo_crate(
                 get_target_directory().join(module_macro_lib),
@@ -247,8 +247,8 @@ fn generate_knockoff_builder(args: &HashMap<String, String>) {
     let lib_file = src_dir.join("lib.rs");
     let module_macro_codegen_dependency = args.get("mode")
         .filter(|mode| mode.as_str() == "knockoff_dev")
-        .map(|_| "module_macro_codegen = { version = \"0.1.4\", registry = \"estuary\", path = \"../../module_macro_codegen\" }")
-        .or(Some("module_macro_codegen = {version = \"0.1.4\", registry = \"estuary\"}"))
+        .map(|_| "module_macro_codegen = { version = \"0.1.5\", registry = \"estuary\", path = \"../../module_macro_codegen\" }")
+        .or(Some("module_macro_codegen = {version = \"0.1.5\", registry = \"estuary\"}"))
         .unwrap();
 
     fs::create_dir_all(&src_dir)
@@ -263,7 +263,7 @@ fn generate_knockoff_builder(args: &HashMap<String, String>) {
     let mut cargo_toml = File::create(knockoff_builder_der.join("Cargo.toml")).unwrap();
     cargo_toml.write_all(
         format!(
-            "[package]\nname = \"knockoff_builder\"\nversion = \"0.1.4\"\n\n[dependencies]\n{}\n[workspace]",
+            "[package]\nname = \"knockoff_builder\"\nversion = \"0.1.5\"\n\n[dependencies]\n{}\n[workspace]",
             module_macro_codegen_dependency
         ).as_bytes()
     ).expect("Could not write codegen.");

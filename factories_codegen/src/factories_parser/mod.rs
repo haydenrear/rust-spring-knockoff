@@ -153,7 +153,7 @@ impl FactoriesParser {
         let mut prelude =
 "[package]
 name = \"knockoff_providers_gen\"
-version = \"0.1.4\"
+version = \"0.1.5\"
 edition = \"2021\"
 ";
         prelude.to_string()
@@ -205,8 +205,8 @@ edition = \"2021\"
             writeln!(&mut cargo_file, "{}", dep_table.to_string()).unwrap();
         });
         Self::write_provider_dependency_data(parsed_factories, &mut cargo_file, base_dir);
-        writeln!(&mut cargo_file, "[workspace]")
-            .unwrap();
+        // writeln!(&mut cargo_file, "[workspace]")
+        //     .unwrap();
         cargo_file
     }
 
@@ -229,20 +229,29 @@ edition = \"2021\"
     fn remove_paths_from_dependencies_table(mut out_table: &mut Map<String, Value>, base_dir: &String) {
         // if the module_macro_lib library is in the project directory, then keep the ../path in the
         // Cargo.toml.
-        if !Path::new(&base_dir).join("module_macro_lib").exists() {
-            log_message!("Removing paths from knockoff_providers_gen Cargo.toml because not knockoff dev.");
-            out_table.get_mut("dependencies")
-                .map(|out| out.as_table_mut()
-                    .map(|t| {
-                        let keys = t.keys().map(|s| s.clone()).collect::<Vec<String>>();
-                        keys.iter().for_each(|key| {
-                            t.get_mut(key).unwrap().as_table_mut().map(|t| {
-                                t.remove("path");
-                            });
-                        });
-                    })
-                );
-        }
+        log_message!("Removing paths from knockoff_providers_gen Cargo.toml because not knockoff dev.");
+        out_table.get_mut("dependencies")
+            .map(|out| out.as_table_mut()
+                .map(|t| {
+                    let keys = t.keys()
+                        .map(|s| s.clone())
+                        .collect::<Vec<String>>();
+                    keys.iter().for_each(|key| {
+                        let table_mut = t.get_mut(key).unwrap().as_table_mut();
+                        if table_mut.is_some() {
+                            let path = t.get("path");
+                            if path.is_some() {
+                                let path_unwrapped = path.unwrap().as_str().unwrap();
+                                let path_buf = Path::new(base_dir).join(Path::new(path_unwrapped));
+                                if path_buf.exists() {
+                                    info!("Removing path for {}, as it does not point to a local path", path_buf.to_str().unwrap());
+                                    t.remove("path");
+                                }
+                            }
+                        }
+                    });
+                })
+            );
     }
 
     pub fn write_tokens_lib_rs(mut directory_tuple: String) {

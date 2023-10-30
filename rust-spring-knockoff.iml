@@ -59,6 +59,7 @@
       <sourceFolder url="file://$MODULE_DIR$/collection_util/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_tokio_util/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_env/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/rust_spring_knockoff/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

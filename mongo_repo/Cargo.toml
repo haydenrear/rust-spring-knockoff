@@ -1,6 +1,6 @@
 [package]
 name = "mongo_repo"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,7 +20,7 @@ default-features = false
 features = ["async-std-runtime"]
 [dependencies.data_framework]
 path ="../data_framework"
-version = "0.1.4"
+version = "0.1.5"
 registry = "estuary"
 
 [dev-dependencies]

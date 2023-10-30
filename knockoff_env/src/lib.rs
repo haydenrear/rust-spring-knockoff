@@ -24,8 +24,7 @@ pub fn get_build_project_base_path() -> PathBuf {
 
 pub fn get_build_project_dir(path: &str) -> String {
     let mut project_dir = project_directory!().to_string();
-    project_dir += path;
-    project_dir
+    Path::new(project_dir.as_str()).join(path).to_str().unwrap().to_string()
 }
 
 pub fn get_build_project_path(path: &str) -> PathBuf {

@@ -65,7 +65,7 @@ impl TomlWriter {
         writeln!(&mut prelude,
 "[package]
 name = \"{}\"
-version = \"0.1.4\"
+version = \"0.1.5\"
 edition = \"2021\"
 ", name);
         prelude

@@ -27,7 +27,8 @@ members = [
     "aspect_knockoff_provider",
     "collection_util",
     "knockoff_tokio_util",
-    "knockoff_env"
+    "knockoff_env",
+    "rust_spring_knockoff"
 ]
 exclude = [
     "target/knockoff_providers_gen"
