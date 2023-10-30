@@ -1,18 +1,13 @@
 use std::error::Error;
-use std::future;
-use std::future::{Future, PollFn};
-use std::marker::PhantomData;
-use std::ops::Add;
-use std::pin::{Pin, pin};
+use std::future::Future;
+use std::ops::{Add, Deref, DerefMut};
+use std::pin::Pin;
 use std::sync::Arc;
-use std::sync::mpsc::RecvTimeoutError::Timeout;
-use std::task::{Context, Poll};
-use std::thread::sleep;
 use std::time::{Duration, Instant};
 use time::timeout;
-use tokio::task::JoinHandle;
-use tokio::{task, task_local, time};
-use tokio::time::error::Elapsed;
+use tokio::time;
+
+mod timeout_future;
 
 #[derive(Default)]
 pub struct WaitFor<U: Send + Sync> {
@@ -25,73 +20,8 @@ pub struct Finished;
 #[derive(Default)]
 pub struct TimedOut;
 
-pub trait TimedOutT: Send + Sync {}
 impl TimedOutT for TimedOut{}
 impl TimedOutT for Finished {}
-
-/// Function returns an option if it is ready and None if it is not, but it returns back to the
-/// caller. so that it can continue and be called multiple times.
-#[derive(Default)]
-pub struct Poller<F, T, FUT, DataProviderT>
-    where
-        F: Fn(Arc<DataProviderT>) -> FUT,
-        FUT: Future<Output=Option<T>>,
-        DataProviderT: Send + Sync,
-        T: Send + Sync
-{
-    f: F,
-    data_provider: Arc<DataProviderT>,
-    p: PhantomData<T>,
-    fut: PhantomData<FUT>
-}
-
-pub trait PollingFuture<T: Send + Sync, DataProviderT: Send + Sync>: Future<Output=Option<T>> {
-    async fn do_poll(&self) -> Option<T>;
-}
-
-impl<F, T, FUT, DataProviderT> Future for Poller<F, T, FUT, DataProviderT>
-    where
-        F: Fn(Arc<DataProviderT>) -> FUT,
-        FUT: Future<Output=Option<T>>,
-        DataProviderT: Send + Sync,
-        T: Send + Sync
-{
-    type Output = Option<T>;
-
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let polled = future::poll_fn(|ctx| {
-            let polled = pin!(self.do_poll()).as_mut().poll(ctx);
-            if let Poll::Ready(Some(t)) = polled {
-                Poll::Ready(t)
-            } else {
-                Poll::Pending
-            }
-        });
-        if let Poll::Ready(t) = pin!(polled).as_mut().poll(cx) {
-            Poll::Ready(Some(t))
-        } else {
-            Poll::Pending
-        }
-    }
-}
-
-impl<F, T, FUT, DataProviderT> PollingFuture<T, DataProviderT> for Poller<F, T, FUT, DataProviderT>
-where
-    F: Fn(Arc<DataProviderT>) -> FUT,
-    FUT: Future<Output=Option<T>>,
-    DataProviderT: Send + Sync,
-    T: Sync + Send
-{
-    async fn do_poll(&self) -> Option<T> {
-        let polled: FUT = (self.f)(self.data_provider.clone());
-        let polled_value = polled.await;
-        if polled_value.as_ref().is_some() {
-            Some(polled_value.unwrap())
-        } else {
-            None
-        }
-    }
-}
 
 
 impl<U: Send + Sync> WaitFor<U> {
@@ -189,3 +119,5 @@ async fn test_async_multiple() {
             pinned_fn
         }).await);
 }
+
+pub trait TimedOutT: Send + Sync {}
