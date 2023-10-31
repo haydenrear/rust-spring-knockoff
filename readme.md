@@ -232,10 +232,36 @@ To include in another project you need to:
 1. Start estuary in Docker:
 
 ```shell
+# if you accidentally need to redeploy it, then don't forget to clear your cargo cache, and 
 rm -rf ~/estuary_data/
+# if you get an error afterwards about a hash, then that's actually your Cargo.lock.
 rm -rf ~/.cargo/registry/cache/localhost-*
 docker build -t estuary-quickstart .
 docker run --rm -it -p 1234:7878 -v ~/estuary_data:/var/lib/estuary estuary-quickstart --base-url=http://localhost:1234
+```
+
+Make sure you have in your .cargo/config.toml in root:
+
+```toml
+[registries]
+estuary = { index = "http://localhost:1234/git/index" }
+```
+
+## Example Yank
+
+Say you deploy and then need to redeploy a particular module. So you need to yank from estuary.
+
+```shell
+cargo yank [package_name] --version [version] --registry estuary
+# OR
+cargo yank package_name@version --registry estuary
+```
+
+This assumes that you have
+
+```toml
+[registries]
+estuary = { index = "http://localhost:1234/git/index" }
 ```
 
 2. Publish the packages

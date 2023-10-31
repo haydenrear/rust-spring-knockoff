@@ -7,6 +7,12 @@ edition = "2021"
 
 [dependencies]
 syn = {version = "1.0", features = ["full"]}
+lazy_static = "1.4.0"
 [dependencies.knockoff_env]
 version =  "0.1.5"
+registry = "estuary"
+path = "../knockoff_env"
+[dependencies.knockoff_logging]
+path = "../knockoff_logging"
+version = "0.1.5"
 registry = "estuary"

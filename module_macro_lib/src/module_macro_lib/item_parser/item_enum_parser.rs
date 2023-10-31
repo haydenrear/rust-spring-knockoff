@@ -18,6 +18,7 @@ import_logger!("item_enum_parser.rs");
 //TODO: the fields here may screw things up. Enum is not ready to be autowired...
 impl ItemParser<ItemEnum> for ItemEnumParser {
     fn parse_item(parse_container: &mut ParseContainer, enum_to_add: &mut ItemEnum, path_depth: Vec<String>) {
+        info!("Parsing enum.");
         log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
         &mut parse_container.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())
             .map(|struct_impl: &mut BeanDefinition| {
@@ -27,9 +28,8 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                 let enum_fields = enum_to_add.variants.iter()
                     .map(|variant| variant.fields.clone())
                     .collect::<Vec<Fields>>();
-
                 let mut impl_found = BeanDefinition {
-                    struct_type: None,
+                    struct_type: syn::parse2::<syn::Type>(enum_to_add.ident.clone().to_token_stream()).ok(),
                     path_depth,
                     struct_found: None,
                     traits_impl: vec![],

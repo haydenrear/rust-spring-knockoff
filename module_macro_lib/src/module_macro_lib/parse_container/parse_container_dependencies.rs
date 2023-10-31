@@ -39,8 +39,10 @@ impl BuildDependencyParseContainer {
         let keys = parse_container.get_injectable_keys();
         log_message!("{} is the number of injectable keys before.", keys.len());
         for id in keys.iter() {
+            info!("Removing {:?} from injectable types builder.", id);
             let mut removed = parse_container.injectable_types_builder.remove(id).unwrap();
             let deps_set = BeanDependencyParser::add_dependencies(removed, &parse_container.injectable_types_builder, &parse_container.fns);
+            info!("Adding {:?} to injectable types builder.", id);
             parse_container.injectable_types_builder.insert(id.clone().parse().unwrap(), deps_set);
         }
         log_message!("{} is the number of injectable keys after.", parse_container.injectable_types_builder.len());

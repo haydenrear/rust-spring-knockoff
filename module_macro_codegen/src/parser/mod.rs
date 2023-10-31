@@ -81,11 +81,15 @@ impl LibParser {
     }
 
     pub fn parse_codegen_items(in_dir_file: &str) -> Vec<CodegenItemType> {
-        let flatten = Self::parse_syn(in_dir_file)
-            .iter()
-            .flat_map(|syn_file| get_codegen_item(&syn_file.items.clone()))
-            .collect::<Vec<CodegenItemType>>();
-        flatten
+        if Path::new(in_dir_file).exists() {
+            let flatten = Self::parse_syn(in_dir_file)
+                .iter()
+                .flat_map(|syn_file| get_codegen_item(&syn_file.items.clone()))
+                .collect::<Vec<CodegenItemType>>();
+            flatten
+        } else {
+            vec![]
+        }
     }
 
     pub fn parse_syn(in_dir_file: &str) -> Option<syn::File> {
@@ -103,10 +107,12 @@ impl LibParser {
         let out_path = Path::new(&env::var("OUT_DIR").unwrap())
             .join(codegen);
         File::create(out_path).map(|mut out_file_create| {
-            out_file_create.write(Self::get_imports().as_bytes())
-                .unwrap();
-            out_file_create.write(codegen_out.as_bytes())
-                .unwrap();
+            let out = out_file_create.write(Self::get_imports().as_bytes());
+            assert!(out.as_ref().is_ok(), "File could not be written");
+            out.unwrap();
+            let out = out_file_create.write(codegen_out.as_bytes());
+            assert!(out.as_ref().is_ok(), "File could not be written");
+            out.unwrap();
         }).or_else(|err| {
             Ok::<(), Error>(())
         }).unwrap();

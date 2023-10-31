@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
 use syn::__private::TokenStream2;
-use syn::Type;
+use syn::{parse2, Type};
 use bean_factory_generator::factory_factory_generator::FactoryBeanBeanFactoryGenerator;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
@@ -38,6 +38,31 @@ pub struct ApplicationContextGenerator {
     constructor_generator: Vec<Box<dyn TokenStreamGenerator>>,
     dynamic_token_provider: Vec<Box<dyn TokenStreamGenerator>>,
     profiles: Vec<ProfileBuilder>,
+}
+
+pub(crate) fn get_concrete_type_as_ident(concrete_type: &Option<Type>, ident_type: &Option<Ident>) -> Option<Ident> {
+   if concrete_type.as_ref().is_none() && ident_type.as_ref().is_none()  {
+       error!("Could not retrieve concrete type when creating concrete bean factory.");
+        None
+   }
+    else {
+        concrete_type
+            .as_ref()
+            .map(|t| {
+                info!("Attempting to create ident out of {:?}", SynHelper::get_str(t));
+                t
+            })
+            .map(|t| {
+                let parsed = parse2::<Ident>(t.to_token_stream());
+                if parsed.is_ok() {
+                    Some(Ident::new(t.to_token_stream().to_string().as_str(), Span::call_site()))
+                } else {
+                    None
+                }
+            })
+            .flatten()
+            .or(ident_type.as_ref().map(|i| i.clone()))
+    }
 }
 
 impl TokenStreamGenerator for ApplicationContextGenerator {
@@ -89,12 +114,14 @@ impl ApplicationContextGenerator {
 
     /// Parse the ProfileTree into BeanFactoryInfo objects, which will then be used to generate the BeanFactories for each bean.
     fn create_bean_factory_info(profile_tree: &ProfileTree) -> (Vec<BeanFactoryInfo>, Vec<BeanFactoryInfo>) {
+        info!("Creating bean factory info.");
         let concrete_bean_factory_info = Self::get_concrete_beans(&profile_tree.injectable_types).iter()
             .flat_map(|b| ConcreteBeanFactoryInfo::create_bean_factory_info(b))
             .collect::<Vec<BeanFactoryInfo>>();
         let abstract_bean_factory_info = Self::get_abstract_beans(&profile_tree.injectable_types).iter()
             .flat_map(|b| AbstractBeanFactoryInfo::create_bean_factory_info(b))
             .collect::<Vec<BeanFactoryInfo>>();
+        info!("Found {} concrete beans and {} abstract beans in bean factory info.", concrete_bean_factory_info.len(), abstract_bean_factory_info.len());
         (concrete_bean_factory_info, abstract_bean_factory_info)
     }
 

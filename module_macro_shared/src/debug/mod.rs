@@ -92,8 +92,13 @@ impl Debug for BeanPathParts {
                 debug_struct.field("associated_type", &SynHelper::get_str(associated_type).as_str());
                 debug_struct.finish()
             }
-            BeanPathParts::GenType { inner } => {
+            BeanPathParts::GenType { gen_type , ..} => {
                 let mut debug_struct = f.debug_struct("GenType");
+                debug_struct.field("inner", &SynHelper::get_str(gen_type).as_str());
+                debug_struct.finish()
+            }
+            BeanPathParts::BoxType { inner } => {
+                let mut debug_struct = f.debug_struct("BoxType");
                 debug_struct.field("inner", &SynHelper::get_str(inner).as_str());
                 debug_struct.finish()
             }

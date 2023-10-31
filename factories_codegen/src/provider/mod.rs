@@ -10,6 +10,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
+
 import_logger!("provider.rs");
 
 pub trait DelegatingProvider {

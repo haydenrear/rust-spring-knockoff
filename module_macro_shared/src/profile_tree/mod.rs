@@ -88,15 +88,17 @@ impl ProfileTree {
         })
     }
 
+
     fn create_bean_definition_concrete(bean: BeanDefinition) -> BeanDefinitionType {
-        print!("Creating concrete type for {}.", bean.id);
+        info!("Creating concrete type for {}.", bean.id);
         BeanDefinitionType::Concrete {
             bean
         }
     }
 
     fn create_bean_definition_abstract(bean: BeanDefinition, dep_type: DependencyDescriptor) -> BeanDefinitionType {
-        print!("Creating concrete type for {} and autowire type {}.", bean.id, dep_type.item_impl.to_token_stream().to_string().as_str());
+        info!("Creating abstract type for {} and autowire type {}.",
+            bean.id, dep_type.item_impl.to_token_stream().to_string().as_str());
         BeanDefinitionType::Abstract {
             bean, dep_type
         }

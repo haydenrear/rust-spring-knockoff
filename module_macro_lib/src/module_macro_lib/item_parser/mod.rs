@@ -4,7 +4,7 @@ use std::path::Path;
 use std::thread::available_parallelism;
 use paste::item;
 use quote::ToTokens;
-use syn::{Attribute, Fields, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait};
+use syn::{Attribute, Fields, ImplItem, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait};
 use codegen_utils::syn_helper::SynHelper;
 use item_impl_parser::ItemImplParser;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
@@ -21,8 +21,10 @@ use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use proc_macro2::Ident;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
+use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
 import_logger!("item_parser.rs");
 
 

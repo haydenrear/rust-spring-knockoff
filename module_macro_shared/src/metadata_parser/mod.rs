@@ -15,8 +15,12 @@ macro_rules! impl_parse_values {
                     return None;
                 }
                 let mut v = v.as_mut().unwrap();
-                let mut aspect = v.as_any().downcast_mut::<$ty>().unwrap();
-                Some(aspect)
+                let out = v.as_any().downcast_mut::<$ty>();
+                if out.is_some()  {
+                    Some(out.unwrap())
+                } else {
+                    None
+                }
             }
         }
     }

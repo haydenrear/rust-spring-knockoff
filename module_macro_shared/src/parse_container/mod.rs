@@ -66,7 +66,7 @@ impl ParseContainer {
     }
 
     pub fn log_app_container_info(&self) {
-        self.injectable_types_builder.iter().filter(|&s| s.1.struct_found.is_none())
+        self.injectable_types_builder.iter().filter(|&s| s.1.struct_found.as_ref().is_none() && s.1.ident.as_ref().is_none())
             .for_each(|s| {
                 log_message!("Could not find struct type with ident {}.", s.0.clone());
             })

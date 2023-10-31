@@ -2,13 +2,13 @@ use std::any::TypeId;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::Path;
+use string_utils::strip_whitespace;
 use proc_macro2::Ident;
 use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
-use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, parse2, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
+use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, ItemImpl, Lifetime, ParenthesizedGenericArguments, parse2, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::bean::BeanPathParts::GenType;
 use module_macro_shared::dependency::{AutowiredField, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
@@ -23,8 +23,8 @@ use codegen_utils::project_directory;
 use crate::logger_lazy;
 import_logger!("bean_dependency_path.rs");
 
-
 pub struct BeanDependencyPathParser;
+
 
 impl BeanDependencyPathParser {
 
@@ -43,6 +43,48 @@ impl BeanDependencyPathParser {
     pub(crate) fn parse_path_to_bean_path(path: &syn::Path) -> BeanPath {
         BeanPath{
             path_segments: Self::parse_path(path)
+        }
+    }
+
+    pub(crate) fn is_trait_abstract(item_impl: &Option<ItemImpl>, concrete_ident: &Option<Ident>) -> bool {
+        let item_impl_exists = item_impl.as_ref().is_some();
+        info!("Testing if trait is abstract.");
+        if concrete_ident.as_ref().is_some() {
+            info!("Testing if {:?} is abstract.", SynHelper::get_str(concrete_ident.as_ref().unwrap()));
+        } else {
+            info!("Attempted to test if trat abstract but no concrete ident to compare to.");
+            return true
+        }
+        let is_valid_abstract = item_impl.as_ref().filter(|item_impl_value| {
+            let self_ty = item_impl_value.trait_.as_ref();
+            if self_ty.as_ref().is_none() {
+                return false;
+            }
+            let trait_ty = &self_ty.cloned().unwrap().1;
+            !Self::are_same(trait_ty, concrete_ident.as_ref().unwrap())
+        }).is_some();
+        if item_impl_exists && is_valid_abstract {
+            info!("Trait was abstract.");
+            true
+        } else {
+            info!("Trait was not abstract.");
+            false
+        }
+    }
+
+    pub(crate) fn are_same(trait_ty: &syn::Path, concrete_ident: &syn::Ident) -> bool {
+        let bean_path = BeanDependencyPathParser::parse_path_to_bean_path(trait_ty);
+        let has_inner = bean_path.get_inner_type().as_ref().is_some();
+        if !has_inner {
+            info!("Did not have inner.");
+            false
+        } else {
+            let inner_path = bean_path.get_inner_type().unwrap();
+            let inner_path = SynHelper::get_str(inner_path.to_token_stream());
+            let to_compare_with = SynHelper::get_str(concrete_ident.to_token_stream());
+            info!("Testing if {:?} is the same as {:?}, as if it is the same then impl item as only implementing itself.",
+                &inner_path, &to_compare_with);
+            inner_path == to_compare_with
         }
     }
 
@@ -83,7 +125,7 @@ impl BeanDependencyPathParser {
                     /// so it can be parsed as a Type successfully.
                     parse2::<Type>(path.to_token_stream().clone())
                         .ok()
-                        .map(|inner| vec![GenType { inner }])
+                        .map(|inner| vec![BeanPathParts::GenType { gen_type: inner }])
                         .or(Some(vec![]))
                         .unwrap()
                 }
@@ -134,45 +176,63 @@ impl BeanDependencyPathParser {
     }
 
     pub fn create_bean_path_parts(in_type: &Type, path: &syn::Path) -> Vec<BeanPathParts> {
-        let string = in_type.to_token_stream().to_string();
-        let match_ts = string.as_str().clone();
-        let path_str = path.to_token_stream().to_string();
-        let path_str_to_match = path_str.as_str();
-        log_message!("Parsing {} path.", path_str_to_match);
+        let (match_ts, path_str_to_match) = Self::get_to_match(in_type, path);
+        info!("Parsing {} path.", path_str_to_match);
         let mut bean_parts = vec![];
-        if path_str_to_match.contains("Arc") && path_str_to_match.contains("Mutex") {
-            log_message!("Found arc mutex type {}!", path_str_to_match);
-            let type_to_add = BeanPathParts::ArcMutexType {
-                arc_mutex_inner_type: in_type.clone(),
-                outer_type: path.clone(),
-            };
-            bean_parts.push(type_to_add);
-            Self::add_recurse_parse(in_type, &mut bean_parts);
-        } else if path_str_to_match.contains("Arc") {
-            log_message!("Found arc type {}!", match_ts);
-            let type_to_add = BeanPathParts::ArcType {
-                arc_inner_types: in_type.clone(),
-                outer_type: path.clone(),
-            };
-            bean_parts.push(type_to_add);
-            Self::add_recurse_parse(in_type, &mut bean_parts);
-        } else if path_str_to_match.contains("Mutex") {
-            log_message!("Found arc type {}!", match_ts);
-            let type_to_add =  BeanPathParts::MutexType {
-                mutex_type_inner_type: in_type.clone(),
-                outer_type: path.clone(),
-            };
-            bean_parts.push(type_to_add);
-            Self::add_recurse_parse(in_type, &mut bean_parts);
-        } else {
-            log_message!("Found generic type {}!", match_ts);
-            let type_to_add = BeanPathParts::GenType {
-                inner: in_type.clone()
-            };
-            bean_parts.push(type_to_add);
-            Self::add_recurse_parse(in_type, &mut bean_parts);
-        }
+        let pattern = Self::get_patterns(&path_str_to_match);
+        info!("Testing pattern: {:?}", pattern);
+        let ty_to_add = match pattern.as_slice() {
+            ["Arc", "Mutex", ..]  => {
+                info!("Found arc mutex type {}!", path_str_to_match);
+                BeanPathParts::ArcMutexType {
+                    arc_mutex_inner_type: in_type.clone(),
+                    outer_type: path.clone(),
+                }
+            }
+            ["Arc", ..] => {
+                BeanPathParts::ArcType {
+                    arc_inner_types: in_type.clone(),
+                    outer_type: path.clone(),
+                }
+            }
+            ["Mutex", ..] => {
+                BeanPathParts::MutexType {
+                    mutex_type_inner_type: in_type.clone(),
+                    outer_type: path.clone(),
+                }
+            }
+            ["Box", ..] => {
+                BeanPathParts::BoxType {
+                    inner: in_type.clone(),
+                }
+            }
+            _ => {
+                info!("Found generic type {}. Setting gen type to {:?}.", match_ts, SynHelper::get_str(path));
+                BeanPathParts::GenType {
+                    gen_type: syn::parse2(path.to_token_stream()).unwrap(),
+                }
+            }
+        };
+
+        bean_parts.push(ty_to_add);
+        Self::add_recurse_parse(in_type, &mut bean_parts);
+
         bean_parts
+    }
+
+    fn get_to_match<'a>(in_type: &Type, path: &syn::Path) -> (String, String) {
+        let match_ts = in_type.to_token_stream().to_string();
+        let path_str = path.to_token_stream().to_string();
+        let path_str_to_match = path_str;
+        (match_ts, path_str_to_match)
+    }
+
+    fn get_patterns(path_str: &String) -> Vec<&str> {
+        let pattern = path_str.split("<").into_iter()
+            .flat_map(|s| s.split(">").into_iter())
+            .flat_map(|s| strip_whitespace(s).into_iter())
+            .collect::<Vec<_>>();
+        pattern
     }
 
     fn add_recurse_parse(in_type: &Type, bean_parts: &mut Vec<BeanPathParts>) {

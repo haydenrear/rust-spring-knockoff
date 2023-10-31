@@ -1,4 +1,4 @@
-use syn::{Field, ItemImpl, Lifetime, PatType, Type, TypeArray};
+use syn::{Field, ImplItem, ItemImpl, Lifetime, PatType, Type, TypeArray};
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 use codegen_utils::syn_helper;
@@ -26,6 +26,29 @@ pub struct DependencyDescriptor {
     pub qualifiers: Vec<String>
 }
 
+impl DependencyDescriptor {
+    pub fn has_fn_named(&self, name: &str) -> bool {
+        self.item_impl.as_ref().filter(|i| {
+            i.items.iter().any(|t| {
+                match t {
+                    ImplItem::Const(_) => false,
+                    ImplItem::Method(m) => {
+                        let method_name = format!("\"{}\"", name);
+                        let method_name = method_name.as_str();
+                        info!("Testing if {:?} is same as {}", SynHelper::get_str(&m.sig.ident), method_name);
+                        let has_same = m.sig.ident.to_token_stream().to_string().as_str() == name;
+                        info!("{} is result to test.", has_same);
+                        has_same
+                    }
+                    ImplItem::Type(_) => false,
+                    ImplItem::Macro(_) => false,
+                    ImplItem::Verbatim(_) => false,
+                    _ => false
+                }
+            })
+        }).is_some()
+    }
+}
 impl PartialEq<Self> for DependencyDescriptor {
     fn eq(&self, other: &Self) -> bool {
         self.item_impl.as_ref().map(|i| SynHelper::get_str(&i))
@@ -269,6 +292,7 @@ impl DepType for FieldDepType {
     }
 
     fn field_ident(&self) -> Ident {
+        assert!(self.bean_info.field.ident.is_some(), "Field ident was None.");
         self.bean_info.field.ident.as_ref().unwrap().clone()
     }
 

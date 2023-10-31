@@ -55,6 +55,9 @@ impl BeanPathParts {
             BeanPathParts::GenType { .. } => {
                 false
             }
+            BeanPathParts::BoxType { .. } => {
+                false
+            }
         }
     }
 }
@@ -65,6 +68,9 @@ pub enum BeanPathParts {
     ArcType {
         arc_inner_types: Type,
         outer_type: Path
+    },
+    BoxType {
+        inner: Type
     },
     ArcMutexType {
         arc_mutex_inner_type: Type,
@@ -86,7 +92,7 @@ pub enum BeanPathParts {
         associated_type: Type
     },
     GenType {
-        inner: Type
+        gen_type: Type
     }
 }
 
@@ -119,7 +125,10 @@ impl BeanPathParts {
             BeanPathParts::BindingType { associated_type } => {
                 vec![associated_type.to_token_stream().to_string()]
             }
-            BeanPathParts::GenType { inner } => {
+            BeanPathParts::GenType { gen_type: inner } => {
+                vec![inner.to_token_stream().to_string()]
+            }
+            BeanPathParts::BoxType { inner } => {
                 vec![inner.to_token_stream().to_string()]
             }
         }
@@ -186,19 +195,18 @@ impl BeanPath {
 
     pub fn get_inner_type(&self) -> Option<Type> {
         log_message!("Found {} path segments for {:?}.", self.path_segments.len(), &self);
-        // TODO: Fix this - not matching for Box (dyn Mutable)
         match &self.path_segments.clone()[..] {
             [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out},
               BeanPathParts::MutexType { mutex_type_inner_type, outer_type},
-              BeanPathParts::GenType { inner } ] => {
+              BeanPathParts::GenType { gen_type: inner } ] => {
                 log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
                 return Some(inner.clone());
             }
-            [ BeanPathParts::MutexType{ mutex_type_inner_type, outer_type}, BeanPathParts::GenType {inner} ] => {
+            [ BeanPathParts::MutexType{ mutex_type_inner_type, outer_type}, BeanPathParts::GenType { gen_type: inner } ] => {
                 log_message!("Found mutex type with type {} and gen type {}.", SynHelper::get_str(mutex_type_inner_type.clone()), SynHelper::get_str(inner.clone()));
                 return Some(inner.clone());
             }
-            [  BeanPathParts::ArcType{ arc_inner_types , outer_type}, BeanPathParts::GenType { inner }] => {
+            [  BeanPathParts::ArcType{ arc_inner_types , outer_type}, BeanPathParts::GenType { gen_type: inner }] => {
                 log_message!("Found arc type with type {} and gen type {}.", SynHelper::get_str(arc_inner_types.clone()).as_str(), SynHelper::get_str(inner.clone()));
                 return Some(inner.clone());
             }
@@ -226,13 +234,23 @@ impl BeanPath {
                 log_message!("Found arc type with type {}.", SynHelper::get_str(arc_inner_types.clone()).as_str());
                 return Some(arc_inner_types.clone());
             }
-            [ BeanPathParts::GenType { inner } ] => {
+            [ BeanPathParts::GenType { gen_type: inner } ] => {
                 log_message!("Found gen type with type {}.", SynHelper::get_str(inner.clone()).as_str());
                 return Some(inner.clone())
             }
+            [BeanPathParts::BoxType {..}, BeanPathParts::GenType {gen_type}] => {
+                return Some(gen_type.clone())
+            }
+            [ BeanPathParts::ArcMutexType {..}, BeanPathParts::MutexType {..},
+            BeanPathParts::BoxType {inner}] => {
+                return Some(inner.clone())
+            }
+            [ BeanPathParts::ArcMutexType { .. }, BeanPathParts::MutexType { .. },
+            BeanPathParts::BoxType { .. }, BeanPathParts::GenType { gen_type } ] => {
+                return Some(gen_type.clone())
+            }
             [..] => {
-                log_message!("Bean type path did not match any conditions.");
-                return None;
+                panic!("Bean type path {:?} did not match any conditions.", &self);
             }
         }
     }
@@ -253,6 +271,46 @@ pub struct BeanDefinition {
     pub bean_type: Option<BeanType>,
     pub mutable: bool,
     pub factory_fn: Option<ModulesFunctions>,
+}
+
+impl BeanDefinition {
+    pub fn is_constructable(&self) -> bool {
+        !self.has_fn("new")
+    }
+
+    pub fn has_default(&self) -> bool {
+        self.iter_attrs()
+            .map(|a| SynHelper::get_attr_from_vec(a, &vec!["Default"]))
+            .is_some() || self.has_fn("default")
+    }
+
+    pub fn has_attribute(&self, matcher: &dyn Fn(&Attribute) -> bool) -> bool {
+        self.iter_attrs().iter().flat_map(|a| a.iter())
+            .any(|a| matcher(a))
+    }
+
+    pub fn iter_attrs(&self) -> Option<&Vec<Attribute>> {
+        if let Some(s) = &self.struct_found {
+            Some(&s.attrs)
+        }  else if let Some(s) = &self.enum_found {
+            Some(&s.attrs)
+        } else if let Some(s) = &self.factory_fn {
+            Some(&s.fn_found.item_fn.attrs)
+        } else {
+            None
+        }
+    }
+
+    fn has_fn(&self, fn_to_have: &str) -> bool {
+        info!("Checking if {:?} is {}", self, &fn_to_have);
+        if self.traits_impl.iter().any(|b| b.has_fn_named(fn_to_have)) {
+            info!("found that {:?} had {}", self, &fn_to_have);
+            true
+        } else {
+            info!("found that {:?} did not have {}", self, &fn_to_have);
+            false
+        }
+    }
 }
 
 impl BeanDefinition {

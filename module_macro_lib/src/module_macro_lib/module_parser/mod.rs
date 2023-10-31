@@ -70,7 +70,6 @@ pub(crate) fn create_initial_parse_container(mut found: &mut Item) -> Option<(Pa
     let mut created = match &mut found {
         Item::Mod(ref mut module_found) => {
             let mut container = ParseContainer::default();
-            // container.aspects = AspectParser::parse_aspects();
 
             ItemModParser::parse_item(
                 &mut container,

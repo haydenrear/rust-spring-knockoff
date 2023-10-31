@@ -327,7 +327,12 @@ impl FactoryGen {
         None
     }
 
-    fn add_abstract_bean_type(mut abstract_mutable_paths: &mut Vec<Type>, mut abstract_mutable_concrete: &mut Vec<Type>, mut abstract_paths: &mut Vec<Type>, mut abstract_paths_concrete: &mut Vec<Type>, bean: &BeanDefinition, autowire_type: &DependencyDescriptor) {
+    fn add_abstract_bean_type(mut abstract_mutable_paths: &mut Vec<Type>,
+                              mut abstract_mutable_concrete: &mut Vec<Type>,
+                              mut abstract_paths: &mut Vec<Type>,
+                              mut abstract_paths_concrete: &mut Vec<Type>,
+                              bean: &BeanDefinition,
+                              autowire_type: &DependencyDescriptor) {
         bean.bean_type.as_ref().map(|bean_type| {
             log_message!("Found bean type {:?}.", bean_type);
             match bean_type {
@@ -369,11 +374,22 @@ impl FactoryGen {
     ) {
         BeanFactoryInfo::get_abstract_type(autowire_type).as_ref()
             .map(|t| {
-                bean.struct_type.as_ref().map(|struct_type| {
-                    log_message!("Adding abstract mutable path: {} to struct {}.", SynHelper::get_str(&t), SynHelper::get_str(&struct_type));
-                    abstract_mutable_paths.push(t.clone());
-                    abstract_mutable_concrete.push(struct_type.clone());
-                });
+                bean.struct_type.clone()
+                    .or_else(|| {
+                        if bean.ident.is_some() {
+                            info!("Parsing type to add abstract concrete bean ident {:?}", SynHelper::get_str(bean.ident.as_ref().unwrap()));
+                            parse2::<Type>(bean.ident.to_token_stream()).ok()
+                        } else {
+                            info!("Could not find abstract for {:?}", SynHelper::get_str(t));
+                            None
+                        }
+                    })
+                    .map(|struct_type| {
+                        log_message!("Adding abstract mutable path: {} to struct {}.",
+                        SynHelper::get_str(&t), SynHelper::get_str(&struct_type));
+                        abstract_mutable_paths.push(t.clone());
+                        abstract_mutable_concrete.push(struct_type);
+                    });
             });
     }
 

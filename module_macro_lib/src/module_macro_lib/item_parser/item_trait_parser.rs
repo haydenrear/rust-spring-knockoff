@@ -8,6 +8,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use codegen_utils::syn_helper::SynHelper;
 use crate::logger_lazy;
 import_logger!("item_trait_parser.rs");
 
@@ -15,6 +16,7 @@ pub struct ItemTraitParser;
 
 impl ItemParser<ItemTrait> for ItemTraitParser {
     fn parse_item(parse_container: &mut ParseContainer, trait_found: &mut ItemTrait, mut path_depth: Vec<String>) {
+        info!("Adding trait: {:?}", SynHelper::get_str(&trait_found));
         path_depth.push(trait_found.ident.to_string().clone());
         if !parse_container.traits.contains_key(&trait_found.ident.to_string().clone()) {
             parse_container.traits.insert(

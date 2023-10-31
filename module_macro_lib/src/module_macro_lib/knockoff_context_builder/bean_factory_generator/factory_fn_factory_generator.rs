@@ -27,10 +27,10 @@ impl TokenStreamGenerator for FactoryFnBeanFactoryGenerator {
 
 impl BeanFactoryGenerator for FactoryFnBeanFactoryGenerator {
 
-    fn create_bean_tokens(
+    fn create_bean_tokens<ConcreteTypeT: ToTokens>(
         bean_factory_info: &BeanFactoryInfo,
         profile_ident: &Ident,
-        concrete_type: &Ident
+        concrete_type: &ConcreteTypeT
     ) -> Option<TokenStream> {
 
         if bean_factory_info.factory_fn.is_none() {

@@ -24,6 +24,7 @@ import_logger!("item_impl_parser.rs");
 impl ItemImplParser{
     fn add_path(path_depth: &mut Vec<String>, impl_found: &ItemImpl) {
         let mut trait_impl = vec![];
+
         impl_found.trait_.clone().map(|trait_found| {
             trait_impl.push(trait_found.1.to_token_stream().to_string());
         });
@@ -89,16 +90,22 @@ impl ItemImplParser{
 }
 
 pub fn matches_ignore_traits(matches_ignore_traits: &str) -> bool {
-    vec!["Default", "Debug"].iter().any(|i| matches_ignore_traits.contains(i))
+    vec!["Default", "Debug", "Serialize", "Deserialize"].iter()
+        .any(|i| matches_ignore_traits.contains(i))
 }
 
 pub fn is_ignore_trait(item_impl: &ItemImpl) -> bool {
-    if item_impl.trait_.as_ref().filter(|t| matches_ignore_traits(&SynHelper::get_str(t.1.to_token_stream().to_string().as_str())))
+    if SynHelper::get_attr_from_vec(&item_impl.attrs, &vec![
+        "knockoff_ignore"
+    ]).is_some() {
+        true
+    } else if item_impl.trait_.as_ref().filter(|t| matches_ignore_traits(&SynHelper::get_str(t.1.to_token_stream().to_string().as_str())))
         .is_some() {
         log_message!("Ignoring {}.", SynHelper::get_str(&item_impl));
         return true;
+    } else   {
+        false
     }
-    false
 }
 
 impl ItemParser<ItemImpl> for ItemImplParser {
@@ -107,13 +114,14 @@ impl ItemParser<ItemImpl> for ItemImplParser {
 
         log_message!("Doing create update impl for id: {}", id);
 
+        if is_ignore_trait(&item_impl) {
+            info!("Ignoring trait: {:?}", SynHelper::get_str(&item_impl));
+            return;
+        }
+
         item_impl.trait_.as_ref().map(|t| {
             log_message!("Doing create update impl for trait impl: {}", SynHelper::get_str(&t.1));
         });
-
-        if is_ignore_trait(&item_impl) {
-            return;
-        }
 
         Self::add_path(&mut path_depth, &item_impl);
 

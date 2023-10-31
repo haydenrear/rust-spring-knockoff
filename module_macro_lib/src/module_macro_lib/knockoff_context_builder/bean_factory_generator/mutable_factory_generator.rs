@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::Type;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::BeanFactoryGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;
@@ -25,7 +25,7 @@ impl TokenStreamGenerator for MutableBeanFactoryGenerator {
 
 impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
 
-    fn concrete_bean_factory_tokens(concrete_type: &Ident, profile_ident: &Ident) -> TokenStream {
+    fn concrete_bean_factory_tokens<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
             impl MutableBeanFactory<Mutex<#concrete_type>, #profile_ident> for ListableBeanFactory {
                 type U = Mutex<#concrete_type>;
@@ -37,7 +37,7 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
         }
     }
 
-    fn concrete_factory_bean(concrete_type: &Ident, profile_ident: &Ident, create_bean_tokens: TokenStream) -> TokenStream {
+    fn concrete_factory_bean<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT, profile_ident: &Ident, create_bean_tokens: TokenStream) -> TokenStream {
         quote! {
             impl MutableFactoryBean<Mutex<#concrete_type>, #profile_ident> for MutableBeanDefinition<Mutex<#concrete_type >> {
                 type U = Mutex<#concrete_type>;
@@ -62,7 +62,7 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
         }
     }
 
-    fn concrete_bean_container(concrete_type: &Ident, profile_ident: &Ident) -> TokenStream {
+    fn concrete_bean_container<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
             impl BeanContainer<Mutex<#concrete_type >> for ListableBeanFactory {
                 type U = Mutex<#concrete_type>;
@@ -84,7 +84,8 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
         }
     }
 
-    fn abstract_bean_factory_tokens(concrete_type: &Ident, abstract_type: &Type, profile_ident: &Ident) -> TokenStream {
+    fn abstract_bean_factory_tokens<ConcreteTypeT: ToTokens, AbstractTypeT: ToTokens>(
+        concrete_type: &ConcreteTypeT, abstract_type: &AbstractTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
             impl MutableBeanFactory<Mutex<Box<dyn #abstract_type>>, #profile_ident> for ListableBeanFactory {
                 type U = Mutex<Box<dyn #abstract_type>>;
@@ -95,7 +96,9 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
         }
     }
 
-    fn abstract_factory_bean(concrete_type: &Ident, profile_ident: &Ident, abstract_type: &Type, create_bean_tokens: TokenStream) -> TokenStream {
+    fn abstract_factory_bean<ConcreteTypeT: ToTokens, AbstractTypeT: ToTokens>(
+        concrete_type: &ConcreteTypeT, profile_ident: &Ident,
+        abstract_type: &AbstractTypeT, create_bean_tokens: TokenStream) -> TokenStream {
         quote! {
             impl MutableFactoryBean<Mutex<Box<dyn #abstract_type>>, #profile_ident> for MutableBeanDefinition<Mutex<Box<dyn #abstract_type>>> {
                 type U = Mutex<Box<dyn #abstract_type>>;
@@ -121,7 +124,8 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
         }
     }
 
-    fn abstract_bean_container(concrete_type: &Ident, abstract_type: &Type, profile_ident: &Ident) -> TokenStream {
+    fn abstract_bean_container<ConcreteTypeT: ToTokens, AbstractTypeT: ToTokens>(
+        concrete_type: &ConcreteTypeT, abstract_type: &AbstractTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
             impl BeanContainer<Mutex<Box<dyn #abstract_type>>> for ListableBeanFactory {
                 type U = Mutex<Box<dyn #abstract_type>>;

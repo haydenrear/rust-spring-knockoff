@@ -67,14 +67,21 @@ impl ConcreteTypeProfileTreeModifier {
          AddConcreteTypesToBeansArgs {
 
              beans_to_types: profile_tree_items.iter().flat_map(|b| {
-                 b.1.traits_impl.iter()
-                     .flat_map(|t| BeanFactoryInfo::get_abstract_type(t)
-                         .as_ref()
-                         .map(|trait_impl| vec![trait_impl.clone()])
-                         .or(Some(vec![]))
-                         .unwrap()
-                     )
-                     .map(|t| (t.to_token_stream().to_string(), b.1.struct_type.as_ref().unwrap().clone()))
+                 if b.1.struct_type.is_none() {
+                     vec![]
+                 } else {
+                     b.1.traits_impl.iter()
+                         .flat_map(|t| BeanFactoryInfo::get_abstract_type(t)
+                             .as_ref()
+                             .map(|trait_impl| vec![trait_impl.clone()])
+                             .or(Some(vec![]))
+                             .unwrap()
+                         )
+                         .map(|t| (t.to_token_stream().to_string(), b.1.struct_type.clone()
+                             .or(b.1.ident.as_ref().map(|i| parse2::<Type>(i.to_token_stream()).ok()).flatten())
+                             .unwrap().clone()))
+                         .collect::<Vec<_>>()
+                 }
              }).collect::<HashMap<String, Type>>(),
 
              bean_struct_ids:  profile_tree_items.values()

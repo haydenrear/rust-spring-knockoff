@@ -27,13 +27,15 @@ impl ItemParser<ItemMod> for ItemModParser {
         path_depth.push(item_found.ident.to_string().clone());
         item_found.content.iter_mut()
             .flat_map(|mut c| c.1.iter_mut())
-            .for_each(|i: &mut Item| Self::parse_item_inner(i, parse_container, &mut path_depth.clone()));
+            .for_each(|i: &mut Item| {
+                DelegatingParseProvider::parse_update(i, parse_container);
+                Self::parse_item_inner(i, parse_container, &mut path_depth.clone());
+            });
     }
 }
 
 impl ItemModParser {
     pub fn parse_item_inner(i: &mut Item, mut app_container: &mut ParseContainer, path_depth: &mut Vec<String>) {
-        DelegatingParseProvider::parse_update(i, app_container);
         match i {
             Item::Const(const_val) => {
                 log_message!("Found const val {}.", const_val.to_token_stream().clone());
@@ -44,6 +46,7 @@ impl ItemModParser {
             }
             Item::Fn(fn_type) => {
                 log_message!("Found fn type {}.", fn_type.to_token_stream().clone());
+
                 ItemFnParser::parse_item(app_container, fn_type, path_depth.clone());
             }
             Item::ForeignMod(_) => {}

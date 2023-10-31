@@ -16,7 +16,6 @@ pub mod logging_macro;
 pub use crate::logging_macro::*;
 pub mod logging_facade;
 pub use crate::logging_facade::*;
-pub mod default_logging;
 
 
 #[cfg(test)]
@@ -32,7 +31,6 @@ mod test {
     use std::thread::spawn;
     use std::time::{Duration, Instant};
     use wait_for::wait_for::wait_async::WaitFor;
-    use codegen_utils::project_directory;
     use std::sync::{MutexGuard, PoisonError};
     use crate::{import_logger, initialize_logger};
     use crate::*;

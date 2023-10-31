@@ -1,3 +1,4 @@
+# TODO: isn't currently in order...
 strings=(
   "aspect_knockoff_provider"
   "authentication_gen"
@@ -21,6 +22,7 @@ strings=(
   "wait_for"
   "web_framework"
   "web_framework_shared"
+  "string_utils"
 )
 for i in "${strings[@]}"; do
   cargo publish --registry=estuary --allow-dirty --no-verify -p $i

@@ -23,6 +23,7 @@ use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
 use codegen_utils::{parse, project_directory, syn_helper};
 use codegen_utils::syn_helper::SynHelper;
 use codegen_utils::walk::DirectoryWalker;
+
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
@@ -76,11 +77,11 @@ pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
     log_message!("Continuing to replace modules.");
 
     Module::parse_syn(base_env)
-        .map(|lib_file|
+        .map(|lib_file| {
             Module::do_parse(
                 Module::parse_modules(base_env.unwrap())
             )
-        );
+        });
 
     rerun_files.iter().for_each(|rerun_file| {
         println!("cargo:rerun-if-changed={}", rerun_file.to_string().as_str());
@@ -91,13 +92,17 @@ pub fn replace_modules(base_env: Option<&str>, rerun_files: Vec<&str>) {
 impl Module {
 
     fn parse_modules(base_env: &str) -> Module {
+        info!("Parsing modules!");
         let buf = Self::get_lib_file_path(base_env);
         let string = OsString::from("main.rs");
         let path = buf.file_name()
             .or(Some(&string))
             .unwrap()
-            .to_str().or(Some("main.rs"))
+            .to_str()
+            .or(Some("main.rs"))
             .unwrap();
+
+        info!("Found next {} path.", path);
 
         Self::parse_syn(Some(base_env))
             .map(|syn_file| Self::parse_module_from_syn_file(&syn_file, base_env, path, None, &buf))
@@ -117,7 +122,7 @@ impl Module {
     }
 
     fn is_main_or_lib(module_file_name: &str) -> bool {
-        module_file_name == "main.rs" || module_file_name == "main.rs"
+        module_file_name == "main.rs" || module_file_name == "lib.rs"
     }
 
     fn parse_module_from_syn_file(syn_file: &syn::File, base_dir: &str, module_file_name: &str, id: Option<Ident>, buf: &PathBuf) -> Module {
@@ -198,7 +203,8 @@ impl Module {
         let ident = item_mod.ident.clone();
         let found = Self::walk_find_mod_file(base_dir, ident.to_string().as_str(), syn_file_buf)
             .map(|mut item| {
-                log_message!("parsed mod file for {}.", item_mod.to_token_stream().to_string().as_str());
+                log_message!("Walked to find mod file for {}.", item_mod.to_token_stream().to_string().as_str());
+                info!("{:?} is item path and {:?} is result from walking to find it.", &item.0.to_str(), &item.1);
                 item.1.ok()
                     .map(|mut item_file| Self::parse_module_from_file(
                         &mut item_file,
@@ -242,7 +248,7 @@ impl Module {
                 match items_found {
                     Item::Mod(item_mod_again) => {
                         log_message!(
-                            "Found {} item mod in create get module items and {} is module name or file.",
+                            "Found {} item mod in create get module items and {} is module name or file where mod was declared.",
                             item_mod_again.ident.clone().to_string(), module_name_or_file.clone().to_string()
                         );
                         if item_mod_again.ident.to_string().as_str() != module_name_or_file {
@@ -316,6 +322,7 @@ impl Module {
 
     fn do_parse_recursive(mut modules: Module) -> Module {
         for mut next_mod in modules.modules.clone().iter() {
+            info!("Parsing next modue: {:?}", next_mod.identifier.as_ref().unwrap().to_string().as_str());
             let mut next_mod = next_mod.to_owned();
             next_mod = Self::do_parse_recursive(next_mod);
             modules.add_mod(next_mod.to_owned());
@@ -325,6 +332,7 @@ impl Module {
 
     /// At this point, the prev_mod will have already put all of it's modules into the mod_items.
     fn add_mod(&mut self, mut prev_mod: Module) {
+        info!("Adding module: {:?}", prev_mod.identifier.as_ref().unwrap().to_string().as_str());
         log_message!("Adding {} mod items.", prev_mod.mod_items.len());
         log_message!("Module now has {} items.", self.mod_items.len());
 
@@ -408,8 +416,14 @@ impl Module {
             final_mod_item = Self::remove_cfg_for_codegen(&mut final_mod_item);
             Self::write_to_module_file(&mut existing, &final_mod_item);
 
-            fs::write(dest_path.clone(), existing)
-                .unwrap();
+            if dest_path.exists() {
+                info!("Writing module to dest path: {:?}", dest_path.to_str().as_ref().unwrap());
+                fs::write(dest_path.clone(), existing)
+                    .unwrap();
+            } else {
+                error!("Destination path did not exist when attempting to write.");
+            }
+
         }
 
 
@@ -461,10 +475,16 @@ impl Module {
         let dirs_with_name = DirectoryWalker::walk_directory(module_name, base_dir);
 
         if dirs_with_name.len() == 1 {
+            info!("Found one dirs {:?} when walking.", &dirs_with_name[0].to_str().as_ref().unwrap());
             let correct_buf = dirs_with_name[0].to_owned();
             return Some((correct_buf.clone(), File::open(correct_buf)));
         } else if dirs_with_name.len() == 0 {
+            info!("Did not find any dir when walking: {} to find {} from parent {:?}", base_dir, module_name, &parent_buf.to_str().unwrap());
             return None
+        } else {
+            info!("Found multiple dirs when walking: {:?}", dirs_with_name.iter()
+                .flat_map(|d| d.to_str().into_iter().collect::<Vec<_>>())
+            );
         }
 
         Self::find_correct_buf(dirs_with_name, parent_buf)
@@ -489,6 +509,10 @@ impl Module {
                 (first.to_str().unwrap().len() as i32).cmp(&(second.to_str().unwrap().len() as i32))
             })
             .map(|c| c.to_owned())
+            .map(|c| {
+                info!("Found next: {:?}", c.to_str());
+                c
+            })
     }
 
 }

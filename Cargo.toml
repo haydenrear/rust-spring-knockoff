@@ -28,7 +28,9 @@ members = [
     "collection_util",
     "knockoff_tokio_util",
     "knockoff_env",
-    "rust_spring_knockoff"
+    "rust_spring_knockoff",
+    "string_utils"
+#    "boot_application_builder"
 ]
 exclude = [
     "target/knockoff_providers_gen"

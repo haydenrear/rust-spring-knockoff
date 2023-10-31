@@ -2,7 +2,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
-use syn::{Field, Fields, Path, Type, TypeParamBound};
+use syn::{Field, Fields, ImplItem, Path, Type, TypeParamBound};
 use syn::token::Struct;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::BeanDefinition;
@@ -26,10 +26,13 @@ pub struct BeanFactoryInfo {
     pub(crate) mutable_abstract_fields: Vec<MutableAbstractFieldInfo>,
     pub(crate) default_field_info: Vec<DefaultFieldInfo>,
     pub(crate) concrete_type: Option<Type>,
+    pub(crate) is_enum: bool,
+    pub(crate) is_default: bool,
     pub(crate) abstract_type: Option<Type>,
     pub(crate) ident_type: Option<Ident>,
     pub(crate) profile: Option<ProfileBuilder>,
     pub(crate) factory_fn: Option<ModulesFunctions>,
+    pub(crate) constructable: bool
 }
 
 #[derive(Clone)]
@@ -80,9 +83,13 @@ pub struct MutableAbstractFieldInfo {
 impl BeanFactoryInfo {
 
     pub(crate) fn get_abstract_type(bean_type: &DependencyDescriptor) -> Option<Type> {
+        if bean_type.item_impl.is_some() {
+            info!("Testing if {:?} has abstract type for {:?}", SynHelper::get_str(&bean_type.item_impl.as_ref().unwrap()), bean_type);
+        }
         let abstract_type = bean_type.item_impl
             .as_ref()
             .map(|item_impl| {
+                info!("Getting abstract type for {:?}", SynHelper::get_str(item_impl));
                 item_impl.trait_.as_ref()
                     .map(|f| BeanDependencyPathParser::parse_path_to_bean_path(&f.1))
             })
@@ -94,6 +101,11 @@ impl BeanFactoryInfo {
                 bean_type.get_inner_type()
             })
             .flatten();
+        if abstract_type.is_some() {
+            info!("Found abstract type: {:?}", SynHelper::get_str(abstract_type.as_ref().unwrap()));
+        } else {
+            info!("Could not find abstract type for {:?}", bean_type);
+        }
         abstract_type
     }
 
@@ -104,12 +116,16 @@ impl BeanFactoryInfo {
             .unwrap()
     }
 
-    pub(crate) fn get_concrete_type(&self) -> Ident {
-        self.concrete_type
-            .as_ref()
-            .map(|t| Ident::new(t.to_token_stream().to_string().as_str(), Span::call_site()))
-            .or(self.ident_type.as_ref().map(|i| i.clone()))
-            .unwrap()
+    pub(crate) fn get_concrete_type(&self) -> Option<Type> {
+        assert!(self.concrete_type.is_some() || self.ident_type.is_some(),
+                "Could not retrieve concrete type when creating concrete bean factory.");
+        self.concrete_type.clone()
+    }
+
+    pub(crate) fn get_concrete_type_as_ident(&self) -> Option<Ident> {
+        assert!(self.concrete_type.is_some() || self.ident_type.is_some(),
+                "Could not retrieve concrete type when creating concrete bean factory.");
+        self.ident_type.as_ref().map(|i| i.clone())
     }
 
     pub(crate) fn get_field_types(&self)
@@ -188,8 +204,12 @@ pub trait BeanFactoryInfoFactory<T> {
     }
 
     fn get_default_fields(bean: &BeanDefinition) -> Vec<DefaultFieldInfo> {
-        if bean.fields.len() > 1 {
-            panic!("Type had more than one set of fields Enum is not ready to be autowired!");
+        if bean.fields.len() > 1 && !bean.is_constructable(){
+            error!(
+                "Type had more than one set of fields and no new() function provided. Enum with \
+                multiple types of fields is not ready to be autowired!"
+            );
+            return vec![];
         } else if bean.fields.len() == 0 {
             return vec![];
         }
@@ -199,7 +219,15 @@ pub trait BeanFactoryInfoFactory<T> {
                     .filter(|f|
                         SynHelper::get_attr_from_vec(&f.attrs, &vec!["autowired"]).is_none()
                     )
-                    .map(|f| DefaultFieldInfo{ field_type: f.ty.clone(), field_ident: f.ident.as_ref().unwrap().clone() } )
+                    .flat_map(|f| {
+                        if f.ident.as_ref().is_some() {
+                            vec![DefaultFieldInfo{ field_type: f.ty.clone(), field_ident: f.ident.as_ref().unwrap().clone() }]
+                        } else {
+                            let f = SynHelper::get_str(f);
+                            info!("Failed to parse {:?}, as its field ident was nonexistent.", f);
+                            vec![]
+                        }
+                    } )
                     .collect::<Vec<DefaultFieldInfo>>()
             }
             _ => {
@@ -329,10 +357,13 @@ impl BeanFactoryInfoFactory<BeanDefinition> for ConcreteBeanFactoryInfo {
                 mutable_abstract_fields: mutable_abstract_fields.clone(),
                 default_field_info: default_field_info.clone(),
                 concrete_type: bean.struct_type.clone(),
+                is_enum: bean.enum_found.is_some(),
                 abstract_type: None,
                 ident_type: bean.ident.clone(),
                 profile: Some(ProfileBuilder::default()),
                 factory_fn: bean.factory_fn.clone(),
+                constructable: bean.is_constructable(),
+                is_default: bean.has_default()
             })
             .collect::<Vec<BeanFactoryInfo>>()
     }
@@ -362,9 +393,12 @@ impl BeanFactoryInfoFactory<(BeanDefinition, DependencyDescriptor, ProfileBuilde
                 default_field_info,
                 concrete_type: bean.struct_type.clone(),
                 abstract_type,
+                is_enum: bean.enum_found.is_some(),
                 ident_type: bean.ident.clone(),
                 profile: Some(bean_type.2.to_owned()),
                 factory_fn: bean.factory_fn.clone(),
+                constructable: bean_type.0.is_constructable(),
+                is_default: bean_type.0.has_default()
             }
         ]
     }

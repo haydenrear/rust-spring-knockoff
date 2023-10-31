@@ -22,6 +22,7 @@ use crate::logger_lazy;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::factory_fn_factory_generator::FactoryFnBeanFactoryGenerator;
 import_logger!("bean_factory_generator.rs");
 
+
 pub mod mutable_factory_generator;
 pub mod prototype_factory_generator;
 pub mod factory_factory_generator;
@@ -29,7 +30,7 @@ pub mod factory_fn_factory_generator;
 
 pub trait BeanFactoryGenerator: TokenStreamGenerator {
 
-    fn concrete_bean_factory_tokens(concrete_type: &Ident, profile_ident: &Ident) -> TokenStream {
+    fn concrete_bean_factory_tokens<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
             impl BeanFactory<#concrete_type, #profile_ident> for ListableBeanFactory {
                 type U = #concrete_type;
@@ -41,7 +42,9 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         }
     }
 
-    fn concrete_factory_bean(concrete_type: &Ident, profile_ident: &Ident, create_bean_tokens: TokenStream) -> TokenStream {
+    fn concrete_factory_bean<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT,
+                                                      profile_ident: &Ident,
+                                                      create_bean_tokens: TokenStream) -> TokenStream {
         quote! {
                 impl FactoryBean<#concrete_type, #profile_ident> for BeanDefinition<#concrete_type> {
                     type U = #concrete_type;
@@ -66,7 +69,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         }
     }
 
-    fn concrete_bean_container(concrete_type: &Ident, profile_ident: &Ident) -> TokenStream {
+    fn concrete_bean_container<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
                 impl BeanContainer<#concrete_type> for ListableBeanFactory {
                     type U = #concrete_type;
@@ -88,7 +91,8 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         }
     }
 
-    fn abstract_bean_factory_tokens(concrete_type: &Ident, abstract_type: &Type, profile_ident: &Ident) -> TokenStream {
+    fn abstract_bean_factory_tokens<ConcreteTypeT: ToTokens, AbstractTypeT: ToTokens>(
+        concrete_type: &ConcreteTypeT, abstract_type: &AbstractTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
             impl BeanFactory<dyn #abstract_type, #profile_ident> for ListableBeanFactory {
                 type U = #concrete_type;
@@ -100,7 +104,10 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         }
     }
 
-    fn abstract_factory_bean(concrete_type: &Ident, profile_ident: &Ident, abstract_type: &Type, create_bean_tokens: TokenStream) -> TokenStream {
+    fn abstract_factory_bean<ConcreteTypeT: ToTokens, AbstractTypeT: ToTokens>(
+        concrete_type: &ConcreteTypeT, profile_ident: &Ident, abstract_type: &AbstractTypeT,
+        create_bean_tokens: TokenStream
+    ) -> TokenStream {
         quote! {
             impl FactoryBean<dyn #abstract_type, #profile_ident> for BeanDefinition<dyn #abstract_type> {
                 type U = #concrete_type;
@@ -126,7 +133,10 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         }
     }
 
-    fn abstract_bean_container(concrete_type: &Ident, abstract_type: &Type, profile_ident: &Ident) -> TokenStream {
+    fn abstract_bean_container<ConcreteTypeT: ToTokens, AbstractTypeT: ToTokens>(
+        concrete_type: &ConcreteTypeT, abstract_type: &AbstractTypeT,
+        profile_ident: &Ident
+    ) -> TokenStream {
         quote! {
             impl BeanContainer<dyn #abstract_type> for ListableBeanFactory {
                 type U = #concrete_type;
@@ -157,10 +167,15 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         let profile_ident = &bean_factory_info.get_profile_ident();
         let concrete_type = bean_factory_info.get_concrete_type();
 
+        info!("Creating concrete factories for bean.");
+
         Self::create_bean_tokens(bean_factory_info, profile_ident, &concrete_type)
             .map(|create_bean_tokens| {
+                info!("Creating concrete bean factory tokens.");
                 let bean_factory = Self::concrete_bean_factory_tokens(&concrete_type, profile_ident);
+                info!("Creating concrete bean container.");
                 let bean_container = Self::concrete_bean_container(&concrete_type, profile_ident);
+                info!("Creating concrete factory bean.");
                 let factory_bean = Self::concrete_factory_bean(&concrete_type, profile_ident, create_bean_tokens);
 
                 let injectable_code = quote! {
@@ -168,6 +183,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
                     #bean_container
                     #factory_bean
                 };
+                info!("Finished creating injectable code.");
                 injectable_code.into()
             })
             .or(Some(TokenStream::default()))
@@ -179,28 +195,51 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         bean_factory_info: &BeanFactoryInfo
     )  -> TokenStream {
 
-
         log_message!("Building factory generator for {}", SynHelper::get_str(&bean_factory_info.abstract_type.as_ref().unwrap()));
 
         let abstract_type: &Type = bean_factory_info.abstract_type.as_ref().unwrap();
 
         let profile_ident = &bean_factory_info.get_profile_ident();
         let concrete_type = bean_factory_info.get_concrete_type();
+        let ident_type = bean_factory_info.get_concrete_type_as_ident();
+
+        info!("Creating abstract bean factories.");
 
         Self::create_bean_tokens(bean_factory_info, profile_ident, &concrete_type)
             .map(|create_bean_tokens| {
 
-                let bean_factory = Self::abstract_bean_factory_tokens(&concrete_type, abstract_type, profile_ident);
-                let bean_container = Self::abstract_bean_container(&concrete_type, abstract_type, profile_ident);
-                let factory_bean = Self::abstract_factory_bean(&concrete_type, profile_ident, abstract_type, create_bean_tokens);
+                info!("Creating abstract bean factory tokens.");
+                if concrete_type.is_some() {
+                    let concrete_type = concrete_type.unwrap();
+                    let bean_factory = Self::abstract_bean_factory_tokens(&concrete_type, abstract_type, profile_ident);
+                    info!("Creating abstract bean container.");
+                    let bean_container = Self::abstract_bean_container(&concrete_type, abstract_type, profile_ident);
+                    info!("Creating abstract factory bean.");
+                    let factory_bean = Self::abstract_factory_bean(&concrete_type, profile_ident, abstract_type, create_bean_tokens);
+                    let injectable_code = quote! {
+                        #bean_factory
+                        #bean_container
+                        #factory_bean
+                    };
+                    info!("finished creating injectable code.");
+                    return injectable_code.into();
+                } else if ident_type.is_some() {
+                    let concrete_type = ident_type.unwrap();
+                    let bean_factory = Self::abstract_bean_factory_tokens(&concrete_type, abstract_type, profile_ident);
+                    info!("Creating abstract bean container.");
+                    let bean_container = Self::abstract_bean_container(&concrete_type, abstract_type, profile_ident);
+                    info!("Creating abstract factory bean.");
+                    let factory_bean = Self::abstract_factory_bean(&concrete_type, profile_ident, abstract_type, create_bean_tokens);
+                    let injectable_code = quote! {
+                        #bean_factory
+                        #bean_container
+                        #factory_bean
+                    };
+                    info!("Finished creating injectable code.");
+                    return injectable_code.into();
+                }
 
-                let injectable_code = quote! {
-                    #bean_factory
-                    #bean_container
-                    #factory_bean
-                };
-
-                injectable_code.into()
+                TokenStream::default().into()
             })
             .or(Some(TokenStream::default()))
             .unwrap()
@@ -219,6 +258,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         let mut ts = TokenStream::default();
 
         self.get_concrete_factories().iter()
+            .filter(|bf| bf.ident_type.as_ref().is_some() || bf.concrete_type.as_ref().is_some())
             .for_each(|b| {
                 ts.append_all(Self::create_concrete_bean_factories_for_bean(b));
             });
@@ -226,9 +266,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         self.get_abstract_factories().iter()
             .for_each(|b| {
                 if !b.abstract_type.is_none() {
-                    if b.ident_type.is_some() {
-                        ts.append_all(Self::create_abstract_bean_factories_for_bean(b));
-                    } else if b.concrete_type.is_some() {
+                    if b.ident_type.is_some() || b.concrete_type.is_some() {
                         ts.append_all(Self::create_abstract_bean_factories_for_bean(b));
                     }
                 }
@@ -237,14 +275,15 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         ts
     }
 
-    fn create_bean_tokens(
+    fn create_bean_tokens<ConcreteTypeT: ToTokens>(
         bean_factory_info: &BeanFactoryInfo,
         profile_ident: &Ident,
-        concrete_type: &Ident
+        concrete_type: &ConcreteTypeT
     ) -> Option<TokenStream> {
 
         if bean_factory_info.factory_fn.is_some() {
-            log_message!("Skipping creation of bean factory for {} because has factory fn.", SynHelper::get_str(&bean_factory_info.concrete_type.as_ref().unwrap()));
+            log_message!("Skipping creation of bean factory for {} because has factory fn.",
+                SynHelper::get_str(&concrete_type));
             return None;
         }
 
@@ -256,7 +295,7 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
 
         log_message!("Creating factory for profile {} for: {}.",
             SynHelper::get_str(profile_ident),
-            SynHelper::get_str(&bean_factory_info.concrete_type.as_ref().unwrap())
+            SynHelper::get_str(&concrete_type)
         );
 
         log_message!("{} is number of field idents, {} is number of field types.", field_types.len(), field_idents.len());

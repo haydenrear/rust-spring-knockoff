@@ -35,7 +35,7 @@ impl ParseUtil {
     }
 
     pub fn get_singleton_names(attr: &Vec<Attribute>) -> Option<Vec<String>> {
-        Self::get_attr_csv_if_exists(&attr, &vec!["service"])
+        Self::get_attr_csv_if_exists(&attr, &vec!["service", "enum_service"])
     }
 
     pub fn get_profile(attr: &Vec<Attribute>) -> Vec<ProfileBuilder> {

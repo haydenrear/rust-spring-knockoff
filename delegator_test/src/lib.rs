@@ -7,34 +7,33 @@ use quote::{format_ident, IdentFragment, quote, ToTokens};
 use syn::{DeriveInput, Field, Fields, Ident, ItemStruct, LitStr, parse_macro_input, Token, token::Paren};
 use syn::token::Type;
 
+use serde::{Deserializer};
 use module_macro::{module_attr};
 
-use crate::test_library::*;
-use crate::test_library::test_library_three::{Four, Once, One, this_one};
-use crate::test_library::test_library_two::Ten;
-use crate::test_library_three::Found;
 use std::any::Any;
 use std::sync::{Arc};
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::marker::PhantomData;
 use syn::parse::Parser;
+use module_macro_lib::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
 use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
-use spring_knockoff_boot_macro::initializer;
-use crate::test_library_three::ReturnRequest;
 // these imports are necessary because the generated code does not contain the imports.
-use crate::test_library_three::FactoryFnTest;
-
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
 
 #[module_attr]
 #[cfg(springknockoff)]
 pub mod test_library {
+    use spring_knockoff_boot_macro::*;
 
     pub mod test_library_two;
+    pub use test_library_two::*;
 
     pub mod test_library_three;
+    pub use test_library_three::*;
+    pub mod test_library_seven;
+    pub use test_library_seven::*;
 
     #[aspect(test_library.test_library_three.One.*)]
     #[ordered(0)]
@@ -59,8 +58,9 @@ pub mod test_library {
         zero
     }
 
-
 }
+
+pub use test_library::*;
 
 
 #[test]
@@ -69,6 +69,10 @@ fn test_module_macro() {
 
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
+
+
+    let four_found_again: Option<Arc<TestLibraryFourAgain>> = BeanContainer::<TestLibraryFourAgain>::fetch_bean(&listable);
+    assert!(four_found_again.is_some());
 
     let four_found_again: Option<Arc<Four>> = BeanContainer::<Four>::fetch_bean(&listable);
     four_found_again.unwrap().one.lock().unwrap().two = "another".to_string();
@@ -105,8 +109,17 @@ fn test_module_macro() {
 
     assert_eq!(wrapped, "four three two one zero".to_string());
 
+    let with_generics = BeanContainer::<TestWithGenerics>::fetch_bean(&listable);
+    assert!(with_generics.is_some(), "Failed to get non-dyn");
+
+    let with_generics = BeanContainer::<dyn HasEnum<TestConstructEnumWithFields>>::fetch_bean(&listable);
+    assert!(with_generics.is_some(), "Failed to get dyn");
+
+    let created_enum = BeanContainer::<TestConstructEnumWithFields>::fetch_bean(&listable);
+    assert!(created_enum.is_some(), "Failed to create enum.");
 
 }
+
 
 #[test]
 fn test_attribute_handler_mapping() {

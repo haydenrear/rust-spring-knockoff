@@ -4,6 +4,13 @@ use std::fs;
 use std::fs::DirEntry;
 use syn::Pat;
 
+
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use crate::logger_lazy;
+import_logger!("walk.rs");
+
 #[cfg(test)]
 pub mod test;
 
@@ -22,29 +29,36 @@ impl DirectoryWalker {
 
         let base_dir = base_dir_opt.unwrap();
 
-        OsString::from(base_dir.to_string()).to_str().map(|os_string_dir| {
-            let dirs = fs::read_dir(Path::new(os_string_dir));
+        OsString::from(base_dir.to_string()).to_str()
+            .map(|os_string_dir| {
+                let dirs = fs::read_dir(Path::new(os_string_dir));
 
-            dirs.map(|read_dir| {
-                let dir_entries = read_dir
-                    .filter(|d| d.is_ok())
-                    .map(|d| d.unwrap())
-                    .collect::<Vec<DirEntry>>();
+                dirs.map(|read_dir| {
+                        let dir_entries = read_dir
+                            .filter(|d| d.is_ok())
+                            .map(|d| d.unwrap())
+                            .collect::<Vec<DirEntry>>();
 
-                Self::get_dir(search, dir_entries)
-
-
+                        Self::get_dir(search, dir_entries)
+                    })
+                    .ok()
+                    .map(|p| {
+                        p.iter().flat_map(|path| {
+                            if path.is_dir() {
+                                if path.join("mod.rs").exists() {
+                                    vec![path.join("mod.rs")]
+                                } else {
+                                    vec![]
+                                }
+                            } else if path.is_file() {
+                                vec![path.clone()]
+                            } else {
+                                error!("");
+                                vec![]
+                            }
+                        }).collect::<Vec<PathBuf>>()
+                    })
             })
-                .ok()
-                .map(|p| {
-                    p.iter().map(|path| {
-                        if path.is_dir() {
-                            return path.join("test");
-                        }
-                        path.clone()
-                    }).collect::<Vec<PathBuf>>()
-                })
-        })
             .flatten()
             .or(Some(vec![]))
             .unwrap()
