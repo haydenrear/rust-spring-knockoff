@@ -2,10 +2,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
-use std::sync::Arc;
-use proc_macro2::TokenStream;
-use syn::{Field, Type};
-use codegen_utils::syn_helper::SynHelper;
+use syn::{Item, Type};
 use quote::ToTokens;
 use crate::bean::BeanDefinition;
 use crate::functions::{FunctionType, ModulesFunctions};
@@ -13,15 +10,10 @@ use crate::module_tree::Trait;
 use crate::profile_tree::{ProfileBuilder, ProfileTree};
 
 use knockoff_logging::*;
-use lazy_static::lazy_static;
 use std::sync::Mutex;
-use codegen_utils::project_directory;
 use crate::logger_lazy;
 import_logger!("parse_container.rs");
-use crate::parse_container::parse_container_builder::BuildParseContainer;
 
-pub mod parse_container_builder;
-pub mod parse_container_modifier;
 
 pub trait MetadataItem: 'static + Debug {
     fn as_any(&mut self) -> &mut dyn Any;
@@ -80,4 +72,29 @@ impl ParseContainer {
 
 
 
+}
+
+
+/// ItemModifier runs as the ParseContainer is loaded with the beans. It is running at the same
+/// time as the code in module_macro_lib.item_parser
+pub trait ParseContainerItemUpdater {
+    fn parse_update(items: &mut Item, parse_container: &mut ParseContainer);
+}
+
+/// After the
+/// 1. ParseContainerItemUpdater and the
+/// 2. ItemModifier run
+/// the final build is done, and
+/// so the
+/// 3. ParseContainerModifier is passed here to perform any finalizing changes.
+pub trait ParseContainerModifier {
+    fn do_modify(items: &mut ParseContainer);
+}
+
+/// After the ItemModifier and the ParseContainerItemUpdater run, the final build is done, and
+/// so the ParseContainer is passed here to perform any finalizing changes. This calls the
+/// ParseContainerItemUpdater to build the parse container. After build parse container is called,
+/// then finally BuildProfileTree is called. This is when the TokenStream will be created.
+pub trait BuildParseContainer {
+    fn build_parse_container(&self, parse_container: &mut ParseContainer);
 }

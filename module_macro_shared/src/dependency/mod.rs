@@ -1,4 +1,4 @@
-use syn::{Field, ImplItem, ItemImpl, Lifetime, PatType, Type, TypeArray};
+use syn::{Field, Generics, ImplItem, ItemImpl, Lifetime, PatType, Type, TypeArray};
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 use codegen_utils::syn_helper;
@@ -28,7 +28,7 @@ pub struct DependencyDescriptor {
     pub profile: Vec<ProfileBuilder>,
     pub path_depth: Vec<String>,
     pub qualifiers: Vec<String>,
-    // pub item_impl_gens:
+    pub item_impl_gens: Generics
 }
 
 impl DependencyDescriptor {
@@ -73,7 +73,7 @@ pub enum AutowiredType {
         autowired_type: Type,
         concrete_type_of_field_bean_type: Option<Type>,
         mutable: bool,
-        generics: Vec<Ident>
+        generics: Generics
     }, AutowiredFnArg {
         qualifier: Option<String>,
         profile: Option<String>,
@@ -84,7 +84,7 @@ pub enum AutowiredType {
         autowired_type: Type,
         concrete_type_of_field_bean_type: Option<Type>,
         mutable: bool,
-        generics: Vec<Ident>
+        generics: Generics
     }
 }
 
@@ -138,6 +138,8 @@ pub enum DependencyMetadata {
         array_type: Option<TypeArray>,
         bean_type_path: Option<BeanPath>,
         is_abstract: Option<bool>,
+        generics: Generics,
+        qualifier: Option<String>
     },
     ArgDepType {
         bean_info: AutowiredType,
@@ -146,6 +148,8 @@ pub enum DependencyMetadata {
         array_type: Option<TypeArray>,
         bean_type_path: Option<BeanPath>,
         is_abstract: Option<bool>,
+        generics: Generics,
+        qualifier: Option<String>
     }
 }
 

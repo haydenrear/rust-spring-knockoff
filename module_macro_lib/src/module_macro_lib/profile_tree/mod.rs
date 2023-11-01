@@ -1,24 +1,15 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 use std::hash::Hash;
-use std::sync::Arc;
-use proc_macro2::Ident;
-use quote::{quote, ToTokens};
-use syn::{parse2, Type};
-use codegen_utils::syn_helper::SynHelper;
-use concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
-
-use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
+use quote::ToTokens;
+use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
 use module_macro_shared::parse_container::{MetadataItem, MetadataItemId};
 use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
-use mutable_profile_tree_modifier::MutableProfileTreeModifier;
-use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 
 use knockoff_logging::*;
-use lazy_static::lazy_static;
 use std::sync::Mutex;
-use codegen_utils::project_directory;
+use module_macro_shared::dependency::DepType;
 use crate::logger_lazy;
 import_logger!("profile_tree.rs");
 
@@ -26,6 +17,7 @@ import_logger!("profile_tree.rs");
 pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;
 pub mod profile_profile_tree_modifier;
+pub(crate) mod search_profile_tree;
 
 pub struct ProfileTreeBuilder {
     pub tree_modifiers: Vec<Box<dyn ProfileTreeModifier>>,

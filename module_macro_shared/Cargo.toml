@@ -16,6 +16,10 @@ base64 = "0.13.0"
 executors = "0.9.0"
 enum-fields = "0.1.0"
 
+[dependencies.string_utils]
+path = "../string_utils"
+version = "0.1.5"
+registry = "estuary"
 [dependencies.set_enum_fields]
 path ="../set_enum_fields"
 version = "0.1.5"

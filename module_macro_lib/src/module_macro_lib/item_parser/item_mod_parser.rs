@@ -10,7 +10,7 @@ use module_macro_shared::parse_container::ParseContainer;
 use knockoff_providers_gen::DelegatingParseProvider;
 
 use quote::ToTokens;
-use module_macro_shared::parse_container::parse_container_modifier::ParseContainerItemUpdater;
+use module_macro_shared::parse_container::ParseContainerItemUpdater;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;

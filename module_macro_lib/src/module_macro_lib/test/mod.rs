@@ -72,16 +72,13 @@ fn get_module_item(module_app: &str, factories: &str) -> Option<Item> {
     syn_file.items.get(0).cloned()
 }
 
-fn get_deps_map(concrete_beans: Vec<BeanDefinition>, bean_id: &str) -> Vec<FieldDepType> {
+fn get_deps_map(concrete_beans: Vec<BeanDefinition>, bean_id: &str) -> Vec<DependencyMetadata> {
     let one_num_deps = concrete_beans.iter()
         .filter(|b| b.id == bean_id.to_string())
         .map(|b| b.deps_map.clone())
         .flat_map(|b| b)
-        .flat_map(|b| match b {
-            DependencyMetadata::FieldDepType(f) => {vec![f]}
-            DependencyMetadata::ArgDepType(a) => {vec![]}
-        })
-        .collect::<Vec<FieldDepType>>();
+        .filter(|b| matches!(b, DependencyMetadata::FieldDepType {..}))
+        .collect::<Vec<DependencyMetadata>>();
     one_num_deps
 }
 

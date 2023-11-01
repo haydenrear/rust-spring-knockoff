@@ -122,14 +122,14 @@ pub struct TestU;
 #[service(TestV)]
 pub struct TestV;
 
-// #[service(ContainsPhantom)]
+// #[service(ContainsPhantom, default)]
 // pub struct ContainsPhantom<T, U, V, Z> {
 //     p: PhantomData<T>,
 //     u: PhantomData<U>,
 //     v: PhantomData<V>,
 //     z: PhantomData<Z>
 // }
-//
+
 // #[service(TestInjectContainsPhantom)]
 // pub struct TestInjectContainsPhantom {
 //     #[autowired(ContainsPhantom)]

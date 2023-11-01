@@ -1,9 +1,9 @@
 use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
 use std::sync::Arc;
-use proc_macro2::{Ident, Span};
-use quote::ToTokens;
-use syn::{Field, Fields, ImplItem, Path, Type, TypeParamBound};
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, TokenStreamExt, ToTokens};
+use syn::{Field, Fields, GenericParam, Generics, ImplItem, parse2, Path, PredicateType, Type, TypeParam, TypeParamBound, WherePredicate};
 use syn::token::Struct;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::BeanDefinition;
@@ -15,6 +15,7 @@ use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDepen
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use syn::ext::IdentExt;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
 import_logger!("bean_factory_info.rs");
@@ -78,7 +79,8 @@ pub struct AbstractFieldInfo {
     concrete_field_type: Type,
     field_ident: Ident,
     qualifier: Option<String>,
-    profile: Option<String>
+    profile: Option<String>,
+
 }
 
 #[derive(Clone)]
@@ -214,7 +216,7 @@ pub trait BeanFactoryInfoFactory<T> {
     }
 
     fn get_default_fields(bean: &BeanDefinition) -> Vec<DefaultFieldInfo> {
-        if bean.fields.len() > 1 && !bean.is_constructable(){
+        if bean.fields.len() > 1 && !bean.is_constructable() && !bean.has_default(){
             error!(
                 "Type had more than one set of fields and no new() function provided. Enum with \
                 multiple types of fields is not ready to be autowired!"
@@ -224,9 +226,10 @@ pub trait BeanFactoryInfoFactory<T> {
             return vec![];
         }
 
-        info!("Setting default fields for {:?}", bean);
+        info!("Setting default fields {} and {} for {:?}", bean.deps_map.len(), bean.fields[0].len(), bean);
         match &bean.fields[0] {
             Fields::Named(n) => {
+                info!("Has {} fields.", n.named.len());
                 n.named.iter()
                     .filter(|f|
                         SynHelper::get_attr_from_vec(

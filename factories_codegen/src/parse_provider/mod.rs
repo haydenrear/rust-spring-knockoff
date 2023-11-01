@@ -54,7 +54,7 @@ impl ProviderProvider for  ParseProvider {
         let imports = quote! {
             use syn::Item;
             use module_macro_shared::parse_container::ParseContainer;
-            use module_macro_shared::parse_container::parse_container_modifier::ParseContainerItemUpdater;
+            use module_macro_shared::parse_container::ParseContainerItemUpdater;
         }.into();
         imports
     }

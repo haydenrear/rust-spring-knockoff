@@ -42,7 +42,8 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                 struct_impl.bean_type = BeanDependencyParser::get_bean_type_opt(&item_struct.attrs);
                 struct_impl.id = item_struct.ident.clone().to_string();
                 struct_impl.path_depth = path_depth.clone();
-                struct_impl.declaration_generics = Some(item_struct.generics.clone())
+                struct_impl.declaration_generics = Some(item_struct.generics.clone());
+                // struct_impl.qualifiers.extend(ParseUtil::get_qualifiers(&item_struct.attrs));
             })
             .or_else(|| {
                 let item_struct_ident = &item_struct.ident;
@@ -65,6 +66,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     mutable: ParseUtil::does_attr_exist(&item_struct.attrs, &vec!["mutable_bean"]),
                     factory_fn: None,
                     declaration_generics: Some(item_struct.generics.clone()),
+                    qualifiers: vec![],
                 };
                 parse_container.injectable_types_builder.insert(item_struct.ident.to_string().clone(), impl_found);
                 None

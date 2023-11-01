@@ -5,7 +5,7 @@ use std::path::Path;
 use proc_macro2::Ident;
 use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
-use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Lifetime, ParenthesizedGenericArguments, PathArguments, PatType, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
+use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Generics, Lifetime, ParenthesizedGenericArguments, PathArguments, PatType, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use bean_dependency_path_parser::BeanDependencyPathParser;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
@@ -110,8 +110,7 @@ impl BeanDependencyParser {
         None
     }
 
-    pub fn get_autowired_field_dep(
-        field: &Field) -> Option<AutowiredType> {
+    pub fn get_autowired_field_dep(field: &Field) -> Option<AutowiredType> {
         let profile = SynHelper::get_attr_from_vec(&field.attrs, &vec!["profile"]);
         let qualifier = SynHelper::get_attr_from_vec(&field.attrs, &vec!["qualifier"]);
         SynHelper::get_attr_from_vec(&field.attrs, &vec!["autowired"])
@@ -128,7 +127,7 @@ impl BeanDependencyParser {
                     autowired_type: field.ty.clone(),
                     concrete_type_of_field_bean_type: None,
                     mutable: is_mutable,
-                    generics: vec![],
+                    generics: Generics::default(),
                 }
             })
     }
@@ -154,7 +153,7 @@ impl BeanDependencyParser {
                     concrete_type_of_field_bean_type: None,
                     mutable: is_mutable,
                     fn_arg: fn_arg_info.3.clone(),
-                    generics: vec![],
+                    generics: Generics::default(),
                 }
             })
     }
@@ -223,61 +222,70 @@ impl BeanDependencyParser {
     {
         log_message!("Adding dependency for {}: {:?}.", dep_impl.id.clone(), &bean_info);
 
-        let autowired_qualifier = bean_info.qualifier();
+        let autowired_qualifier = bean_info.qualifier().clone();
 
-        if autowired_qualifier.is_some() {
-            let bean_type = Self::get_bean_type(&bean_info, injectable_types_builder, fns);
+        let bean_type = Self::get_bean_type(&bean_info, injectable_types_builder, fns);
 
-            if matches!(bean_info, AutowiredType::AutowireField {..}){
-                    if bean_type.is_some() {
-                        dep_impl
-                            .deps_map
-                            .push(DependencyMetadata::FieldDepType{
-                                bean_info,
-                                lifetime,
-                                bean_type,
-                                array_type,
-                                bean_type_path,
-                                is_abstract: None,
-                            });
-                    } else {
-                        dep_impl
-                            .deps_map
-                            .push(DependencyMetadata::FieldDepType{
-                                bean_info,
-                                lifetime,
-                                bean_type: None,
-                                array_type,
-                                bean_type_path,
-                                is_abstract: None,
-                            });
-                    }
-            } else if matches!(bean_info, AutowiredType::AutowiredFnArg {..}) {
-                    if bean_type.is_some() {
-                        dep_impl
-                            .deps_map
-                            .push(DependencyMetadata::ArgDepType{
-                                bean_info,
-                                lifetime,
-                                bean_type,
-                                array_type,
-                                bean_type_path,
-                                is_abstract: None,
-                            });
-                    } else {
-                        dep_impl
-                            .deps_map
-                            .push(DependencyMetadata::ArgDepType{
-                                bean_info,
-                                lifetime,
-                                bean_type: None,
-                                array_type,
-                                bean_type_path,
-                                is_abstract: None,
-                            });
-                    }
-                }
+        let is_autowire_field = matches!(&bean_info, AutowiredType::AutowireField {..});
+        let matches_fn_arg = matches!(bean_info, AutowiredType::AutowiredFnArg {..});
+        let generics = bean_info.generics().clone();
+        if is_autowire_field {
+            if bean_type.is_some() {
+                dep_impl
+                    .deps_map
+                    .push(DependencyMetadata::FieldDepType {
+                        bean_info: bean_info.clone(),
+                        lifetime,
+                        bean_type,
+                        array_type,
+                        bean_type_path,
+                        is_abstract: None,
+                        generics: generics.clone(),
+                        qualifier: autowired_qualifier.clone()
+                    });
+            } else {
+                dep_impl
+                    .deps_map
+                    .push(DependencyMetadata::FieldDepType {
+                        bean_info: bean_info.clone(),
+                        lifetime,
+                        bean_type: None,
+                        array_type,
+                        bean_type_path,
+                        is_abstract: None,
+                        generics: generics.clone(),
+                        qualifier: autowired_qualifier.clone()
+                    });
             }
+        } else if matches_fn_arg {
+            if bean_type.is_some() {
+                dep_impl
+                    .deps_map
+                    .push(DependencyMetadata::ArgDepType {
+                        bean_info: bean_info.clone(),
+                        lifetime,
+                        bean_type,
+                        array_type,
+                        bean_type_path,
+                        is_abstract: None,
+                        generics: generics.clone(),
+                        qualifier: autowired_qualifier.clone()
+                    });
+            } else {
+                dep_impl
+                    .deps_map
+                    .push(DependencyMetadata::ArgDepType {
+                        bean_info: bean_info.clone(),
+                        lifetime,
+                        bean_type: None,
+                        array_type,
+                        bean_type_path,
+                        is_abstract: None,
+                        generics: generics.clone(),
+                        qualifier: autowired_qualifier.clone()
+                    });
+            }
+        }
     }
 
 

@@ -43,6 +43,7 @@ pub struct ProfileTree {
     pub provided_items: HashMap<MetadataItemId, Vec<Box<dyn MetadataItem>>>
 }
 
+
 impl Clone for ProfileTree {
     fn clone(&self) -> Self {
         Self {

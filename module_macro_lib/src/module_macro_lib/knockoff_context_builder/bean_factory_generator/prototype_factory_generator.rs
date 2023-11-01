@@ -17,6 +17,8 @@ pub struct PrototypeBeanFactoryGenerator {
     abstract_bean_factories: Vec<BeanFactoryInfo>
 }
 
+
+
 impl TokenStreamGenerator for PrototypeBeanFactoryGenerator {
     fn generate_token_stream(&self) -> TokenStream {
         self.generate_factories()

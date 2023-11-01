@@ -1,4 +1,5 @@
 #![feature(pattern)]
+#![feature(let_chains)]
 
 include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 
@@ -12,6 +13,7 @@ pub mod module_macro_lib {
     pub mod context_builder;
     pub mod knockoff_context;
     pub mod item_parser;
+    pub mod generics_provider;
     #[cfg(test)]
     pub mod test;
 }

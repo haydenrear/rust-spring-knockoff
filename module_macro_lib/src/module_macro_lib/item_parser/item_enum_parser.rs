@@ -13,6 +13,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
+use crate::module_macro_lib::util::ParseUtil;
 import_logger!("item_enum_parser.rs");
 
 //TODO: the fields here may screw things up. Enum is not ready to be autowired...
@@ -45,6 +46,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                         .or(Some(false)).unwrap(),
                     factory_fn: None,
                     declaration_generics: Some(enum_to_add.generics.clone()),
+                    qualifiers: ParseUtil::get_qualifiers(&enum_to_add.attrs),
                 };
                 parse_container.injectable_types_builder.insert(enum_to_add.ident.to_string().clone(), impl_found);
                 None

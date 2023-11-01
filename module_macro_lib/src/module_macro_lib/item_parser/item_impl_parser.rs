@@ -1,8 +1,9 @@
-use syn::{Attribute, ItemImpl};
+use std::collections::HashMap;
+use syn::{Attribute, Generics, ImplItem, ItemImpl};
 use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
-use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
+use crate::module_macro_lib::item_parser::{create_new_gens, GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
 use module_macro_shared::bean::{BeanDefinition, BeanPath};
 use module_macro_shared::parse_container::ParseContainer;
 
@@ -16,6 +17,7 @@ use crate::module_macro_lib::util::ParseUtil;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use proc_macro2::TokenStream;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
 import_logger!("item_impl_parser.rs");
@@ -40,12 +42,18 @@ impl ItemImplParser{
         SynHelper::get_attr_from_vec(attrs, &vec!["qualifier"])
     }
 
+    fn get_generics(item_impl: &mut ItemImpl) -> Generics {
+        item_impl.generics.clone()
+    }
+
     fn add_bean_defn(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl,
                      mut path_depth: &mut Vec<String>, id: &String, profile: &Vec<ProfileBuilder>,
                      qualifiers: &Vec<String>) {
 
         let abstract_type = item_impl.trait_.as_ref()
             .map(|trait_impl| BeanDependencyPathParser::parse_path_to_bean_path(&trait_impl.1));
+
+
 
         &mut parse_container.injectable_types_builder.get_mut(id)
             .map(|bean: &mut BeanDefinition| {
@@ -55,7 +63,8 @@ impl ItemImplParser{
                         abstract_type: abstract_type.clone(),
                         profile: profile.clone(),
                         path_depth: path_depth.clone(),
-                        qualifiers: qualifiers.clone()
+                        qualifiers: qualifiers.clone(),
+                        item_impl_gens: Self::get_generics(item_impl),
                     }
                 );
                 info!("Added trait to {:?}", bean);
@@ -70,7 +79,8 @@ impl ItemImplParser{
                             abstract_type,
                             profile: profile.clone(),
                             path_depth: path_depth.clone(),
-                            qualifiers: qualifiers.clone()
+                            qualifiers: qualifiers.clone(),
+                            item_impl_gens: Self::get_generics(item_impl),
                         }
                     ],
                     enum_found: None,
@@ -84,6 +94,7 @@ impl ItemImplParser{
                     mutable: ParseUtil::does_attr_exist(&item_impl.attrs, &vec!["mutable_bean"]),
                     factory_fn: None,
                     declaration_generics: None,
+                    qualifiers: vec![],
                 };
                 info!("Created bean {:?}", &impl_found);
                 parse_container.injectable_types_builder.insert(id.clone(), impl_found);

@@ -97,7 +97,6 @@ impl ConcreteTypeProfileTreeModifier {
 
      fn create_arg(profile_tree_items: &HashMap<String, BeanDefinition>) -> AddConcreteTypesToBeansArgs {
          AddConcreteTypesToBeansArgs {
-
              beans_to_types: profile_tree_items.iter().flat_map(|b| {
                  if b.1.struct_type.is_none() {
                      vec![]
@@ -115,7 +114,6 @@ impl ConcreteTypeProfileTreeModifier {
                          .collect::<Vec<_>>()
                  }
              }).collect::<HashMap<String, Type>>(),
-
              bean_struct_ids:  profile_tree_items.values()
                  .flat_map(|s| s.struct_type.as_ref()
                      .map(|s| vec![s.clone()])

@@ -123,7 +123,21 @@ pub fn get_all_generic_ty_bounds(generics: &Generics) -> HashMap<GenericTy, Vec<
     out
 }
 
-fn add_bounds_with_def(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>,
+
+pub(crate) fn create_new_gens(generics: &HashMap<GenericTy, Vec<Option<TokenStream>>>, output_tys: Vec<Type>) -> Generics {
+    let mut g = Generics::default();
+    generics.into_iter()
+        .filter(|(k, v)| k.generic_param.is_some())
+        .filter(|(k, v)| output_tys.iter()
+            .any(|o| o.to_token_stream().to_string().as_str() == k.generic_param.as_ref().to_token_stream().to_string().as_str())
+        )
+        .for_each(|(generic_ty, _)|
+            g.params.push(GenericParam::Type(TypeParam::from(generic_ty.generic_param.clone().unwrap())))
+        );
+    g
+}
+
+pub(crate) fn add_bounds_with_def(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>,
                        ty: &TypeParam, parsed_ty: Ident) {
     if ty.bounds.len() == 0 {
         collection_util::add_to_multi_value(
@@ -136,7 +150,7 @@ fn add_bounds_with_def(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>
     }
 }
 
-fn add_bounds(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>, ty_param: &TypeParam,
+pub(crate) fn add_bounds(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>, ty_param: &TypeParam,
               ty_value: Ident) {
     ty_param.bounds.iter().for_each(|bound| {
         match bound {

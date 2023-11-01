@@ -35,7 +35,7 @@ use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use module_macro_shared::module_tree::Trait;
-use module_macro_shared::parse_container::parse_container_builder::BuildParseContainer;
+use module_macro_shared::parse_container::BuildParseContainer;
 use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::profile_tree::profile_tree_finalizer::ProfileTreeFinalizer;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
@@ -51,6 +51,7 @@ use std::sync::Mutex;
 use codegen_utils::project_directory;
 use module_macro_shared::dependency::DepType;
 use crate::logger_lazy;
+use crate::module_macro_lib::generics_provider::DelegatingGenericsProvider;
 import_logger!("parse_container.rs");
 
 pub mod parse_container_dependencies;
@@ -96,7 +97,8 @@ impl ParseContainerBuilder {
             Box::new(ConcreteTypeProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
             Box::new(MutableProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
             Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
-            Box::new(DelegatingProfileTreeModifierProvider::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
+            Box::new(DelegatingProfileTreeModifierProvider::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
+            // Box::new(DelegatingGenericsProvider::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
         ];
 
         parse_container.profile_tree = ProfileTreeBuilder::build_profile_tree(

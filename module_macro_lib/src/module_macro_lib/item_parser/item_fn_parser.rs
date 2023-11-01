@@ -5,7 +5,7 @@ use std::ops::Deref;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::item_parser::{GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
+use crate::module_macro_lib::item_parser::{create_new_gens, GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
 use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::*;
@@ -57,6 +57,7 @@ impl ItemFnParser {
 
     pub fn get_bean(item_fn: &ItemFn, factory_fn: &ModulesFunctions, id: String) -> BeanDefinition {
         BeanDefinition {
+            qualifiers: ParseUtil::get_qualifiers(&item_fn.attrs),
             struct_type: factory_fn.fn_found.fn_type.as_ref()
                 .map(|bean_path| bean_path.get_inner_type())
                 .flatten(),
@@ -94,22 +95,10 @@ impl ItemFnParser {
 
     pub fn output_gens(item_fn: &ItemFn, generics: &HashMap<GenericTy, Vec<Option<TokenStream>>>) -> Generics {
         let output_tys = Self::output_tys(item_fn);
-        let g = Self::create_new_gens(generics, output_tys);
+        let g = create_new_gens(generics, output_tys);
         g
     }
 
-    fn create_new_gens(generics: &HashMap<GenericTy, Vec<Option<TokenStream>>>, output_tys: Vec<Type>) -> Generics {
-        let mut g = Generics::default();
-        generics.into_iter()
-            .filter(|(k, v)| k.generic_param.is_some())
-            .filter(|(k, v)| output_tys.iter()
-                .any(|o| o.to_token_stream().to_string().as_str() == k.generic_param.as_ref().to_token_stream().to_string().as_str())
-            )
-            .for_each(|(generic_ty, _)|
-                g.params.push(GenericParam::Type(TypeParam::from(generic_ty.generic_param.clone().unwrap())))
-            );
-        g
-    }
 
     fn output_tys(item_fn: &ItemFn) -> Vec<Type> {
         match &item_fn.sig.output {
@@ -124,7 +113,8 @@ impl ItemFnParser {
                              BeanPathParts::GenType {
                                  inner_ty_opt,
                                  gen_type ,
-                                 outer_ty_opt
+                                 outer_ty_opt,
+                                 ident
                              } => inner_ty_opt
                                  .clone()
                                  .into_iter()
@@ -203,7 +193,7 @@ impl ItemFnParser {
                 }
             }).collect::<Vec<Type>>();
 
-        Self::create_new_gens(generics, all_args)
+        create_new_gens(generics, all_args)
 
     }
 

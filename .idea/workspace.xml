@@ -7,41 +7,44 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Added more logging and fixed issues.">
-      <change afterPath="$PROJECT_DIR$/set_enum_fields/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/set_enum_fields/src/lib.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Added set enum fields and mut enum fields, and adding Generics to container, testing generics with container.">
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/default_generics_provider.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/enum_generics_provider.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/function_generics_provider.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/impl_item_generics_provider.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/struct_generics_provider.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/search_profile_tree.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/collection_util/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/collection_util/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_mod_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_mod_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/prototype_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/prototype_factory_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mutable_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mutable_profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/module_tree_test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/module_tree_test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/debug/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/debug/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/functions/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/functions/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/module_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/module_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_modifier/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/parse_container_builder.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/parse_container_modifier.rs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -404,7 +407,8 @@
       <workItem from="1698694625011" duration="1972000" />
       <workItem from="1698696725333" duration="26573000" />
       <workItem from="1698789206519" duration="40088000" />
-      <workItem from="1698837256001" duration="733000" />
+      <workItem from="1698837256001" duration="29841000" />
+      <workItem from="1698868317227" duration="1290000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -749,7 +753,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="208" />
+    <option name="localTasksCounter" value="210" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -809,7 +813,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="preliminary logic added." />
     <MESSAGE value="Preparing" />
     <MESSAGE value="moving" />
     <MESSAGE value="user provided delegating parse provider" />
@@ -834,7 +837,8 @@
     <MESSAGE value="Updated to fix link" />
     <MESSAGE value="Updated to fix link and add readme.md" />
     <MESSAGE value="Added more logging and fixed issues." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added more logging and fixed issues." />
+    <MESSAGE value="Added set enum fields and mut enum fields, and adding Generics to container, testing generics with container." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added set enum fields and mut enum fields, and adding Generics to container, testing generics with container." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

@@ -7,7 +7,7 @@ use codegen_utils::syn_helper::SynHelper;
 use factory_factory_generator::FactoryBeanBeanFactoryGenerator;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use module_macro_shared::bean::{BeanDefinition, BeanPath};
-use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
+use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, ConcreteBeanFactoryInfo};
 
 use module_macro_shared::profile_tree::ProfileBuilder;
 use mutable_factory_generator::MutableBeanFactoryGenerator;
@@ -29,7 +29,8 @@ pub mod factory_fn_factory_generator;
 
 pub trait BeanFactoryGenerator: TokenStreamGenerator {
 
-    fn concrete_bean_factory_tokens<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT, profile_ident: &Ident) -> TokenStream {
+    fn concrete_bean_factory_tokens<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT,
+                                                             profile_ident: &Ident) -> TokenStream {
         quote! {
             impl BeanFactory<#concrete_type, #profile_ident> for ListableBeanFactory {
                 type U = #concrete_type;

@@ -65,7 +65,7 @@ impl ProviderProvider for ParseContainerModifierProvider {
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
-            use module_macro_shared::parse_container::parse_container_modifier::ParseContainerModifier;
+            use module_macro_shared::parse_container::ParseContainerModifier;
         }.into();
         imports
     }
