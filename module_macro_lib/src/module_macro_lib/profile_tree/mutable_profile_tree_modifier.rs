@@ -8,6 +8,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::dependency::DepType;
 use crate::logger_lazy;
 import_logger!("mutable_profile_tree_modifier.rs");
 
@@ -26,13 +27,13 @@ impl ProfileTreeModifier for MutableProfileTreeModifier {
             log_message!("Making {} mutable field.", i.as_str());
             let id = d.id.as_str();
             d.deps_map.iter_mut()
-                .filter(|d| d.identifier() == i.clone())
+                .filter(|d| d.dep_type_identifier() == i.clone())
                 .for_each(|d| {
-                    if d.mutable() {
-                        log_message!("Dep type {} is already mutable.", SynHelper::get_str(d.identifier()));
+                    if d.dep_type_mutable() {
+                        log_message!("Dep type {} is already mutable.", SynHelper::get_str(d.dep_type_identifier()));
                     } else {
-                        log_message!("Making {} mutable field for {}.", d.identifier(), id);
-                        d.set_mutable();
+                        log_message!("Making {} mutable field for {}.", d.dep_type_identifier(), id);
+                        d.bean_info_mut().set_mutable(&mut true);
                     }
                 });
         });

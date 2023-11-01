@@ -11,7 +11,7 @@ use codegen_utils::syn_helper::SynHelper;
 use std::collections::HashMap;
 use std::sync::Arc;
 use crate::bean::{BeanDefinition, BeanDefinitionType};
-use crate::dependency::{DependencyDescriptor, DependencyMetadata, FieldDepType};
+use crate::dependency::{DependencyDescriptor, DependencyMetadata};
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;

@@ -72,7 +72,7 @@ fn test_arc_mutex_bean_path_parsing() {
 
     let path = &parsed_mutex.path_segments[0];
     match path {
-        BeanPathParts::MutexType {mutex_type_inner_type, outer_type} => {
+        BeanPathParts::MutexType { inner_ty: mutex_type_inner_type, outer_path: outer_type } => {
             assert_eq!(mutex_type_inner_type.to_token_stream().to_string(), "One");
             assert_ne!(outer_type.segments.len(), 0);
             outer_type.segments.iter()
@@ -86,7 +86,7 @@ fn test_arc_mutex_bean_path_parsing() {
     }
 
     match &parsed_arc_mutex.path_segments.clone()[..] {
-        [ BeanPathParts::ArcMutexType{ arc_mutex_inner_type, outer_type: out}, BeanPathParts::MutexType { mutex_type_inner_type, outer_type} ] => {
+        [ BeanPathParts::ArcMutexType{ inner_ty: arc_mutex_inner_type, outer_path: out}, BeanPathParts::MutexType { inner_ty: mutex_type_inner_type, outer_path: outer_type } ] => {
             assert_eq!(mutex_type_inner_type.to_token_stream().to_string(), "One");
             assert_ne!(outer_type.segments.len(), 0);
             out.segments.iter().any(|seg| seg.to_token_stream().to_string().contains("Arc"));

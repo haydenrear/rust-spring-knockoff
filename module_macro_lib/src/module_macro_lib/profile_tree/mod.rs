@@ -9,7 +9,6 @@ use codegen_utils::syn_helper::SynHelper;
 use concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{DependencyDescriptor, FieldDepType};
 use module_macro_shared::parse_container::{MetadataItem, MetadataItemId};
 use module_macro_shared::profile_tree::{ProfileBuilder, ProfileTree};
 use mutable_profile_tree_modifier::MutableProfileTreeModifier;

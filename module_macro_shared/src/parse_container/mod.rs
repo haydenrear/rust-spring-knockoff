@@ -8,7 +8,6 @@ use syn::{Field, Type};
 use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use crate::bean::BeanDefinition;
-use crate::dependency::{AutowiredField, FieldDepType};
 use crate::functions::{FunctionType, ModulesFunctions};
 use crate::module_tree::Trait;
 use crate::profile_tree::{ProfileBuilder, ProfileTree};

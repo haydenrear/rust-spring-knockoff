@@ -14,7 +14,12 @@ lazy_static = "1.4.0"
 serde = "1.0.137"
 base64 = "0.13.0"
 executors = "0.9.0"
+enum-fields = "0.1.0"
 
+[dependencies.set_enum_fields]
+path ="../set_enum_fields"
+version = "0.1.5"
+registry = "estuary"
 [dependencies.codegen_utils]
 path ="../codegen_utils"
 version = "0.1.5"

@@ -23,6 +23,15 @@ version = "0.1.5"
 path = "../string_utils"
 version = "0.1.5"
 registry = "estuary"
+[dependencies.collection_util]
+path = "../collection_util"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.set_enum_fields]
+path = "../set_enum_fields"
+version = "0.1.5"
+registry = "estuary"
+
 
 [build-dependencies.build_lib]
 path ="../build_lib"

@@ -29,7 +29,9 @@ members = [
     "knockoff_tokio_util",
     "knockoff_env",
     "rust_spring_knockoff",
-    "string_utils"
+    "string_utils",
+    "set_enum_fields"
+
 #    "boot_application_builder"
 ]
 exclude = [

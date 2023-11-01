@@ -9,7 +9,7 @@ use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, 
 use bean_dependency_path_parser::BeanDependencyPathParser;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{ArgDepType, AutowiredField, AutowiredFnArg, AutowiredType, DependencyDescriptor, DependencyMetadata, FieldDepType};
+use module_macro_shared::dependency::{ AutowiredType, DependencyDescriptor, DependencyMetadata};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
 use module_macro_shared::parse_container::ParseContainer;
@@ -84,7 +84,11 @@ impl BeanDependencyParser {
             })
     }
 
-    fn add_field_deps_to_bean(mut bean: &mut &mut BeanDefinition, injectable_types_builder: &HashMap<String, BeanDefinition>, fns: &HashMap<String, ModulesFunctions>) -> Option<()> {
+    fn add_field_deps_to_bean(
+        mut bean: &mut &mut BeanDefinition,
+        injectable_types_builder: &HashMap<String, BeanDefinition>,
+        fns: &HashMap<String, ModulesFunctions>
+    ) -> Option<()> {
         for fields in bean.fields.clone().iter() {
             match fields.clone() {
                 Fields::Named(fields_named) => {
@@ -106,14 +110,16 @@ impl BeanDependencyParser {
         None
     }
 
-    pub fn get_autowired_field_dep(field: &Field) -> Option<AutowiredType> {
+    pub fn get_autowired_field_dep(
+        field: &Field) -> Option<AutowiredType> {
         let profile = SynHelper::get_attr_from_vec(&field.attrs, &vec!["profile"]);
         let qualifier = SynHelper::get_attr_from_vec(&field.attrs, &vec!["qualifier"]);
         SynHelper::get_attr_from_vec(&field.attrs, &vec!["autowired"])
             .map(|autowired_value| {
                 let is_mutable = ParseUtil::does_attr_exist(&field.attrs, &vec!["mutable_bean", "mutable_field"]);
                 Self::log_autowired_info(&field, is_mutable);
-                AutowiredType::Field(AutowiredField {
+                info!("Found autowired value {:?}", &autowired_value);
+                AutowiredType::AutowireField{
                     //TODO: this should be a vec
                     qualifier: Some(autowired_value.clone()).or(qualifier.clone()),
                     //TODO: this should be a vec
@@ -122,7 +128,8 @@ impl BeanDependencyParser {
                     autowired_type: field.ty.clone(),
                     concrete_type_of_field_bean_type: None,
                     mutable: is_mutable,
-                })
+                    generics: vec![],
+                }
             })
     }
 
@@ -130,9 +137,10 @@ impl BeanDependencyParser {
         let profile = SynHelper::get_attr_from_vec(&fn_arg_info.3.attrs, &vec!["profile"]);
         SynHelper::get_attr_from_vec(&fn_arg_info.3.attrs, &vec!["autowired"])
             .map(|autowired_value| {
-                let is_mutable = ParseUtil::does_attr_exist(&fn_arg_info.3.attrs, &vec!["mutable_bean", "mutable_field"]);
+                let is_mutable = ParseUtil::does_attr_exist
+                    (&fn_arg_info.3.attrs, &vec!["mutable_bean", "mutable_field"]);
                 Self::log_autowired_info(&fn_arg_info.3, is_mutable);
-                AutowiredType::FnArg(AutowiredFnArg {
+                AutowiredType::AutowiredFnArg{
                     //TODO: this should be a vec
                     qualifier: fn_arg_info.2.clone().or(Some(autowired_value)),
                     //TODO: this should be a vec
@@ -146,9 +154,11 @@ impl BeanDependencyParser {
                     concrete_type_of_field_bean_type: None,
                     mutable: is_mutable,
                     fn_arg: fn_arg_info.3.clone(),
-                })
+                    generics: vec![],
+                }
             })
     }
+
 
     fn log_autowired_info<T: ToTokens>(fn_arg_info: T, is_mutable: bool) {
         log_message!("Attempting to add {} autowired for {}.",
@@ -211,67 +221,63 @@ impl BeanDependencyParser {
         bean_type_path: Option<BeanPath>,
     )
     {
-        log_message!("Adding dependency for {}.", dep_impl.id.clone());
+        log_message!("Adding dependency for {}: {:?}.", dep_impl.id.clone(), &bean_info);
 
         let autowired_qualifier = bean_info.qualifier();
 
         if autowired_qualifier.is_some() {
             let bean_type = Self::get_bean_type(&bean_info, injectable_types_builder, fns);
 
-            match bean_info {
-                AutowiredType::Field(bean_info) => {
+            if matches!(bean_info, AutowiredType::AutowireField {..}){
                     if bean_type.is_some() {
                         dep_impl
                             .deps_map
-                            .push(DependencyMetadata::FieldDepType(FieldDepType {
+                            .push(DependencyMetadata::FieldDepType{
                                 bean_info,
                                 lifetime,
                                 bean_type,
                                 array_type,
                                 bean_type_path,
                                 is_abstract: None,
-                            }));
+                            });
                     } else {
                         dep_impl
                             .deps_map
-                            .push(DependencyMetadata::FieldDepType(FieldDepType {
+                            .push(DependencyMetadata::FieldDepType{
                                 bean_info,
                                 lifetime,
                                 bean_type: None,
                                 array_type,
                                 bean_type_path,
                                 is_abstract: None,
-                            }));
+                            });
                     }
-                }
-
-                AutowiredType::FnArg(bean_info) => {
+            } else if matches!(bean_info, AutowiredType::AutowiredFnArg {..}) {
                     if bean_type.is_some() {
                         dep_impl
                             .deps_map
-                            .push(DependencyMetadata::ArgDepType(ArgDepType {
+                            .push(DependencyMetadata::ArgDepType{
                                 bean_info,
                                 lifetime,
                                 bean_type,
                                 array_type,
                                 bean_type_path,
                                 is_abstract: None,
-                            }));
+                            });
                     } else {
                         dep_impl
                             .deps_map
-                            .push(DependencyMetadata::ArgDepType(ArgDepType {
+                            .push(DependencyMetadata::ArgDepType{
                                 bean_info,
                                 lifetime,
                                 bean_type: None,
                                 array_type,
                                 bean_type_path,
                                 is_abstract: None,
-                            }));
+                            });
                     }
                 }
             }
-        }
     }
 
 
@@ -282,9 +288,7 @@ impl BeanDependencyParser {
     fn get_bean_type(bean_info: &AutowiredType, injectable_types_builder: &HashMap<String, BeanDefinition>, fns: &HashMap<String, ModulesFunctions>) -> Option<BeanType> {
         let bean_type = bean_info.qualifier().clone()
             .map(|q| injectable_types_builder.get(&q))
-            .map(|b| b.map(|b| {
-                b.bean_type.clone()
-            }))
+            .map(|b| b.map(|b| b.bean_type.clone()))
             .flatten()
             .flatten()
             .or_else(|| {

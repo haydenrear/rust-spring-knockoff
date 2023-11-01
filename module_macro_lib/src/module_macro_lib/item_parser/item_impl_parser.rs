@@ -58,6 +58,7 @@ impl ItemImplParser{
                         qualifiers: qualifiers.clone()
                     }
                 );
+                info!("Added trait to {:?}", bean);
             })
             .or_else(|| {
                 let mut impl_found = BeanDefinition {
@@ -82,7 +83,9 @@ impl ItemImplParser{
                     bean_type: None,
                     mutable: ParseUtil::does_attr_exist(&item_impl.attrs, &vec!["mutable_bean"]),
                     factory_fn: None,
+                    declaration_generics: None,
                 };
+                info!("Created bean {:?}", &impl_found);
                 parse_container.injectable_types_builder.insert(id.clone(), impl_found);
                 None
             });

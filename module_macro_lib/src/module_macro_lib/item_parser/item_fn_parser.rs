@@ -1,23 +1,23 @@
-use syn::{Attribute, FnArg, ItemFn, Pat, PatType, ReturnType, Type};
+use syn::{Attribute, FnArg, GenericParam, Generics, ItemFn, Pat, PatType, ReturnType, Type, TypeParam, WherePredicate};
 use std::any::{Any, TypeId};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
-use proc_macro2::Ident;
+use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
+use crate::module_macro_lib::item_parser::{GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
 use module_macro_shared::parse_container::ParseContainer;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use syn::ext::IdentExt;
 use codegen_utils::project_directory;
-use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanType};
+use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
 use crate::logger_lazy;
 import_logger!("item_fn_parser.rs");
 
 use module_macro_shared::bean::BeanPathParts::FnType;
-use module_macro_shared::dependency::FieldDepType;
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
 use crate::module_macro_lib::util::ParseUtil;
@@ -72,6 +72,69 @@ impl ItemFnParser {
             bean_type: Some(factory_fn.fn_found.bean_type.clone()),
             mutable: false,
             factory_fn: Some(factory_fn.clone()),
+            declaration_generics: None
+        }
+    }
+
+    pub fn parse_fn_arg_generics(item_fn: &ItemFn) -> Generics {
+        let generics = item_fn.sig.generics.clone();
+        let mut g = Generics::default();
+        let output_tys = Self::output_tys(item_fn);
+        get_all_generic_ty_bounds(&generics)
+            .into_iter().filter(|(k, v)| k.generic_param.is_some())
+            .filter(|(k, v)| output_tys.iter()
+                .any(|o| o.to_token_stream().to_string().as_str() == k.generic_param.as_ref().to_token_stream().to_string().as_str())
+            )
+            .for_each(|(generic_ty,_)|
+                g.params.push(GenericParam::Type(TypeParam::from(generic_ty.generic_param.unwrap())))
+            );
+        g
+    }
+
+
+    pub fn output_gens(item_fn: &ItemFn, generics: &HashMap<GenericTy, Vec<Option<TokenStream>>>) -> Generics {
+        let output_tys = Self::output_tys(item_fn);
+        let g = Self::create_new_gens(generics, output_tys);
+        g
+    }
+
+    fn create_new_gens(generics: &HashMap<GenericTy, Vec<Option<TokenStream>>>, output_tys: Vec<Type>) -> Generics {
+        let mut g = Generics::default();
+        generics.into_iter()
+            .filter(|(k, v)| k.generic_param.is_some())
+            .filter(|(k, v)| output_tys.iter()
+                .any(|o| o.to_token_stream().to_string().as_str() == k.generic_param.as_ref().to_token_stream().to_string().as_str())
+            )
+            .for_each(|(generic_ty, _)|
+                g.params.push(GenericParam::Type(TypeParam::from(generic_ty.generic_param.clone().unwrap())))
+            );
+        g
+    }
+
+    fn output_tys(item_fn: &ItemFn) -> Vec<Type> {
+        match &item_fn.sig.output {
+            ReturnType::Default => vec![],
+            ReturnType::Type(arrow, out) => {
+                let parsed = BeanDependencyPathParser::parse_type(out.deref().clone());
+                /// Find the generic types from the BeanPath parts, and add them to the return Generics.
+                if parsed.is_some() {
+                    let mut parsed = parsed.unwrap();
+                     return parsed.path_segments.iter()
+                         .flat_map(|p_s| match p_s {
+                             BeanPathParts::GenType {
+                                 inner_ty_opt,
+                                 gen_type ,
+                                 outer_ty_opt
+                             } => inner_ty_opt
+                                 .clone()
+                                 .into_iter()
+                                 .collect::<Vec<_>>(),
+                             _ => vec![]
+                         })
+                         .collect();
+                }
+                vec![]
+            }
         }
     }
 
@@ -83,6 +146,7 @@ impl ItemFnParser {
             ReturnType::Type(_, ty) => {
                 match ty.deref().clone() {
                     Type::Path(type_path) => {
+                        info!("Retrieving bean type");
                         let bean_dep_output_path = BeanDependencyPathParser::parse_type_path(type_path);
                         if bean_dep_output_path.get_inner_type_id().contains("dyn") {
                             panic!("Factory function cannot return abstract type!");
@@ -106,6 +170,8 @@ impl ItemFnParser {
             .map(|p| (p, BeanType::Singleton))
             .or(ParseUtil::get_prototype_names(&attr).map(|p| (p, BeanType::Prototype)))
             .map(|bean_type_names| {
+                let gens = &fn_found.sig.generics;
+                let ty_bounds = get_all_generic_ty_bounds(gens);
                 FunctionType {
                     item_fn: fn_found.clone(),
                     qualifiers: bean_type_names.0,
@@ -113,8 +179,32 @@ impl ItemFnParser {
                     fn_type: type_ref.clone(),
                     bean_type: bean_type_names.1,
                     args: Self::get_injectable_args(fn_found),
+                    output_generics: Self::output_gens(fn_found, &ty_bounds).into(),
+                    fn_arg_generics: Self::fn_arg_gens(&fn_found, &ty_bounds).into(),
                 }
             })
+    }
+
+    fn fn_arg_gens(
+        fn_args: &ItemFn,
+        generics: &HashMap<GenericTy, Vec<Option<TokenStream>>>
+    ) -> Generics {
+        let all_args = fn_args.sig.inputs.iter()
+            .flat_map(|fn_arg| {
+                match fn_arg {
+                    FnArg::Receiver(_) => {
+                        vec![]
+                    }
+                    FnArg::Typed(value) => {
+                        BeanDependencyPathParser::parse_type(value.ty.deref().clone())
+                            .into_iter().flat_map(|pt| pt.get_inner_type().into_iter())
+                            .collect::<Vec<Type>>()
+                    }
+                }
+            }).collect::<Vec<Type>>();
+
+        Self::create_new_gens(generics, all_args)
+
     }
 
     fn get_injectable_args(fn_args: &ItemFn) -> Vec<(Ident, BeanPath, Option<String>, PatType)> {
@@ -124,6 +214,7 @@ impl ItemFnParser {
                     vec![]
                 }
                 FnArg::Typed(value) => {
+
                     let qualifier = SynHelper::get_attr_from_vec(
                         &value.attrs,
                         &vec!["qualifier"],

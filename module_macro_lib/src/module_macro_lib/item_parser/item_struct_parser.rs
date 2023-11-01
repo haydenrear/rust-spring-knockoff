@@ -2,7 +2,7 @@ use syn::{ItemStruct, parse2, Type};
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
-use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
+use crate::module_macro_lib::item_parser::{get_all_generic_ty_bounds, get_profiles, ItemParser};
 use module_macro_shared::bean::BeanDefinition;
 use module_macro_shared::parse_container::ParseContainer;
 
@@ -32,6 +32,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
         let field_augmenter = FieldAugmenterImpl {};
 
         field_augmenter.process(item_struct);
+        get_all_generic_ty_bounds(&item_struct.generics);
 
         parse_container.injectable_types_builder.get_mut(&item_struct.ident.to_string().clone())
             .map(|struct_impl: &mut BeanDefinition| {
@@ -41,6 +42,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                 struct_impl.bean_type = BeanDependencyParser::get_bean_type_opt(&item_struct.attrs);
                 struct_impl.id = item_struct.ident.clone().to_string();
                 struct_impl.path_depth = path_depth.clone();
+                struct_impl.declaration_generics = Some(item_struct.generics.clone())
             })
             .or_else(|| {
                 let item_struct_ident = &item_struct.ident;
@@ -62,6 +64,7 @@ impl ItemParser<ItemStruct> for ItemStructParser {
                     bean_type: BeanDependencyParser::get_bean_type_opt(&item_struct.attrs),
                     mutable: ParseUtil::does_attr_exist(&item_struct.attrs, &vec!["mutable_bean"]),
                     factory_fn: None,
+                    declaration_generics: Some(item_struct.generics.clone()),
                 };
                 parse_container.injectable_types_builder.insert(item_struct.ident.to_string().clone(), impl_found);
                 None

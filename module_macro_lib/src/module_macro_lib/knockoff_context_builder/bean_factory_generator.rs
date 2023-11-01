@@ -9,7 +9,6 @@ use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::T
 use module_macro_shared::bean::{BeanDefinition, BeanPath};
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::{AbstractBeanFactoryInfo, BeanFactoryInfo, BeanFactoryInfoFactory, ConcreteBeanFactoryInfo};
 
-use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor, FieldDepType};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use mutable_factory_generator::MutableBeanFactoryGenerator;
 use prototype_factory_generator::PrototypeBeanFactoryGenerator;

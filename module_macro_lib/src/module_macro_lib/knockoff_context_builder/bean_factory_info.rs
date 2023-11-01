@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
 use std::sync::Arc;
 use proc_macro2::{Ident, Span};
@@ -7,7 +8,7 @@ use syn::token::Struct;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::BeanDefinition;
 
-use module_macro_shared::dependency::{ArgDepType, AutowiredField, DependencyDescriptor, DependencyMetadata, DepType, FieldDepType};
+use module_macro_shared::dependency::{DependencyDescriptor, DependencyMetadata, DepType};
 use module_macro_shared::functions::ModulesFunctions;
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
@@ -46,6 +47,15 @@ pub struct AutowirableFieldTypeInfo {
 pub struct DefaultFieldInfo {
     pub(crate) field_type: Type,
     pub(crate) field_ident: Ident
+}
+
+impl Debug for DefaultFieldInfo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("DefaultFieldInfo: ")?;
+        f.write_str(format!("Field ident: {}, ", SynHelper::get_str(&self.field_ident).as_str()).as_str())?;
+        f.write_str(format!("Field type: {}, ", SynHelper::get_str(&self.field_type).as_str()).as_str())?;
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
@@ -213,21 +223,33 @@ pub trait BeanFactoryInfoFactory<T> {
         } else if bean.fields.len() == 0 {
             return vec![];
         }
+
+        info!("Setting default fields for {:?}", bean);
         match &bean.fields[0] {
             Fields::Named(n) => {
                 n.named.iter()
                     .filter(|f|
-                        SynHelper::get_attr_from_vec(&f.attrs, &vec!["autowired"]).is_none()
+                        SynHelper::get_attr_from_vec(
+                            &f.attrs,
+                            &vec!["autowired"]
+                        ).is_none()
                     )
                     .flat_map(|f| {
                         if f.ident.as_ref().is_some() {
-                            vec![DefaultFieldInfo{ field_type: f.ty.clone(), field_ident: f.ident.as_ref().unwrap().clone() }]
+                            vec![DefaultFieldInfo{
+                                field_type: f.ty.clone(),
+                                field_ident: f.ident.as_ref().unwrap().clone()
+                            }]
                         } else {
                             let f = SynHelper::get_str(f);
                             info!("Failed to parse {:?}, as its field ident was nonexistent.", f);
                             vec![]
                         }
                     } )
+                    .map(|def| {
+                        info!("Found default fields {:?}", def);
+                        def
+                    })
                     .collect::<Vec<DefaultFieldInfo>>()
             }
             _ => {
@@ -237,7 +259,7 @@ pub trait BeanFactoryInfoFactory<T> {
     }
 
     fn create_mutable_dep_type(dep_type: &DependencyMetadata) -> Option<MutableFieldInfo> {
-        if dep_type.is_abstract() {
+        if dep_type.is_abstract().or(Some(false)).unwrap() {
             return None;
         }
         dep_type.bean_type_path()
@@ -246,11 +268,11 @@ pub trait BeanFactoryInfoFactory<T> {
             .map(|type_path| type_path.get_autowirable_type())
             .flatten()
             .map(|field_type| {
-                let concrete_field_type = dep_type.concrete_type()
+                let concrete_field_type = dep_type.dep_type_concrete_type()
                     .as_ref()
                     .cloned()
                     .or(Some(field_type.clone())).unwrap();
-                let field_ident = dep_type.field_ident();
+                let field_ident = dep_type.dep_type_field_ident();
                 MutableFieldInfo {
                     concrete_field_type,
                     field_type,
@@ -260,7 +282,7 @@ pub trait BeanFactoryInfoFactory<T> {
     }
 
     fn create_dep_type(dep_type: &DependencyMetadata) -> Option<AutowirableFieldTypeInfo> {
-        if dep_type.is_abstract() {
+        if dep_type.is_abstract().or(Some(false)).unwrap() {
             return None;
         }
         dep_type.bean_type_path()
@@ -269,45 +291,45 @@ pub trait BeanFactoryInfoFactory<T> {
             .map(|type_path| type_path.get_autowirable_type())
             .flatten()
             .map(|field_type| AutowirableFieldTypeInfo {
-                concrete_field_type: dep_type.concrete_type().clone().or(Some(field_type.clone())).unwrap(),
+                concrete_field_type: dep_type.dep_type_concrete_type().clone().or(Some(field_type.clone())).unwrap(),
                 field_type,
-                field_ident: dep_type.field_ident(),
+                field_ident: dep_type.dep_type_field_ident(),
             })
     }
 
     fn create_abstract_dep_type(dep_type: &DependencyMetadata) -> Option<AbstractFieldInfo> {
-        if dep_type.is_abstract() {
+        if dep_type.is_abstract().or(Some(false)).unwrap() {
             return dep_type.bean_type_path()
                 .as_ref()
                 .filter(|d| d.is_not_mutable())
                 .map(|type_path| type_path.get_autowirable_type())
                 .flatten()
                 .map(|field_type| AbstractFieldInfo {
-                    concrete_field_type: dep_type.concrete_type().clone().or(Some(field_type.clone())).unwrap(),
+                    concrete_field_type: dep_type.dep_type_concrete_type().clone().or(Some(field_type.clone())).unwrap(),
                     field_type,
-                    qualifier: dep_type.maybe_qualifier().clone(),
+                    qualifier: dep_type.dep_type_maybe_qualifier().clone(),
                     profile: None,
-                    field_ident: dep_type.field_ident(),
+                    field_ident: dep_type.dep_type_field_ident(),
                 });
         }
         None
     }
 
     fn create_mutable_abstract_dep_type(dep_type: &DependencyMetadata) -> Option<MutableAbstractFieldInfo> {
-        if dep_type.is_abstract() {
+        if dep_type.is_abstract().or(Some(false)).unwrap() {
             return dep_type.bean_type_path()
                 .as_ref()
                 .filter(|d| d.is_mutable())
                 .map(|type_path| type_path.get_autowirable_type())
                 .flatten()
                 .map(|field_type| {
-                    let concrete_field_type = dep_type.concrete_type().clone().or(Some(field_type.clone())).unwrap();
+                    let concrete_field_type = dep_type.dep_type_concrete_type().clone().or(Some(field_type.clone())).unwrap();
                     MutableAbstractFieldInfo {
                         concrete_field_type,
                         field_type,
-                        qualifier: dep_type.maybe_qualifier().clone(),
+                        qualifier: dep_type.dep_type_maybe_qualifier().clone(),
                         profile: None,
-                        field_ident: dep_type.field_ident(),
+                        field_ident: dep_type.dep_type_field_ident(),
                     }
                 });
         }

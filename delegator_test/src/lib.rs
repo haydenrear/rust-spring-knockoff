@@ -118,6 +118,13 @@ fn test_module_macro() {
     let created_enum = BeanContainer::<TestConstructEnumWithFields>::fetch_bean(&listable);
     assert!(created_enum.is_some(), "Failed to create enum.");
 
+
+    let created_enum = BeanContainer::<TestWithGenericsInStruct>::fetch_bean(&listable);
+    assert!(created_enum.is_some(), "Failed to create enum.");
+
+    // let created_enum = BeanContainer::<TestInjectContainsPhantom>::fetch_bean(&listable);
+    // assert!(created_enum.is_some(), "Failed to create enum.");
+
 }
 
 

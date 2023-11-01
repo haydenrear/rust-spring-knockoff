@@ -32,7 +32,6 @@ use crate::module_macro_lib::profile_tree::ProfileTreeBuilder;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
 use crate::module_macro_lib::util::ParseUtil;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
-use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor, DependencyMetadata, FieldDepType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
 use module_macro_shared::module_tree::Trait;
@@ -50,6 +49,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::dependency::DepType;
 use crate::logger_lazy;
 import_logger!("parse_container.rs");
 
@@ -126,7 +126,7 @@ impl ParseContainerBuilder {
     pub fn is_valid_ordering(parse_container: &ParseContainer, already_processed: &mut Vec<String>, dep: &BeanDefinition) -> bool {
         already_processed.push(dep.id.clone());
         for dep_impl in &dep.deps_map {
-            let next_id = dep_impl.identifier();
+            let next_id = dep_impl.dep_type_identifier();
             if already_processed.contains(&next_id) {
                 continue;
             }

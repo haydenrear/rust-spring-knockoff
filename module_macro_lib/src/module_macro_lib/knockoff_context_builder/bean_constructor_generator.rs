@@ -83,6 +83,7 @@ impl BeanConstructorGenerator {
                 }
             }
         };
+            info!("Creating constructor: {:?}", constructor.to_string().as_str());
             constructor.into()
         }
     }

@@ -44,6 +44,7 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
                         .map(|_| true)
                         .or(Some(false)).unwrap(),
                     factory_fn: None,
+                    declaration_generics: Some(enum_to_add.generics.clone()),
                 };
                 parse_container.injectable_types_builder.insert(enum_to_add.ident.to_string().clone(), impl_found);
                 None

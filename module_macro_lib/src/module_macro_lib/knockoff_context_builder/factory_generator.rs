@@ -7,7 +7,7 @@ use syn::{ItemUse, parse2, Path, Type};
 use codegen_utils::syn_helper::SynHelper;
 
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
-use module_macro_shared::dependency::{AutowiredField, DependencyDescriptor};
+use module_macro_shared::dependency::{DependencyDescriptor};
 use module_macro_shared::profile_tree::ProfileBuilder;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::BeanFactoryGenerator;
 use crate::module_macro_lib::knockoff_context_builder::bean_factory_info::BeanFactoryInfo;

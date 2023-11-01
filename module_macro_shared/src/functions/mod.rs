@@ -1,4 +1,4 @@
-use syn::{FnArg, ItemFn, PatType, Type};
+use syn::{FnArg, Generics, ItemFn, PatType, Type};
 use std::fmt::{Debug, Formatter};
 use proc_macro2::Ident;
 use codegen_utils::syn_helper;
@@ -30,6 +30,8 @@ pub struct FunctionType {
     pub fn_type: Option<BeanPath>,
     pub bean_type: BeanType,
     pub args: Vec<(Ident, BeanPath, Option<String>, PatType)>,
+    pub output_generics: Generics,
+    pub fn_arg_generics: Generics
 }
 
 impl Debug for FunctionType {

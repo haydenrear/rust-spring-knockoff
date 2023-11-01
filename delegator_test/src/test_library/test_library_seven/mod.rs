@@ -63,12 +63,39 @@ pub trait HasEnum<T: Send + Sync>: Send + Sync  {
 
 use std::sync::Arc;
 
-#[service(TestWithGenerice)]
+#[service(TestWithGenerics)]
 pub struct TestWithGenerics {
     #[autowired]
     pub f: Arc<TestConstructEnumWithFields>,
 }
 
+pub trait TestWithGenericsInTrain<T: Send + Sync>: Send + Sync {
+    fn get(&self) -> &T;
+}
+
+#[derive(Default)]
+#[service(TestGenericsVal)]
+pub struct TestGenericsVal;
+
+
+pub trait SafeVal: Send + Sync {}
+
+#[knockoff_ignore]
+impl SafeVal for TestGenericsVal {}
+
+#[service(TestWithGenericsInStruct)]
+pub struct TestWithGenericsInStruct {
+    #[autowired]
+    pub t: Arc<TestGenericsVal>,
+}
+
+impl SafeVal for TestWithGenericsInStruct {}
+
+impl TestWithGenericsInTrain<TestGenericsVal> for TestWithGenericsInStruct {
+    fn get(&self) -> &TestGenericsVal {
+        &self.t
+    }
+}
 
 impl Default for TestWithGenerics {
     fn default() -> Self {
@@ -87,6 +114,25 @@ impl HasEnum<TestConstructEnumWithFields> for TestWithGenerics {
     }
 }
 
+#[service(TestT)]
+pub struct TestT;
+#[service(TestU)]
+pub struct TestU;
 
+#[service(TestV)]
+pub struct TestV;
 
+// #[service(ContainsPhantom)]
+// pub struct ContainsPhantom<T, U, V, Z> {
+//     p: PhantomData<T>,
+//     u: PhantomData<U>,
+//     v: PhantomData<V>,
+//     z: PhantomData<Z>
+// }
+//
+// #[service(TestInjectContainsPhantom)]
+// pub struct TestInjectContainsPhantom {
+//     #[autowired(ContainsPhantom)]
+//     contains_phantom: Arc<ContainsPhantom<TestT, TestU, TestV, TestV>>
+// }
 

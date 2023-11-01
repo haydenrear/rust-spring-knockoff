@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
 use syn::{parse2, Type};
 use quote::{quote, ToTokens};
 use module_macro_shared::bean::BeanDefinition;
@@ -11,8 +12,23 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::dependency::DepType;
 use crate::logger_lazy;
 import_logger!("concrete_profile_tree_modifier.rs");
+
+
+#[derive(Eq, PartialOrd, PartialEq, Ord)]
+pub struct BeanFieldTypes {
+    type_names: Vec<String>
+}
+
+impl Hash for BeanFieldTypes {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let mut to_sort = self.type_names.iter().collect::<Vec<&String>>();
+        to_sort.sort();
+        to_sort.iter().for_each(|next_value| state.write(next_value.as_bytes()));
+    }
+}
 
 pub struct AddConcreteTypesToBeansArgs {
     beans_to_types: HashMap<String, Type>,
@@ -20,33 +36,49 @@ pub struct AddConcreteTypesToBeansArgs {
 }
 
 pub struct ConcreteTypeProfileTreeModifier {
+
+    /// TODO: the key here needs to be smarter - the bean dependency parser goes through in the fields of the
+    ///     structs and looks for their associated keys to find which types to inject. So there is an edge
+    ///     case - which is the generics. So in the generics case, then when a field is retrieved it needs
+    ///     to find the trait that impls all of the generics that it has... and then potentially the lifetimes
+    ///     at some point. Currently using autowired qualifier value.
     beans_to_types: AddConcreteTypesToBeansArgs,
 }
 
 impl ProfileTreeModifier for ConcreteTypeProfileTreeModifier {
 
     fn modify_bean(&self, dep_type: &mut BeanDefinition, profile_tree: &mut ProfileTree) {
+        info!("Doing modify and bean.");
         dep_type.deps_map.iter_mut()
             .for_each(|dep_type_to_test| {
-                if !self.beans_to_types.bean_struct_ids.iter().any(|bean_struct_id|
-                    dep_type_to_test.type_path()
-                        .as_ref()
-                        .filter(|dep_type_bean_path| dep_type_bean_path.bean_path_part_matches(bean_struct_id))
-                        .is_some()
+                if !self.beans_to_types.bean_struct_ids.iter()
+                    .any(|bean_struct_id|
+                        dep_type_to_test.bean_type_path()
+                            .as_ref()
+                            .filter(|dep_type_bean_path| dep_type_bean_path.bean_path_part_matches(bean_struct_id))
+                            .is_some()
                 ) {
-                    dep_type_to_test.set_is_abstract();
-                    dep_type_to_test.maybe_qualifier().clone().as_ref()
+                    info!("Doing modify and bean structs id was not contained for {:?}.", dep_type_to_test);
+                    dep_type_to_test.set_is_abstract(&mut Some(true));
+                    dep_type_to_test.dep_type_maybe_qualifier().clone().as_ref()
+                        // Here is where it's getting the struct, setting the concrete field type of the
+                        // dependency metadata, which will then be used in the BeanFactoryInfo, when the
+                        // factories are being created. See above TODO:
                         .map(|q| self.beans_to_types.beans_to_types.get(q)
-                            .map(|type_to_set| dep_type_to_test.set_concrete_field_type(type_to_set.clone()))
+                            .map(|type_to_set| dep_type_to_test.bean_info_mut()
+                                .set_concrete_type_of_field_bean_type(&mut Some(type_to_set.clone())))
                         )
                         .or_else(|| {
-                            let bean_path = dep_type_to_test.type_path()
+                            info!("Doing modify and {:?} was not in beans to types.", dep_type_to_test);
+                            let bean_path = dep_type_to_test.bean_type_path()
                                 .as_ref()
                                 .map(|b| b.get_inner_type_id());
 
                             bean_path.map(|b|
                                     self.beans_to_types.beans_to_types.get(&b)
-                                        .map(|inner_type| dep_type_to_test.set_concrete_field_type(inner_type.clone()))
+                                        .map(|inner_type| dep_type_to_test.bean_info_mut()
+                                            .set_concrete_type_of_field_bean_type(&mut Some(inner_type.clone()))
+                                        )
                                 );
                             None
                         });

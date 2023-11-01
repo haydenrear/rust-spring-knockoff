@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 pub mod module_macro_shared_codegen;
 pub mod profile_tree;
 pub mod debug;

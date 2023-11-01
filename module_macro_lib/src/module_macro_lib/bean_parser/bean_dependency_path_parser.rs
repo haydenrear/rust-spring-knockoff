@@ -2,18 +2,14 @@ use std::any::TypeId;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::Path;
+use std::process::id;
 use string_utils::strip_whitespace;
-use proc_macro2::Ident;
+use proc_macro2::{Ident, Span};
 use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, ItemImpl, Lifetime, ParenthesizedGenericArguments, parse2, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{AutowiredField, FieldDepType};
-use module_macro_shared::functions::{FunctionType, ModulesFunctions};
-use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
-use module_macro_shared::parse_container::ParseContainer;
-use crate::module_macro_lib::util::ParseUtil;
 
 
 use knockoff_logging::*;
@@ -121,11 +117,9 @@ impl BeanDependencyPathParser {
             match &segment.arguments {
                 PathArguments::None => {
                     log_message!("{} type path did not have args.", path.to_token_stream().to_string().as_str());
-                    /// In the event that there is no generic types, then we prove that it cannot be dyn,
-                    /// so it can be parsed as a Type successfully.
                     parse2::<Type>(path.to_token_stream().clone())
                         .ok()
-                        .map(|inner| vec![BeanPathParts::GenType { gen_type: inner }])
+                        .map(|inner| vec![BeanPathParts::GenType { gen_type: inner.clone(), inner_ty_opt: None, outer_ty_opt: Some(inner) }])
                         .or(Some(vec![]))
                         .unwrap()
                 }
@@ -170,8 +164,8 @@ impl BeanDependencyPathParser {
             }
         };
         vec![BeanPathParts::FnType {
-            input_types: inputs,
-            return_type: output,
+            inner_tys: inputs,
+            return_type_opt: output,
         }]
     }
 
@@ -185,31 +179,61 @@ impl BeanDependencyPathParser {
             ["Arc", "Mutex", ..]  => {
                 info!("Found arc mutex type {}!", path_str_to_match);
                 BeanPathParts::ArcMutexType {
-                    arc_mutex_inner_type: in_type.clone(),
-                    outer_type: path.clone(),
+                    inner_ty: in_type.clone(),
+                    outer_path: path.clone(),
                 }
             }
             ["Arc", ..] => {
                 BeanPathParts::ArcType {
-                    arc_inner_types: in_type.clone(),
-                    outer_type: path.clone(),
+                    inner_ty: in_type.clone(),
+                    outer_path: path.clone(),
                 }
             }
             ["Mutex", ..] => {
                 BeanPathParts::MutexType {
-                    mutex_type_inner_type: in_type.clone(),
-                    outer_type: path.clone(),
+                    inner_ty: in_type.clone(),
+                    outer_path: path.clone(),
                 }
             }
             ["Box", ..] => {
                 BeanPathParts::BoxType {
-                    inner: in_type.clone(),
+                    inner_ty: in_type.clone(),
+                }
+            }
+            ["PhantomData", ..] => {
+                BeanPathParts::PhantomType {
+                    inner_bean_path_parts: BeanPathParts::GenType {
+                        gen_type: parse2(path.to_token_stream()).ok().unwrap(),
+                        inner_ty_opt: Some(in_type.clone()),
+                        outer_ty_opt: parse2("PhantomData".to_token_stream()).ok()
+                    }.into()
                 }
             }
             _ => {
                 info!("Found generic type {}. Setting gen type to {:?}.", match_ts, SynHelper::get_str(path));
+                let tokens = path.to_token_stream().to_string();
+                let mut outer = None;
+                if tokens.contains("<") {
+                    let split_tokens = tokens.split("<").collect::<Vec<_>>()[0];
+                    info!("Split tokens part {}", split_tokens);
+                    let ident_value = Ident::new(
+                        strip_whitespace(split_tokens).unwrap(),
+                        Span::call_site()
+                    );
+                    outer = parse2::<Type>(ident_value.to_token_stream())
+                        .map(|created| {
+                            info!("Parsed first part {:?}", SynHelper::get_str(&created));
+                            created
+                        })
+                        .map_err(|e| {
+                            error!("Error parsing tokens {} {:?}", split_tokens, e);
+                        })
+                        .ok()
+                }
                 BeanPathParts::GenType {
-                    gen_type: syn::parse2(path.to_token_stream()).unwrap(),
+                    gen_type: parse2::<Type>(path.to_token_stream()).unwrap(),
+                    inner_ty_opt: Some(in_type.clone()),
+                    outer_ty_opt: outer
                 }
             }
         };
