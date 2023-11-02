@@ -38,11 +38,17 @@ impl BeanFactoryGenerator for FactoryFnBeanFactoryGenerator {
             return None;
         }
 
-        let (field_types, field_idents, concrete_field,
+        let (field_idents, field_types,  concrete_field,
             mutable_identifiers, mutable_field_types, concrete_mutable_type,
             abstract_field_idents, abstract_field_types, concrete_abstract_types,
             abstract_mutable_idents, abstract_mutable_field_types, concrete_mutable_abstract)
-            = bean_factory_info.get_field_types();
+            = bean_factory_info.get_field_singleton_types();
+
+        let (prototype_field_idents, prototype_field_types,  prototype_concrete_field,
+            prototype_mutable_identifiers, prototype_mutable_field_types, prototype_concrete_mutable_type,
+            prototype_abstract_field_idents, prototype_abstract_field_types, prototype_concrete_abstract_types,
+            prototype_abstract_mutable_idents, prototype_abstract_mutable_field_types, prototype_concrete_mutable_abstract)
+            = bean_factory_info.get_field_prototype_types();
 
         let (fn_args, factory_fn) = Self::get_factory_fn_fn_args(&bean_factory_info);
 

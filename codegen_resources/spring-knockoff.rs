@@ -40,8 +40,8 @@ pub mod test_library {
         #[service(Four)]
         pub struct Four {
             #[autowired]
-            #[mutable_bean] pub one: Arc<Mutex<One>>,
-            #[autowired] pub test_one: Arc<One>,
+            #[mutable_bean]
+            pub one: Arc<Mutex<One>>,
             pub two: String,
         }
 

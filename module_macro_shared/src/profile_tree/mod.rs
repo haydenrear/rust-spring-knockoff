@@ -89,7 +89,6 @@ impl ProfileTree {
         })
     }
 
-
     fn create_bean_definition_concrete(bean: BeanDefinition) -> BeanDefinitionType {
         info!("Creating concrete type for {}.", bean.id);
         BeanDefinitionType::Concrete {

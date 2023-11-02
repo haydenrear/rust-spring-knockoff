@@ -17,6 +17,7 @@ use std::ops::Deref;
 use std::marker::PhantomData;
 use syn::parse::Parser;
 use module_macro_lib::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
+use module_macro_shared::bean::BeanPathParts::PhantomType;
 use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
 // these imports are necessary because the generated code does not contain the imports.
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
@@ -118,12 +119,25 @@ fn test_module_macro() {
     let created_enum = BeanContainer::<TestConstructEnumWithFields>::fetch_bean(&listable);
     assert!(created_enum.is_some(), "Failed to create enum.");
 
-
     let created_enum = BeanContainer::<TestWithGenericsInStruct>::fetch_bean(&listable);
     assert!(created_enum.is_some(), "Failed to create enum.");
 
-    // let created_enum = BeanContainer::<TestInjectContainsPhantom>::fetch_bean(&listable);
-    // assert!(created_enum.is_some(), "Failed to create enum.");
+    let created_enum_one: Option<Arc<TestInjectContainsPhantom>> = BeanContainer::<TestInjectContainsPhantom>::fetch_bean(&listable);
+    assert!(created_enum_one.as_ref().is_some(), "Failed to create enum.");
+
+    let created_enum_two: Option<Arc<TestInjectContainsPhantom>> = BeanContainer::<TestInjectContainsPhantom>::fetch_bean(&listable);
+    assert!(created_enum_two.as_ref().is_some(), "Failed to create enum.");
+
+    let phantom_created = created_enum_one.as_ref().unwrap().contains_phantom.type_id();
+    assert_eq!(phantom_created, created_enum_two.unwrap().contains_phantom.type_id());
+
+    let phantom_found = BeanContainer::<ContainsPhantom<TestT, TestU, TestV, TestV>>::fetch_bean(&listable).unwrap();
+    assert_eq!(phantom_found.type_id(), phantom_created);
+
+    let concrete_prototype = BeanContainer::<TestInjectPrototypeBean>::fetch_bean(&listable);
+    assert!(concrete_prototype.is_some());
+
+    let prototype_bean = PrototypeBeanContainer::<TestPrototypeBean>::fetch_bean(&listable);
 
 }
 

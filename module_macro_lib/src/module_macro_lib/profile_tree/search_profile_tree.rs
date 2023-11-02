@@ -9,47 +9,67 @@ use knockoff_logging::*;
 
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use syn::ItemImpl;
 use codegen_utils::project_directory;
+use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 use crate::logger_lazy;
 import_logger!("concrete_profile_tree_modifier.rs");
 
 pub trait SearchProfileTree {
-    fn find_dependency<'a>(&'a self, dep_metadata: &'a DependencyMetadata,
-                           profile_trees: &'a Vec<ProfileBuilder>,
-                           qualifiers: &'a Vec<&str>
-    ) -> Option<&'a BeanDefinitionType>;
+    fn search_profile_tree<'a>(
+        &'a self,
+        dep_metadata: &'a DependencyMetadata,
+        profile_trees: Option<&'a Vec<&'a ProfileBuilder>>,
+        qualifiers: Option<&'a Vec<&str>>,
+        profile_tree_search_criteria: &'a dyn ProfileTreeSearchCriteria,
+    ) -> Vec<&'a BeanDefinitionType>;
+
+    fn search_profile_all_profile_trees<'a>(
+        &'a self, dep_metadata: &'a DependencyMetadata,
+        profile_tree_search_criteria: &'a dyn ProfileTreeSearchCriteria
+    ) -> Vec<&'a BeanDefinitionType>;
 
     fn retrieve_dependency_from_profile_tree<'a>(
         &'a self,
-        profiles: &'a Vec<ProfileBuilder>,
-        dep_metadata: &'a DependencyMetadata
+        profiles: Option<&'a Vec<&'a ProfileBuilder>>,
+        dep_metadata: &'a DependencyMetadata,
+        profile_tree_search_criteria: &'a dyn ProfileTreeSearchCriteria
     ) -> HashMap<&'a ProfileBuilder, &'a BeanDefinitionType>;
 
 }
 
 impl SearchProfileTree for ProfileTree {
-
-    fn find_dependency<'a>(
+    fn search_profile_all_profile_trees<'a>(
         &'a self,
         dep_metadata: &'a DependencyMetadata,
-        profile_trees: &'a Vec<ProfileBuilder>,
-        qualifiers: &'a Vec<&str>
-    ) -> Option<&'a BeanDefinitionType>{
-        let deps = self.retrieve_dependency_from_profile_tree(profile_trees, &dep_metadata);
+        profile_tree_search_criteria: &'a dyn ProfileTreeSearchCriteria
+    ) -> Vec<&'a BeanDefinitionType> {
+        self.search_profile_tree(dep_metadata, None, None, profile_tree_search_criteria)
+    }
+
+    fn search_profile_tree<'a>(
+        &'a self,
+        dep_metadata: &'a DependencyMetadata,
+        profile_trees: Option<&'a Vec<&'a ProfileBuilder>>,
+        qualifiers: Option<&'a Vec<&str>>,
+        profile_tree_search_criteria: &'a dyn ProfileTreeSearchCriteria
+    ) -> Vec<&'a BeanDefinitionType>{
+        let deps = self.retrieve_dependency_from_profile_tree(
+            profile_trees, &dep_metadata, profile_tree_search_criteria);
         if deps.len() == 0 {
             error!("Could not find BeanDefinitionType for {:?}", dep_metadata);
-            None
+            vec![]
         } else {
             info!("{} bean def types were found.", deps.len());
-            let option = deps.into_iter()
+            deps.into_iter()
                 .filter(|(profile, bean_def_type)| {
                     let vec = &bean_def_type.dep_type().unwrap().qualifiers;
                     info!("{:?} are the qualifiers", &vec);
                     let is_bean_non_prototype = vec.iter().any(|f| {
-                        qualifiers.iter().any(|q| {
+                        qualifiers.map(|q| q.iter().any(|q| {
                             let f_str = f.as_str();
                             *q == f_str
-                        })
+                        })).or(Some(true)).unwrap()
                     });
                     let has_default = bean_def_type.bean().has_default();
                     if is_bean_non_prototype && has_default {
@@ -60,53 +80,93 @@ impl SearchProfileTree for ProfileTree {
                     }
                 })
                 .map(|(p, b)| b)
-                .collect::<Vec<_>>();
-            if option.len() != 0 {
-                option.into_iter().next()
-            } else {
-                None
-            }
+                .collect::<Vec<_>>()
         }
 
     }
 
     fn retrieve_dependency_from_profile_tree<'a>(
         &'a self,
-        profiles: &'a Vec<ProfileBuilder>,
-        dep_metadata: &'a DependencyMetadata
+        profiles: Option<&'a Vec<&'a ProfileBuilder>>,
+        dep_metadata: &'a DependencyMetadata,
+        profile_tree_search_criteria: &'a dyn ProfileTreeSearchCriteria
     ) -> HashMap<&'a ProfileBuilder, &'a BeanDefinitionType> {
         let ids = get_metadata_ids(&dep_metadata);
         info!("{:?} are the ids", &ids);
-
-        profiles.iter()
-            .flat_map(|p|
-                self.injectable_types.get(p)
-                    .into_iter()
-                    .flat_map(|i| i.into_iter())
+        if profiles.is_none() {
+            self.injectable_types
+                .iter()
+                .flat_map(|(p, t)| t
+                    .iter()
                     .filter(|b| {
                         info!("Found abstract bean to filter dep.");
-                        if let BeanDefinitionType::Abstract {dep_type, bean} = b {
-                            if does_dep_type_match(&dep_metadata, dep_type, Some(ids.clone())) {
-                                info!("Found abstract bean to filter dep.");
-                                true
-                            } else {
-                                info!("Bean dep did not match.");
-                                false
-                            }
-                        }  else {
-                            info!("Was not abstract bean def.");
-                            false
-                        }
+                        profile_tree_search_criteria.is_dependency_bean_def_type(&dep_metadata, &ids, b)
                     })
-                    .map(|b| (p, b))
-                    .collect::<Vec<_>>()
-            )
-            .collect::<HashMap<&ProfileBuilder, &BeanDefinitionType>>()
+                    .map(move |b| (p, b))
+                )
+                .collect()
+        } else {
+            profiles
+                .into_iter()
+                .flat_map(|e| e.into_iter())
+                .flat_map(|&p|
+                    self.injectable_types.get(p)
+                        .into_iter()
+                        .flat_map(|i| i.into_iter())
+                        .filter(|b| {
+                            profile_tree_search_criteria.is_dependency_bean_def_type(&dep_metadata, &ids, b)
+                        })
+                        .map(|b| (p, b))
+                        .collect::<Vec<_>>()
+                )
+                .collect::<HashMap<&ProfileBuilder, &BeanDefinitionType>>()
+        }
     }
 
-
-
 }
+
+pub trait ProfileTreeSearchCriteria {
+    fn is_dependency_bean_def_type(&self, dep_metadata: &&DependencyMetadata,
+                                   ids: &Vec<String>,
+                                   b: &BeanDefinitionType) -> bool {
+        /// TODO:
+        if let BeanDefinitionType::Abstract { dep_type, bean } = b {
+            if does_dep_type_match(&dep_metadata, dep_type, Some(ids.clone())) {
+                info!("Found abstract bean to filter dep.");
+                true
+            } else {
+                info!("Bean dep did not match.");
+                false
+            }
+        } else {
+            info!("Was not abstract bean def.");
+            false
+        }
+    }
+
+    // fn does_self_ty_match(&self, bean_path: &str, item_impl_to_test: &ItemImpl) -> bool {
+    //     let item_impl_self_ty = item_impl_to_test
+    //         .self_ty.to_token_stream().to_string().as_str();
+    //     if item_impl_self_ty == bean_path {
+    //         return true;
+    //     }
+    //     false
+    // }
+}
+
+#[derive(Default)]
+pub struct IsAbstractProfileTreeSearchCriteria;
+
+impl ProfileTreeSearchCriteria for IsAbstractProfileTreeSearchCriteria {}
+
+// #[derive(Default)]
+// pub struct MatchesDependencyTypeProvidedSearchCriteria;
+//
+// impl ProfileTreeSearchCriteria for MatchesDependencyTypeProvidedSearchCriteria {
+//     fn is_dependency_bean_def_type(&self, dep_metadata: &&BeanDefinitionType, ids: &Vec<String>, b: &BeanDefinitionType) -> bool {
+//         true
+//     }
+// }
 
 
 fn get_metadata_ids(dependency_metadata: &DependencyMetadata) -> Vec<String> {

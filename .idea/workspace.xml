@@ -7,44 +7,24 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Added set enum fields and mut enum fields, and adding Generics to container, testing generics with container.">
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/default_generics_provider.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/enum_generics_provider.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/function_generics_provider.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/impl_item_generics_provider.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/generics_provider/struct_generics_provider.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/search_profile_tree.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Todo!">
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/bean_type_profile_tree_modifier.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/spring-knockoff.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/spring-knockoff.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/bean_dependency_path_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_enum_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_fn_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_impl_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_mod_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_mod_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/item_struct_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/item_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/factory_fn_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/factory_fn_factory_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/prototype_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/prototype_factory_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/test/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/debug/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/debug/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/parse_container_builder.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/parse_container_modifier.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/search_profile_tree.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/search_profile_tree.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo.md" beforeDir="false" afterPath="$PROJECT_DIR$/todo.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,59 +116,62 @@
   &quot;associatedIndex&quot;: 8
 }</component>
   <component name="ProjectId" id="2DzlmC4mU0eDEClNIhS74zjTHUO" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="abbreviatePackageNames" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Cargo.Test lib::test.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test lib::tests.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_logging_facade.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_logging_macro.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_logging_macro_concurrent.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_text_logging.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test_module_macro.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test wait_for::wait_async::test_async.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test wait_for::wait_async::test_async_multiple.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Tests in 'knockoff_logging'.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/rust_spring_knockoff&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Cargo.Test lib::test.executor": "Run",
+    "Cargo.Test lib::tests.executor": "Run",
+    "Cargo.Test test::test_logging_facade.executor": "Run",
+    "Cargo.Test test::test_logging_macro.executor": "Run",
+    "Cargo.Test test::test_logging_macro_concurrent.executor": "Run",
+    "Cargo.Test test::test_text_logging.executor": "Run",
+    "Cargo.Test test_dyn.executor": "Run",
+    "Cargo.Test test_module_macro.executor": "Run",
+    "Cargo.Test wait_for::wait_async::test_async.executor": "Run",
+    "Cargo.Test wait_for::wait_async::test_async_multiple.executor": "Run",
+    "Cargo.Tests in 'knockoff_logging'.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "aspect.path.notification.shown": "true",
+    "git-widget-placeholder": "main",
+    "go.import.settings.migrated": "true",
+    "jdk.selected.JAVA_MODULE": "openjdk-19",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/test_library/test_library_seven/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree" />
       <recent name="$PROJECT_DIR$/rust_spring_knockoff" />
       <recent name="$PROJECT_DIR$/factories_codegen/src" />
       <recent name="$PROJECT_DIR$/target/debug/test_" />
       <recent name="$PROJECT_DIR$/target/test_" />
-      <recent name="$PROJECT_DIR$/target/debug" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/knockoff_logging/src" />
@@ -233,8 +216,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::test_logging_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_logging --lib test::test_logging_macro -- --exact" />
+    <configuration name="Test test_dyn" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_dyn -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
@@ -303,19 +286,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test test_dyn" />
       <item itemvalue="Cargo.Test lib::tests" />
       <item itemvalue="Cargo.Test lib::test" />
       <item itemvalue="Cargo.Test test_module_macro" />
       <item itemvalue="Cargo.Test wait_for::wait_async::test_async_multiple" />
-      <item itemvalue="Cargo.Test test::test_logging_macro" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test test_dyn" />
         <item itemvalue="Cargo.Test lib::tests" />
         <item itemvalue="Cargo.Test wait_for::wait_async::test_async_multiple" />
         <item itemvalue="Cargo.Test lib::test" />
-        <item itemvalue="Cargo.Test test::test_logging_macro" />
       </list>
     </recent_temporary>
   </component>
@@ -408,7 +391,8 @@
       <workItem from="1698696725333" duration="26573000" />
       <workItem from="1698789206519" duration="40088000" />
       <workItem from="1698837256001" duration="29841000" />
-      <workItem from="1698868317227" duration="1290000" />
+      <workItem from="1698868317227" duration="7979000" />
+      <workItem from="1698936618333" duration="26535000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -753,7 +737,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="210" />
+    <option name="localTasksCounter" value="213" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -813,8 +797,9 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Preparing" />
-    <MESSAGE value="moving" />
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/set_enum_fields" />
+    </ignored-roots>
     <MESSAGE value="user provided delegating parse provider" />
     <MESSAGE value="adding factory fn" />
     <MESSAGE value="refactor factory" />
@@ -838,7 +823,9 @@
     <MESSAGE value="Updated to fix link and add readme.md" />
     <MESSAGE value="Added more logging and fixed issues." />
     <MESSAGE value="Added set enum fields and mut enum fields, and adding Generics to container, testing generics with container." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added set enum fields and mut enum fields, and adding Generics to container, testing generics with container." />
+    <MESSAGE value="Moving towards more robust generics" />
+    <MESSAGE value="Todo!" />
+    <option name="LAST_COMMIT_MESSAGE" value="Todo!" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

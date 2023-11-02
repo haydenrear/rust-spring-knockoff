@@ -49,7 +49,7 @@ impl Debug for DependencyMetadata {
 impl Debug for BeanPathParts {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            BeanPathParts::ArcType { inner_ty: arc_inner_types, outer_path: outer_type , ident} => {
+            BeanPathParts::ArcType { inner_arc_ty: arc_inner_types, outer_arc_pth: outer_type , arc_ident: ident } => {
                 let mut debug_struct = f.debug_struct("ArcType");
                 debug_struct.field("arc_inner_types", &SynHelper::get_str(arc_inner_types).as_str());
                 debug_struct.field("outer_type", &SynHelper::get_str(outer_type).as_str());
@@ -77,13 +77,13 @@ impl Debug for BeanPathParts {
                 debug_struct.field("ident", &SynHelper::get_str(ident).as_str());
                 debug_struct.finish()
             }
-            BeanPathParts::QSelfType { q_self, ident, .. } => {
+            BeanPathParts::QSelfType { inner_ty: q_self, ident, .. } => {
                 let mut debug_struct = f.debug_struct("QSelfType");
                 debug_struct.field("q_self", &SynHelper::get_str(q_self).as_str());
                 debug_struct.field("ident", &SynHelper::get_str(ident).as_str());
                 debug_struct.finish()
             }
-            BeanPathParts::BindingType { associated_type , ident, ..} => {
+            BeanPathParts::BindingType { inner_ty: associated_type, ident, ..} => {
                 let mut debug_struct = f.debug_struct("BindingType");
                 debug_struct.field("associated_type", &SynHelper::get_str(associated_type).as_str());
                 debug_struct.field("ident", &SynHelper::get_str(ident).as_str());
@@ -104,22 +104,9 @@ impl Debug for BeanPathParts {
                 debug_struct.field("ident", &SynHelper::get_str(ident).as_str());
                 debug_struct.finish()
             }
-            BeanPathParts::PhantomType { inner_bean_path_parts: inner , ident, ..} => {
+            BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , phantom_ty_ident: ident, ..} => {
                 let mut debug_struct = f.debug_struct("PhantomData");
                 debug_struct.field("inner", &inner);
-                debug_struct.field("ident", &SynHelper::get_str(ident).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::TailGenType { gen_type, outer_ty_opt , ident, ..} => {
-                let mut debug_struct = f.debug_struct("Tail Gen Type");
-                debug_struct.field("gen_type", &SynHelper::get_str(gen_type).as_str());
-                debug_struct.field("outer_ty_opt", &SynHelper::get_str(outer_ty_opt).as_str());
-                debug_struct.field("ident", &SynHelper::get_str(ident).as_str());
-                debug_struct.finish()
-            }
-            BeanPathParts::HeadGenType { gen_type_path , ident, ..} => {
-                let mut debug_struct = f.debug_struct("Head Gen Type");
-                debug_struct.field("gen_type", &SynHelper::get_str(gen_type_path).as_str());
                 debug_struct.field("ident", &SynHelper::get_str(ident).as_str());
                 debug_struct.finish()
             }

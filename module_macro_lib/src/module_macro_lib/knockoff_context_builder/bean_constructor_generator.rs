@@ -51,11 +51,16 @@ impl BeanConstructorGenerator {
         } else if bean_factory_info.is_enum {
             panic!("Attempted to create constructor for enum type. Not currently supported.");
         } else {
-            let (field_types, field_idents, concrete_field,
+            let ( field_idents,field_types, concrete_field,
                 mutable_identifiers, mutable_field_types, concrete_mutable_type,
                 abstract_field_idents, abstract_field_types, concrete_abstract_types,
                 abstract_mutable_identifiers, abstract_mutable_field_types, concrete_mutable_abstract)
-                = bean_factory_info.get_field_types();
+                = bean_factory_info.get_field_singleton_types();
+            let ( prototype_field_idents,prototype_field_types, prototype_concrete_field,
+                prototype_mutable_identifiers, prototype_mutable_field_types, prototype_concrete_mutable_type,
+                prototype_abstract_field_idents, prototype_abstract_field_types, prototype_concrete_abstract_types,
+                prototype_abstract_mutable_identifiers, prototype_abstract_mutable_field_types, prototype_concrete_mutable_abstract)
+                = bean_factory_info.get_field_prototype_types();
             info!("Creating constructor for {:?}", SynHelper::get_str(&struct_type));
             let default_type = bean_factory_info.default_field_info
                 .iter()
@@ -72,6 +77,10 @@ impl BeanConstructorGenerator {
                     #(#mutable_identifiers: Arc<Mutex<#mutable_field_types>>,)*
                     #(#abstract_field_idents: Arc<#abstract_field_types>,)*
                     #(#abstract_mutable_identifiers: Arc<Mutex<Box<#abstract_mutable_field_types>>>,)*
+                    #(#prototype_field_idents: #prototype_field_types,)*
+                    #(#prototype_mutable_identifiers: Mutex<#prototype_mutable_field_types>,)*
+                    #(#prototype_abstract_field_idents: #prototype_abstract_field_types,)*
+                    #(#prototype_abstract_mutable_identifiers: Mutex<Box<#prototype_abstract_mutable_field_types>>,)*
                 ) -> Self {
                     Self {
                         #(#default_ident: #default_type::default(),)*
@@ -79,6 +88,10 @@ impl BeanConstructorGenerator {
                         #(#mutable_identifiers,)*
                         #(#abstract_field_idents,)*
                         #(#abstract_mutable_identifiers,)*
+                        #(#prototype_field_idents,)*
+                        #(#prototype_mutable_identifiers,)*
+                        #(#prototype_abstract_field_idents,)*
+                        #(#prototype_abstract_mutable_identifiers,)*
                     }
                 }
             }

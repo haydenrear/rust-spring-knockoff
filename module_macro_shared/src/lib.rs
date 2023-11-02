@@ -11,6 +11,7 @@ pub mod item_modifier;
 pub mod module_tree;
 pub mod token_provider;
 pub mod metadata_parser;
+pub mod generics;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;

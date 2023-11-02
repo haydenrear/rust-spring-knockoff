@@ -1,35 +1,37 @@
-use syn::{Attribute, Field, Fields, Generics, ItemEnum, ItemImpl, ItemStruct, ItemUse, Lifetime, parse2, parse_str, Path, Stmt, Type, TypeArray};
+use syn::{Attribute, Fields, Generics, ItemEnum, ItemStruct, ItemUse, parse_str, Path, Type};
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
-use std::fmt;
+use std::fmt::Debug;
 use std::ops::Deref;
-use codegen_utils::syn_helper;
 use quote::ToTokens;
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::Ident;
 use syn::__private::str;
-use syn::token::Use;
 use codegen_utils::syn_helper::SynHelper;
-use crate::dependency::{ AutowiredType, DependencyDescriptor, DependencyMetadata};
+use crate::dependency::{DependencyDescriptor, DependencyMetadata};
 
 use crate::functions::ModulesFunctions;
 use knockoff_logging::*;
-use lazy_static::lazy_static;
 use std::sync::Mutex;
-use codegen_utils::project_directory;
 use crate::logger_lazy;
 import_logger!("bean.rs");
-use crate::parse_container::MetadataItem;
 use enum_fields::EnumFields;
-use syn::ext::IdentExt;
 use string_utils::strip_whitespace;
 use crate::profile_tree::ProfileBuilder;
+
+
+#[derive(Clone, Default, Debug)]
+pub enum AbstractionLevel {
+    Abstract,
+    #[default]
+    Concrete,
+}
+
 
 #[derive(Clone, Debug)]
 pub enum BeanType {
     // contains the identifier and the qualifier as string
-    Singleton,
-    Prototype,
+    Singleton(AbstractionLevel),
+    Prototype(AbstractionLevel),
 }
 
 impl BeanPathParts {
@@ -65,12 +67,6 @@ impl BeanPathParts {
             BeanPathParts::BoxType { .. } => {
                 false
             }
-            BeanPathParts::TailGenType { .. } => {
-                false
-            }
-            BeanPathParts::HeadGenType { gen_type_path: gen_type , ..} => {
-                false
-            }
         }
     }
 }
@@ -79,13 +75,13 @@ impl BeanPathParts {
 #[derive(Clone, EnumFields)]
 pub enum BeanPathParts {
     ArcType {
-        inner_ty: Type,
-        outer_path: Path,
-        ident: Option<Ident>
+        inner_arc_ty: Type,
+        outer_arc_pth: Path,
+        arc_ident: Option<Ident>
     },
     PhantomType {
-        inner_bean_path_parts: Box<BeanPathParts>,
-        ident: Option<Ident>
+        bean_path_parts_phantom_ty: Box<BeanPathParts>,
+        phantom_ty_ident: Option<Ident>
     },
     BoxType {
         inner_ty: Type,
@@ -108,11 +104,11 @@ pub enum BeanPathParts {
         ident: Option<Ident>
     },
     QSelfType {
-        q_self: Type,
+        inner_ty: Type,
         ident: Option<Ident>
     },
     BindingType {
-        associated_type: Type,
+        inner_ty: Type,
         ident: Option<Ident>
     },
     GenType {
@@ -121,20 +117,23 @@ pub enum BeanPathParts {
         outer_ty_opt: Option<Type>,
         ident: Option<Ident>
     },
-    TailGenType {
-        gen_type: Type,
-        outer_ty_opt: Option<Type>,
-        ident: Option<Ident>
-    },
-    HeadGenType {
-        gen_type_path: Path,
-        ident: Option<Ident>
-    }
 }
 
 #[derive(Clone, PartialEq)]
+pub struct BeanPathHead {
+    /// The full type path
+    pub gen_type_path: Option<syn::Path>,
+    /// Provides the identifier for the head.
+    pub head_ident: Option<Ident>,
+    /// container for if this is dyn, in which case cannot be Ident.
+    pub abstract_type: Option<Type>
+}
+
+
+#[derive(Clone, PartialEq)]
 pub struct BeanPath {
-    pub path_segments: Vec<BeanPathParts>
+    pub path_segments: Vec<BeanPathParts>,
+    pub head: BeanPathHead
 }
 
 impl Eq for BeanPath {}
@@ -143,43 +142,44 @@ pub struct BeanPathParseResult {
     pub tys: HashMap<u32, Type>
 }
 
+
+
 impl BeanPath {
 
-    pub fn get_tys(&self) -> BeanPathParseResult {
-        let mut out_values = HashMap::new();
-        info!("Getting tys for {:?}", self);
-        let mut count = 0;
-        let _ = self.path_segments.iter()
-            .filter(|f| matches!(f, BeanPathParts::HeadGenType{..} ))
-            .for_each(|bp| {
-                Self::add_segment(&mut out_values, count, bp);
-            });
-        // info!("Finished getting tys with {} concrete and {} abstract", concrete.len(), out_values.len());
-        BeanPathParseResult {
-            tys: out_values
-        }
-    }
-
-    fn add_segment(mut abstract_values: &mut HashMap<u32, Type>, mut count: u32, bp: &BeanPathParts) {
-        let p = bp.ident().clone();
-        let inner = bp.inner_ty_opt().cloned()
-            .or(Some(bp.inner_ty().cloned()))
-            .flatten();
-        let inner_ts = inner.as_ref().map(|i| i.to_token_stream().to_string());
-        let p_ts = p.as_ref().map(|i| i.to_token_stream().to_string());
-        if inner_ts.as_ref().is_some() && p_ts.as_ref().is_some() {
-            if inner_ts.as_ref().unwrap() == p_ts.as_ref().unwrap() {
-                let value = p.clone().unwrap().into_token_stream();
-                info!("Parsing {:?} to path.", SynHelper::get_str(&value));
-                abstract_values.insert(count, parse2(value).unwrap());
-                count += 1;
-            }
-        } else if inner.as_ref().is_some() {
-            abstract_values.insert(count, inner.unwrap());
-            count += 1;
-            info!("{:?} is next ty", &inner_ts);
-        }
-    }
+    // pub fn get_tys(&self) -> BeanPathParseResult {
+    //     let mut out_values = HashMap::new();
+    //     info!("Getting tys for {:?}", self);
+    //     let mut count = 0;
+    //     let _ = self.path_segments.iter()
+    //         .for_each(|bp| {
+    //             Self::add_segment(&mut out_values, count, bp);
+    //         });
+    //     // info!("Finished getting tys with {} concrete and {} abstract", concrete.len(), out_values.len());
+    //     BeanPathParseResult {
+    //         tys: out_values
+    //     }
+    // }
+    //
+    // fn add_segment(mut abstract_values: &mut HashMap<u32, Type>, mut count: u32, bp: &BeanPathParts) {
+    //     let p = bp.ident().clone();
+    //     let inner = bp.inner_ty_opt().cloned()
+    //         .or(Some(bp.inner_ty().cloned()))
+    //         .flatten();
+    //     let inner_ts = inner.as_ref().map(|i| i.to_token_stream().to_string());
+    //     let p_ts = p.as_ref().map(|i| i.to_token_stream().to_string());
+    //     if inner_ts.as_ref().is_some() && p_ts.as_ref().is_some() {
+    //         if inner_ts.as_ref().unwrap() == p_ts.as_ref().unwrap() {
+    //             let value = p.clone().unwrap().into_token_stream();
+    //             info!("Parsing {:?} to path.", SynHelper::get_str(&value));
+    //             abstract_values.insert(count, parse2(value).unwrap());
+    //             count += 1;
+    //         }
+    //     } else if inner.as_ref().is_some() {
+    //         abstract_values.insert(count, inner.unwrap());
+    //         count += 1;
+    //         info!("{:?} is next ty", &inner_ts);
+    //     }
+    // }
 
     pub fn patterns_to_match<'a>(in_type: &Type, path: &syn::Path) -> (String, String, Vec<BeanPathParts>, Vec<String>) {
         let (match_ts, path_str_to_match) = Self::get_to_match(in_type, path);
@@ -214,10 +214,10 @@ impl BeanPathParts {
 
     fn get_matcher(&self) -> Vec<String> {
         match self {
-            BeanPathParts::ArcType { inner_ty: arc_inner_types, outer_path: outer_type , ..} => {
+            BeanPathParts::ArcType { inner_arc_ty: arc_inner_types, outer_arc_pth: outer_type , ..} => {
                 vec![arc_inner_types.to_token_stream().to_string(), outer_type.to_token_stream().to_string()]
             }
-            BeanPathParts::PhantomType { inner_bean_path_parts: inner , ..} => {
+            BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , ..} => {
                 vec![]
             }
             BeanPathParts::ArcMutexType { inner_ty: arc_mutex_inner_type, outer_path: outer_type , ..} => {
@@ -230,10 +230,10 @@ impl BeanPathParts {
                 vec![input_types.iter().map(|i| i.to_token_stream().to_string()).collect::<Vec<String>>().join(", "),
                      return_type.to_token_stream().to_string()]
             }
-            BeanPathParts::QSelfType { q_self, .. } => {
+            BeanPathParts::QSelfType { inner_ty: q_self, .. } => {
                 vec![q_self.to_token_stream().to_string()]
             }
-            BeanPathParts::BindingType { associated_type , .. } => {
+            BeanPathParts::BindingType { inner_ty: associated_type, .. } => {
                 vec![associated_type.to_token_stream().to_string()]
             }
             BeanPathParts::GenType { gen_type: inner , inner_ty_opt: inner_ty, ..} => {
@@ -241,12 +241,6 @@ impl BeanPathParts {
             }
             BeanPathParts::BoxType { inner_ty: inner , .. } => {
                 vec![inner.to_token_stream().to_string()]
-            }
-            BeanPathParts::TailGenType { outer_ty_opt, gen_type , .. } => {
-                vec![gen_type.to_token_stream().to_string()]
-            }
-            BeanPathParts::HeadGenType { gen_type_path: gen_type , .. } => {
-                vec![gen_type.to_token_stream().to_string()]
             }
         }
     }
@@ -316,80 +310,80 @@ impl BeanPath {
     pub fn get_inner_type(&self) -> Option<Type> {
         log_message!("Found {} path segments for {:?}.", self.path_segments.len(), &self);
         match &self.path_segments.clone()[..] {
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::ArcMutexType{ inner_ty: arc_mutex_inner_type, outer_path: out, .. },
+            [ BeanPathParts::ArcMutexType{ inner_ty: arc_mutex_inner_type, outer_path: out, .. },
               BeanPathParts::MutexType { inner_ty: mutex_type_inner_type, outer_path: outer_type , .. },
               BeanPathParts::GenType { gen_type: inner , inner_ty_opt: inner_ty, ..} ] => {
                 log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
                 return Some(inner.clone());
             }
-            [ BeanPathParts::HeadGenType {..},  BeanPathParts::PhantomType { inner_bean_path_parts: inner , .. }, .. ] => {
-                if let BeanPathParts::PhantomType { inner_bean_path_parts: inner , .. }  = inner.as_ref()
+            [ BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. }, .. ] => {
+                if let BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. }  = inner.as_ref()
                     && let BeanPathParts::GenType { inner_ty_opt: inner, gen_type, ..} = inner.deref().deref() {
                     return inner.clone()
                 }
                 None
             }
-            [ BeanPathParts::HeadGenType {..},  BeanPathParts::MutexType{ inner_ty: mutex_type_inner_type, outer_path: outer_type , .. },
+            [ BeanPathParts::MutexType{ inner_ty: mutex_type_inner_type, outer_path: outer_type , .. },
             BeanPathParts::GenType { gen_type: inner, .. } ] => {
                 log_message!("Found mutex type with type {} and gen type {}.", SynHelper::get_str(mutex_type_inner_type.clone()), SynHelper::get_str(inner.clone()));
                 return Some(inner.clone());
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::ArcType{ inner_ty: arc_inner_types, outer_path: outer_type , .. },
+            [ BeanPathParts::ArcType{ inner_arc_ty: arc_inner_types, outer_arc_pth: outer_type , .. },
             BeanPathParts::GenType { gen_type: inner , ..}, ..] => {
                 log_message!("Found arc type with type {} and gen type {}.", SynHelper::get_str(arc_inner_types.clone()).as_str(), SynHelper::get_str(inner.clone()));
                 return Some(inner.clone());
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::ArcMutexType{ inner_ty: arc_mutex_inner_type, outer_path: out, .. },
+            [ BeanPathParts::ArcMutexType{ inner_ty: arc_mutex_inner_type, outer_path: out, .. },
             BeanPathParts::MutexType { inner_ty: mutex_type_inner_type, outer_path: outer_type , .. }] => {
                 log_message!("Found arc mutex type with type {} and gen type {}.", SynHelper::get_str(arc_mutex_inner_type.clone()).as_str(), SynHelper::get_str(mutex_type_inner_type.clone()));
                 return Some(mutex_type_inner_type.clone());
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::MutexType { inner_ty: mutex_type_inner_type, outer_path: outer_type , .. }, ..  ] => {
+            [ BeanPathParts::MutexType { inner_ty: mutex_type_inner_type, outer_path: outer_type , .. }, ..  ] => {
                 log_message!("Found fn and mutex type with type {}.", SynHelper::get_str(mutex_type_inner_type).as_str());
                 return Some(mutex_type_inner_type.clone());
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::FnType { inner_tys: input_types, return_type_opt: return_type , .. }, ..  ] => {
+            [ BeanPathParts::FnType { inner_tys: input_types, return_type_opt: return_type , .. }, ..  ] => {
                 log_message!("Found fn and mutex type with type {}.", SynHelper::get_str(return_type.clone()).as_str());
                 return return_type.clone();
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::QSelfType { q_self , .. }, .. ] => {
+            [ BeanPathParts::QSelfType { inner_ty: q_self, .. }, .. ] => {
                 log_message!("Found qself type with type {}.", SynHelper::get_str(q_self.clone()).as_str());
                 return Some(q_self.clone());
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::BindingType { associated_type , .. }, .. ] => {
+            [ BeanPathParts::BindingType { inner_ty: associated_type, .. }, .. ] => {
                 log_message!("Found binding type with type {}.", SynHelper::get_str(associated_type.clone()).as_str());
                 return None;
             }
-            [ BeanPathParts::HeadGenType {..},  BeanPathParts::ArcType{ inner_ty: arc_inner_types, outer_path: outer_type , .. }, .. ] => {
+            [ BeanPathParts::ArcType{ inner_arc_ty: arc_inner_types, outer_arc_pth: outer_type , .. }, .. ] => {
                 log_message!("Found arc type with type {}.", SynHelper::get_str(arc_inner_types.clone()).as_str());
                 return Some(arc_inner_types.clone());
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::GenType { gen_type: inner , ..} ] => {
+            [ BeanPathParts::GenType { gen_type: inner , ..} ] => {
                 log_message!("Found gen type with type {}.", SynHelper::get_str(inner.clone()).as_str());
                 return Some(inner.clone())
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::GenType { gen_type: inner , ..}, ..  ] => {
+            [ BeanPathParts::GenType { gen_type: inner , ..}, ..  ] => {
                 log_message!("Found gen type with type {}.", SynHelper::get_str(inner.clone()).as_str());
                 return Some(inner.clone())
             }
-            [BeanPathParts::HeadGenType {..}, BeanPathParts::BoxType {..}, BeanPathParts::GenType {gen_type, ..}, ..] => {
+            [BeanPathParts::BoxType {..}, BeanPathParts::GenType {gen_type, ..}, ..] => {
                 return Some(gen_type.clone())
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::ArcMutexType {..}, BeanPathParts::MutexType {..},
+            [ BeanPathParts::ArcMutexType {..}, BeanPathParts::MutexType {..},
             BeanPathParts::BoxType { inner_ty: inner , .. }, ..] => {
                 return Some(inner.clone())
             }
-            [ BeanPathParts::HeadGenType {..}, BeanPathParts::ArcMutexType { .. }, BeanPathParts::MutexType { .. },
+            [ BeanPathParts::ArcMutexType { .. }, BeanPathParts::MutexType { .. },
             BeanPathParts::BoxType { .. }, BeanPathParts::GenType { gen_type , ..}, .. ] => {
                 return Some(gen_type.clone())
             }
-            [BeanPathParts::HeadGenType {..}, .., BeanPathParts::TailGenType {outer_ty_opt, gen_type, .. }] => {
+            [ BeanPathParts::GenType {gen_type, ..}, ..] => {
                 return Some(gen_type.clone());
             }
             e => {
                 if e.len() == 0 {
                     None
-                } else if let BeanPathParts::PhantomType { inner_bean_path_parts: inner , .. } = &e[1]
+                } else if let BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. } = &e[1]
                     && let BeanPathParts::GenType {  gen_type , ..} = inner.deref().deref() {
                     Some(gen_type.clone())
                 } else {

@@ -43,8 +43,10 @@ impl Four {
 pub struct Four {
     #[autowired]
     #[mutable_bean]
+    #[service]
     pub one: Arc<Mutex<One>>,
     #[autowired]
+    #[service]
     pub test_one: Arc<One>,
     pub two: String,
 }
@@ -71,9 +73,11 @@ impl Default for Once {
 #[service(Once)]
 pub struct Once {
     #[autowired]
+    #[service]
     pub test_dyn_one: Arc<dyn Found>,
     #[autowired]
     #[mutable_bean]
+    #[service]
     pub test_dyn_one_mutex: Arc<Mutex<Box<dyn Found>>>,
 }
 

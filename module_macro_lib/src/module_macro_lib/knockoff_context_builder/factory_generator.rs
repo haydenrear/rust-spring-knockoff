@@ -311,7 +311,7 @@ impl FactoryGen {
         bean.bean_type.as_ref().map(|bean_type| {
             log_message!("Found bean type {:?}.", bean_type);
             match bean_type {
-                BeanType::Singleton => {
+                BeanType::Singleton(_) => {
                     log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
                     Self::add_to_ident_type(
                         &mut singleton_idents, &mut singleton_types,
@@ -319,7 +319,7 @@ impl FactoryGen {
                         &bean
                     );
                 }
-                BeanType::Prototype => {
+                BeanType::Prototype(_) => {
                     log_message!("Ignoring prototype bean {} when building bean factory.", bean.id.as_str());
                 }
             };
@@ -336,7 +336,7 @@ impl FactoryGen {
         bean.bean_type.as_ref().map(|bean_type| {
             log_message!("Found bean type {:?}.", bean_type);
             match bean_type {
-                BeanType::Singleton => {
+                BeanType::Singleton(_) => {
                     log_message!("adding bean dep impl with type {} as singleton!", bean.id.clone());
                     Self::add_abstract_trait_paths_for_bean(
                         &mut abstract_mutable_paths, &mut abstract_mutable_concrete,
@@ -344,7 +344,7 @@ impl FactoryGen {
                         bean, autowire_type
                     );
                 }
-                BeanType::Prototype => {
+                BeanType::Prototype(_) => {
                     log_message!("Ignoring prototype bean {} when building bean factory.", bean.id.as_str());
                 }
             };

@@ -60,7 +60,9 @@ impl ProfileProfileTreeModifier {
                         .as_ref()
                         .map(|t| {
                             log_message!("Creating abstract bean definition.");
-                            profile_tree.add_to_profile_abstract(dep_type, &self.default_profile, trait_type.clone());
+                            profile_tree.add_to_profile_abstract(dep_type,
+                                                                 &self.default_profile,
+                                                                 trait_type.clone());
                             trait_type.profile
                                 .iter()
                                 .filter(|p| p.profile != self.default_profile.profile)

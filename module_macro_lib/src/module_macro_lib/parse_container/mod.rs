@@ -98,7 +98,7 @@ impl ParseContainerBuilder {
             Box::new(MutableProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
             Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
             Box::new(DelegatingProfileTreeModifierProvider::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>,
-            // Box::new(DelegatingGenericsProvider::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
+            Box::new(DelegatingGenericsProvider::new(&parse_container.injectable_types_builder)) as Box<dyn ProfileTreeModifier>
         ];
 
         parse_container.profile_tree = ProfileTreeBuilder::build_profile_tree(

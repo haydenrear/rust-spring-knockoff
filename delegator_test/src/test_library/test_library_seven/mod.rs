@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use spring_knockoff_boot_macro::{service, autowired, enum_service, knockoff_ignore};
+use spring_knockoff_boot_macro::{service, autowired, enum_service, knockoff_ignore, prototype};
 use serde::{Deserialize, Serialize};
 
 #[service(TestLibraryFourAgain)]
@@ -66,6 +66,7 @@ use std::sync::Arc;
 #[service(TestWithGenerics)]
 pub struct TestWithGenerics {
     #[autowired]
+    #[service]
     pub f: Arc<TestConstructEnumWithFields>,
 }
 
@@ -86,6 +87,7 @@ impl SafeVal for TestGenericsVal {}
 #[service(TestWithGenericsInStruct)]
 pub struct TestWithGenericsInStruct {
     #[autowired]
+    #[service]
     pub t: Arc<TestGenericsVal>,
 }
 
@@ -115,24 +117,47 @@ impl HasEnum<TestConstructEnumWithFields> for TestWithGenerics {
 }
 
 #[service(TestT)]
+#[derive(Default)]
 pub struct TestT;
+
 #[service(TestU)]
+#[derive(Default)]
 pub struct TestU;
 
 #[service(TestV)]
+#[derive(Default)]
 pub struct TestV;
 
-// #[service(ContainsPhantom, default)]
-// pub struct ContainsPhantom<T, U, V, Z> {
-//     p: PhantomData<T>,
-//     u: PhantomData<U>,
-//     v: PhantomData<V>,
-//     z: PhantomData<Z>
-// }
+#[derive(Default)]
+pub struct ContainsPhantom<T, U, V, Z> {
+    p: PhantomData<T>,
+    u: PhantomData<U>,
+    v: PhantomData<V>,
+    z: PhantomData<Z>
+}
 
-// #[service(TestInjectContainsPhantom)]
-// pub struct TestInjectContainsPhantom {
-//     #[autowired(ContainsPhantom)]
-//     contains_phantom: Arc<ContainsPhantom<TestT, TestU, TestV, TestV>>
-// }
+#[service(ContainsPhantom)]
+pub fn test_phantom() -> ContainsPhantom<TestT, TestU, TestV, TestV> {
+    println!("In test phantom factory!");
+    ContainsPhantom::default()
+}
 
+#[service(TestInjectContainsPhantom)]
+pub struct TestInjectContainsPhantom {
+    #[autowired(ContainsPhantom)]
+    #[service]
+    pub contains_phantom: Arc<ContainsPhantom<TestT, TestU, TestV, TestV>>
+}
+
+
+#[derive(Default)]
+#[prototype(TestPrototypeBean)]
+pub struct TestPrototypeBean {}
+
+
+#[service(TestInjectPrototypeBean)]
+pub struct TestInjectPrototypeBean {
+    #[autowired]
+    #[prototype]
+    pub test_prototype_bean: TestPrototypeBean
+}

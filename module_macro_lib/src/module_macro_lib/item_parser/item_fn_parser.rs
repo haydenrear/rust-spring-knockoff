@@ -1,4 +1,4 @@
-use syn::{Attribute, FnArg, GenericParam, Generics, ItemFn, Pat, PatType, ReturnType, Type, TypeParam, WherePredicate};
+use syn::{Attribute, FnArg, GenericParam, Generics, ItemFn, ItemStruct, Pat, PatType, ReturnType, Type, TypeParam, WherePredicate};
 use std::any::{Any, TypeId};
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
@@ -13,7 +13,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use syn::ext::IdentExt;
 use codegen_utils::project_directory;
-use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
+use module_macro_shared::bean::{AbstractionLevel, BeanDefinition, BeanPath, BeanPathParts, BeanType};
 use crate::logger_lazy;
 import_logger!("item_fn_parser.rs");
 
@@ -137,7 +137,7 @@ impl ItemFnParser {
                 match ty.deref().clone() {
                     Type::Path(type_path) => {
                         info!("Retrieving bean type");
-                        let bean_dep_output_path = BeanDependencyPathParser::parse_type_path(type_path);
+                        let bean_dep_output_path = BeanDependencyPathParser::parse_type_path(&type_path);
                         if bean_dep_output_path.get_inner_type_id().contains("dyn") {
                             panic!("Factory function cannot return abstract type!");
                         }
@@ -157,8 +157,10 @@ impl ItemFnParser {
 
     fn get_fn_type(fn_found: &ItemFn, attr: &Vec<Attribute>, type_ref: Option<BeanPath>) -> Option<FunctionType> {
         ParseUtil::get_singleton_names(&attr)
-            .map(|p| (p, BeanType::Singleton))
-            .or(ParseUtil::get_prototype_names(&attr).map(|p| (p, BeanType::Prototype)))
+            .map(|p| (p, BeanType::Singleton(AbstractionLevel::Concrete)))
+            .or(ParseUtil::get_prototype_names(&attr)
+                .map(|p| (p, BeanType::Prototype(AbstractionLevel::Concrete)))
+            )
             .map(|bean_type_names| {
                 let gens = &fn_found.sig.generics;
                 let ty_bounds = get_all_generic_ty_bounds(gens);

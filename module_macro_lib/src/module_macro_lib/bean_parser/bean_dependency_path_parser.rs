@@ -9,13 +9,14 @@ use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Generics, ItemImpl, Lifetime, ParenthesizedGenericArguments, parse2, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use codegen_utils::syn_helper::SynHelper;
-use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType};
+use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType, BeanPathHead};
 
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::generics::Gens::HeadGen;
 use crate::logger_lazy;
 import_logger!("bean_dependency_path.rs");
 
@@ -24,22 +25,39 @@ pub struct BeanDependencyPathParser;
 
 impl BeanDependencyPathParser {
 
-    pub(crate) fn parse_type_path(path: TypePath) -> BeanPath {
+    pub(crate) fn parse_type_path(path: &TypePath) -> BeanPath {
         log_message!("Parsing type segments {}.", path.to_token_stream().to_string().as_str());
-        path.qself
+        path.qself.as_ref()
             .map(|self_type|
                 BeanPath {
-                   path_segments: vec![BeanPathParts::QSelfType { q_self: self_type.ty.deref().clone(),
-                       ident: Self::get_first_path_segment(&path.path) }]
+                   path_segments: vec![BeanPathParts::QSelfType { inner_ty: self_type.ty.deref().clone(),
+                       ident: Self::get_first_path_segment(&path.path) }],
+                    head: BeanPathHead {
+                        gen_type_path: Some(path.path.clone()),
+                        head_ident: path.path.get_ident().cloned(),
+                        abstract_type: None,
+                    },
                 }
             )
-            .or_else(|| Some(BeanPath {path_segments: Self::parse_path(&path.path)}))
+            .or_else(|| Some(BeanPath {
+                path_segments: Self::parse_path(&path.path),
+                head: BeanPathHead {
+                    gen_type_path: Some(path.path.clone()),
+                    head_ident: None,
+                    abstract_type: None,
+                }
+            }))
             .unwrap()
     }
 
     pub(crate) fn parse_path_to_bean_path(path: &syn::Path) -> BeanPath {
         BeanPath{
-            path_segments: Self::parse_path(path)
+            path_segments: Self::parse_path(path),
+            head: BeanPathHead {
+                gen_type_path: Some(path.clone()),
+                head_ident: path.get_ident().cloned(),
+                abstract_type: None,
+            },
         }
     }
 
@@ -87,14 +105,9 @@ impl BeanDependencyPathParser {
 
     pub(crate) fn parse_type(path: Type) -> Option<BeanPath> {
         log_message!("Parsing type segments {}.", path.to_token_stream().to_string().as_str());
-        match path {
+        match &path {
             Type::Path(tp)  => {
-                let head_created = Self::create_head(&tp.path);
                 let mut out = Some(BeanDependencyPathParser::parse_type_path(tp));
-                if out.is_some() {
-                    Self::add_tail(&mut out.as_mut().unwrap().path_segments);
-                    out.as_mut().unwrap().path_segments.insert(0, head_created);
-                }
                 out
             }
             Type::TraitObject(tt) => {
@@ -108,7 +121,12 @@ impl BeanDependencyPathParser {
                 }).collect::<Vec<BeanPathParts>>();
                 Some(
                     BeanPath {
-                        path_segments
+                        path_segments,
+                        head: BeanPathHead {
+                            gen_type_path: None,
+                            head_ident: None,
+                            abstract_type: Some(path.clone()),
+                        },
                     }
                 )
 
@@ -119,16 +137,19 @@ impl BeanDependencyPathParser {
         }
     }
 
-    fn parse_path(path: &syn::Path) -> Vec<BeanPathParts> {
-        let head = Self::create_head(path);
-        let mut out = path.segments.iter().flat_map(|segment| {
+    fn parse_path_recursive(path: &syn::Path) -> Vec<BeanPathParts> {
+        path.segments.iter().flat_map(|segment| {
             match &segment.arguments {
                 PathArguments::None => {
                     log_message!("{} type path did not have args.", path.to_token_stream().to_string().as_str());
                     parse2::<Type>(path.to_token_stream().clone())
                         .ok()
-                        .map(|inner| vec![BeanPathParts::TailGenType { gen_type: inner.clone(), outer_ty_opt: Some(inner),
-                            ident: Self::get_first_path_segment(path) }])
+                        .map(|inner| vec![BeanPathParts::GenType {
+                            gen_type: inner.clone(),
+                            inner_ty_opt: None,
+                            outer_ty_opt: Some(inner),
+                            ident: Self::get_first_path_segment(path)
+                        }])
                         .or(Some(vec![]))
                         .unwrap()
                 }
@@ -139,33 +160,14 @@ impl BeanDependencyPathParser {
                     Self::parse_parenthesized(parenthesized, path)
                 }
             }
-        }).collect::<Vec<_>>();
-        out.insert(0, head);
-        Self::add_tail(&mut out);
+        }).collect::<Vec<_>>()
+    }
+
+    fn parse_path(path: &syn::Path) -> Vec<BeanPathParts> {
+        let mut out = Self::parse_path_recursive(path);
         out
     }
 
-    fn create_head(path: &syn::Path) -> BeanPathParts {
-        let head = BeanPathParts::HeadGenType {
-            gen_type_path: path.clone(),
-            ident: Self::get_first_path_segment(path)
-        };
-        head
-    }
-
-    fn create_head_ty(path: &syn::Type) -> BeanPathParts {
-        let path_val = parse2::<syn::Path>(path.to_token_stream())
-            .map_err(|err| {
-                error!("Error parsing {:?} to path.", SynHelper::get_str(path));
-            })
-            .ok()
-            .unwrap();
-        let head = BeanPathParts::HeadGenType {
-            gen_type_path: path_val.clone(),
-            ident: Self::get_first_path_segment(&path_val)
-        };
-        head
-    }
 
     fn parse_path_inner(path: &syn::Path) -> Vec<BeanPathParts> {
         path.segments.iter().flat_map(|segment| {
@@ -225,9 +227,9 @@ impl BeanDependencyPathParser {
             }
             ["Arc", ..] => {
                 BeanPathParts::ArcType {
-                    inner_ty: in_type.clone(),
-                    outer_path: path.clone(),
-                    ident: path_seg.clone()
+                    inner_arc_ty: in_type.clone(),
+                    outer_arc_pth: path.clone(),
+                    arc_ident: path_seg.clone()
                 }
             }
             ["Mutex", ..] => {
@@ -245,7 +247,7 @@ impl BeanDependencyPathParser {
             }
             ["PhantomData", ..] => {
                 BeanPathParts::PhantomType {
-                    inner_bean_path_parts: BeanPathParts::GenType {
+                    bean_path_parts_phantom_ty: BeanPathParts::GenType {
                         gen_type: parse2(path.to_token_stream())
                             .map_err(|e| {
                                 info!("Error parsing token stream {:?}", SynHelper::get_str(path));
@@ -254,18 +256,19 @@ impl BeanDependencyPathParser {
                         outer_ty_opt: parse2("PhantomData".to_token_stream()).ok(),
                         ident: path_seg.clone()
                     }.into(),
-                    ident: path_seg.clone()
+                    phantom_ty_ident: path_seg.clone()
                 }
             }
             [single_value] => {
                 info!("Parsing tail gen type: {}", single_value);
-                BeanPathParts::TailGenType {
+                BeanPathParts::GenType {
                     outer_ty_opt: parse2(path.to_token_stream()).ok(),
-                    gen_type: parse2(Ident::new(single_value, Span::call_site()).to_token_stream())
+                    gen_type: parse2(path.to_token_stream())
                         .map_err(|e| {
                             info!("Error parsing token stream {:?}", SynHelper::get_str(path));
                         }).ok().unwrap(),
-                    ident: path_seg.clone()
+                    ident: path_seg.clone(),
+                    inner_ty_opt: None,
                 }
             }
             _ => {
@@ -298,6 +301,7 @@ impl BeanDependencyPathParser {
             }
         };
 
+        info!("{:?} is ty to add.", &ty_to_add);
         bean_parts.push(ty_to_add);
         Self::add_recurse_parse(in_type, &mut bean_parts);
 
@@ -308,24 +312,6 @@ impl BeanDependencyPathParser {
     fn add_recurse_parse(in_type: &Type, bean_parts: &mut Vec<BeanPathParts>) {
         for p in Self::parse_next_path(in_type).iter() {
             bean_parts.push(p.to_owned());
-        }
-    }
-
-    fn add_tail(bean_parts: &mut Vec<BeanPathParts>) {
-        let last = bean_parts.last()
-            .iter()
-            .flat_map(|last_val| {
-                if let BeanPathParts::GenType { inner_ty_opt, gen_type, ident, .. } = last_val
-                    && let Some(inner_val) = inner_ty_opt {
-                    vec![BeanPathParts::TailGenType { gen_type: inner_val.clone(),
-                        outer_ty_opt: Some(gen_type.clone()), ident: ident.clone()}]
-                } else {
-                    vec![]
-                }
-            })
-            .next();
-        if last.is_some() {
-            bean_parts.push(last.unwrap());
         }
     }
 
@@ -353,7 +339,7 @@ impl BeanDependencyPathParser {
                     vec![]
                 }
                 GenericArgument::Binding(binding) => {
-                    vec![BeanPathParts::BindingType { associated_type: binding.ty.clone(), ident: Self::get_first_path_segment(path) }]
+                    vec![BeanPathParts::BindingType { inner_ty: binding.ty.clone(), ident: Self::get_first_path_segment(path) }]
                 }
                 GenericArgument::Constraint(constraint) => {
                     Self::parse_contraints(constraint, path)

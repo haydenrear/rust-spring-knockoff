@@ -17,6 +17,7 @@ import_logger!("profile_tree.rs");
 pub mod mutable_profile_tree_modifier;
 pub mod concrete_profile_tree_modifier;
 pub mod profile_profile_tree_modifier;
+pub mod bean_type_profile_tree_modifier;
 pub(crate) mod search_profile_tree;
 
 pub struct ProfileTreeBuilder {

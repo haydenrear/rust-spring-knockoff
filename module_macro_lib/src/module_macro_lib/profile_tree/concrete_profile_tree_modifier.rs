@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use syn::{parse2, Type};
 use quote::{quote, ToTokens};
-use module_macro_shared::bean::BeanDefinition;
+use module_macro_shared::bean::{AbstractionLevel, BeanDefinition, BeanType};
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 use module_macro_shared::profile_tree::ProfileTree;
 
@@ -14,6 +14,7 @@ use std::sync::Mutex;
 use codegen_utils::project_directory;
 use module_macro_shared::dependency::DepType;
 use crate::logger_lazy;
+use crate::module_macro_lib::profile_tree::search_profile_tree::SearchProfileTree;
 import_logger!("concrete_profile_tree_modifier.rs");
 
 
@@ -58,7 +59,6 @@ impl ProfileTreeModifier for ConcreteTypeProfileTreeModifier {
                             .filter(|dep_type_bean_path| dep_type_bean_path.bean_path_part_matches(bean_struct_id))
                             .is_some()
                 ) {
-                    info!("Doing modify and bean structs id was not contained for {:?}.", dep_type_to_test);
                     dep_type_to_test.set_is_abstract(&mut Some(true));
                     dep_type_to_test.dep_type_maybe_qualifier().clone().as_ref()
                         // Here is where it's getting the struct, setting the concrete field type of the
