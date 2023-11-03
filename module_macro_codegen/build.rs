@@ -13,7 +13,7 @@ use factories_codegen::provider::DelegatingProvider;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
-use codegen_utils::project_directory;
+use codegen_utils::{get_project_dir, project_directory};
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/module_macro_codegen_build_rs.log"));
 
 /// The token stream providers need to depend on user provided crate, so that means we need to
@@ -21,47 +21,28 @@ import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/module_mac
 /// provided dependency in that generated crate, which imports into the module macro codegen lib
 /// to generate tokens dynamically from user, with the ProfileTree as a dependency provided to the user
 /// or other library author to generate the tokens from.
+
+/// TODO: A new stage in the codegen is required to provide codegen inputs for framework dependencies, or rather
+///     any arbitrary number of stages is required to be defined in knockoff_factories.toml with stage identifiers.
+///     In this case, any number knockoff_provider_gens will be transitively depended on by knockoff_providers
+///     and then pub use ** will be used in the original knockoff_providers_gen. So then this replaces
+///     module_macro_codegen.
 fn main() {
-     let mut directory_tuple = get_create_directories();
+     let knockoff_version = env::var("KNOCKOFF_VERSIONS").or::<String>(Ok("0.1.5".into())).unwrap();
+     let knockoff_factories = env::var("KNOCKOFF_FACTORIES")
+         .ok()
+         .or(Some(get_project_dir("codegen_resources/knockoff_factories.toml")))
+         .unwrap();
+     let base_dir = get_project_base_build_dir();
 
-     info!("Writing output directory: {:?}", &directory_tuple);
+     let out_directory = get_build_project_dir("target");
 
-     FactoriesParser::write_cargo_toml(&directory_tuple.1, directory_tuple.3);
-     FactoriesParser::write_tokens_lib_rs(directory_tuple.2);
+     FactoriesParser::write_knockoff_gens(&knockoff_version, &knockoff_factories, &base_dir, &out_directory)
+         .map(|stages| FactoriesParser::write_tokens_lib_rs(stages, &out_directory, &knockoff_version));
 
      let mut proj_dir = get_project_base_build_dir();
      let mut cargo_change = "cargo:rerun-if-changed=".to_string();
      cargo_change += proj_dir.as_str();
      println!("{}", cargo_change);
 }
-
-fn get_create_directories() -> (String, String, String, String) {
-     let base_dir = get_project_base_build_dir();
-     let out_directory = get_build_project_dir("target");
-
-     log_message!("{} is out", &out_directory);
-     let mut out_lib_dir = out_directory.clone();
-     out_lib_dir += "/knockoff_providers_gen/src";
-     let mut cargo_toml = out_directory.clone();
-     cargo_toml += "/knockoff_providers_gen/Cargo.toml";
-     let mut out_lib_rs = out_directory.clone();
-     out_lib_rs += "/knockoff_providers_gen/src/lib.rs";
-     let _ = fs::remove_dir_all(&out_lib_dir)
-         .map_err(|err| {
-              write_error_creating_out_lib(&mut out_lib_rs, &err);
-              Ok::<(), Error>(())
-         });
-     let _ = fs::create_dir_all(&out_lib_dir)
-          .map_err(|err| {
-               write_error_creating_out_lib(&mut out_lib_rs, &err);
-               Ok::<(), Error>(())
-          });
-
-     (out_lib_dir, cargo_toml, out_lib_rs, base_dir)
-}
-
-fn write_error_creating_out_lib(mut out_lib_rs: &mut String, err: &dyn std::error::Error)  {
-     error!("Tried to create {}. Error creating knockoff providers gen: {}.", out_lib_rs, err.to_string().as_str());
-}
-
 

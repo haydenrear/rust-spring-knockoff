@@ -6,16 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-toml = "0.7.3"
-proc-macro2 = "1.0"
+proc-macro2 = "1.0.51"
 quote = "1.0"
 syn = {version = "1.0", features = ["full"]}
 derive-syn-parse = "0.1.5"
-serde = {version = "1.0.137", features = ["derive"] }
-base64 = "0.21.0"
 lazy_static = "1.4.0"
+serde = "1.0.137"
+base64 = "0.21.0"
 executors = "0.9.0"
 rand = "0.8.5"
+toml = "0.7.3"
 [dependencies.codegen_utils]
 path = "../codegen_utils"
 version = "0.1.5"
@@ -26,5 +26,9 @@ version = "0.1.5"
 registry = "estuary"
 [dependencies.crate_gen]
 path ="../crate_gen"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.collection_util]
+path ="../collection_util"
 version = "0.1.5"
 registry = "estuary"

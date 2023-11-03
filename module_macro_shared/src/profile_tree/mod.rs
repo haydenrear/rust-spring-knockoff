@@ -21,7 +21,9 @@ import_logger!("profile_tree.rs");
 use crate::parse_container::{MetadataItem, MetadataItemId};
 
 pub mod profile_tree_modifier;
+pub use profile_tree_modifier::*;
 pub mod profile_tree_finalizer;
+pub use profile_tree_finalizer::*;
 
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq, Hash, Debug)]
 pub struct ProfileBuilder {

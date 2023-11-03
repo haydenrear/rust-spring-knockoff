@@ -7,23 +7,19 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Todo!">
-      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/bean_type_profile_tree_modifier.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Added multiple codegen crates for multiple stages of codegen.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/spring-knockoff.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/spring-knockoff.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/bean_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_constructor_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/factory_fn_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/factory_fn_factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/prototype_factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_generator/prototype_factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/search_profile_tree.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/search_profile_tree.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/bean_type_providers/mod.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/item_modifier/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/profile_tree_finalizer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/profile_tree_finalizer/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/profile_tree_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/profile_tree_modifier/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/provider/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/todo.md" beforeDir="false" afterPath="$PROJECT_DIR$/todo.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -131,6 +127,8 @@
     "Cargo.Test test::test_logging_macro.executor": "Run",
     "Cargo.Test test::test_logging_macro_concurrent.executor": "Run",
     "Cargo.Test test::test_text_logging.executor": "Run",
+    "Cargo.Test test::test_write_multiple::test_serialize.executor": "Run",
+    "Cargo.Test test::test_write_multiple::test_write.executor": "Run",
     "Cargo.Test test_dyn.executor": "Run",
     "Cargo.Test test_module_macro.executor": "Run",
     "Cargo.Test wait_for::wait_async::test_async.executor": "Run",
@@ -146,7 +144,7 @@
     "git-widget-placeholder": "main",
     "go.import.settings.migrated": "true",
     "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_resources",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -154,6 +152,7 @@
     "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
     "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/test_library/test_library_seven/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_work/target/knockoff_providers_gen/src/lib.rs": "true",
     "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
     "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs": "true",
     "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
@@ -167,11 +166,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree" />
-      <recent name="$PROJECT_DIR$/rust_spring_knockoff" />
-      <recent name="$PROJECT_DIR$/factories_codegen/src" />
-      <recent name="$PROJECT_DIR$/target/debug/test_" />
-      <recent name="$PROJECT_DIR$/target/test_" />
+      <recent name="$PROJECT_DIR$/module_macro_codegen/test_resources" />
+      <recent name="$PROJECT_DIR$/module_macro_codegen/.cargo" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/web_framework" />
+      <recent name="$PROJECT_DIR$/web_framework/.cargo" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/knockoff_logging/src" />
@@ -182,8 +181,8 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test lib::test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_logging --lib test" />
+    <configuration name="Test lib::tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package rust_spring_knockoff --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
@@ -199,8 +198,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test lib::tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package rust_spring_knockoff --lib tests" />
+    <configuration name="Test test::test_write_multiple::test_serialize" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_codegen --lib test::test_write_multiple::test_serialize -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test::test_write_multiple::test_write" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_codegen --lib test::test_write_multiple::test_write -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
@@ -250,23 +266,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test wait_for::wait_async::test_async_multiple" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package wait_for --lib wait_for::wait_async::test_async_multiple -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="true" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="test --package rust-spring-knockoff --lib tests" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -286,19 +285,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
+      <item itemvalue="Cargo.Test test::test_write_multiple::test_serialize" />
+      <item itemvalue="Cargo.Test test::test_write_multiple::test_write" />
       <item itemvalue="Cargo.Test test_dyn" />
       <item itemvalue="Cargo.Test lib::tests" />
-      <item itemvalue="Cargo.Test lib::test" />
       <item itemvalue="Cargo.Test test_module_macro" />
-      <item itemvalue="Cargo.Test wait_for::wait_async::test_async_multiple" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Test test_module_macro" />
+        <item itemvalue="Cargo.Test test::test_write_multiple::test_write" />
+        <item itemvalue="Cargo.Test test::test_write_multiple::test_serialize" />
         <item itemvalue="Cargo.Test test_dyn" />
         <item itemvalue="Cargo.Test lib::tests" />
-        <item itemvalue="Cargo.Test wait_for::wait_async::test_async_multiple" />
-        <item itemvalue="Cargo.Test lib::test" />
       </list>
     </recent_temporary>
   </component>
@@ -392,7 +391,8 @@
       <workItem from="1698789206519" duration="40088000" />
       <workItem from="1698837256001" duration="29841000" />
       <workItem from="1698868317227" duration="7979000" />
-      <workItem from="1698936618333" duration="26535000" />
+      <workItem from="1698936618333" duration="39056000" />
+      <workItem from="1698986498517" duration="36645000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -737,7 +737,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="213" />
+    <option name="localTasksCounter" value="218" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -800,8 +800,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/set_enum_fields" />
     </ignored-roots>
-    <MESSAGE value="user provided delegating parse provider" />
-    <MESSAGE value="adding factory fn" />
     <MESSAGE value="refactor factory" />
     <MESSAGE value="prototype factory" />
     <MESSAGE value="updated factories codegen to add features to dependencies." />
@@ -825,7 +823,9 @@
     <MESSAGE value="Added set enum fields and mut enum fields, and adding Generics to container, testing generics with container." />
     <MESSAGE value="Moving towards more robust generics" />
     <MESSAGE value="Todo!" />
-    <option name="LAST_COMMIT_MESSAGE" value="Todo!" />
+    <MESSAGE value="Add prototype beans" />
+    <MESSAGE value="Added multiple codegen crates for multiple stages of codegen." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added multiple codegen crates for multiple stages of codegen." />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

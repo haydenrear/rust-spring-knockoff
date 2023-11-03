@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::Path;
 use knockoff_logging::*;
 use crate::provider::ProviderProvider;
@@ -67,8 +67,10 @@ impl ProviderProvider for  ItemModifierProvider {
         }
     }
 
-    fn create_token_provider_tokens(builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
+    fn create_token_provider_tokens<T: ToTokens>(use_statement: T, builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
         quote! {
+
+            #use_statement
 
             pub struct #provider_ident {
             }
@@ -93,7 +95,7 @@ impl ProviderProvider for  ItemModifierProvider {
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
-            use module_macro_shared::item_modifier::ItemModifier;
+            use module_macro_shared::*;
         }.into();
         imports
     }

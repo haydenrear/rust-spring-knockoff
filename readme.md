@@ -4,6 +4,7 @@ To build:
 chmod 777 build_cli.sh
 ./build_cli.sh
 ./build_dev.sh
+cargo build
 ```
 
 It will throw an error but the error is expected.

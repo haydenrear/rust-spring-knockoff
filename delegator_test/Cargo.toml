@@ -37,6 +37,10 @@ registry = "estuary"
 path ="../web_framework_shared"
 version = "0.1.5"
 registry = "estuary"
+[dependencies.knockoff_security]
+path ="../knockoff_security"
+version = "0.1.5"
+registry = "estuary"
 
 [build-dependencies.crate_gen]
 path ="../crate_gen"

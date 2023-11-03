@@ -22,7 +22,7 @@ use web_framework::web_framework::context::{Context, UserRequestContext};
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::http::{
     ProtocolToAdaptFrom, RequestConversionError,
-    RequestConverter, RequestExecutor, RequestExecutorImpl,
+    RequestConverter, RequestExecutorImpl,
     RequestStream, ResponseType
 };
 use web_framework::web_framework::request_context::SessionContext;

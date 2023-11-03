@@ -48,10 +48,10 @@ impl ProviderProvider for TokenProvider {
         }
     }
 
-    fn create_token_provider_tokens(builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
+    fn create_token_provider_tokens<T: ToTokens>(use_statement: T, builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
         quote! {
 
-                use #builder_path;
+                #use_statement
 
                 pub struct #provider_ident {
                     profile_tree: ProfileTree,
@@ -77,10 +77,9 @@ impl ProviderProvider for TokenProvider {
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
-            use module_macro_shared::profile_tree::ProfileTree;
             use proc_macro2::TokenStream;
             use quote::TokenStreamExt;
-            use module_macro_shared::token_provider::ProfileTreeTokenProvider;
+            use module_macro_shared::*;
         }.into();
         imports
     }

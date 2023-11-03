@@ -14,7 +14,7 @@ use crate::provider::{DelegatingProvider, ProviderProvider};
 pub struct ParseProvider;
 
 /// This is called on each item as it is parsed.
-impl ProviderProvider for  ParseProvider {
+impl ProviderProvider for ParseProvider {
     fn create_delegating_token_provider_tokens(provider_type: Vec<Ident>, provider_idents: Vec<Ident>,
                                                path: &Vec<Path>) -> TokenStream {
         quote! {
@@ -33,9 +33,9 @@ impl ProviderProvider for  ParseProvider {
         }
     }
 
-    fn create_token_provider_tokens(builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
+    fn create_token_provider_tokens<T: ToTokens>(use_statement: T, builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
         quote! {
-                use #builder_path;
+                #use_statement
 
                 pub struct #provider_ident {
                 }
@@ -53,8 +53,7 @@ impl ProviderProvider for  ParseProvider {
     fn get_imports() -> TokenStream {
         let imports = quote! {
             use syn::Item;
-            use module_macro_shared::parse_container::ParseContainer;
-            use module_macro_shared::parse_container::ParseContainerItemUpdater;
+            use module_macro_shared::*;
         }.into();
         imports
     }

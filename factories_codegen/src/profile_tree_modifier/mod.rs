@@ -28,14 +28,14 @@ impl ProviderProvider for ProfileTreeModifierProvider {
             impl ProfileTreeModifier for DelegatingProfileTreeModifierProvider {
 
                 fn modify_bean(&self, dep_type: &mut BeanDefinition, profile_tree: &mut ProfileTree) {
-                    #(
-                        #provider_type::modify_bean(dep_type, profile_tree);
-                    )*
+                    // #(
+                    //     self.#provider_idents.modify_bean(dep_type, profile_tree);
+                    // )*
                 }
 
                 fn new(profile_tree_items: &HashMap<String, BeanDefinition>) -> Self {
                     #(
-                        let #provider_idents = #provider_type::new(dep_type, profile_tree);
+                        let #provider_idents = #provider_type::new(profile_tree_items);
                     )*
                     Self {
                         #(#provider_idents)*
@@ -47,21 +47,24 @@ impl ProviderProvider for ProfileTreeModifierProvider {
         }
     }
 
-    fn create_token_provider_tokens(builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
+    fn create_token_provider_tokens<T: ToTokens>(use_statement: T, builder_path: syn::Path, provider_ident: Ident) -> TokenStream {
         quote! {
 
-            use #builder_path;
+            #use_statement
 
             pub struct #provider_ident {
+                d: #builder_path
             }
 
             impl #provider_ident {
                 fn modify_bean(&self, dep_type: &mut BeanDefinition, profile_tree: &mut ProfileTree) {
-                    #provider_ident::modify_bean(dep_type, profile_tree);
+                    self.d.modify_bean(dep_type, profile_tree);
                 }
 
-                fn new(profile_tree_items: &HashMap<String, BeanDefinition>) -> #provider_ident {
-                    #provider_ident::new(profile_tree_items)
+                fn new(profile_tree_items: &HashMap<String, BeanDefinition>) -> Self {
+                    Self {
+                        d: #builder_path::new(profile_tree_items)
+                    }
                 }
             }
 
@@ -70,8 +73,7 @@ impl ProviderProvider for ProfileTreeModifierProvider {
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
-            use module_macro_shared::bean::BeanDefinition;
-            use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
+            use module_macro_shared::*;
             use std::collections::HashMap;
         }.into();
         imports

@@ -1,20 +1,21 @@
 use std::cmp::Ordering;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, TokenStreamExt, ToTokens};
-use syn::{parse_str, Path};
+use syn::{parse, parse2, parse_str, Path};
 use toml::Table;
 use crate::factories_parser::{Provider};
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use syn::token::Use;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
 
 import_logger!("provider.rs");
 
-pub trait DelegatingProvider {
-    fn tokens() -> TokenStream;
+pub trait DelegatingProvider<T> {
+    fn tokens(t: &T) -> TokenStream;
 }
 
 pub trait ProviderProvider {
@@ -24,7 +25,8 @@ pub trait ProviderProvider {
         path: &Vec<Path>
     ) -> TokenStream;
 
-    fn create_token_provider_tokens(provider_path: Path, provider_ident: Ident) -> TokenStream;
+    fn create_token_provider_tokens<T: ToTokens>(provider_path_use_statement: T, provider_path: Path,
+                                    provider_ident: Ident) -> TokenStream;
 
     fn create_token_provider(provider_item: &Provider) -> TokenStream {
 
@@ -44,9 +46,31 @@ pub trait ProviderProvider {
             let provider_ident = Ident::new(&provider_item.provider_ident.as_ref().unwrap(), Span::call_site());
             let builder_path_str = provider_item.provider_path.as_ref().unwrap().as_str();
 
+
             let path = parse_str::<syn::Path>(builder_path_str).unwrap();
 
-            return Self::create_token_provider_tokens(path, provider_ident);
+            if provider_item.provider_path_use_statement.as_ref().is_some()
+                && provider_item.provider_path_use_statement.as_ref().unwrap().len() == 0 {
+                return Self::create_token_provider_tokens(quote! {},
+                                                          path, provider_ident);
+            } else if provider_item.provider_path_use_statement.is_some() {
+                let provider_path_use = provider_item.provider_path_use_statement
+                    .as_ref().unwrap().as_str();
+                let provider_path_use = parse_str::<syn::ItemUse>(provider_path_use)
+                    .ok().unwrap();
+                return Self::create_token_provider_tokens(
+                    quote! {
+                        #provider_path_use
+                    }, path,
+                    provider_ident
+                );
+            } else {
+                info!("Writing provider tokens with use statement");
+                return Self::create_token_provider_tokens(quote! {
+                    use #path;
+                }, path, provider_ident);
+            }
+
         }
 
         TokenStream::default()

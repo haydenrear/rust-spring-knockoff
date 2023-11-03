@@ -46,17 +46,17 @@ impl ProviderProvider for ParseContainerModifierProvider {
         }
     }
 
-    fn create_token_provider_tokens(path: syn::Path, provider_ident: Ident) -> TokenStream {
+    fn create_token_provider_tokens<T: ToTokens>(use_statement: T, path: syn::Path, provider_ident: Ident) -> TokenStream {
         quote! {
 
-                use #path;
+                #use_statement
 
                 pub struct #provider_ident {
                 }
 
                 impl ParseContainerModifier for #provider_ident {
-                    pub fn do_modify(items: &mut ParseContainer) {
-                        #provider_ident::do_modify(items);
+                    fn do_modify(items: &mut ParseContainer) {
+                        #path::do_modify(items);
                     }
                 }
 
@@ -65,7 +65,7 @@ impl ProviderProvider for ParseContainerModifierProvider {
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
-            use module_macro_shared::parse_container::ParseContainerModifier;
+            use module_macro_shared::*;
         }.into();
         imports
     }

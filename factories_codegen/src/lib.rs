@@ -23,7 +23,6 @@ pub mod provider;
 pub mod profile_tree_modifier;
 pub mod profile_tree_finalizer;
 pub mod item_modifier;
-pub mod bean_type_providers;
 pub mod test;
 
 

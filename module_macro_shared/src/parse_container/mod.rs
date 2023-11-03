@@ -87,6 +87,9 @@ pub trait ParseContainerItemUpdater {
 /// the final build is done, and
 /// so the
 /// 3. ParseContainerModifier is passed here to perform any finalizing changes.
+/// 4. ProfileTreeFinalizer and Delegator for that
+/// 5. TokenStreamGenerator and UserProvidedTokenStreamGenerator which calls the DelegatingTokenProvider
+/// built with the CLI.
 pub trait ParseContainerModifier {
     fn do_modify(items: &mut ParseContainer);
 }
@@ -94,7 +97,8 @@ pub trait ParseContainerModifier {
 /// After the ItemModifier and the ParseContainerItemUpdater run, the final build is done, and
 /// so the ParseContainer is passed here to perform any finalizing changes. This calls the
 /// ParseContainerItemUpdater to build the parse container. After build parse container is called,
-/// then finally BuildProfileTree is called. This is when the TokenStream will be created.
+/// then the profile tree finalizer is called. Then after that, the token stream is generated
+/// so then finally BuildProfileTree is called. This is when the TokenStream will be created.
 pub trait BuildParseContainer {
     fn build_parse_container(&self, parse_container: &mut ParseContainer);
 }

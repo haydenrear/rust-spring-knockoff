@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use std::marker::PhantomData;
 
 pub fn add_to_multi_value<K: Hash + Eq, V>(
     multi_value_map: &mut HashMap<K, Vec<V>>, to_add: V, to_add_k: K) {
@@ -48,4 +49,47 @@ pub fn group_by_key<K, V>(map: Vec<(K, V)>) -> HashMap<K, HashSet<V>>
         }
     }
     result
+}
+
+
+
+pub struct MultiMap<K, V, IT>(pub HashMap<K, Vec<V>>, PhantomData<IT>)
+where
+    IT: Iterator<Item=(K, V)>,
+    K:  Hash + Eq + PartialEq + Ord;
+
+
+impl<K, V, IT> MultiMap<K, V, IT>
+    where
+        K: Hash + Eq + PartialEq + Ord,
+        V: Hash + Eq + Ord,
+        IT: Iterator<Item=(K, V)>
+{
+    fn collect(to_collect: IT) -> MultiMap<K, V, IT> {
+        let mut out_map = HashMap::new();
+        to_collect.for_each(|(k, v)| {
+            add_to_multi_value(&mut out_map, v, k);
+        });
+        MultiMap(out_map, PhantomData::default())
+    }
+}
+
+pub trait IntoMultiMap {
+    type K: Hash + Eq + PartialEq + Ord;
+    type V;
+    fn collect_multi(&mut self)  -> MultiMap<Self::K, Self::V, Self> where Self: Sized + Iterator<Item=(Self::K, Self::V)> {
+        let mut out = HashMap::new();
+        self.for_each(|(k, v)| {
+            add_to_multi_value(&mut out, v, k) ;
+        });
+        MultiMap(out, PhantomData::default())
+    }
+}
+
+impl<K, V, INT> IntoMultiMap for INT
+    where INT: Iterator<Item=(K, V)>,
+          K: Hash + Eq + PartialEq + Ord
+{
+    type K = K;
+    type V = V;
 }
