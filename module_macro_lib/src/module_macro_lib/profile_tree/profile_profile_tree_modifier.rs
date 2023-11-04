@@ -10,8 +10,8 @@ use std::sync::Mutex;
 use quote::ToTokens;
 use codegen_utils::project_directory;
 use codegen_utils::syn_helper::SynHelper;
+use module_macro_shared::bean_dependency_path_parser::BeanDependencyPathParser;
 use crate::logger_lazy;
-use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
 use crate::module_macro_lib::knockoff_context_builder::get_concrete_type_as_ident;
 import_logger!("profile_profile_tree_modifier.rs");
 

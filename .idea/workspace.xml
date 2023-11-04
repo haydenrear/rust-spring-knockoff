@@ -8,19 +8,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Added multiple codegen crates for multiple stages of codegen.">
+      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree_builder/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/bean_type_providers/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/item_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_container_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/parse_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/profile_tree_finalizer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/profile_tree_finalizer/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/profile_tree_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/profile_tree_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/token_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/todo.md" beforeDir="false" afterPath="$PROJECT_DIR$/todo.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_module/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_module/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/module_parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_precompile/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,10 +137,10 @@
     "RunOnceActivity.go.migrated.go.modules.settings": "true",
     "WebServerToolWindowFactoryState": "false",
     "aspect.path.notification.shown": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "precompile__gen",
     "go.import.settings.migrated": "true",
     "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_resources",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/precompile_macro",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -166,18 +162,18 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/precompile_macro" />
       <recent name="$PROJECT_DIR$/module_macro_codegen/test_resources" />
       <recent name="$PROJECT_DIR$/module_macro_codegen/.cargo" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/web_framework" />
-      <recent name="$PROJECT_DIR$/web_framework/.cargo" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/knockoff_logging/src" />
-      <recent name="$PROJECT_DIR$/target/debug/test_" />
-      <recent name="$PROJECT_DIR$/target/debug" />
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/crategen_helper" />
+      <recent name="$PROJECT_DIR$/precompile_codegen" />
+      <recent name="$PROJECT_DIR$/module_macro_shared/src/bean_parser" />
+      <recent name="$PROJECT_DIR$/module_macro_shared/src/module_parser" />
+      <recent name="$PROJECT_DIR$/module_macro_shared/src/item_parser" />
+      <recent name="$PROJECT_DIR$/module_macro_shared/src/module_macro_shared/item_parser" />
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
@@ -800,7 +796,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/set_enum_fields" />
     </ignored-roots>
-    <MESSAGE value="refactor factory" />
     <MESSAGE value="prototype factory" />
     <MESSAGE value="updated factories codegen to add features to dependencies." />
     <MESSAGE value="updated factories codegen to add features to dependencies and add interfaces for to extend." />
@@ -825,7 +820,8 @@
     <MESSAGE value="Todo!" />
     <MESSAGE value="Add prototype beans" />
     <MESSAGE value="Added multiple codegen crates for multiple stages of codegen." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added multiple codegen crates for multiple stages of codegen." />
+    <MESSAGE value="updated precompile" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated precompile" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

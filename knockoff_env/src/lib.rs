@@ -9,6 +9,13 @@ macro_rules! project_directory {
     };
 }
 
+#[macro_export]
+macro_rules! build_dir {
+    () => {
+        concat!(env!("PROJECT_BASE_DIRECTORY", "Please set project base directory."), "/target")
+    };
+}
+
 
 pub fn get_project_base_build_dir() -> String {
    project_directory!().to_string()

@@ -1,5 +1,5 @@
 [package]
-name = "module_macro_shared"
+name = "module_precompile"
 version = "0.1.5"
 edition = "2021"
 
@@ -14,30 +14,26 @@ lazy_static = "1.4.0"
 serde = "1.0.137"
 base64 = "0.13.0"
 executors = "0.9.0"
-enum-fields = "0.1.0"
+toml = "0.7.3"
 paste = "1.0.12"
-
-[dependencies.collection_util]
-path = "../collection_util"
-version = "0.1.5"
-registry = "estuary"
-[dependencies.string_utils]
-path = "../string_utils"
-version = "0.1.5"
-registry = "estuary"
-[dependencies.set_enum_fields]
-path ="../set_enum_fields"
+rand = "0.8.5"
+[dependencies.module_macro_shared]
+path ="../module_macro_shared"
 version = "0.1.5"
 registry = "estuary"
 [dependencies.codegen_utils]
 path ="../codegen_utils"
 version = "0.1.5"
 registry = "estuary"
-[dependencies.module_macro_codegen]
-path ="../module_macro_codegen"
+[dependencies.knockoff_env]
+path ="../knockoff_env"
 version = "0.1.5"
 registry = "estuary"
 [dependencies.knockoff_logging]
 path ="../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_precompile_gen]
+path ="../target/knockoff_precompile_gen"
 version = "0.1.5"
 registry = "estuary"

@@ -25,12 +25,9 @@ use quote::{format_ident, IdentFragment, quote, quote_spanned, quote_token, Toke
 use syn::Data::Struct;
 use syn::token::{Bang, For, Token};
 use codegen_utils::syn_helper::SynHelper;
-use crate::FieldAugmenterImpl;
-use crate::module_macro_lib::bean_parser::BeanDependencyParser;
 use crate::module_macro_lib::context_builder::ContextBuilder;
-use crate::module_macro_lib::profile_tree::ProfileTreeBuilder;
 use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
-use crate::module_macro_lib::util::ParseUtil;
+use module_macro_shared::util::ParseUtil;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
 use module_macro_shared::functions::{FunctionType, ModulesFunctions};
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
@@ -50,6 +47,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use module_macro_shared::dependency::DepType;
+use module_macro_shared::ProfileTreeBuilder;
 use crate::logger_lazy;
 use crate::module_macro_lib::generics_provider::DelegatingGenericsProvider;
 import_logger!("parse_container.rs");
@@ -143,6 +141,4 @@ impl ParseContainerBuilder {
         }
         true
     }
-
-
 }

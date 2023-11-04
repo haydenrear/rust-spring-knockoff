@@ -3,23 +3,23 @@ use syn::{Attribute, Generics, ImplItem, ItemImpl};
 use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
-use crate::module_macro_lib::item_parser::{create_new_gens, GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
-use module_macro_shared::bean::{BeanDefinition, BeanPath};
-use module_macro_shared::parse_container::ParseContainer;
+use crate::item_parser::{create_new_gens, GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
+use crate::bean::{BeanDefinition, BeanPath};
+use crate::parse_container::ParseContainer;
 
 pub struct ItemImplParser;
 
-use module_macro_shared::dependency::DependencyDescriptor;
-use module_macro_shared::profile_tree::ProfileBuilder;
-use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
-use crate::module_macro_lib::util::ParseUtil;
+use crate::dependency::DependencyDescriptor;
+use crate::profile_tree::ProfileBuilder;
+use crate::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
+use crate::util::ParseUtil;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use proc_macro2::TokenStream;
 use codegen_utils::project_directory;
-use crate::logger_lazy;
+use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerItemUpdater, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_impl_parser.rs");
 
 
@@ -123,7 +123,19 @@ pub fn is_ignore_trait(item_impl: &ItemImpl) -> bool {
 }
 
 impl ItemParser<ItemImpl> for ItemImplParser {
-    fn parse_item(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl, mut path_depth: Vec<String>) {
+    fn parse_item<
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+    >(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl, mut path_depth: Vec<String>, module_parser: &mut ModuleParser<
+        ParseContainerItemUpdaterT,
+        ItemModifierT,
+        ParseContainerModifierT,
+        BuildParseContainerT,
+        ParseContainerFinalizerT
+    >) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
 
         log_message!("Doing create update impl for id: {}", id);

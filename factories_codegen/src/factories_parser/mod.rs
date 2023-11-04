@@ -9,11 +9,13 @@ use toml::{Table, Value};
 use proc_macro2::{Ident, Span};
 use syn::parse_str;
 use std::io::{Error, Read, Write};
+use std::marker::PhantomData;
 use crate::parse_container_modifier::ParseContainerModifierProvider;
 use crate::provider::{DelegatingProvider};
 use crate::parse_provider::ParseProvider;
 use crate::token_provider::TokenProvider;
 use executors::common::Executor;
+use crate::framework_token_provider::FrameworkTokenProvider;
 use serde::{Deserialize, Serialize};
 use toml::map::Map;
 use crate::item_modifier::ItemModifierProvider;
@@ -37,6 +39,22 @@ pub trait DelegatingFactoriesParser {
     fn tokens(&self) -> TokenStream;
 }
 
+#[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Serialize, Deserialize, Debug, Clone)]
+pub enum Phase {
+    #[serde(rename = "pre_compile")]
+    PreCompile,
+    #[serde(rename = "providers")]
+    Providers
+}
+
+impl Phase {
+    pub fn prefix(&self) -> &'static str {
+        match self {
+            Phase::PreCompile => "knockoff_precompile_gen",
+            Phase::Providers => "knockoff_providers_gen"
+        }
+    }
+}
 
 macro_rules! factories {
 
@@ -59,7 +77,13 @@ macro_rules! factories {
         #[derive(Serialize, Deserialize, Clone, Debug)]
         pub struct FactoryStages {
             pub stages: HashMap<String, Factories>,
-            pub gen_deps: Option<Value>
+            pub gen_deps: Option<Value>,
+        }
+
+        #[derive(Serialize, Deserialize, Clone, Debug)]
+        pub struct FactoryPhases {
+            pub phase_deps: Option<Value>,
+            pub phases: HashMap<Phase, FactoryStages>,
         }
 
 
@@ -78,22 +102,24 @@ macro_rules! factories {
                 out_map
             }
 
-            pub fn create_providers_for_stages(stages: Vec<String>, version: &String) -> TokenStream {
+            pub fn create_providers_for_stages(
+                stages: Vec<String>, version: &String, phase: &Phase
+            ) -> TokenStream {
                 let mut out: HashMap<String, Vec<Provider>> = HashMap::new();
                 let import_names = Self::create_import_names(&stages);
                     stages.iter().for_each(|stage| {
                         let stage_map = import_names.get(stage).unwrap();
                         $(
                             let mut table = Table::new();
-                            table.insert("path".to_string(), Value::String(format!("../knockoff_providers_gen{}", stage).to_string()));
+                            table.insert("path".to_string(), Value::String(format!("../{}{}", phase.prefix(), stage).to_string()));
                             table.insert("version".to_string(), Value::String(version.to_string().clone()));
                             table.insert("registry".to_string(), Value::String("estuary".to_string()));
                             let mut dep_data = Value::Table(table);
                             let import_name = format!("{}{}", $delegator_name_lit, stage);
                             let import_name = format!("{}{}", $delegator_name_lit, stage);
                             let use_statement = format!(
-                                "use knockoff_providers_gen{}::{} as {};",
-                                stage, $delegator_name_lit,
+                                "use {}{}::{} as {};",
+                                phase.prefix(), stage, $delegator_name_lit,
                                 import_name)
                             .to_string();
                             let provider = Provider {
@@ -119,13 +145,13 @@ macro_rules! factories {
             }
 
 
-            pub fn create_use_statements(stages: Vec<String>) -> Vec<String> {
+            pub fn create_use_statements(stages: Vec<String>, phase: &Phase) -> Vec<String> {
                 stages.iter().flat_map(|s| {
                     let mut use_statements = vec![];
                     $(
                         let import_name = format!("{}{}", $delegator_name_lit, s);
-                        use_statements.push(format!("use knockoff_providers_gen{}::{} as {}",
-                        s, $delegator_name_lit, import_name).to_string());
+                        use_statements.push(format!("use {}{}::{} as {}",
+                        phase.prefix(), s, $delegator_name_lit, import_name).to_string());
                     )*
                     use_statements
                 }).collect::<Vec<String>>()
@@ -235,6 +261,7 @@ macro_rules! providers {
 factories!(
     (ParseProvider, parse_provider, "parse_provider", "DelegatingParseProvider"),
     (TokenProvider, token_provider, "token_provider", "DelegatingTokenProvider"),
+    (FrameworkTokenProvider, framework_token_provider, "framework_token_provider", "DelegatingFrameworkTokenProvider"),
     (ParseContainerModifierProvider, parse_container_modifier, "parse_container_modifier", "DelegatingParseContainerModifierProvider"),
     (ProfileTreeModifierProvider, profile_tree_modifier_provider, "profile_tree_modifier_provider", "DelegatingProfileTreeModifierProvider"),
     (ProfileTreeFinalizerProvider, profile_tree_finalizer, "profile_tree_finalizer", "DelegatingProfileTreeFinalizerProvider"),
@@ -244,6 +271,7 @@ factories!(
 providers!(
     (ParseProvider, parse_provider, "parse_provider"),
     (TokenProvider, token_provider, "token_provider"),
+    (FrameworkTokenProvider, framework_token_provider, "framework_token_provider"),
     (ParseContainerModifierProvider, parse_container_modifier, "parse_container_modifier"),
     (ProfileTreeModifierProvider, profile_tree_modifier_provider, "profile_tree_modifier_provider"),
     (ProfileTreeFinalizerProvider, profile_tree_finalizer, "profile_tree_finalizer"),
@@ -289,13 +317,13 @@ pub struct ProviderData {
 
 impl FactoriesParser {
 
-    pub fn get_starting_toml_prelude(stage_id: &String, version: &String) -> String {
+    pub fn get_starting_toml_prelude(stage_id: &String, version: &String, phase: &Phase) -> String {
         let mut prelude =
             format!("[package]
-name = \"knockoff_providers_gen{}\"
+name = \"{}{}\"
 version = \"{}\"
 edition = \"2021\"
-", stage_id, &version);
+", phase.prefix(), stage_id, &version);
         prelude.to_string()
     }
 
@@ -340,16 +368,17 @@ edition = \"2021\"
     fn get_create_directories<'a>(
         factory_stages: &'a FactoryStages,
         base_dir: &'a String,
-        out_directory: &'a String
+        out_directory: &'a String,
+        phase: &'a Phase
     ) -> Vec<(String, String, String, &'a String, Option<&'a Factories>, &'a String)> {
 
         log_message!("{} is out", &out_directory);
-        let (out_lib_dir, cargo_toml, out_lib_rs) = Self::create_dirs(&out_directory, &String::default());
+        let (out_lib_dir, cargo_toml, out_lib_rs) = Self::create_dirs(&out_directory, &String::default(), phase);
         let mut out_dirs = vec![];
         out_dirs.push((out_lib_dir, cargo_toml, out_lib_rs, base_dir, None, base_dir));
 
         for (stage_id, factories) in factory_stages.stages.iter() {
-            let (out_lib_dir, cargo_toml, out_lib_rs) = Self::create_dirs(&out_directory, stage_id);
+            let (out_lib_dir, cargo_toml, out_lib_rs) = Self::create_dirs(&out_directory, stage_id, phase);
             out_dirs.push((out_lib_dir, cargo_toml, out_lib_rs, base_dir, Some(factories), stage_id));
         }
 
@@ -357,8 +386,8 @@ edition = \"2021\"
 
     }
 
-    fn create_dirs(out_directory: &String, stage_id: &String) -> (String, String, String) {
-        let (out_lib_dir, cargo_toml, out_lib_rs) = Self::get_lib_build_dirs(out_directory, stage_id);
+    fn create_dirs(out_directory: &String, stage_id: &String, phase: &Phase) -> (String, String, String) {
+        let (out_lib_dir, cargo_toml, out_lib_rs) = Self::get_lib_build_dirs(out_directory, stage_id, phase);
         let _ = fs::remove_dir_all(&out_lib_dir)
             .map_err(|err| {
                 Self::write_error_creating_out_lib(&out_lib_rs, &err);
@@ -372,33 +401,42 @@ edition = \"2021\"
         (out_lib_dir, cargo_toml, out_lib_rs)
     }
 
-    fn get_lib_build_dirs(out_directory: &String, stage_id: &String) -> (String, String, String) {
+    fn get_lib_build_dirs(out_directory: &String, stage_id: &String, phase: &Phase) -> (String, String, String) {
         let mut out_lib_dir = out_directory.clone();
-        out_lib_dir += format!("/knockoff_providers_gen{}/src", stage_id).as_str();
+        out_lib_dir += format!("/{}{}/src", phase.prefix(), stage_id).as_str();
         let mut cargo_toml = out_directory.clone();
-        cargo_toml += format!("/knockoff_providers_gen{}/Cargo.toml", stage_id).as_str();
+        cargo_toml += format!("/{}{}/Cargo.toml", phase.prefix(), stage_id).as_str();
         let mut out_lib_rs = out_directory.clone();
-        out_lib_rs += format!("/knockoff_providers_gen{}/src/lib.rs", stage_id).as_str();
+        out_lib_rs += format!("/{}{}/src/lib.rs", phase.prefix(), stage_id).as_str();
         (out_lib_dir, cargo_toml, out_lib_rs)
     }
 
-    pub fn write_knockoff_gens(version: &String, knockoff_factories: &String, base_dir: &String, out_directory: &String) -> Option<FactoryStages> {
-        info!("Writing knockoff gens");
-        Self::parse_factories_value(knockoff_factories)
-            .map(|f: FactoryStages| {
+    pub fn write_phase(
+        version: &String, knockoff_factories: &String,
+        base_dir: &String, out_directory: &String, phase: &Phase
+    ) -> Option<FactoryStages> {
+        info!("Writing {}.", phase.prefix());
+        Self::parse_factories_value::<FactoryPhases>(knockoff_factories)
+            .as_mut()
+            .map(|f| {
+                let f = f.phases.remove(phase)
+                    .or_else(|| {
+                        panic!("Phase was not contained in knockoff gens.");
+                    })
+                    .unwrap();
                 let stages = f.stages.keys().map(|s| s.as_str()).collect::<Vec<&str>>();
                 info!("Parsed factories value: {:?}.", &f);
-                let mut directories_created = Self::get_create_directories(&f, &base_dir, out_directory);
+                let mut directories_created = Self::get_create_directories(&f, &base_dir, out_directory, phase);
                 info!("Found {} directories to be created: {:?}.", directories_created.len(), directories_created);
                 if directories_created.len() > 1 {
                     for (out_lib_dir, cargo_toml, out_lib_rs, base_dir, factories, stage) in directories_created[1..].iter() {
-                        Self::write_cargo_toml(cargo_toml, base_dir, stage, version, factories.as_ref().unwrap(), &f);
+                        Self::write_cargo_toml(cargo_toml, base_dir, stage, version, factories.as_ref().unwrap(), &f, phase);
                     }
                 }
                 if directories_created.len() != 0 {
                     let (out_lib_dir, cargo_toml, out_lib_rs, base_dir, factories, stage)
                         = directories_created.remove(0);
-                    Self::write_delegating_cargo_toml(&cargo_toml, base_dir, version, stages, &f);
+                    Self::write_delegating_cargo_toml(&cargo_toml, base_dir, version, stages, &f, phase);
                 }
                 f
             })
@@ -409,7 +447,8 @@ edition = \"2021\"
         base_dir: &String,
         version: &String,
         stages: Vec<&str>,
-        factory_stages: &FactoryStages
+        factory_stages: &FactoryStages,
+        phase: &Phase
     ) {
 
         info!("Writing output directory: {:?} {:?}", &base_dir, cargo_file);
@@ -420,7 +459,7 @@ edition = \"2021\"
         }
         log_message!("Opening {}", &cargo_file);
         let mut cargo_file = File::create(path).unwrap();
-        let cargo_str = Self::get_delegating_cargo_toml(&base_dir, version, stages, factory_stages);
+        let cargo_str = Self::get_delegating_cargo_toml(&base_dir, version, stages, factory_stages, phase);
         cargo_file.write_all(cargo_str.as_bytes())
             .unwrap();
     }
@@ -431,7 +470,8 @@ edition = \"2021\"
         stage: &String,
         version: &String,
         factories: &Factories,
-        factories_parser: &FactoryStages
+        factories_parser: &FactoryStages,
+        phase: &Phase
     ) {
 
         info!("Writing output directory: {:?} {:?}", &base_dir, cargo_file);
@@ -442,32 +482,35 @@ edition = \"2021\"
         }
         log_message!("Opening {}", &cargo_file);
         let mut cargo_file = File::create(path).unwrap();
-        let cargo_str = Self::get_cargo_toml_string(&base_dir, factories,
-                                                    &stage, version, factories_parser);
+        let cargo_str = Self::get_cargo_toml_string(
+            &base_dir, factories,
+            &stage, version, factories_parser,
+            phase
+        );
         cargo_file.write_all(cargo_str.as_bytes())
             .unwrap();
     }
 
     pub(crate) fn get_delegating_cargo_toml(
         base_dir: &String, version: &String, stages: Vec<&str>,
-        factory_stages: &FactoryStages
+        factory_stages: &FactoryStages, phase: &Phase
     ) -> String {
         use std::fmt::Write;
         let mut cargo_file = "".to_string();
-        writeln!(&mut cargo_file, "{}", Self::get_starting_toml_prelude(&String::default(), version).as_str()).unwrap();
+        writeln!(&mut cargo_file, "{}", Self::get_starting_toml_prelude(&String::default(), version, phase).as_str()).unwrap();
         let mut deps_table = Table::new();
         stages.iter()
             .map(|mut dep| {
                 let mut next_dep =  Table::new();
-                next_dep.insert("name".to_string(), Value::String(format!("knockoff_providers_gen{}", dep)));
-                next_dep.insert("path".to_string(), Value::String(format!("../knockoff_providers_gen{}", dep)));
-                (format!("knockoff_providers_gen{}", dep.to_string()), Value::Table(next_dep))
+                next_dep.insert("name".to_string(), Value::String(format!("{}{}", phase.prefix(), dep)));
+                next_dep.insert("path".to_string(), Value::String(format!("../{}{}", phase.prefix(), dep)));
+                (format!("{}{}", phase.prefix(), dep.to_string()), Value::Table(next_dep))
             })
             .for_each(|(name, table)| {
                 deps_table.insert(name, table);
             });
 
-        let needs = Self::get_needs_factory_gen(factory_stages);
+        let needs = Self::get_needs_gen(factory_stages);
         let deps = factory_stages.gen_deps.as_ref();
 
         if needs.len() != 0 {
@@ -487,17 +530,20 @@ edition = \"2021\"
     }
 
 
-    pub(crate) fn get_cargo_toml_string(base_dir: &String, factories: &Factories,
-                                        stage_id: &String, version: &String,
-                                        factories_parser: &FactoryStages) -> String {
+    pub(crate) fn get_cargo_toml_string(
+        base_dir: &String, factories: &Factories,
+        stage_id: &String, version: &String,
+        factories_parser: &FactoryStages,
+        phase: &Phase
+    ) -> String {
 
         use std::fmt::Write;
         info!("Writing cargo toml for {:?}", factories);
         let (mut knockoff_providers_dep, parsed_factories)
             = FactoriesParser::get_deps_and_providers(factories);
         let mut cargo_file = "".to_string();
-        writeln!(&mut cargo_file, "{}", Self::get_starting_toml_prelude(stage_id, version).as_str()).unwrap();
-        info!("Found knockoff providers dep: {:?}", knockoff_providers_dep);
+        writeln!(&mut cargo_file, "{}", Self::get_starting_toml_prelude(stage_id, version, phase).as_str()).unwrap();
+        info!("Found deps: {:?} for phase {}.", knockoff_providers_dep, phase.prefix());
         if knockoff_providers_dep.as_ref().is_some() {
             let mut dep = knockoff_providers_dep.unwrap().clone();
             info!("Adding dependency refs for providers: {:?}", parsed_factories);
@@ -512,6 +558,7 @@ edition = \"2021\"
             info!("Found dep: {:?}", dep);
             let mut dep_table = Table::new();
             dep_table.insert("dependencies".to_string(), dep);
+            log_message!("Removing paths from {} Cargo.toml because not knockoff dev.", phase.prefix());
             Self::remove_paths_from_dependencies_table(&mut dep_table, base_dir);
             writeln!(&mut cargo_file, "{}", dep_table.to_string()).unwrap();
             writeln!(&mut cargo_file, "[workspace]")
@@ -523,7 +570,6 @@ edition = \"2021\"
     fn remove_paths_from_dependencies_table(mut out_table: &mut Map<String, Value>, base_dir: &String) {
         // if the module_macro_lib library is in the project directory, then keep the ../path in the
         // Cargo.toml.
-        log_message!("Removing paths from knockoff_providers_gen Cargo.toml because not knockoff dev.");
         out_table.get_mut("dependencies")
             .map(|out| out.as_table_mut()
                 .map(|t| {
@@ -551,34 +597,21 @@ edition = \"2021\"
     pub fn write_delegating_delegators(
         out_file: &mut File,
         factories_parser: &mut FactoryStages,
-        version: &String
+        version: &String,
+        phase: &Phase
     ) {
         let stages = Self::retrieve_stages(factories_parser);
-        // let use_statements = Factories::create_use_statements(stages.clone());
-        // let use_statements = use_statements.iter().collect::<HashSet<&String>>();
-        //
-        // for use_statement in use_statements.iter() {
-        //     let _ = write!(out_file, "{};", use_statement)
-        //         .map_err(|e| {
-        //             error!("Error writing knockoff providers gen: {:?}", e);
-        //         });
-        // }
-
-        let providers = Factories::create_providers_for_stages(stages.clone(), version);
+        let providers = Factories::create_providers_for_stages(stages.clone(), version, phase);
 
         info!("Created providers: {:?}", providers.to_string().as_str());
-
-        // for n in needs_factory_default.iter() {
-        //     let default_values = FactoriesParser::get_default_tokens_for(n);
-            let _ = write!(out_file, "{}", providers.to_string())
-                .map_err(|e| {
-                    error!("Error writing knockoff providers gen: {:?}", e);
-                });
-        // }
+        let _ = write!(out_file, "{}", providers.to_string())
+            .map_err(|e| {
+                error!("Error writing gen {}: {:?}", phase.prefix(), e);
+            });
 
     }
 
-    fn get_needs_factory_gen(factories_parser: &FactoryStages) -> Vec<&str> {
+    fn get_needs_gen(factories_parser: &FactoryStages) -> Vec<&str> {
         let existing = factories_parser.stages.values()
             .flat_map(|s| s.has_factories())
             .collect::<Vec<&'static str>>();
@@ -594,13 +627,18 @@ edition = \"2021\"
     }
 
 
-    pub fn write_tokens_lib_rs(mut factories_parser: FactoryStages, out_directory: &String, version: &String) {
+    pub fn write_tokens_lib_rs(
+        mut factories_parser: FactoryStages,
+        out_directory: &String,
+        version: &String,
+        phase: &Phase
+    ) {
 
-        let (_out_lib_dir, _cargo_toml, out_lib_rs) = Self::get_lib_build_dirs(&out_directory, &String::default());
+        let (_out_lib_dir, _cargo_toml, out_lib_rs) = Self::get_lib_build_dirs(&out_directory, &String::default(), phase);
 
         let _ = File::create(out_lib_rs)
             .as_mut()
-            .map(|f| Self::write_delegating_delegators(f, &mut factories_parser, version))
+            .map(|f| Self::write_delegating_delegators(f, &mut factories_parser, version, phase))
             .or_else(|e| {
                 error!("Error writing pub use {:?}", e);
                 Err(e)
@@ -609,7 +647,7 @@ edition = \"2021\"
 
         for (stage, factory) in factories_parser.stages.into_iter() {
             let (out_lib_dir, cargo_toml, out_lib_rs)
-                = Self::get_lib_build_dirs(&out_directory, &stage);
+                = Self::get_lib_build_dirs(&out_directory, &stage, phase);
             let lib_rs_file_path = Path::new(&out_lib_rs);
             if stage == String::default() {
                 continue;

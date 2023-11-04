@@ -5,30 +5,29 @@ use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::path::Path;
 use std::thread::available_parallelism;
-use paste::item;
 use quote::ToTokens;
 use syn::{Attribute, Fields, GenericParam, Generics, ImplGenerics, ImplItem, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, parse2, Type, TypeGenerics, TypeParam, TypeParamBound, WherePredicate};
 use codegen_utils::syn_helper::SynHelper;
 use item_impl_parser::ItemImplParser;
-use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
+use crate::module_macro_shared_codegen::FieldAugmenter;
 
-use module_macro_shared::module_tree::Trait;
-use module_macro_shared::parse_container::ParseContainer;
+use crate::module_tree::Trait;
+use crate::parse_container::ParseContainer;
 
-use module_macro_shared::bean::BeanDefinition;
-use module_macro_shared::dependency::DependencyDescriptor;
-use module_macro_shared::functions::ModulesFunctions;
-use module_macro_shared::profile_tree::ProfileBuilder;
-use crate::module_macro_lib::util::ParseUtil;
+use crate::bean::BeanDefinition;
+use crate::dependency::DependencyDescriptor;
+use crate::functions::ModulesFunctions;
+use crate::profile_tree::ProfileBuilder;
+use crate::util::ParseUtil;
 
+use paste::item;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use proc_macro2::{Ident, TokenStream};
 use quote::__private::ext::RepToTokensExt;
 use codegen_utils::project_directory;
-use crate::logger_lazy;
-use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
+use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerItemUpdater, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_parser.rs");
 
 
@@ -40,7 +39,19 @@ pub mod item_trait_parser;
 pub mod item_fn_parser;
 
 pub trait ItemParser<T: ToTokens> {
-    fn parse_item(parse_container: &mut ParseContainer, item: &mut T, path_depth: Vec<String>);
+    fn parse_item<
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+    >(parse_container: &mut ParseContainer, item: &mut T, path_depth: Vec<String>, module_parser: &mut ModuleParser<
+        ParseContainerItemUpdaterT,
+        ItemModifierT,
+        ParseContainerModifierT,
+        BuildParseContainerT,
+        ParseContainerFinalizerT
+    >);
     fn is_bean(attrs: &Vec<Attribute>) -> bool {
         ParseUtil::does_attr_exist(&attrs, &ParseUtil::get_qualifier_attr_names())
     }

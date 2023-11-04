@@ -63,6 +63,8 @@
       <sourceFolder url="file://$MODULE_DIR$/set_enum_fields/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/string_utils/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/authentication_codegen/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/module_precompile/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/module_precompile_codegen/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

@@ -42,6 +42,11 @@ pub fn auth_type_struct(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn processor(attr: TokenStream, input: TokenStream) -> TokenStream {
+    input.into()
+}
+
+#[proc_macro_attribute]
 pub fn auth_type_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     input.into()
 }

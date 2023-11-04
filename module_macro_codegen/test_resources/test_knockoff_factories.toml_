@@ -1,0 +1,77 @@
+[gen_deps]
+# Dependencies necessary to run the providers
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+
+[stages.one.dependencies]
+# Dependencies necessary to run the providers
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+
+[stages.one.dependencies.web_framework]
+path = "../../web_framework"
+name = "web_framework"
+version = "0.1.5"
+registry = "estuary"
+[stages.one.dependencies.web_framework_shared]
+path ="../../web_framework_shared"
+name = "web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+[stages.one.dependencies.module_macro_shared]
+path ="../../module_macro_shared"
+name = "module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+
+# Providers for web endpoints
+[stages.one.token_provider.values.handler_mapping.provider_data]
+provider_path = "handler_mapping::HandlerMappingBuilder"
+provider_ident = "HandlerMappingTokenProvider"
+[stages.one.token_provider.values.handler_mapping.dependency_data]
+path ="../../handler_mapping"
+version = "0.1.5"
+registry = "estuary"
+
+# Providers for authentication types
+[stages.one.parse_provider.values.security_parse_provider.provider_data]
+provider_path = "security_parse_provider::SecurityParseProvider"
+provider_ident = "SecurityParseProviderBuilder"
+[stages.one.parse_provider.values.security_parse_provider.dependency_data]
+path = "../../security_parse_provider"
+registry = "estuary"
+version = "0.1.5"
+
+# Providers for aspects
+[stages.one.item_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_item_modifier::AspectParser"
+provider_ident = "AspectParserBuilder"
+[stages.one.item_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"
+[stages.one.parse_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_parse_provider::ParsedAspects"
+provider_ident = "ParsedAspectsBuilder"
+[stages.one.parse_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"
+[stages.one.token_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_ts_generator::AspectGenerator"
+provider_ident = "AspectGeneratorBuilder"
+[stages.one.token_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"
+[stages.one.bean_ty_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::AspectInfo"
+provider_ident = "AspectInfoBuilder"
+[stages.one.bean_ty_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"

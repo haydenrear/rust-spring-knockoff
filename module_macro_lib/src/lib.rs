@@ -5,14 +5,11 @@ include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 
 pub mod module_macro_lib {
     pub mod parse_container;
-    pub mod module_parser;
     pub mod knockoff_context_builder;
     pub mod profile_tree;
-    pub mod util;
-    pub mod bean_parser;
+    pub mod parse_module;
     pub mod context_builder;
     pub mod knockoff_context;
-    pub mod item_parser;
     pub mod generics_provider;
     #[cfg(test)]
     pub mod test;

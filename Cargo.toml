@@ -31,10 +31,14 @@ members = [
     "rust_spring_knockoff",
     "string_utils",
     "set_enum_fields",
-    "authentication_codegen"
+    "authentication_codegen",
+    "module_precompile_codegen",
+    "module_precompile"
 #    "boot_application_builder"
 ]
 exclude = [
     "target/knockoff_providers_gen",
-    "target/knockoff_providers_genone"
+    "target/knockoff_providers_genone",
+    "target/knockoff_precompile_gen",
+    "authentication_gen"
 ]

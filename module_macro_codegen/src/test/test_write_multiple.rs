@@ -50,7 +50,7 @@ fn test_write() {
     info!("Found out directory: {:?}", out_directory);
     info!("Found base directory: {:?}", base_dir);
 
-    FactoriesParser::write_knockoff_gens(&knockoff_version, &knockoff_factories, &base_dir, &out_directory)
+    FactoriesParser::write_phase(&knockoff_version, &knockoff_factories, &base_dir, &out_directory)
         .map(|stages| FactoriesParser::write_tokens_lib_rs(stages, &out_directory, &knockoff_version));
 
     assert!(out_dir_path.join("knockoff_providers_genone").exists());

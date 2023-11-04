@@ -2,7 +2,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
-use syn::{Item, Type};
+use syn::{Item, ItemMod, Type};
 use quote::ToTokens;
 use crate::bean::BeanDefinition;
 use crate::functions::{FunctionType, ModulesFunctions};
@@ -11,7 +11,7 @@ use crate::profile_tree::{ProfileBuilder, ProfileTree};
 
 use knockoff_logging::*;
 use std::sync::Mutex;
-use crate::logger_lazy;
+use crate::{ItemModifier, logger_lazy, ProfileTreeFinalizer};
 import_logger!("parse_container.rs");
 
 
@@ -81,24 +81,45 @@ pub trait ParseContainerItemUpdater {
     fn parse_update(items: &mut Item, parse_container: &mut ParseContainer);
 }
 
+pub trait ParseContainerModifier {
+    fn do_modify(items: &mut ParseContainer);
+}
+
+pub trait BuildParseContainer {
+    fn build_parse_container(&self, parse_container: &mut ParseContainer);
+}
+
+
+
 /// After the
 /// 1. ParseContainerItemUpdater and the
 /// 2. ItemModifier run
 /// the final build is done, and
 /// so the
 /// 3. ParseContainerModifier is passed here to perform any finalizing changes.
-/// 4. ProfileTreeFinalizer and Delegator for that
-/// 5. TokenStreamGenerator and UserProvidedTokenStreamGenerator which calls the DelegatingTokenProvider
-/// built with the CLI.
-pub trait ParseContainerModifier {
-    fn do_modify(items: &mut ParseContainer);
-}
-
-/// After the ItemModifier and the ParseContainerItemUpdater run, the final build is done, and
-/// so the ParseContainer is passed here to perform any finalizing changes. This calls the
-/// ParseContainerItemUpdater to build the parse container. After build parse container is called,
-/// then the profile tree finalizer is called. Then after that, the token stream is generated
-/// so then finally BuildProfileTree is called. This is when the TokenStream will be created.
-pub trait BuildParseContainer {
-    fn build_parse_container(&self, parse_container: &mut ParseContainer);
+/// 4. BuildParseContainer is used to build the parse container to the profile tree
+/// 5. ProfileTreeFinalizer is used as a hook after the profile tree has been created
+///
+/// Then there is a final TokenStreamGenerator hook that is in the module_macro_lib and FrameworkTokenStreamGenerator
+/// that is in the pre_compile lib that are not contained here, because they are for different
+/// codegen phases.
+pub struct ModuleParser<
+    ParseContainerItemUpdaterT,
+    ItemModifierT,
+    ParseContainerModifierT,
+    BuildParseContainerT,
+    ParseContainerFinalizerT
+>
+    where
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+{
+    pub delegating_parse_container_updater: ParseContainerItemUpdaterT,
+    pub delegating_parse_container_modifier: ParseContainerModifierT,
+    pub delegating_parse_container_builder: BuildParseContainerT,
+    pub delegating_parse_container_item_modifier: ItemModifierT ,
+    pub delegating_parse_container_finalizer: ParseContainerFinalizerT
 }

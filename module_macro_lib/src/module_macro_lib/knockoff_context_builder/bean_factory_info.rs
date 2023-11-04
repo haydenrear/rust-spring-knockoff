@@ -11,12 +11,12 @@ use module_macro_shared::bean::{BeanDefinition, BeanType};
 use module_macro_shared::dependency::{DependencyDescriptor, DependencyMetadata, DepType};
 use module_macro_shared::functions::ModulesFunctions;
 use module_macro_shared::profile_tree::ProfileBuilder;
-use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use syn::ext::IdentExt;
 use codegen_utils::project_directory;
+use module_macro_shared::bean_dependency_path_parser::BeanDependencyPathParser;
 use crate::logger_lazy;
 import_logger!("bean_factory_info.rs");
 

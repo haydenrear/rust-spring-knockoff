@@ -24,6 +24,7 @@ pub mod profile_tree_modifier;
 pub mod profile_tree_finalizer;
 pub mod item_modifier;
 pub mod test;
+pub mod framework_token_provider;
 
 
 use knockoff_logging::*;

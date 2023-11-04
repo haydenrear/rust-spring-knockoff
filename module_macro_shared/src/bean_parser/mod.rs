@@ -6,16 +6,8 @@ use proc_macro2::Ident;
 use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Generics, Lifetime, ParenthesizedGenericArguments, PathArguments, PatType, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
-use bean_dependency_path_parser::BeanDependencyPathParser;
 use codegen_utils::syn_helper::SynHelper;
-use module_macro_shared::bean::{AbstractionLevel, BeanDefinition, BeanPath, BeanPathParts, BeanType};
-use module_macro_shared::dependency::{ AutowiredType, DependencyDescriptor, DependencyMetadata};
-use module_macro_shared::functions::{FunctionType, ModulesFunctions};
-use crate::module_macro_lib::item_parser::item_fn_parser::ItemFnParser;
-use module_macro_shared::parse_container::ParseContainer;
-use crate::module_macro_lib::util::ParseUtil;
 
-pub mod bean_dependency_path_parser;
 
 pub struct BeanDependencyParser;
 
@@ -23,8 +15,12 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
-use crate::logger_lazy;
+use crate::{AbstractionLevel, AutowiredType, BeanDefinition, BeanPath, BeanType, DependencyMetadata, logger_lazy, ModulesFunctions, ParseUtil};
+use crate::bean_dependency_path_parser::BeanDependencyPathParser;
+use crate::item_fn_parser::ItemFnParser;
 import_logger!("bean_parser.rs");
+
+pub mod bean_dependency_path_parser;
 
 /// Add the DepType to Bean after all Beans are added.
 impl BeanDependencyParser {

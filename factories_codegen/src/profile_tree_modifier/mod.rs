@@ -38,7 +38,7 @@ impl ProviderProvider for ProfileTreeModifierProvider {
                         let #provider_idents = #provider_type::new(profile_tree_items);
                     )*
                     Self {
-                        #(#provider_idents)*
+                        #(#provider_idents,)*
                     }
                 }
 

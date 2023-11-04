@@ -5,22 +5,22 @@ use std::ops::Deref;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::item_parser::{create_new_gens, GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
-use module_macro_shared::parse_container::ParseContainer;
+use crate::parse_container::ParseContainer;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use syn::ext::IdentExt;
 use codegen_utils::project_directory;
-use module_macro_shared::bean::{AbstractionLevel, BeanDefinition, BeanPath, BeanPathParts, BeanType};
-use crate::logger_lazy;
+use crate::bean::{AbstractionLevel, BeanDefinition, BeanPath, BeanPathParts, BeanType};
+use crate::{BuildParseContainer, GenericTy, get_all_generic_ty_bounds, ItemModifier, ItemParser, logger_lazy, ModuleParser, ParseContainerItemUpdater, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_fn_parser.rs");
 
-use module_macro_shared::bean::BeanPathParts::FnType;
-use module_macro_shared::functions::{FunctionType, ModulesFunctions};
-use crate::module_macro_lib::bean_parser::bean_dependency_path_parser::BeanDependencyPathParser;
-use crate::module_macro_lib::util::ParseUtil;
+use crate::bean::BeanPathParts::FnType;
+use crate::bean_dependency_path_parser::BeanDependencyPathParser;
+use crate::functions::{FunctionType, ModulesFunctions};
+use crate::item_parser::{create_new_gens, get_profiles};
+use crate::util::ParseUtil;
 
 pub struct ItemFnParser;
 
@@ -32,7 +32,19 @@ pub struct ItemFnParser;
 ///  -> BeanFactory created for concrete factory_fn and all abstract types as per normal
 ///  -> BeanFactory used to get factory_fn bean
 impl ItemParser<ItemFn> for ItemFnParser {
-    fn parse_item(parse_container: &mut ParseContainer, item_fn: &mut ItemFn, path_depth: Vec<String>) {
+    fn parse_item<
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+    >(parse_container: &mut ParseContainer, item_fn: &mut ItemFn, path_depth: Vec<String>, module_parser: &mut ModuleParser<
+        ParseContainerItemUpdaterT,
+        ItemModifierT,
+        ParseContainerModifierT,
+        BuildParseContainerT,
+        ParseContainerFinalizerT
+    >) {
         if !Self::is_bean(&item_fn.attrs) {
             return;
         }

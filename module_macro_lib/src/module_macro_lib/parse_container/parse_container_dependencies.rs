@@ -1,7 +1,6 @@
 use module_macro_shared::functions::FunctionType;
 use module_macro_shared::parse_container::BuildParseContainer;
 use module_macro_shared::parse_container::ParseContainer;
-use crate::module_macro_lib::bean_parser::BeanDependencyParser;
 
 use knockoff_providers_gen::DelegatingParseContainerModifierProvider;
 
@@ -15,6 +14,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::BeanDependencyParser;
 use crate::logger_lazy;
 import_logger!("parse_container_dependency.rs");
 

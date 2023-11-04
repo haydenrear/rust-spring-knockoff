@@ -9,15 +9,13 @@ use quote::__private::ext::RepToTokensExt;
 use quote::ToTokens;
 use syn::{AngleBracketedGenericArguments, Attribute, Constraint, Field, Fields, GenericArgument, Generics, ItemImpl, Lifetime, ParenthesizedGenericArguments, parse2, PathArguments, ReturnType, Type, TypeArray, TypeParamBound, TypePath};
 use codegen_utils::syn_helper::SynHelper;
-use module_macro_shared::bean::{BeanDefinition, BeanPath, BeanPathParts, BeanType, BeanPathHead};
 
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
-use module_macro_shared::generics::Gens::HeadGen;
-use crate::logger_lazy;
+use crate::{BeanPath, BeanPathHead, BeanPathParts, logger_lazy};
 import_logger!("bean_dependency_path.rs");
 
 pub struct BeanDependencyPathParser;
@@ -30,8 +28,8 @@ impl BeanDependencyPathParser {
         path.qself.as_ref()
             .map(|self_type|
                 BeanPath {
-                   path_segments: vec![BeanPathParts::QSelfType { inner_ty: self_type.ty.deref().clone(),
-                       ident: Self::get_first_path_segment(&path.path) }],
+                    path_segments: vec![BeanPathParts::QSelfType { inner_ty: self_type.ty.deref().clone(),
+                        ident: Self::get_first_path_segment(&path.path) }],
                     head: BeanPathHead {
                         gen_type_path: Some(path.path.clone()),
                         head_ident: path.path.get_ident().cloned(),
@@ -50,7 +48,7 @@ impl BeanDependencyPathParser {
             .unwrap()
     }
 
-    pub(crate) fn parse_path_to_bean_path(path: &syn::Path) -> BeanPath {
+    pub fn parse_path_to_bean_path(path: &syn::Path) -> BeanPath {
         BeanPath{
             path_segments: Self::parse_path(path),
             head: BeanPathHead {
@@ -61,7 +59,7 @@ impl BeanDependencyPathParser {
         }
     }
 
-    pub(crate) fn is_trait_abstract(item_impl: &Option<ItemImpl>, concrete_ident: &Option<Ident>) -> bool {
+    pub fn is_trait_abstract(item_impl: &Option<ItemImpl>, concrete_ident: &Option<Ident>) -> bool {
         let item_impl_exists = item_impl.as_ref().is_some();
         info!("Testing if trait is abstract.");
         if concrete_ident.as_ref().is_some() {

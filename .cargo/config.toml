@@ -2,6 +2,7 @@
 TEST_MODULE_MACRO_CODEGEN_WORKDIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_work"
 AUG_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/knockoff_test_aug.rs"
 KNOCKOFF_FACTORIES = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/knockoff_factories.toml"
+KNOCKOFF_PRECOMPILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_resources/knockoff_precompile.toml"
 TEST_MODULE_MACRO_CODEGEN_KNOCKOFF_FACTORIES = "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_resources/test_knockoff_factories.toml"
 LOGGING_DIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/log.log"
 KNOCKOFF_LOGGING_TEST_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log"

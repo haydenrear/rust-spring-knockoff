@@ -14,7 +14,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::{get_project_dir, project_directory};
-import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/module_macro_codegen_build_rs.log"));
+import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/o_codegen_build_rs.log"));
 
 /// The token stream providers need to depend on user provided crate, so that means we need to
 /// generate a crate that depends on those user provided crates. We will then delegate to the user
@@ -28,23 +28,21 @@ import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/module_mac
 ///     and then pub use ** will be used in the original knockoff_providers_gen. So then this replaces
 ///     module_macro_codegen.
 fn main() {
-     let knockoff_version = env::var("KNOCKOFF_VERSIONS").or::<String>(Ok("0.1.5".into())).unwrap();
+     let knockoff_version = env::var("KNOCKOFF_VERSIONS")
+         .or::<String>(Ok("0.1.5".into())).unwrap();
      let knockoff_factories = env::var("KNOCKOFF_FACTORIES")
          .ok()
          .or(Some(get_project_dir("codegen_resources/knockoff_factories.toml")))
          .unwrap();
+
      let base_dir = get_project_base_build_dir();
 
      let out_directory = get_build_project_dir("target");
 
      FactoriesParser::write_phase(&knockoff_version, &knockoff_factories, &base_dir,
-                                  &out_directory, &Phase::Providers)
-         .map(|f| {
-               info!("Wrote factory stages.");
-              f
-         })
+                                  &out_directory, &Phase::PreCompile)
          .map(|stages| FactoriesParser::write_tokens_lib_rs(
-              stages, &out_directory, &knockoff_version, &Phase::Providers));
+              stages, &out_directory, &knockoff_version, &Phase::PreCompile));
 
      let mut proj_dir = get_project_base_build_dir();
      let mut cargo_change = "cargo:rerun-if-changed=".to_string();

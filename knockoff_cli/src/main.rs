@@ -20,6 +20,11 @@ use toml::macros::{Deserialize, IntoDeserializer};
 use crate::args_parser::ArgsParser;
 
 pub mod args_parser;
+pub static MODULE_MACRO_CODEGEN_DEV: &'static str = "module_macro_codegen = { version = \"{}\", registry = \"estuary\", path = \"../../module_macro_codegen\" }";
+pub static MODULE_PRECOMPILE_CODEGEN_DEV: &'static str = "module_precompile_codegen = { version = \"{}\", registry = \"estuary\", path = \"../../module_precompile_codegen\" }";
+pub static MODULE_MACRO_CODEGEN: &'static str = "module_macro_codegen = { version = \"{}\", registry = \"estuary\" }";
+pub static MODULE_PRECOMPILE_CODEGEN: &'static str = "module_precompile_codegen = { version = \"{}\", registry = \"estuary\" }";
+
 
 /// Instruction:
 /// 1. generate crate that uses module_macro_codegen and compile it to generate the knockoff_providers_gen
@@ -33,7 +38,9 @@ pub mod args_parser;
 fn main() {
     let args = ArgsParser::parse_arg(env::args());
     let mode_arg = args.get("mode");
-    fs::create_dir_all(get_target_directory());
+    let _ = fs::create_dir_all(get_target_directory()).map_err(|e| {
+        println!("Found error when creating directories in knockoff cli: {:?}", e);
+    });
     compile_module_macro_codegen_gen_codegen(&args);
     if mode_arg.is_some() && mode_arg.unwrap() == "knockoff_dev" {
         compile_module_macro_lib_knockoff_dev(&args);
@@ -53,13 +60,24 @@ fn compile_module_macro(args: &HashMap<String, String>) {
     let registry = get_registry_source_id(args);
     download_update_providers_gen_dependent(
         &registry,
-        "module_macro"
+        "module_macro",
+        "knockoff_providers_gen",
+        args
     );
     download_update_providers_gen_dependent(
         &registry,
-        "module_macro_lib"
+        "module_macro_lib",
+        "knockoff_providers_gen",
+        args
+    );
+    download_update_providers_gen_dependent(
+        &registry,
+        "module_precompile",
+        "knockoff_precompile_gen",
+        args
     );
     compile_in_target("module_macro", args);
+    compile_in_target("module_precompile", args);
 }
 
 fn compile_module_macro_lib_knockoff_dev(args: &HashMap<String, String>) {
@@ -129,6 +147,7 @@ fn update_dependency_table(dep_name: &str, path: &str, cargo_str: &mut String) -
             }
             update_module_macro_data(t, "module_macro");
             update_module_macro_data(t, "module_macro_lib");
+            update_module_macro_data(t, "module_precompile");
         });
     cargo_table
 }
@@ -145,9 +164,11 @@ fn update_module_macro_data(t: &mut Table, macro_type: &str) {
     }
 }
 
-fn download_update_providers_gen_dependent(registry_id: &SourceId, module_macro_lib: &str) {
+fn download_update_providers_gen_dependent(registry_id: &SourceId, module_macro_lib: &str, provider: &str,
+                                           args: &HashMap<String, String>) {
     let config = Config::default().unwrap();
-    download_cargo_crate(module_macro_lib, "0.1.5", registry_id, config)
+    let version = get_version(args);
+    download_cargo_crate(module_macro_lib, &version, registry_id, config)
         .map(|pkg|
             copy_cargo_crate(
                 get_target_directory().join(module_macro_lib),
@@ -155,8 +176,8 @@ fn download_update_providers_gen_dependent(registry_id: &SourceId, module_macro_
         ));
     update_cargo_path(
         &get_target_directory().join(module_macro_lib).join("Cargo.toml"),
-        "knockoff_providers_gen",
-        "../knockoff_providers_gen"
+        provider,
+        format!("../{}", provider).as_str()
     );
 }
 
@@ -242,13 +263,20 @@ fn compile_from_proj_directory(manifest_path: &Path, args: &HashMap<String, Stri
 
 fn generate_knockoff_builder(args: &HashMap<String, String>) {
     // Create the directory structure for the new crate
+    let version = &get_version(args);
     let knockoff_builder_der = get_target_directory().join("knockoff_builder");
     let src_dir = knockoff_builder_der.join("src");
     let lib_file = src_dir.join("lib.rs");
     let module_macro_codegen_dependency = args.get("mode")
         .filter(|mode| mode.as_str() == "knockoff_dev")
-        .map(|_| "module_macro_codegen = { version = \"0.1.5\", registry = \"estuary\", path = \"../../module_macro_codegen\" }")
-        .or(Some("module_macro_codegen = {version = \"0.1.5\", registry = \"estuary\"}"))
+        .map(|_| format!("{}\n{}\n",
+                         MODULE_MACRO_CODEGEN_DEV.replace("{}", version),
+                         MODULE_PRECOMPILE_CODEGEN_DEV.replace("{}", version))
+        )
+        .or(Some(format!("{}\n{}\n",
+                         MODULE_MACRO_CODEGEN.replace("{}", version),
+                         MODULE_PRECOMPILE_CODEGEN.replace("{}", version)))
+        )
         .unwrap();
 
     fs::create_dir_all(&src_dir)
@@ -263,11 +291,18 @@ fn generate_knockoff_builder(args: &HashMap<String, String>) {
     let mut cargo_toml = File::create(knockoff_builder_der.join("Cargo.toml")).unwrap();
     cargo_toml.write_all(
         format!(
-            "[package]\nname = \"knockoff_builder\"\nversion = \"0.1.5\"\n\n[dependencies]\n{}\n[workspace]",
-            module_macro_codegen_dependency
+            "[package]\nname = \"knockoff_builder\"\nversion = \"{}\"\n\n[dependencies]\n{}\n[workspace]",
+            version, module_macro_codegen_dependency
         ).as_bytes()
     ).expect("Could not write codegen.");
 
+}
+
+fn get_version(args: &HashMap<String, String>) -> String {
+    let fallback_version = "0.1.5".to_string();
+    let version = args.get(&"version".to_string())
+        .or(Some(&fallback_version)).unwrap();
+    version.clone()
 }
 
 #[test]
@@ -293,7 +328,9 @@ fn test_download_lib() {
 fn test_download_module_macro_lib() {
     download_update_providers_gen_dependent(
         &SourceId::for_registry( &"http://localhost:1234/git/index".into_url().unwrap()).unwrap(),
-        "module_macro_lib"
+        "module_macro_lib",
+        "knockoff_providers_gen",
+        &HashMap::new()
     );
     assert!(get_project_path("target/module_macro_lib").is_dir());
 }

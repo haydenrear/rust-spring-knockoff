@@ -2,7 +2,7 @@ use syn::__private::{str, TokenStream, ToTokens};
 use syn::{Attribute, Ident, Pat, PatType, Type};
 use std::env;
 use std::fs::File;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::io::Read;
 use std::fmt::{Debug, DebugStruct};
 use std::ops::Deref;
@@ -58,6 +58,17 @@ impl SynHelper {
                 None
             }
         }
+    }
+
+    pub fn open_syn_file_from_str_path_name(file_to_open: &str) -> Option<syn::File> {
+        Self::open_syn_file_from_path(&Path::new(file_to_open).to_path_buf())
+    }
+
+    pub fn open_syn_file_from_path(file_to_open: &PathBuf) -> Option<syn::File> {
+        parse::open_file_from_path(file_to_open)
+            .map(|mut b| Self::parse_syn_file(&mut b))
+            .ok()
+            .flatten()
     }
 
     pub fn open_syn_file(base_env: &str, lib_file: &str) -> Option<syn::File> {

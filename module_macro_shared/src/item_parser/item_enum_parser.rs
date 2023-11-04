@@ -1,9 +1,6 @@
 use syn::{Fields, ItemEnum};
 use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::bean_parser::{BeanDependencyParser};
-use crate::module_macro_lib::item_parser::{get_profiles, ItemParser};
-use module_macro_shared::bean::BeanDefinition;
-use module_macro_shared::parse_container::ParseContainer;
+use crate::bean_parser::{BeanDependencyParser};
 use quote::ToTokens;
 
 pub struct ItemEnumParser;
@@ -12,13 +9,25 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
-use crate::logger_lazy;
-use crate::module_macro_lib::util::ParseUtil;
+use crate::{BeanDefinition, BuildParseContainer, ItemModifier, ItemParser, logger_lazy, ModuleParser, ParseContainer, ParseContainerItemUpdater, ParseContainerModifier, ParseUtil, ProfileTreeFinalizer};
+use crate::item_parser::get_profiles;
 import_logger!("item_enum_parser.rs");
 
 //TODO: the fields here may screw things up. Enum is not ready to be autowired...
 impl ItemParser<ItemEnum> for ItemEnumParser {
-    fn parse_item(parse_container: &mut ParseContainer, enum_to_add: &mut ItemEnum, path_depth: Vec<String>) {
+    fn parse_item<
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+    >(parse_container: &mut ParseContainer, enum_to_add: &mut ItemEnum, path_depth: Vec<String>, module_parser: &mut ModuleParser<
+        ParseContainerItemUpdaterT,
+        ItemModifierT,
+        ParseContainerModifierT,
+        BuildParseContainerT,
+        ParseContainerFinalizerT
+    >) {
         info!("Parsing enum.");
         log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
         &mut parse_container.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())
