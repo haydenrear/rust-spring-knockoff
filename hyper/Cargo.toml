@@ -27,3 +27,11 @@ path ="../web_framework"
 version = "0.1.5"
 registry = "estuary"
 path ="../web_framework_shared"
+[dependencies.knockoff_logging]
+version = "0.1.5"
+registry = "estuary"
+path ="../knockoff_logging"
+[dependencies.codegen_utils]
+version = "0.1.5"
+registry = "estuary"
+path ="../codegen_utils"

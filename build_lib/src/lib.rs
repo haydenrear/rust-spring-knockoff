@@ -14,7 +14,7 @@ use std::ptr::write;
 use quote::__private::TokenStream;
 use quote::quote;
 use syn::__private::{Span, ToTokens};
-use syn::{braced, Fields, Ident, Item, ItemImpl, ItemMod, ItemStruct, parse_macro_input, Token, token, Visibility, VisPublic};
+use syn::{Attribute, braced, Fields, Ident, Item, ItemImpl, ItemMod, ItemStruct, parse_macro_input, Token, token, Visibility, VisPublic};
 use syn::__private::quote::__private::push_div_eq_spanned;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
@@ -48,7 +48,8 @@ pub struct Module {
     pub mod_items: Vec<Item>,
     pub is_head: bool,
     pub identifier: Option<Ident>,
-    pub mod_item: Option<ItemMod>
+    pub mod_item: Option<ItemMod>,
+    pub attrs: Vec<Attribute>
 }
 
 impl Module {
@@ -136,6 +137,7 @@ impl Module {
             identifier: id,
             is_head: if Self::is_main_or_lib(module_file_name) { true } else { false },
             mod_item: None,
+            attrs: vec![],
         };
 
         if Self::is_main_or_lib(module_file_name) && module.modules.len() > 1 {
@@ -233,6 +235,7 @@ impl Module {
                     mod_items: module_items,
                     is_head: false,
                     mod_item: Some(item_mod.clone()),
+                    attrs: item_mod.attrs.clone(),
                 })
             });
 
@@ -340,7 +343,7 @@ impl Module {
             if prev_mod.identifier.is_none() && self.identifier.is_none() {
                 log_message!("was none when parsing {}", self.identifier.clone().unwrap());
                 continue;
-            } else if (prev_mod.identifier.is_none() && self.identifier.is_none()) {
+            } else if prev_mod.identifier.is_none() && self.identifier.is_none() {
                 log_message!("Warning: both identifiers are none!");
                 continue;
             }
@@ -368,15 +371,31 @@ impl Module {
                 }
             }
         } else {
-            let mut new_mod = ItemMod {
-                attrs: vec![],
-                vis: Visibility::Public(VisPublic{ pub_token: Default::default() }),
-                mod_token: Default::default(),
-                ident,
-                content: Some((Brace::default(), vec![item])),
-                semi: None,
-            };
-            self.mod_items.push(Item::Mod(new_mod));
+            let mut attrs;
+            if let Item::Mod(ref next_module) = item {
+                error!("Found next module: {:?}.", SynHelper::get_str(&next_module));
+                attrs = next_module.attrs.clone();
+                let mut new_mod = ItemMod {
+                    attrs,
+                    vis: Visibility::Public(VisPublic{ pub_token: Default::default() }),
+                    mod_token: Default::default(),
+                    ident,
+                    content: Some((Brace::default(), vec![item])),
+                    semi: None,
+                };
+                self.mod_items.push(Item::Mod(new_mod));
+            }  else {
+                error!("Found item: {:?} was not a module.", SynHelper::get_str(&item));
+                let mut new_mod = ItemMod {
+                    attrs: vec![],
+                    vis: Visibility::Public(VisPublic{ pub_token: Default::default() }),
+                    mod_token: Default::default(),
+                    ident,
+                    content: Some((Brace::default(), vec![item])),
+                    semi: None,
+                };
+                self.mod_items.push(Item::Mod(new_mod));
+            }
         }
     }
 

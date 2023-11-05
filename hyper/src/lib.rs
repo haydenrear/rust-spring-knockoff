@@ -3,8 +3,10 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, Pointer};
 use std::future::Future;
 use std::io::Read;
+use std::marker::PhantomData;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::ops::Deref;
+use std::sync::Arc;
 use async_std::io::WriteExt;
 use chrono::format::Item;
 use circular::Buffer;
@@ -22,33 +24,49 @@ use web_framework::web_framework::context::{Context, UserRequestContext};
 use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::http::{
     ProtocolToAdaptFrom, RequestConversionError,
-    RequestConverter, RequestExecutorImpl,
-    RequestStream, ResponseType
+    RequestConverter, RequestStream, ResponseType
 };
 use web_framework::web_framework::request_context::SessionContext;
+use web_framework_shared::{HandlerExecutor, RequestExecutor};
 use web_framework_shared::http_method::HttpMethod;
 use web_framework_shared::request::{WebRequest, WebResponse};
 
-pub struct HyperRequestStream<Request, Response>
-    where
-        Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/hyper_request.log"));
 
+pub struct HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
+where
+    ResponseT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+    RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+    RequestExecutorT: RequestExecutor<RequestT, ResponseT> + Send + Sync,
+    RequestConverterT: RequestConverter<Request<Body>, RequestT, HyperBodyConvertError> + 'static + Send + Sync
 {
-    pub request_executor: RequestExecutorImpl<Request, Response>,
-    pub converter: HyperRequestConverter,
+    pub request_executor: Arc<RequestExecutorT>,
+    pub converter: Arc<RequestConverterT>,
+    pub response: PhantomData<ResponseT>,
+    pub request: PhantomData<RequestT>
 }
 
-impl <Request, Response> HyperRequestStream<Request, Response>
+impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT> HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
 where
-    Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+    ResponseT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+    RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+    RequestExecutorT: RequestExecutor<RequestT, ResponseT> + Send + Sync + 'static,
+    RequestConverterT: RequestConverter<Request<Body>, RequestT, HyperBodyConvertError> + 'static + Send + Sync
 
 {
-    pub fn new(request_executor: RequestExecutorImpl<Request, Response>) -> Self {
+    pub fn new(
+        request_executor: RequestExecutorT,
+        converter: RequestConverterT
+    ) -> Self {
         HyperRequestStream {
-            request_executor,
-            converter: HyperRequestConverter::new()
+            request_executor: request_executor.into(),
+            converter: converter.into(),
+            response: Default::default(),
+            request: Default::default(),
         }
     }
 }
@@ -57,10 +75,35 @@ pub struct Addr<'a> {
     addr: &'a AddrStream
 }
 
-impl <HRequest, HResponse> HyperRequestStream<HRequest, HResponse>
+#[derive(Default, Clone, Serialize, Deserialize, Debug)]
+pub struct HyperRequestStreamError {
+    message: String
+}
+
+impl Display for HyperRequestStreamError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        <HyperRequestStreamError as Debug>::fmt(self, f)
+    }
+}
+
+
+
+impl HyperRequestStreamError {
+    pub fn new(message: &str) -> Self {
+        Self {message: message.to_string()}
+    }
+}
+
+impl StdError for HyperRequestStreamError {
+}
+
+impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT>
+HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
     where
-        HResponse: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        HRequest: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+        ResponseT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+        RequestExecutorT: RequestExecutor<RequestT, ResponseT> + Send + Sync + 'static,
+        RequestConverterT: RequestConverter<Request<Body>, RequestT, HyperBodyConvertError> + 'static + Send + Sync
 {
 
     pub async fn do_run(&mut self) {
@@ -70,21 +113,29 @@ impl <HRequest, HResponse> HyperRequestStream<HRequest, HResponse>
             let converter = self.converter.clone();
             let request_executor = self.request_executor.clone();
             async move  {
-                Ok::<_, Error>(service_fn(move |rqst| {
-                    let converter_cloned = converter.clone();
-                    let request_exec_cloned = request_executor.clone();
+                Ok::<_, Error>(service_fn(move |requested| {
+                    let converter = converter.clone();
+                    let request_executor = request_executor.clone();
                     async move {
-                        converter_cloned.from(rqst).await
-                            .map(|converted| {
-                                // TODO: use generated dispatcher
-                                // let web_response = request_exec_cloned.do_request(
-                                //     converted,
-                                //     &mut UserRequestContext { request_context: RequestContext { http_session: Default::default() }, request: None }
-                                // );
-                                // Response::new(Body::from(web_response.response))
-                                Response::new(Body::from("hello".to_string()))
+                        converter.from(requested).await
+                            .map_err(|e| {
+                                error!("Error in service function converting from request: {:?}", e);
+                                e
                             })
-                            .or(Err(HyperBodyConvertError { error: "failure" }))
+                            .ok()
+                            .map(|mut converted| {
+                                let web_response = request_executor.do_request(
+                                    converted
+                                );
+                                serde_json::to_string::<ResponseT>(&web_response)
+                                    .map(|res| Response::new(Body::from(res)))
+                                    .map_err(|e| {
+                                        error!("Error in service function converting response to json: {:?}", e);
+                                        HyperRequestStreamError::new("Failed.")
+                                    })
+                            })
+                            .or(Some(Err(HyperRequestStreamError::new("Failed."))))
+                            .unwrap()
                     }
                 }))
             }
@@ -125,6 +176,14 @@ pub struct HyperBodyConvertError {
     error: &'static str
 }
 
+impl HyperBodyConvertError {
+    pub fn new(error: &'static str) -> Self{
+        Self {
+            error
+        }
+    }
+}
+
 impl StdError for HyperBodyConvertError {}
 
 impl RequestConversionError for HyperBodyConvertError {
@@ -143,9 +202,7 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
         let from_headers = in_value.headers().clone();
         let http_body = in_value.into_body();
         hyper::body::to_bytes(http_body).await
-            .map(|b| {
-                String::from_utf8(b.to_vec())
-            })
+            .map(|b| String::from_utf8(b.to_vec()))
             .map(|v| {
                 v.map_or_else(|_| WebRequest::default(), |s| {
                     let mut headers = HashMap::new();
@@ -156,7 +213,7 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
                             });
                     }
                     WebRequest {
-                        headers: headers,
+                        headers,
                         body: s,
                         metadata: Default::default(),
                         method: HttpMethod::Post,
@@ -164,7 +221,7 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
                     }
                 })
             })
-            .or(Err(HyperBodyConvertError{error: "Could not convert from Hyper request"}))
+            .or(Err(HyperBodyConvertError::new("Could not convert from Hyper request")))
     }
 }
 

@@ -62,7 +62,7 @@ impl <T: Data + ?Sized, Ctx: ContextData + ?Sized> HandlerExecutionChain<T, Ctx>
 
 pub trait RequestExecutor<WebRequest, WebResponse>: Send + Sync
     where
-        WebRequest: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
+        // WebRequest: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         WebResponse: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
     fn do_request(&self, response_writer_type: WebRequest) -> WebResponse;
