@@ -24,6 +24,10 @@ strings=(
   "web_framework_shared"
   "string_utils"
   "set_enum_fields"
+  "configuration_properties"
+  "configuration_properties_macro"
+  "module_precompile"
+  "module_precompile_codegen"
 )
 for i in "${strings[@]}"; do
   cargo publish --registry=estuary --allow-dirty --no-verify -p $i

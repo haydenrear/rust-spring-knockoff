@@ -6,7 +6,7 @@ use syn::Item;
 use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::{BuildParseContainer, ItemModifier, ModuleParser, parse_module_into_container, ParseContainer, ProfileTree, ProfileTreeBuilder, ProfileTreeModifier, ProfileTreeTokenProvider};
 use toml;
-use codegen_utils::parse::read_file_to_str;
+use codegen_utils::parse::read_path_to_str;
 use knockoff_env::get_project_dir;
 
 
@@ -147,7 +147,7 @@ fn knockoff_factories() -> String {
 }
 
 fn precompiled_metadata(knockoff_factories: String, precompile_factory: &str) -> Option<PrecompileMetadata>{
-    read_file_to_str(&Path::new(&knockoff_factories).to_path_buf())
+    read_path_to_str(&Path::new(&knockoff_factories).to_path_buf())
         .map_err(|e| {
             error!("Error reading file {:?}", e);
             e

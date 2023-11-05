@@ -33,7 +33,9 @@ members = [
     "set_enum_fields",
     "authentication_codegen",
     "module_precompile_codegen",
-    "module_precompile"
+    "module_precompile",
+    "configuration_properties",
+    "configuration_properties_macro"
 #    "boot_application_builder"
 ]
 exclude = [
