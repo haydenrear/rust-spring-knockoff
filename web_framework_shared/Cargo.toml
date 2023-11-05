@@ -15,8 +15,13 @@ derive-syn-parse = "0.1.5"
 circular = "0.3.0"
 http = "0.2.9"
 http-serde = "1.1.3"
+lazy_static = "1.4.0"
 
 [dependencies.codegen_utils]
 path ="../codegen_utils"
+registry = "estuary"
+version = "0.1.5"
+[dependencies.knockoff_logging]
+path = "../knockoff_logging"
 registry = "estuary"
 version = "0.1.5"

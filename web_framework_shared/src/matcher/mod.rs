@@ -5,6 +5,13 @@ use syn::__private::quote::quote;
 use syn::__private::ToTokens;
 use crate::request::WebRequest;
 
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+use crate::logger_lazy;
+import_logger!("matcher.rs");
+
 #[cfg(test)]
 pub mod test;
 
@@ -21,13 +28,19 @@ pub trait RequestMatcher: for<'a> Matcher<&'a WebRequest> {
 #[derive(Clone, Default, Debug)]
 pub struct AntStringRequestMatcher {
     pub to_match: String,
-    pub splitter: String
+    pub splitter: String,
+    /// if path like /one/two/*, should /one/two count?
+    pub count_last_with_single_star: bool,
+    /// if path like /one/two/**, should /one/two count?
+    pub count_last_with_double_star: bool
 }
 
 impl AntStringRequestMatcher {
     pub fn new(to_match: String, splitter: String) -> Self {
         Self {
-            to_match: to_match.to_string(), splitter
+            to_match: to_match.to_string(), splitter,
+            count_last_with_single_star: false,
+            count_last_with_double_star: true,
         }
     }
 
@@ -49,22 +62,47 @@ impl AntStringRequestMatcher {
         }
         false
     }
+
+    fn is_last_star(&self, split_self_match: Vec<&str>, split_self_has_one_added: bool) -> bool {
+        let is_last_single_star = split_self_has_one_added && *split_self_match.last().unwrap() == "**" && self.count_last_with_double_star;
+        let is_last_double_star = split_self_has_one_added && *split_self_match.last().unwrap() == "*" && self.count_last_with_single_star;
+        is_last_single_star || is_last_double_star
+    }
 }
 
 impl Matcher<&str> for AntStringRequestMatcher {
     fn matches(&self, to_match: &str) -> bool {
+
         let split_self_match = self.split_for_match(&self.to_match);
         let split_match = self.split_for_match(to_match);
+
         for i in 0..split_match.len() {
-            if split_self_match.len() < i + 1 {
+
+            if i > split_self_match.len() {
                 return false;
             }
+
             let self_to_match = split_self_match.get(i);
+
+            match self_to_match {
+                Some(&"**") => {
+                    return true
+                }
+                Some(&"*") => {
+                    if i == split_match.len() - 1 {
+                        return split_self_match.len() == split_match.len();
+                    }
+                    continue;
+                }
+                _ => {}
+            }
+
             let matched = self_to_match.or(Some(&""))
                 .unwrap()
                 .split("|")
                 .filter(|s| s.len() != 0)
                 .collect::<Vec<&str>>();
+
             if matched.len() > 1 {
                 if Self::do_match(&split_match, i, matched) {
                     continue;
@@ -72,25 +110,30 @@ impl Matcher<&str> for AntStringRequestMatcher {
             } else {
                 if self_to_match == split_match.get(i) {
                     continue;
-                }
-            }
-            return match self_to_match {
-                Some(&"**") => {
-                    true
-                }
-                Some(&"*") => {
-                    if split_match.len() - i > 1 {
-                        continue;
-                    }
-                    true
-                }
-                _ => {
-                    false
+                } else {
+                    return false;
                 }
             }
         }
-        true
+
+        if split_self_match.len() > split_match.len() {
+            let split_self_has_one_added = split_self_match.len() - split_match.len() == 1;
+            if self.is_last_star(split_self_match, split_self_has_one_added) {
+                true
+            } else {
+               false
+            }
+        } else {
+            if split_self_match.len() == split_match.len() {
+                split_self_match.last() == split_match.last()
+            } else {
+                false
+            }
+        }
+
+
     }
+
 }
 
 impl StringMatcher<'_> for AntStringRequestMatcher {

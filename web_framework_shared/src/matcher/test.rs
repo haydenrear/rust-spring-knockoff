@@ -1,4 +1,6 @@
 use std::collections::LinkedList;
+use std::str::FromStr;
+use http::Uri;
 use crate::matcher::{AntPathRequestMatcher, AntStringRequestMatcher, Matcher};
 use crate::request::WebRequest;
 
@@ -20,16 +22,25 @@ fn test_ant_path_request_matcher() {
 
     assert!(request_matcher.matches(&test_web_request("/v1/test_one/okay/two/three".to_string())));
     assert!(request_matcher.matches(&test_web_request("/v1/test_one".to_string())));
-    assert!(request_matcher.matches(&test_web_request("/v1/test_two".to_string())));
+    assert!(!request_matcher.matches(&test_web_request("/v1/test_two".to_string())));
     assert!(request_matcher.matches(&test_web_request("/v1/test_two/okay".to_string())));
     assert!(request_matcher.matches(&test_web_request("/v1/test_two/two".to_string())));
     assert!(request_matcher.matches(&test_web_request("/v1/test_one_hundred/one/two/three_four".to_string())));
     assert!(request_matcher.matches(&test_web_request("/v1/test_four_hundred/one/two/three_four".to_string())));
     assert!(request_matcher.matches(&test_web_request("/v1/test_four_hundred/one/two".to_string())));
 
-    assert_ne!(request_matcher.matches(&test_web_request("/v1/test_two/okay/two/three".to_string())), true);
-    assert_ne!(request_matcher.matches(&test_web_request("/v1/test_three/okay/two/three".to_string())), true);
+    assert!(!request_matcher.matches(&test_web_request("/v1/test_two/okay/two/three".to_string())));
+    assert!(!request_matcher.matches(&test_web_request("/v1/test_three/okay/two/three".to_string())));
 
+}
+
+#[test]
+fn test_ant_path_matcher() {
+    let second = create_request_matcher("/v1/test_one/*/one".to_string(), "/".to_string());
+    assert!(second.matches("/v1/test_one/two/one"));
+    assert!(second.matches("/v1/test_one/three/one"));
+    assert!(!second.matches("/v1/test_one/three/two"));
+    assert!(!second.matches("/v1/test_one/two"));
 }
 
 #[test]
@@ -48,7 +59,9 @@ fn create_request_matchers(request_matchers: Vec<AntStringRequestMatcher>) -> An
 
 pub fn test_web_request(to_match: String) -> WebRequest {
     let mut wr = WebRequest::default();
-    wr.uri.host = to_match;
+    let x = to_match.as_str();
+    let string = format!("https://test{}", x);
+    wr.uri = Uri::from_str(&string).unwrap();
     wr
 }
 

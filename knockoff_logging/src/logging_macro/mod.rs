@@ -1,4 +1,5 @@
 use std::sync::{MutexGuard, PoisonError};
+use crate::LogLevel;
 use crate::standard_formatter::StandardLogData;
 use crate::text_file_logging::TextFileLoggerImpl;
 
@@ -167,6 +168,15 @@ macro_rules! info {
         let message = format!($($arg)*);
         StandardLoggingFacade::get_logger()
             .lock().as_mut().map(|l| l.log(LogLevel::Info, message, StandardLoggingFacade::package().to_string()))
+    };
+}
+
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => {
+        let message = format!($($arg)*);
+        StandardLoggingFacade::get_logger()
+            .lock().as_mut().map(|l| l.log(LogLevel::Debug, message, StandardLoggingFacade::package().to_string()))
     };
 }
 

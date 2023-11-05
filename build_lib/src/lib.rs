@@ -491,6 +491,7 @@ impl Module {
     }
 
     fn walk_find_mod_file(base_dir: &str, module_name: &str, parent_buf: &PathBuf) -> Option<(PathBuf, Result<File, std::io::Error>)> {
+        info!("Searching for {} with base {}", module_name, base_dir);
         let dirs_with_name = DirectoryWalker::walk_find_mod(module_name, base_dir);
 
         if dirs_with_name.len() == 1 {

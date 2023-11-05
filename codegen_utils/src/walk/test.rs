@@ -4,6 +4,7 @@ use crate::walk::DirectoryWalker;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use radix_trie::TrieCommon;
 use crate::logger_lazy;
 import_logger!("walk.rs");
 
@@ -15,13 +16,11 @@ fn test_directory_walker() {
     let mut string1 = get_build_project_dir("");
     let item = DirectoryWalker::walk_directories_matching(
         &|w| DirectoryWalker::file_name_matches(
-            w, &|p| p.ends_with(".rs")),
+            w, &|p| true),
         &|w| true,
         string1.as_str()
     );
-    item.iter().for_each(|p| {
-        println!("{:?}", p);
-    })
+    info!("Walked and found {} values in trie", item.len());
 }
 
 #[test]
@@ -33,11 +32,16 @@ fn walk_find_mod() {
         "test_library_five",
         b
     );
+    assert_eq!(found.len(), 1);
     let found = DirectoryWalker::walk_find_mod(
         "test_library_three",
         b
     );
     assert_eq!(found.len(), 1);
+    let found = DirectoryWalker::walk_find_mod(
+        "test_library_seven",
+        b
+    );
     assert_eq!(found.len(), 1);
 }
 
