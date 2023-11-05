@@ -3,7 +3,7 @@ use web_framework_shared::authority::GrantedAuthority;
 use web_framework_shared::dispatch_server::Handler;
 use web_framework_shared::request::{EndpointMetadata, WebRequest, WebResponse};
 use crate::web_framework::context::{Context, RequestContextData, UserRequestContext};
-use crate::web_framework::convert::{Converters, RequestExtractor};
+use crate::web_framework::convert::{Converters, RequestTypeExtractor};
 use crate::web_framework::request_context::SessionContext;
 use crate::web_framework::security::security_filter::UsernamePasswordAuthenticationFilter;
 
@@ -16,7 +16,8 @@ pub struct MessageType<T: Serialize>
 
 pub struct MessageConverterFilter;
 
-impl <Request, Response> Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>> for MessageConverterFilter
+impl <Request, Response> Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>>
+for MessageConverterFilter
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,

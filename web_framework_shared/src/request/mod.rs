@@ -8,24 +8,28 @@ use async_std::io::ReadExt;
 use crate::http_method::HttpMethod;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use circular::Buffer;
+use http::{Method, Uri};
 
-//TODO: turn into uri components builder
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct EndpointMetadata {
-    pub path_variables: HashMap<String, String>,
+    pub path_variables: HashMap<usize, String>,
     pub query_params: HashMap<String, String>,
-    pub http_method: HttpMethod,
-    pub base_uri: String
+    pub host: String
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct WebRequest {
     pub headers: HashMap<String, String>,
     pub body: String,
-    pub metadata: EndpointMetadata,
-    pub method: HttpMethod,
-    pub uri: String
+    #[serde(with = "http_serde::uri")]
+    pub uri: Uri,
+    #[serde(with = "http_serde::method")]
+    pub method: Method,
+    /// Having this in multiple places allows for the extraction by the http framework, and then
+    /// the extraction provided by user.
+    pub endpoint_metadata: Option<EndpointMetadata>
 }
+
 
 pub trait AuthorizationObject: Send + Sync + Default + Clone {
 }

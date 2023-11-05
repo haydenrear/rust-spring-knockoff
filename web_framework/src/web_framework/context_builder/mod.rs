@@ -7,13 +7,10 @@ use authentication_gen::{AuthenticationTypeConverter, AuthenticationTypeConverte
 use web_framework_shared::convert::Converter;
 use crate::web_framework::context::{Context, RequestHelpers};
 use web_framework_shared::request::{EndpointMetadata, WebRequest};
-use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, DefaultMessageConverter, EndpointRequestExtractor, MessageConverter, Registration, RequestExtractor};
+use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, DefaultMessageConverter, EndpointRequestExtractor, MessageConverter, Registration, RequestTypeExtractor};
 use crate::web_framework::filter::filter::{FilterChain, Filter};
 use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationProvider, AuthenticationToken, DelegatingAuthenticationManager};
 
-/// TODO: This should be ControllerEndpointBuilder, and the user should provide
-///  a module annotated with controller or rest_controller to build each one.
-///  -- then, the application context will be built with all of them.
 impl<Request, Response> ApplicationContextBuilder<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -75,7 +72,7 @@ pub struct ConverterRegistryBuilder<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
     pub converters: Arc<Mutex<Option<Box<dyn MessageConverter<Request, Response>>>>>,
-    pub request_convert: Arc<Mutex<Option<Box<dyn RequestExtractor<EndpointMetadata>>>>>,
+    pub request_convert: Arc<Mutex<Option<Box<dyn RequestTypeExtractor<WebRequest, EndpointMetadata>>>>>,
 }
 
 impl<Request, Response> ConverterRegistryBuilder<Request, Response> where
@@ -97,7 +94,7 @@ impl<Request, Response> ConverterRegistryBuilder<Request, Response>
     pub fn build(&mut self) -> ConverterRegistry<Request, Response> {
         let mut to_switch: Option<Box<dyn MessageConverter<Request, Response>>> = None;
         std::mem::swap(&mut to_switch, &mut self.converters.lock().unwrap().take());
-        let mut request_extractor_found: Option<Box<dyn RequestExtractor<EndpointMetadata>>> = None;
+        let mut request_extractor_found: Option<Box<dyn RequestTypeExtractor<WebRequest, EndpointMetadata>>> = None;
         std::mem::swap(&mut request_extractor_found, &mut self.request_convert.lock().unwrap().take());
         ConverterRegistry {
             converters: Arc::new(to_switch.unwrap()),
@@ -288,7 +285,7 @@ pub struct FilterRegistrarBuilder<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
 {
     pub filters: Arc<Mutex<Vec<Filter<Request, Response>>>>,
-    pub fiter_chain: Arc<FilterChain<Request, Response>>,
+    pub filter_chain: Arc<FilterChain<Request, Response>>,
     pub already_built: bool,
 }
 
@@ -301,7 +298,7 @@ where
     // Sets the filter_build for later - so you don't have to do it every time.
     pub fn build(&mut self) -> Arc<FilterChain<Request, Response>> {
         self.do_build_inner();
-        self.fiter_chain.clone()
+        self.filter_chain.clone()
     }
 
     fn do_build_inner(&mut self) {
@@ -309,7 +306,7 @@ where
             self.already_built = true;
             let mut filters_found = self.get_filters();
             filters_found.sort();
-            self.fiter_chain = Arc::new(FilterChain::new(filters_found));
+            self.filter_chain = Arc::new(FilterChain::new(filters_found));
         }
     }
 }
@@ -323,7 +320,7 @@ impl <Request, Response> Clone for FilterRegistrarBuilder<Request, Response>
     fn clone(&self) -> Self {
         Self {
             filters: self.filters.clone(),
-            fiter_chain: self.fiter_chain.clone(),
+            filter_chain: self.filter_chain.clone(),
             already_built: self.already_built
         }
     }
@@ -337,7 +334,7 @@ impl <Request, Response> FilterRegistrarBuilder<Request, Response>
     pub(crate) fn new() -> FilterRegistrarBuilder<Request, Response> {
         Self {
             filters: Arc::new(Mutex::new(vec![])),
-            fiter_chain: Arc::new(FilterChain::default()),
+            filter_chain: Arc::new(FilterChain::default()),
             already_built: false
         }
     }

@@ -260,7 +260,7 @@ pub struct ConverterRegistry<Request, Response>
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
     pub converters: Arc<Box<dyn MessageConverter<Request, Response>>>,
-    pub request_convert: Arc<Box<dyn RequestExtractor<EndpointMetadata>>>
+    pub request_convert: Arc<Box<dyn RequestTypeExtractor<WebRequest, EndpointMetadata>>>
 }
 
 impl <Request, Response> Default for ConverterRegistry<Request, Response>
@@ -281,11 +281,14 @@ impl <Request, Response> ConverterRegistry<Request, Response>
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
-    pub fn new(request_extractor: Option<Box<dyn RequestExtractor<EndpointMetadata>>>,
+
+    pub fn new(request_extractor: Option<Box<dyn RequestTypeExtractor<WebRequest, EndpointMetadata>>>,
                message_converter: Option<Box<dyn MessageConverter<Request, Response>>>
     ) -> ConverterRegistry<Request, Response> {
-        let request_convert = Arc::new(request_extractor.unwrap_or(Box::new(EndpointRequestExtractor::new())));
-        let converters = Arc::new(message_converter.unwrap_or(Box::new(DefaultMessageConverter::default())));
+        let request_convert
+            = Arc::new(request_extractor.unwrap_or(Box::new(EndpointRequestExtractor::new())));
+        let converters
+            = Arc::new(message_converter.unwrap_or(Box::new(DefaultMessageConverter::default())));
         Self {
             converters,
             request_convert
@@ -304,7 +307,7 @@ impl EndpointRequestExtractor {
     }
 }
 
-impl RequestExtractor<EndpointMetadata> for EndpointRequestExtractor  {
+impl RequestTypeExtractor<WebRequest, EndpointMetadata> for EndpointRequestExtractor  {
     fn convert_extract(&self, request: &WebRequest) -> Option<EndpointMetadata> {
         // TODO:
         Some(EndpointMetadata::default())
@@ -343,11 +346,13 @@ impl <Request, Response> ConverterRegistryContainer<Request, Response> for Conve
     }
 }
 
-pub trait RequestExtractor<T>: Send + Sync {
-    fn convert_extract(&self, request: &WebRequest) -> Option<T>;
+pub trait RequestTypeExtractor<RequestT, T>: Send + Sync
+    where
+        RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static{
+    fn convert_extract(&self, request: &RequestT) -> Option<T>;
 }
 
-impl <Request, Response> RequestExtractor<EndpointMetadata> for RequestHelpers<Request, Response>
+impl <Request, Response> RequestTypeExtractor<WebRequest, EndpointMetadata> for RequestHelpers<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,

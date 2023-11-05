@@ -1,25 +1,19 @@
 mod test;
 
 use core::borrow::BorrowMut;
-use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, DefaultMessageConverter, EndpointRequestExtractor, MessageConverter, Registration};
-use crate::web_framework::filter::filter::{FilterChain, Filter};
+use crate::web_framework::convert::{AuthenticationConverterRegistry, ConverterRegistry, MessageConverter, Registration};
 use std::any::Any;
-use std::cell::RefCell;
-use std::collections::LinkedList;
-use std::marker::PhantomData;
-use std::{mem, vec};
+use std::{vec};
 use std::ops::{Deref, DerefMut};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use serde::{Deserialize, Serialize};
-use authentication_gen::{AuthenticationType, AuthenticationTypeConverterImpl};
 use web_framework_shared::controller::{ContextData, Data};
 use web_framework_shared::convert::Converter;
 use web_framework_shared::request::EndpointMetadata;
-use crate::web_framework::context_builder::{AuthenticationConverterRegistryBuilder, ConverterRegistryBuilder, DelegatingAuthenticationManagerBuilder, FilterRegistrarBuilder};
-use crate::web_framework::dispatch::FilterExecutor;
-use crate::web_framework::http::{ProtocolToAdaptFrom, RequestConverter, RequestStream};
+use crate::web_framework::context_builder::{FilterRegistrarBuilder};
+use crate::web_framework::http::{RequestConverter, RequestStream};
 use crate::web_framework::request_context::SessionContext;
-use crate::web_framework::security::authentication::{AuthenticationConverter, AuthenticationToken, DelegatingAuthenticationManager};
+use crate::web_framework::security::authentication::{AuthenticationConverter, DelegatingAuthenticationManager};
 
 
 

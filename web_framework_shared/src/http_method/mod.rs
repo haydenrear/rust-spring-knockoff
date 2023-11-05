@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum HttpMethod {
-    Post, Get,
+    Get, Options, Head, Post, Put, Patch, Delete
 }
 
 impl Default for HttpMethod {

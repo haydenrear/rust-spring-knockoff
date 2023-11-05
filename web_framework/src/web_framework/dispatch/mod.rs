@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
-use crate::web_framework::convert::{Converters, RequestExtractor};
+use crate::web_framework::convert::{Converters, RequestTypeExtractor};
 use crate::web_framework::filter::filter::MediaType;
 use crate::web_framework::message::MessageType;
 use futures::TryStreamExt;

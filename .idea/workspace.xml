@@ -7,12 +7,23 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="precompile compiled">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Fixed hyper">
+      <change afterPath="$PROJECT_DIR$/web_framework/todo.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hyper/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/hyper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/hyper/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/controller/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/controller/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo.md" beforeDir="false" afterPath="$PROJECT_DIR$/todo.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/context_builder/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/convert/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/dispatch/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/http/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/http/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework/src/web_framework/message/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/web_framework/message/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/http_method/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/http_method/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/matcher/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/request/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -385,7 +396,8 @@
       <workItem from="1698868317227" duration="7979000" />
       <workItem from="1698936618333" duration="39056000" />
       <workItem from="1698986498517" duration="36645000" />
-      <workItem from="1699155279515" duration="4036000" />
+      <workItem from="1699155279515" duration="6515000" />
+      <workItem from="1699202744145" duration="3657000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -730,7 +742,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="219" />
+    <option name="localTasksCounter" value="220" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -781,7 +793,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/set_enum_fields" />
     </ignored-roots>
-    <MESSAGE value="prototype factory" />
     <MESSAGE value="updated factories codegen to add features to dependencies." />
     <MESSAGE value="updated factories codegen to add features to dependencies and add interfaces for to extend." />
     <MESSAGE value="first factory_fn bean" />
@@ -806,7 +817,8 @@
     <MESSAGE value="Add prototype beans" />
     <MESSAGE value="Added multiple codegen crates for multiple stages of codegen." />
     <MESSAGE value="updated precompile" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated precompile" />
+    <MESSAGE value="Fixed hyper" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed hyper" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

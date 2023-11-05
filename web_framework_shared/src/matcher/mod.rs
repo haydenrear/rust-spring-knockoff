@@ -96,10 +96,10 @@ impl Matcher<&str> for AntStringRequestMatcher {
 impl StringMatcher<'_> for AntStringRequestMatcher {
 }
 
-impl  Matcher<&'_ WebRequest> for AntPathRequestMatcher {
+impl Matcher<&'_ WebRequest> for AntPathRequestMatcher {
     fn matches(&self, to_match: &WebRequest) -> bool {
         self.request_matchers.iter()
-            .any(|r| r.matches(&&&to_match.metadata.base_uri))
+            .any(|r| r.matches(to_match.uri.path()))
     }
 }
 

@@ -1,40 +1,30 @@
-use std::borrow::BorrowMut;
+use std::collections::hash_map::RawEntryBuilder;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, Pointer};
-use std::future::Future;
-use std::io::Read;
+use std::hash::Hash;
 use std::marker::PhantomData;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::ops::Deref;
 use std::sync::Arc;
-use async_std::io::WriteExt;
-use chrono::format::Item;
-use circular::Buffer;
-use futures::{Sink, SinkExt};
-use hyper::{Body, Request, Response, Server};
+use futures::{Sink};
+use hyper::{Body, Method, Request, Response, Server};
 use async_trait::async_trait;
 use hyper::body::HttpBody;
-use hyper::server::conn::{AddrIncoming, AddrStream};
+use hyper::server::conn::{AddrStream};
 use hyper::service::{make_service_fn, Service, service_fn};
 use serde::{Deserialize, Serialize};
 use serde::de::StdError;
-use serde_json::Value;
-use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use web_framework::web_framework::context::{Context, UserRequestContext};
-use web_framework::web_framework::convert::Registration;
 use web_framework::web_framework::http::{
-    ProtocolToAdaptFrom, RequestConversionError,
-    RequestConverter, RequestStream, ResponseType
+    RequestConversionError,
+    RequestConverter,
 };
-use web_framework::web_framework::request_context::SessionContext;
-use web_framework_shared::{HandlerExecutor, RequestExecutor};
+use web_framework_shared::{EndpointMetadata, RequestExecutor};
 use web_framework_shared::http_method::HttpMethod;
-use web_framework_shared::request::{WebRequest, WebResponse};
+use web_framework_shared::request::{WebRequest};
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use web_framework::web_framework::convert::{RequestTypeExtractor};
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/hyper_request.log"));
 
 pub struct HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
@@ -50,7 +40,8 @@ where
     pub request: PhantomData<RequestT>
 }
 
-impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT> HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
+impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT>
+HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
 where
     ResponseT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -124,9 +115,8 @@ HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
                             })
                             .ok()
                             .map(|mut converted| {
-                                let web_response = request_executor.do_request(
-                                    converted
-                                );
+                                let web_response
+                                    = request_executor.do_request(converted);
                                 serde_json::to_string::<ResponseT>(&web_response)
                                     .map(|res| Response::new(Body::from(res)))
                                     .map_err(|e| {
@@ -134,7 +124,7 @@ HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
                                         HyperRequestStreamError::new("Failed.")
                                     })
                             })
-                            .or(Some(Err(HyperRequestStreamError::new("Failed."))))
+                            .or(Some(Err(HyperRequestStreamError::new("Failed to convert request using request converter."))))
                             .unwrap()
                     }
                 }))
@@ -145,7 +135,7 @@ HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
             .serve(service);
 
         if let Err(e) = server.await {
-            eprintln!("server error: {}", e);
+            error!("server error: {:?}", e);
         }
     }
 }
@@ -155,19 +145,20 @@ pub struct Error;
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-       todo!()
+        <Error as Debug>::fmt(self, f)
     }
 }
 
 impl StdError for Error {}
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct HyperRequestConverter {
+    request_extractor: HyperRequestExtractor
 }
 
 impl HyperRequestConverter {
     pub fn new() -> Self{
-        HyperRequestConverter {}
+        HyperRequestConverter::default()
     }
 }
 
@@ -201,6 +192,7 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
     async fn from(&self, in_value: Request<Body>) -> Result<WebRequest,HyperBodyConvertError> {
         let from_headers = in_value.headers().clone();
         let http_body = in_value.into_body();
+        let endpoint_metadata = self.request_extractor.convert_extract(&in_value);
         hyper::body::to_bytes(http_body).await
             .map(|b| String::from_utf8(b.to_vec()))
             .map(|v| {
@@ -215,13 +207,65 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
                     WebRequest {
                         headers,
                         body: s,
-                        metadata: Default::default(),
-                        method: HttpMethod::Post,
-                        uri: "".to_string(),
+                        uri: in_value.uri().clone(),
+                        method: in_value.method().clone(),
+                        endpoint_metadata
                     }
                 })
             })
             .or(Err(HyperBodyConvertError::new("Could not convert from Hyper request")))
     }
 }
+
+#[derive(Default)]
+pub struct HyperRequestExtractor;
+
+impl RequestTypeExtractor<Request<Body>, EndpointMetadata> for HyperRequestExtractor {
+    fn convert_extract(&self, request: &Request<Body>) -> Option<EndpointMetadata> {
+        Some(to_endpoint_metadata(request))
+    }
+}
+
+pub(crate) fn to_endpoint_metadata(request: &Request<Body>) -> EndpointMetadata {
+    EndpointMetadata {
+        path_variables: split_path_variables(request.uri().path()),
+        query_params: request.uri().path_and_query().iter()
+            .flat_map(|p| p.query().into_iter())
+            .flat_map(|q| split_query_params(q))
+            .collect::<HashMap<String, String>>(),
+        host: request.uri().host().map(|h| h.to_string())
+            .or(Some(String::default())).unwrap(),
+    }
+}
+
+pub(crate) fn split_path_variables(in_string: &str) -> HashMap<usize, String> {
+    let mut c = 0;
+    in_string.split("/").into_iter()
+        .map(|i| {
+            let next = (c, i);
+            c  += 1;
+            next
+        })
+        .collect::<HashMap<usize, String>>()
+}
+
+pub(crate) fn split_query_params(in_string: &str) -> HashMap<String, String> {
+    in_string.split("&").into_iter()
+        .flat_map(|query_item| {
+            let mut query_item = query_item.split("=").into_iter()
+                .map(|query_items| query_items.to_string())
+                .collect::<Vec<String>>();
+            if query_item.len() == 0 {
+                vec![]
+            } else if query_item.len() != 2 {
+                error!("Query item found that should have had two parameters, one=two, but was {:?}", &query_item);
+                vec![]
+            } else {
+                let key = query_item.remove(0);
+                let value = query_item.remove(0);
+                (key, value)
+            }
+        }).collect::<HashMap<String, String>>()
+}
+
 

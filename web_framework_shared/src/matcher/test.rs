@@ -48,7 +48,7 @@ fn create_request_matchers(request_matchers: Vec<AntStringRequestMatcher>) -> An
 
 pub fn test_web_request(to_match: String) -> WebRequest {
     let mut wr = WebRequest::default();
-    wr.metadata.base_uri = to_match;
+    wr.uri.host = to_match;
     wr
 }
 
