@@ -7,16 +7,20 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Added multiple codegen crates for multiple stages of codegen.">
-      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree_builder/mod.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="updated precompile">
+      <change afterPath="$PROJECT_DIR$/.cargo/test.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/authentication_gen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/authentication_gen/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_precompile.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_precompile.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_seven/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_security/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_security/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_module/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_module/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/module_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_precompile/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web_framework_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework_shared/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -733,7 +737,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="218" />
+    <option name="localTasksCounter" value="219" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -774,19 +778,7 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="remove_augfile" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>

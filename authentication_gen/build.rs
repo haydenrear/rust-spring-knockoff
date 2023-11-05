@@ -17,31 +17,40 @@ fn main() {
     info!("Initializing authentication gen build.");
     let generated: TokenStream = module_precompile::get_tokens(&"authentication_gen");
     let out_file = open_out_file();
-    if let Some(_) = out_file
+    if let Some(written) = out_file
         .map(|mut out_file| {
             out_file.write_all(generated.to_string().as_bytes())
                 .map_err(|e| {
                     error!("Error writing authentication gen codegen: {:?}", e);
                 })
+                .map(|e| generated.to_string())
                 .ok()
         })
-        .map_err(|e| {
+        .flatten()
+        .or_else(|| {
             if generated.to_string().as_str().len() != 0 {
                 panic!("Could not create codegen.")
             }
-            Err(e)
-        })
-        .ok()
-        .flatten() {
-        info!("Wrote codegen for authentication gen.");
+            None
+        }) {
+        info!("Wrote codegen for authentication gen: {:?}.", &written);
     } else {
         error!("Failed to write codegen with authentication gen.");
     }
 }
 
-fn open_out_file() -> Result<File, std::io::Error> {
-    let out_file = concat!(env!("OUT_DIR"), "/codegen.rs");
-    let mut out_path = Path::new(out_file);
-    let mut out_file = File::create(out_path);
-    out_file
+fn open_out_file() -> Option<File> {
+    std::env::var("OUT_DIR")
+        .map_err(|o| {
+            error!("Out directory was not defined: {:?}", o);
+        })
+        .ok()
+        .map(|out_file| Path::new(&out_file).join("codegen.rs"))
+        .map(|path| File::create(path)
+            .map_err(|e| {
+                error!("Error creating path: {:?}", e);
+            })
+            .ok()
+        )
+        .flatten()
 }

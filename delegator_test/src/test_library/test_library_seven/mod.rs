@@ -105,7 +105,6 @@ impl Default for TestWithGenerics {
             f: TestConstructEnumWithFields::One {
                 one: String::default()
             }.into(),
-            a: Default::default()
         }
     }
 }

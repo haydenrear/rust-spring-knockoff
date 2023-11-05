@@ -33,19 +33,18 @@ import_logger!("module_parser.rs");
 
 
 pub fn parse_module_into_container<
-    'a,
     ParseContainerItemUpdaterT: ParseContainerItemUpdater,
     ItemModifierT: ItemModifier,
     ParseContainerModifierT: ParseContainerModifier,
     BuildParseContainerT: BuildParseContainer,
     ParseContainerFinalizerT: ProfileTreeFinalizer,
->(mut found: &'a mut Item, module_parser: &'a mut ModuleParser<
+>(mut found: &mut Item, module_parser: &mut ModuleParser<
     ParseContainerItemUpdaterT,
     ItemModifierT,
     ParseContainerModifierT,
     BuildParseContainerT,
     ParseContainerFinalizerT
->) -> Option<&'a mut ParseContainer>
+>) -> Option<ParseContainer>
     where
         ParseContainerItemUpdaterT: ParseContainerItemUpdater,
         ItemModifierT: ItemModifier,
@@ -53,30 +52,28 @@ pub fn parse_module_into_container<
         BuildParseContainerT: BuildParseContainer,
         ParseContainerFinalizerT: ProfileTreeFinalizer,
 {
-    create_initial_parse_container(&mut found, module_parser).as_mut()
+    create_initial_parse_container(&mut found, module_parser)
         .map(|created| {
             let container = do_container_modifications(&mut found, created, module_parser);
             container
         })
-
 }
 
 pub(crate) fn do_container_modifications<
-    'a,
     ParseContainerItemUpdaterT: ParseContainerItemUpdater,
     ItemModifierT: ItemModifier,
     ParseContainerModifierT: ParseContainerModifier,
     BuildParseContainerT: BuildParseContainer,
     ParseContainerFinalizerT: ProfileTreeFinalizer,
->(mut found: &'a mut Item, created: &'a mut (ParseContainer, String), module_parser: &mut ModuleParser<
+>(mut found: &mut Item, mut created: (ParseContainer, String), module_parser: &mut ModuleParser<
     ParseContainerItemUpdaterT,
     ItemModifierT,
     ParseContainerModifierT,
     BuildParseContainerT,
     ParseContainerFinalizerT
->) -> &'a mut ParseContainer {
-    let container = &mut created.0;
-    ItemModifierT::modify_item(container, &mut found, vec![created.1.clone()]);
+>) -> ParseContainer {
+    let mut container = created.0;
+    ItemModifierT::modify_item(&mut container, &mut found, vec![created.1.clone()]);
     container
 }
 

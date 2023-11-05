@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::env;
-use std::future::join;
 use std::path::Path;
 use serde::{Deserialize, Serialize};
 use syn::Item;
@@ -28,7 +27,6 @@ pub struct PrecompileFactories {
 
 #[derive(Deserialize)]
 pub struct PrecompileMetadata {
-    output_file: String,
     processor_path: String,
     processor_files: Vec<String>,
     processor_ident: String
@@ -43,18 +41,20 @@ pub fn get_tokens(processor_name: &str) -> TokenStream {
         let ts: Vec<TokenStream> = parse_precompile_inputs(&precompiled)
             .into_iter()
             .flat_map(|f| f.items.into_iter())
-            .flat_map(|item_parsed| to_parse_container(&precompiled, item_parsed))
-            .map(|parse_container| build_profile_tree(&parse_container))
+            .flat_map(|mut item_parsed| to_parse_container(&precompiled, item_parsed))
+            .map(|mut parse_container| build_profile_tree(&mut parse_container))
+            .map(|mut profile_tree| DelegatingTokenProvider::new(&mut profile_tree))
             .map(|token_provider| token_provider.generate_token_stream())
             .collect();
         let mut out_tokens = TokenStream::default();
         out_tokens.extend(ts);
         out_tokens
+    } else {
+        TokenStream::default()
     }
-    TokenStream::default()
 }
 
-fn build_profile_tree(parse_container: &&mut ParseContainer) -> ProfileTree {
+fn build_profile_tree(parse_container: &mut ParseContainer) -> ProfileTree {
     let profile_tree_builder = vec![
         Box::new(DelegatingProfileTreeModifierProvider::new(
             &parse_container.injectable_types_builder)
@@ -75,9 +75,12 @@ impl BuildParseContainer for ParseContainerBuilder {
     }
 }
 
-fn to_parse_container(precompiled: &Option<PrecompileMetadata>, item_parsed: Item) -> Vec<&mut ParseContainer> {
+fn to_parse_container(precompiled: &Option<PrecompileMetadata>, item_parsed: Item) -> Vec<ParseContainer> {
     match item_parsed {
         Item::Mod(item_mod) => {
+            info!("Testing if {:?} contains processor ident {:?}.",
+                SynHelper::get_str(&item_mod.ident),
+                precompiled.as_ref().unwrap().processor_ident.as_str());
             let attr = SynHelper::get_attr_from_vec(
                 &item_mod.attrs,
                 &vec![precompiled.as_ref().unwrap().processor_ident.as_str()]
@@ -86,26 +89,31 @@ fn to_parse_container(precompiled: &Option<PrecompileMetadata>, item_parsed: Ite
                 let module_ident = SynHelper::get_str(&item_mod.ident);
                 info!("Found mod {:?} with processor {:?}. Parsing it into ParseContainer.",
                     &module_ident, &attr);
+                let mut module_parser = ModuleParser {
+                    delegating_parse_container_updater: DelegatingParseProvider {},
+                    delegating_parse_container_modifier: DelegatingParseContainerModifierProvider::new(),
+                    delegating_parse_container_builder: ParseContainerBuilder {},
+                    delegating_parse_container_item_modifier: DelegatingItemModifier::new(),
+                    delegating_parse_container_finalizer: DelegatingProfileTreeFinalizerProvider {},
+                };
                 let parse_containers = parse_module_into_container(
-                    &mut Item::Mod(item_mod), &mut ModuleParser {
-                        delegating_parse_container_updater: DelegatingParseProvider{},
-                        delegating_parse_container_modifier: DelegatingParseContainerModifierProvider::new(),
-                        delegating_parse_container_builder: ParseContainerBuilder{},
-                        delegating_parse_container_item_modifier: DelegatingItemModifier::new(),
-                        delegating_parse_container_finalizer: DelegatingProfileTreeFinalizerProvider{},
-                    })
+                        &mut Item::Mod(item_mod),
+                        &mut module_parser
+                    )
                     .into_iter()
                     .map(|p| {
                         info!("Parsed module {:?} into parse container {:?} in precompile.",
                         &module_ident, p);
                         p
                     })
-                    .collect::<Vec<&mut ParseContainer>>();
+                    .collect::<Vec<_>>();
                 info!("Parsed {} number of parse containers in precompile.", parse_containers.len());
                 parse_containers
             } else {
                 info!("Found item {:?}, but did not contain processor ", SynHelper::get_str(&item_mod.ident));
-                vec![]
+                item_mod.content.iter().flat_map(|c| c.1.clone())
+                    .flat_map(|c| to_parse_container(precompiled, c))
+                    .collect()
             }
         }
         _ => vec![]
@@ -134,11 +142,12 @@ fn knockoff_factories() -> String {
         .ok()
         .or(Some(get_project_dir("codegen_resources/knockoff_precompile.toml")))
         .unwrap();
+    info!("Loading factories from {:?}", &knockoff_factories);
     knockoff_factories
 }
 
 fn precompiled_metadata(knockoff_factories: String, precompile_factory: &str) -> Option<PrecompileMetadata>{
-    read_file_to_str(Path::open(knockoff_factories))
+    read_file_to_str(&Path::new(&knockoff_factories).to_path_buf())
         .map_err(|e| {
             error!("Error reading file {:?}", e);
             e

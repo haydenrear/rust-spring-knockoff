@@ -63,7 +63,6 @@ pub struct FactoryFnTest;
 impl Default for Once {
     fn default() -> Self {
         Self {
-            a: String::default(),
             test_dyn_one: Arc::new(Four::default()) as Arc<dyn Found>,
             test_dyn_one_mutex: Arc::new(Mutex::new(Box::new(Four::default()) as Box<dyn Found>)),
         }

@@ -1,5 +1,5 @@
 # Metadata for parsing the given processor_files to input them into the ProfileTree to produce tokens.
-[authentication_gen]
+[factories.authentication_gen]
 processor_path = "/Users/hayde/IdeaProjects/rust-spring-knockoff/authentication_gen"
 processor_files = ['/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs']
 processor_ident = "authentication_type"

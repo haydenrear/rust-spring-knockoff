@@ -48,6 +48,11 @@ path ="../../module_macro_shared"
 name = "module_macro_shared"
 version = "0.1.5"
 registry = "estuary"
+[phases.pre_compile.stages.one.dependencies.authentication_codegen]
+path ="../../authentication_codegen"
+name = "authentication_codegen"
+version = "0.1.5"
+registry = "estuary"
 
 [phases.pre_compile.stages.one.item_modifier.values.authentication_codegen.provider_data]
 provider_path = "authentication_codegen::AuthenticationGenItemModifier"

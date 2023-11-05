@@ -7,7 +7,6 @@ use quote::{format_ident, IdentFragment, quote, ToTokens};
 use syn::{DeriveInput, Field, Fields, Ident, ItemStruct, LitStr, parse_macro_input, Token, token::Paren};
 use syn::token::Type;
 
-use serde::{Deserializer};
 use module_macro::{module_attr};
 
 use std::any::Any;
@@ -64,14 +63,20 @@ pub mod test_library {
     #[authentication_type]
     #[cfg(authentication_type)]
     pub mod authentication_type {
+        use spring_knockoff_boot_macro::*;
+        use serde::{Serialize, Deserialize};
+        use web_framework_shared::*;
+        use knockoff_security::{AuthType, AuthenticationConversionError, AuthenticationAware};
 
         #[derive(Default, Clone, Debug, Serialize, Deserialize)]
         #[auth_type_struct(TestAuthType)]
+        #[knockoff_ignore]
         pub struct TestAuthType {
             some_token: String
         }
 
         #[auth_type_impl(TestAuthType)]
+        #[knockoff_ignore]
         impl AuthType for TestAuthType {
             const AUTH_TYPE: &'static str = "test_auth_type";
 
@@ -81,6 +86,7 @@ pub mod test_library {
         }
 
         #[auth_type_aware(TestAuthType)]
+        #[knockoff_ignore]
         impl AuthenticationAware for TestAuthType {
             fn get_authorities(&self) -> Vec<GrantedAuthority> {
                 todo!()
@@ -105,10 +111,12 @@ pub mod test_library {
 
     }
 
+    pub use authentication_type::*;
+
 }
 
 pub use test_library::*;
-
+use knockoff_security::knockoff_security::*;
 
 #[test]
 fn test_module_macro() {
@@ -152,7 +160,7 @@ fn test_module_macro() {
     let one = PrototypeBeanContainer::<One>::fetch_bean(&listable);
 
     assert!(one_found_again.as_ref().is_some());
-    let wrapped = one_found_again.unwrap().one_two_three(One { two: "".to_string(), a: "".to_string() });
+    let wrapped = one_found_again.unwrap().one_two_three(One { two: "".to_string() });
 
     assert_eq!(wrapped, "four three two one zero".to_string());
 
@@ -208,11 +216,9 @@ fn test_app_ctx() {
 
 fn create_with_extra_field() {
     let ten = Ten {
-        a: String::from("hell")
     };
 
     let one: One = One {
-        a: String::default(),
         two: String::default()
     };
 
