@@ -1,14 +1,12 @@
 use std::env;
 use std::path::Path;
-use codegen_utils::{get_build_project_dir, get_project_base_build_dir, get_project_dir};
 use factories_codegen::factories_parser::{FactoriesParser, FactoryStages};
-
-use crate::module_extractor::ModuleParser;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use codegen_utils::{get_build_project_dir, get_project_base_build_dir, get_project_dir};
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/test_module_macro_codegen.log"));
 
 #[test]

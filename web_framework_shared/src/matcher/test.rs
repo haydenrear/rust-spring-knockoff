@@ -41,6 +41,18 @@ fn test_ant_path_matcher() {
     assert!(second.matches("/v1/test_one/three/one"));
     assert!(!second.matches("/v1/test_one/three/two"));
     assert!(!second.matches("/v1/test_one/two"));
+
+    let second = create_request_matcher("/v1/test_one/o*n/one".to_string(), "/".to_string());
+    assert!(second.matches("/v1/test_one/oln/one"));
+    assert!(!second.matches("/v1/test_one/three/one"));
+    assert!(!second.matches("/v1/test_one/onne/two"));
+    assert!(!second.matches("/v1/test_one/okn"));
+
+    let second = create_request_matcher("/v1/test_one/o**/one".to_string(), "/".to_string());
+    assert!(second.matches("/v1/test_one/oln/one"));
+    assert!(!second.matches("/v1/test_one/three/one"));
+    assert!(!second.matches("/v1/test_one/one/two"));
+    assert!(!second.matches("/v1/test_one/oknnnn"));
 }
 
 #[test]

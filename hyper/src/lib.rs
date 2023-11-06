@@ -1,4 +1,3 @@
-use std::collections::hash_map::RawEntryBuilder;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter, Pointer};
 use std::hash::Hash;
@@ -190,9 +189,11 @@ impl Display for HyperBodyConvertError {
 impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for HyperRequestConverter
 {
     async fn from(&self, in_value: Request<Body>) -> Result<WebRequest,HyperBodyConvertError> {
+        let endpoint_metadata = self.request_extractor.convert_extract(&in_value);
+        let uri = in_value.uri().clone();
+        let method = in_value.method().clone();
         let from_headers = in_value.headers().clone();
         let http_body = in_value.into_body();
-        let endpoint_metadata = self.request_extractor.convert_extract(&in_value);
         hyper::body::to_bytes(http_body).await
             .map(|b| String::from_utf8(b.to_vec()))
             .map(|v| {
@@ -207,8 +208,8 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
                     WebRequest {
                         headers,
                         body: s,
-                        uri: in_value.uri().clone(),
-                        method: in_value.method().clone(),
+                        uri,
+                        method,
                         endpoint_metadata
                     }
                 })
@@ -217,7 +218,7 @@ impl <'a> RequestConverter<Request<Body>, WebRequest, HyperBodyConvertError> for
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct HyperRequestExtractor;
 
 impl RequestTypeExtractor<Request<Body>, EndpointMetadata> for HyperRequestExtractor {
@@ -242,7 +243,7 @@ pub(crate) fn split_path_variables(in_string: &str) -> HashMap<usize, String> {
     let mut c = 0;
     in_string.split("/").into_iter()
         .map(|i| {
-            let next = (c, i);
+            let next = (c, i.to_string());
             c  += 1;
             next
         })
@@ -263,7 +264,7 @@ pub(crate) fn split_query_params(in_string: &str) -> HashMap<String, String> {
             } else {
                 let key = query_item.remove(0);
                 let value = query_item.remove(0);
-                (key, value)
+                vec![(key, value)]
             }
         }).collect::<HashMap<String, String>>()
 }

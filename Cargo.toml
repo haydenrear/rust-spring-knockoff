@@ -27,15 +27,16 @@ members = [
     "aspect_knockoff_provider",
     "collection_util",
     "knockoff_tokio_util",
-    "knockoff_env",
+    "knockoff_helper",
     "rust_spring_knockoff",
     "string_utils",
     "set_enum_fields",
     "authentication_codegen",
     "module_precompile_codegen",
     "module_precompile",
-    "configuration_properties",
-    "configuration_properties_macro"
+    "knockoff_env",
+    "configuration_properties_macro",
+    "knockoff_resource",
 #    "boot_application_builder"
 ]
 exclude = [

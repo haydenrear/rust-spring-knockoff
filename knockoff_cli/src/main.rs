@@ -1,25 +1,29 @@
 use std::{env, fs};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::io::{Error, Read, Seek, Write};
+use std::io::{Read, Seek, Write};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use cargo::core::compiler::CompileMode;
-use cargo::core::{Manifest, Package, PackageId, PackageSet, Source, SourceId, SourceMap, Workspace};
-use cargo::{CargoResult, Config, ops};
-use cargo::core::source::MaybePackage;
+use cargo::core::{Package, PackageId, PackageSet, Source, SourceId, SourceMap, Workspace};
+use cargo::{Config, ops};
 use cargo::ops::CompileOptions;
-use cargo::sources::{RegistrySource, SourceConfigMap};
-use cargo::util::{CanonicalUrl, Filesystem, IntoUrl, LockServer};
-use cargo::util::toml::DetailedTomlDependency;
-use url::Url;
-use codegen_utils::env::{get_project_base_build_dir, get_build_project_base_path, get_build_project_dir, get_project_base_dir};
-use codegen_utils::project_directory;
+use cargo::sources::RegistrySource;
+use cargo::util::{Filesystem, IntoUrl};
 use toml::{Table, Value};
 use toml::macros::{Deserialize, IntoDeserializer};
+use codegen_utils::{get_build_project_dir, get_project_base_dir};
 use crate::args_parser::ArgsParser;
 
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use codegen_utils::project_directory;
+
+import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/knockoff_cli.log"));
+
 pub mod args_parser;
+
 pub static MODULE_MACRO_CODEGEN_DEV: &'static str = "module_macro_codegen = { version = \"{}\", registry = \"estuary\", path = \"../../module_macro_codegen\" }";
 pub static MODULE_PRECOMPILE_CODEGEN_DEV: &'static str = "module_precompile_codegen = { version = \"{}\", registry = \"estuary\", path = \"../../module_precompile_codegen\" }";
 pub static MODULE_MACRO_CODEGEN: &'static str = "module_macro_codegen = { version = \"{}\", registry = \"estuary\" }";
@@ -45,8 +49,60 @@ fn main() {
     if mode_arg.is_some() && mode_arg.unwrap() == "knockoff_dev" {
         compile_module_macro_lib_knockoff_dev(&args);
     } else {
-        compile_module_macro(&args);
+        download_packages(&args);
+        update_toml_values();
     }
+}
+
+fn download_packages(args: &HashMap<String, String>) {
+    let packages = packages();
+    packages.iter().for_each(|package_name| {
+        let config = Config::default().unwrap();
+        download_cargo_crate_to_directory(
+            &get_registry_source_id(args),
+            package_name,
+            config,
+            args
+        );
+    });
+}
+
+fn packages() -> [&'static str; 32] {
+    let packages = [
+        "aspect_knockoff_provider",
+        "authentication_gen",
+        "build_lib",
+        "codegen_utils",
+        "collection_util",
+        "crate_gen",
+        "data_framework",
+        "factories_codegen",
+        "handler_mapping",
+        "knockoff_logging",
+        "knockoff_security",
+        "knockoff_helper",
+        "knockoff_tokio_util",
+        "module_macro_codegen",
+        "module_macro_shared",
+        "module_macro_lib",
+        "mongo_repo",
+        "security_parse_provider",
+        "spring_knockoff_boot",
+        "spring_knockoff_boot_macro",
+        "wait_for",
+        "web_framework",
+        "web_framework_shared",
+        "string_utils",
+        "set_enum_fields",
+        "knockoff_env",
+        "configuration_properties_macro",
+        "module_precompile",
+        "module_precompile_codegen",
+        "knockoff_resource",
+        "module_macro",
+        "authentication_codegen"
+    ];
+    packages
 }
 
 // generate knockoff_builder crate and compile it, which will trigger generation of knockoff_codegen
@@ -56,26 +112,153 @@ fn compile_module_macro_codegen_gen_codegen(args: &HashMap<String, String>) {
     compile_in_target("knockoff_builder", args);
 }
 
-fn compile_module_macro(args: &HashMap<String, String>) {
-    let registry = get_registry_source_id(args);
-    download_update_providers_gen_dependent(
-        &registry,
-        "module_macro",
-        "knockoff_providers_gen",
-        args
-    );
-    download_update_providers_gen_dependent(
-        &registry,
-        "module_macro_lib",
-        "knockoff_providers_gen",
-        args
-    );
-    download_update_providers_gen_dependent(
-        &registry,
-        "module_precompile",
-        "knockoff_precompile_gen",
-        args
-    );
+fn update_toml_values() {
+    let packages_ref = packages()
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<_>>();
+    for package in packages().iter() {
+        if update_toml_value(package, &packages_ref) { continue; }
+    }
+    let items = fs::read_dir(&get_target_directory());
+    if items.is_ok() {
+        let packages_ref = items.unwrap().into_iter()
+            .flat_map(|i| i.ok().into_iter())
+            .flat_map(|i| i.file_name().to_str().map(|s| s.to_string()).into_iter())
+            .filter(|i| !packages().contains(&i.as_str()) && get_target_directory().join(i).join("Cargo.toml").exists())
+            .collect::<Vec<String>>();
+        info!("Updating deps for {:?}", packages_ref);
+        for p in packages().iter() {
+            if update_toml_value(*p, &packages_ref) {
+                continue;
+            }
+        }
+
+    }
+}
+
+fn update_toml_value(package: &str, packages: &Vec<String>) -> bool {
+    let toml_package = get_package_toml(package);
+    if toml_package.is_some() {
+        let mut toml_table = toml_package.unwrap();
+        info!("Updating path for {}.", package);
+        let dep = update_path_for(package, &mut toml_table, "dependencies", packages);
+        let build_deps = update_path_for(package, &mut toml_table, "build-dependencies", packages);
+        toml_table.get_mut("package").as_mut().map(|pkg| {
+            pkg.as_table_mut().map(|package_table| {
+                package_table.remove("version");
+                package_table.insert("version".to_string(), Value::String("0.1.6".to_string()));
+            })
+        });
+        if dep && build_deps {
+            return true;
+        }
+        info!("Writing toml string for {:?}", &toml_table);
+        let _ = toml::to_string(&toml_table)
+            .map(|manifest_written| {
+                let mut out_package = get_package_manifest_file(package);
+                if out_package.as_ref().is_some() {
+                    info!("Writing manifest {:?} to {:?}", manifest_written,
+                            out_package.as_ref().unwrap());
+                    let _ = out_package.as_mut()
+                        .unwrap()
+                        .write_all(manifest_written.as_bytes())
+                        .map_err(|e| {
+                            error!("Error writing manifest {:?}", e);
+                        });
+                    if !manifest_written.contains("[workspace]") {
+                        let _ = out_package.as_mut().unwrap()
+                            .write("[workspace]".to_string().as_bytes())
+                            .map_err(|e| {
+                                error!("Error writing manifest!");
+                            });
+                    }
+                }
+            })
+            .map_err(|e| {
+                error!("Error writing manifest for {}: {:?}", package, e);
+            });
+    } else {
+        error!("Could not open toml package for {}", package);
+    }
+    false
+}
+
+fn update_path_for(
+    package: &str,
+    toml_table: &mut Table,
+    path_type: &str,
+    packages: &Vec<String>
+) -> bool {
+    let mut deps = toml_table.get_mut(path_type);
+    if deps.as_ref().is_none() {
+        return true
+    }
+    let mut deps = deps.unwrap();
+    for other_package in packages.iter() {
+        if package == *other_package {
+            continue
+        }
+        deps.as_table_mut().map(|dependencies_table| {
+            if dependencies_table.contains_key(other_package) {
+                dependencies_table.get_mut(other_package).as_mut()
+                    .map(|package_found| {
+                        package_found.as_table_mut().map(|dep_package_table| {
+                            info!("Inserting path for {}", package);
+                            dep_package_table.insert("path".to_string(), Value::String(format!("../{}", other_package)));
+                            dep_package_table.remove("registry-index");
+                            dep_package_table.remove("version");
+                        })
+                    });
+            }
+        });
+    }
+    false
+}
+
+fn get_package_manifest_file(package_name: &str) -> Option<File> {
+    let package = get_target_directory()
+        .join(package_name)
+        .join("Cargo.toml");
+    if package.exists() {
+        File::create(package)
+            .map_err(|e| {
+                error!("{} did not exist when attempted to open manifest.", package_name);
+            })
+            .ok()
+    } else {
+        None
+    }
+}
+
+fn get_package_toml(package_name: &str) -> Option<Table> {
+    let package = get_target_directory()
+        .join(package_name)
+        .join("Cargo.toml");
+    if package.exists() {
+        let mut cargo_manifest = File::open(&package);
+        if !cargo_manifest.is_err() {
+            let mut cargo_manifest_file = cargo_manifest.unwrap();
+            let parsed_value = codegen_utils::parse::read_file_to_str(&mut cargo_manifest_file)
+                .map_err(|e| {
+                    error!("Error reading file {}: {:?}", package_name, e);
+                });
+            if parsed_value.is_err() {
+                None
+            } else {
+                let out = toml::from_str::<Table>(parsed_value.unwrap().as_str()).ok();
+                out
+            }
+        } else {
+            error!("Error opening file {}", package_name);
+            None
+        }
+    } else {
+        None
+    }
+}
+
+fn compile_packages(args: &HashMap<String, String>) {
     compile_in_target("module_macro", args);
     compile_in_target("module_precompile", args);
 }
@@ -148,6 +331,7 @@ fn update_dependency_table(dep_name: &str, path: &str, cargo_str: &mut String) -
             update_module_macro_data(t, "module_macro");
             update_module_macro_data(t, "module_macro_lib");
             update_module_macro_data(t, "module_precompile");
+            update_module_macro_data(t, "knockoff_precompile_gen");
         });
     cargo_table
 }
@@ -164,21 +348,19 @@ fn update_module_macro_data(t: &mut Table, macro_type: &str) {
     }
 }
 
-fn download_update_providers_gen_dependent(registry_id: &SourceId, module_macro_lib: &str, provider: &str,
-                                           args: &HashMap<String, String>) {
-    let config = Config::default().unwrap();
+fn download_cargo_crate_to_directory(
+    registry_id: &SourceId,
+    module_macro_lib: &str,
+    config: Config,
+    args: &HashMap<String, String>
+) {
     let version = get_version(args);
     download_cargo_crate(module_macro_lib, &version, registry_id, config)
         .map(|pkg|
             copy_cargo_crate(
                 get_target_directory().join(module_macro_lib),
                 pkg
-        ));
-    update_cargo_path(
-        &get_target_directory().join(module_macro_lib).join("Cargo.toml"),
-        provider,
-        format!("../{}", provider).as_str()
-    );
+            ));
 }
 
 fn get_project_path(path: &str) -> PathBuf {
@@ -324,16 +506,6 @@ fn test_download_lib() {
     assert!(result.is_some())
 }
 
-#[test]
-fn test_download_module_macro_lib() {
-    download_update_providers_gen_dependent(
-        &SourceId::for_registry( &"http://localhost:1234/git/index".into_url().unwrap()).unwrap(),
-        "module_macro_lib",
-        "knockoff_providers_gen",
-        &HashMap::new()
-    );
-    assert!(get_project_path("target/module_macro_lib").is_dir());
-}
 
 #[test]
 fn copy_dir_test() {

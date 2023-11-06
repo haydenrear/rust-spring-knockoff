@@ -12,3 +12,7 @@ pub fn strip_whitespace(s: &str) -> Option<&str> {
         Some(stripped_suffix)
     }
 }
+
+pub fn normalize_quotes(s: &str) -> String {
+    s.replace("\"", "")
+}

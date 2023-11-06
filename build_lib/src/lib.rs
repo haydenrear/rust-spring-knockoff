@@ -2,31 +2,24 @@
 
 use std::{env, fs};
 use std::borrow::Borrow;
-use std::cmp::Ordering;
-use std::convert::identity;
-use std::ffi::{c_long, OsStr, OsString};
-use std::fmt::{Debug, Error, Formatter};
-use std::fs::{DirEntry, File, ReadDir};
-use std::io::{ErrorKind, Read, Write};
-use std::ops::Deref;
+use std::ffi::OsString;
+use std::fmt::Debug;
+use std::fs::File;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::ptr::write;
 use quote::__private::TokenStream;
 use quote::quote;
-use syn::__private::{Span, ToTokens};
-use syn::{Attribute, braced, Fields, Ident, Item, ItemImpl, ItemMod, ItemStruct, parse_macro_input, Token, token, Visibility, VisPublic};
-use syn::__private::quote::__private::push_div_eq_spanned;
-use syn::parse::{ParseBuffer, ParseStream};
-use syn::spanned::Spanned;
+use syn::__private::ToTokens;
+use syn::{Attribute, Ident, Item, ItemMod, Visibility, VisPublic};
 use syn::token::Brace;
-use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
-use codegen_utils::{parse, project_directory, syn_helper};
+use codegen_utils::{parse, project_directory};
 use codegen_utils::syn_helper::SynHelper;
 use codegen_utils::walk::DirectoryWalker;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use codegen_utils::{get_build_project_dir, get_project_base_build_dir};
 
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/build_lib.log"));
 

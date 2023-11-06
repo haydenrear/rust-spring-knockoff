@@ -110,7 +110,9 @@ impl TextFileLoggerImpl {
             }
         }
 
-        File::create(file_path)
+        File::options()
+            .append(true)
+            .open(file_path)
             .ok()
             .and_then(|mut file| Some(TextFileLoggerArgs { file }))
             .map(|logger_args| TextFileLoggerImpl { text_file: logger_args.file}  )

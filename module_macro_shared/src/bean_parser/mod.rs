@@ -61,9 +61,8 @@ impl BeanDependencyParser {
             Self::add_field_deps_to_bean(&mut bean, injectable_types_builder, fns);
         } else {
             let fn_args = bean.factory_fn.as_ref().unwrap().fn_found.args.clone();
-            let fn_attrs = bean.factory_fn.as_ref().unwrap().fn_found.item_fn.attrs.clone();
             Self::add_fn_arg_deps_to_bean(&mut bean, injectable_types_builder, fns,
-                                          fn_args,fn_attrs);
+                                          fn_args);
         }
     }
 
@@ -72,7 +71,6 @@ impl BeanDependencyParser {
         injectable_types_builder: &HashMap<String, BeanDefinition>,
         fns: &HashMap<String, ModulesFunctions>,
         factory_fn: Vec<(Ident, BeanPath, Option<String>, PatType)>,
-        item_fn_attrs: Vec<Attribute>
     ) {
         factory_fn.iter()
             .for_each(|data| {
@@ -83,7 +81,7 @@ impl BeanDependencyParser {
                     injectable_types_builder,
                     fns,
                     Self::get_autowired_fn_arg_dep(data),
-                    &item_fn_attrs
+                    &data.3.attrs
                 )
             })
     }
@@ -151,6 +149,7 @@ impl BeanDependencyParser {
                     profile: profile.clone(),
                     lazy: false,
                     fn_arg_ident: fn_arg_info.0.clone(),
+                    fn_arg_attrs: fn_arg_info.3.attrs.clone(),
                     bean_type: fn_arg_info.1.clone(),
                     autowired_type: fn_arg_info.1.get_inner_type()
                         .or(Some(fn_arg_info.3.ty.deref().clone()))
@@ -189,28 +188,28 @@ impl BeanDependencyParser {
         injectable_types_builder: &HashMap<String, BeanDefinition>,
         fns: &HashMap<String, ModulesFunctions>,
         autowired: Option<AutowiredType>,
-        field_attrs: &Vec<Attribute>
+        field_fn_arg_attrs: &Vec<Attribute>
     ) {
         autowired.map(|autowired| {
             log_message!("Found field with ident {}.", SynHelper::get_str(autowired.autowired_type()));
             match autowired.autowired_type().clone() {
                 Type::Array(arr) => {
                     log_message!("found array type {}.", arr.to_token_stream().to_string().clone());
-                    Self::add_type_dep(dep_impl, autowired, lifetime, Some(arr.clone()), injectable_types_builder, fns, None, field_attrs);
+                    Self::add_type_dep(dep_impl, autowired, lifetime, Some(arr.clone()), injectable_types_builder, fns, None, field_fn_arg_attrs);
                 }
                 Type::Path(path) => {
                     log_message!("Adding {} to bean path.", path.to_token_stream().clone().to_string().as_str());
                     let type_path = BeanDependencyPathParser::parse_type_path(&path);
-                    Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, Some(type_path), field_attrs);
+                    Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, Some(type_path), field_fn_arg_attrs);
                 }
                 Type::Reference(reference_found) => {
                     let ref_type = reference_found.elem.clone();
                     log_message!("{} is the ref type", ref_type.to_token_stream());
-                    Self::add_type_dep(dep_impl, autowired, reference_found.clone().lifetime, array_type, injectable_types_builder, fns, None, field_attrs);
+                    Self::add_type_dep(dep_impl, autowired, reference_found.clone().lifetime, array_type, injectable_types_builder, fns, None, field_fn_arg_attrs);
                 }
                 other => {
                     log_message!("{} is the other type", other.to_token_stream().to_string().as_str());
-                    Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, None,field_attrs)
+                    Self::add_type_dep(dep_impl, autowired, lifetime, array_type, injectable_types_builder, fns, None, field_fn_arg_attrs)
                 }
             };
         });

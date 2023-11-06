@@ -348,7 +348,7 @@ impl <Request, Response> ConverterRegistryContainer<Request, Response> for Conve
 
 pub trait RequestTypeExtractor<RequestT, T>: Send + Sync
     where
-        RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static{
+        RequestT: Default + Send + Sync + 'static{
     fn convert_extract(&self, request: &RequestT) -> Option<T>;
 }
 

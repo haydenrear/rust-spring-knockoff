@@ -25,8 +25,8 @@ registry = "estuary"
 path ="../codegen_utils"
 version = "0.1.5"
 registry = "estuary"
-[dependencies.knockoff_env]
-path ="../knockoff_env"
+[dependencies.knockoff_helper]
+path ="../knockoff_helper"
 version = "0.1.5"
 registry = "estuary"
 [dependencies.knockoff_logging]

@@ -10,6 +10,8 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
+use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::factory_fn_factory_generator::FactoryFnBeanFactoryGenerator;
+use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::mutable_factory_generator::MutableBeanFactoryGenerator;
 import_logger!("prototype_factory_generator.rs");
 
 pub struct PrototypeBeanFactoryGenerator {

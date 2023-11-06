@@ -24,7 +24,6 @@ use codegen_utils::project_directory;
 use crate::logger_lazy;
 import_logger!("bean_factory_generator.rs");
 
-
 pub mod factory_generator;
 pub mod bean_factory_generator;
 pub mod token_stream_generator;

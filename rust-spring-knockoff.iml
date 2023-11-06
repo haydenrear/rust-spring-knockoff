@@ -58,15 +58,17 @@
       <sourceFolder url="file://$MODULE_DIR$/codegen_resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/collection_util/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_tokio_util/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/knockoff_env/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/rust_spring_knockoff/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/set_enum_fields/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/string_utils/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/authentication_codegen/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/module_precompile/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/module_precompile_codegen/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/configuration_properties/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/knockoff_env/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/knockoff_env/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/configuration_properties_macro/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/knockoff_helper/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/knockoff_resource/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

@@ -17,6 +17,10 @@ serde = "1.0.137"
 path ="../module_macro"
 version = "0.1.5"
 registry = "estuary"
+[dependencies.configuration_properties_macro]
+path ="../configuration_properties_macro"
+version = "0.1.5"
+registry = "estuary"
 [dependencies.module_macro_lib]
 path ="../module_macro_lib"
 version = "0.1.5"

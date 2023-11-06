@@ -280,20 +280,29 @@ pub trait BeanFactoryGenerator: TokenStreamGenerator {
         profile_ident: &Ident,
         concrete_type: &ConcreteTypeT
     ) -> Option<TokenStream> {
+        if bean_factory_info.factory_fn.is_some() {
+            FactoryFnBeanFactoryGenerator::create_bean_tokens_default(bean_factory_info, profile_ident, concrete_type)
+        } else {
+            Self::create_bean_tokens_default(bean_factory_info, profile_ident, concrete_type)
+        }
+    }
 
+
+    fn create_bean_tokens_default<ConcreteTypeT: ToTokens>(bean_factory_info: &BeanFactoryInfo,
+                                                           profile_ident: &Ident, concrete_type: &ConcreteTypeT) -> Option<TokenStream> {
         if bean_factory_info.factory_fn.is_some() {
             log_message!("Skipping creation of bean factory for {} because has factory fn.",
                 SynHelper::get_str(&concrete_type));
             return None;
         }
 
-        let ( field_idents, field_types, concrete_field,
+        let (field_idents, field_types, concrete_field,
             mutable_identifiers, mutable_field_types, concrete_mutable_type,
             abstract_field_idents, abstract_field_types, concrete_abstract_types,
             abstract_mutable_idents, abstract_mutable_field_types, concrete_mutable_abstract)
             = bean_factory_info.get_field_singleton_types();
 
-        let ( prototype_field_idents, prototype_field_types, prototype_concrete_field,
+        let (prototype_field_idents, prototype_field_types, prototype_concrete_field,
             prototype_mutable_identifiers, prototype_mutable_field_types, prototype_concrete_mutable_type,
             prototype_abstract_field_idents, prototype_abstract_field_types, prototype_concrete_abstract_types,
             prototype_abstract_mutable_idents, prototype_abstract_mutable_field_types, prototype_concrete_mutable_abstract)

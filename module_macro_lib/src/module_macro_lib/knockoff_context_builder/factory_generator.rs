@@ -206,15 +206,15 @@ impl FactoryGen {
                         listable_bean_factory.add_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_idents>, #profile_name>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_idents>, #profile_name, U = Mutex<#mutable_idents>>>::get_bean(&listable_bean_factory);
                         listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_types>, #profile_name>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<#mutable_types>, #profile_name, U = Mutex<#mutable_types>>>::get_bean(&listable_bean_factory);
                         listable_bean_factory.add_mutable_bean_definition(next_bean_definition);
                     )*
                     #(
-                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<dyn #abstract_mutable_paths>, #profile_name, U = #abstract_mutable_concrete>>::get_bean(&listable_bean_factory);
+                        let next_bean_definition = <dyn MutableBeanFactory<Mutex<dyn #abstract_mutable_paths>, #profile_name, U = Mutex<#abstract_mutable_concrete>>>::get_bean(&listable_bean_factory);
                         let type_id = TypeId::of::<Arc<Mutex<Box<dyn #abstract_mutable_paths>>>>();
                         listable_bean_factory.add_mutable_bean_definition_type_id(next_bean_definition, type_id);
                     )*
@@ -289,7 +289,17 @@ impl FactoryGen {
     }
 
     /// Add the bean (with abstraction if has one) to the vecs for the constructor of the container.
-    fn add_provider_bean_to_vec(mut singleton_idents: &mut Vec<Ident>, mut singleton_types: &mut Vec<Type>, mut mutable_types: &mut Vec<Type>, mut mutable_idents: &mut Vec<Ident>, mut abstract_mutable_paths: &mut Vec<Type>, mut abstract_mutable_concrete: &mut Vec<Type>, mut abstract_paths: &mut Vec<Type>, mut abstract_paths_concrete: &mut Vec<Type>, provider_bean: &ProviderBean, bean: &&BeanDefinition) {
+    fn add_provider_bean_to_vec(mut singleton_idents: &mut Vec<Ident>,
+                                mut singleton_types: &mut Vec<Type>,
+                                mut mutable_types: &mut Vec<Type>,
+                                mut mutable_idents: &mut Vec<Ident>,
+                                mut abstract_mutable_paths: &mut Vec<Type>,
+                                mut abstract_mutable_concrete: &mut Vec<Type>,
+                                mut abstract_paths: &mut Vec<Type>,
+                                mut abstract_paths_concrete:
+                                &mut Vec<Type>,
+                                provider_bean: &ProviderBean,
+                                bean: &&BeanDefinition) {
         provider_bean.autowire_type.as_ref()
             .map(|autowire_type| {
                 Self::add_abstract_bean_type(
@@ -402,6 +412,7 @@ impl FactoryGen {
             Self::add_to(&mut mutable_idents, &mut mutable_types, &bean);
         } else {
             Self::add_to(&mut singleton_idents, &mut singleton_types, &bean);
+            Self::add_to(&mut mutable_idents, &mut mutable_types, &bean);
         }
     }
 }

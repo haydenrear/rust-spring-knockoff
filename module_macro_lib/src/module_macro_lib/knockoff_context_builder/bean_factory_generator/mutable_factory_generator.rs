@@ -10,6 +10,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use crate::logger_lazy;
+use crate::module_macro_lib::knockoff_context_builder::bean_factory_generator::factory_fn_factory_generator::FactoryFnBeanFactoryGenerator;
 import_logger!("mutable_factory_generator.rs");
 
 pub struct MutableBeanFactoryGenerator {
@@ -64,7 +65,7 @@ impl BeanFactoryGenerator for MutableBeanFactoryGenerator {
 
     fn concrete_bean_container<ConcreteTypeT: ToTokens>(concrete_type: &ConcreteTypeT, profile_ident: &Ident) -> TokenStream {
         quote! {
-            impl BeanContainer<Mutex<#concrete_type >> for ListableBeanFactory {
+            impl BeanContainer<Mutex<#concrete_type>> for ListableBeanFactory {
                 type U = Mutex<#concrete_type>;
                 fn fetch_bean(&self) -> Option<Arc<Self::U>> {
                     self.mutable_bean_definitions.get(&TypeId::of::<Arc<Mutex<#concrete_type >>>())

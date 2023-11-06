@@ -2,6 +2,7 @@
 strings=(
   "aspect_knockoff_provider"
   "authentication_gen"
+  "authentication_codegen"
   "build_lib"
   "codegen_utils"
   "collection_util"
@@ -11,7 +12,7 @@ strings=(
   "handler_mapping"
   "knockoff_logging"
   "knockoff_security"
-  "knockoff_env"
+  "knockoff_helper"
   "knockoff_tokio_util"
   "module_macro_codegen"
   "module_macro_shared"
@@ -24,10 +25,11 @@ strings=(
   "web_framework_shared"
   "string_utils"
   "set_enum_fields"
-  "configuration_properties"
+  "knockoff_env"
   "configuration_properties_macro"
   "module_precompile"
   "module_precompile_codegen"
+  "knockoff_resource"
 )
 for i in "${strings[@]}"; do
   cargo publish --registry=estuary --allow-dirty --no-verify -p $i

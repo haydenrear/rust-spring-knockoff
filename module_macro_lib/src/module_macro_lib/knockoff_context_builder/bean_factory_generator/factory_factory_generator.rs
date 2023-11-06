@@ -26,6 +26,18 @@ impl TokenStreamGenerator for FactoryBeanBeanFactoryGenerator {
 }
 
 impl BeanFactoryGenerator for FactoryBeanBeanFactoryGenerator {
+    fn create_bean_tokens<ConcreteTypeT: ToTokens>(
+        bean_factory_info: &BeanFactoryInfo,
+        profile_ident: &Ident,
+        concrete_type: &ConcreteTypeT
+    ) -> Option<TokenStream> {
+        /// Factory fn bean generator is producing same as this with different fn call to create.
+        if bean_factory_info.factory_fn.is_none() {
+            Self::create_bean_tokens_default(bean_factory_info, profile_ident, concrete_type)
+        } else {
+            None
+        }
+    }
 
     fn get_concrete_factories(&self) -> Vec<BeanFactoryInfo> {
         self.concrete_bean_factories.clone()

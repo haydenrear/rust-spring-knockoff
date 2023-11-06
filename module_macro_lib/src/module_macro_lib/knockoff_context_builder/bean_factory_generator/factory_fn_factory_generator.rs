@@ -26,15 +26,24 @@ impl TokenStreamGenerator for FactoryFnBeanFactoryGenerator {
 }
 
 impl BeanFactoryGenerator for FactoryFnBeanFactoryGenerator {
-
     fn create_bean_tokens<ConcreteTypeT: ToTokens>(
+        bean_factory_info: &BeanFactoryInfo,
+        profile_ident: &Ident,
+        concrete_type: &ConcreteTypeT
+    ) -> Option<TokenStream> {
+        /// Handled in the
+        Self::create_bean_tokens_default(bean_factory_info, profile_ident, concrete_type)
+    }
+
+    fn create_bean_tokens_default<ConcreteTypeT: ToTokens>(
         bean_factory_info: &BeanFactoryInfo,
         profile_ident: &Ident,
         concrete_type: &ConcreteTypeT
     ) -> Option<TokenStream> {
 
         if bean_factory_info.factory_fn.is_none() {
-            log_message!("Skipping creation of factory_fn for: {}.", SynHelper::get_str(concrete_type));
+            log_message!("Skipping creation of factory_fn for: {} as is not factory function.",
+                SynHelper::get_str(concrete_type));
             return None;
         }
 
@@ -83,6 +92,27 @@ impl BeanFactoryGenerator for FactoryFnBeanFactoryGenerator {
                             listable_bean_factory
                         );
                     let #abstract_mutable_idents = bean_def.inner;
+                )*
+
+                /// Prototype beans
+                #(
+                    let bean_def: #prototype_field_types = < ListableBeanFactory as PrototypeBeanFactory<#prototype_field_types, #profile_ident> >::get_prototype_bean(listable_bean_factory);
+                    let #prototype_field_idents = bean_def;
+                )*
+                #(
+                    let bean_def: #prototype_mutable_field_types
+                        = < ListableBeanFactory as PrototypeBeanFactory<#prototype_mutable_field_types, #profile_ident> >::get_prototype_bean(listable_bean_factory);
+                    let #prototype_mutable_identifiers = Mutex::new(bean_def);
+                )*
+                #(
+                    let arc_bean_def = < ListableBeanFactory as PrototypeBeanFactory<#prototype_abstract_field_types, #profile_ident> >::get_prototype_bean(listable_bean_factory);
+                    let #prototype_abstract_field_idents = arc_bean_def;
+                )*
+                #(
+                    let bean_def = < ListableBeanFactory as MutableBeanFactory<#prototype_abstract_mutable_field_types, #profile_ident> >::get_prototype_bean(
+                            listable_bean_factory
+                        );
+                    let #prototype_abstract_mutable_idents = Mutex::new(bean_def);
                 )*
                 let inner = #factory_fn(
                     #(#fn_args,)*

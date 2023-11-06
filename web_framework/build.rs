@@ -1,5 +1,4 @@
-use build_lib::replace_modules;
-use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
+use codegen_utils::{get_build_project_dir, get_project_base_build_dir};
 
 fn main() {
     // replace_modules(

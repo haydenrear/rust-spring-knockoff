@@ -7,7 +7,7 @@ use codegen_utils::syn_helper::SynHelper;
 use module_macro_shared::{BuildParseContainer, ItemModifier, ModuleParser, parse_module_into_container, ParseContainer, ProfileTree, ProfileTreeBuilder, ProfileTreeModifier, ProfileTreeTokenProvider};
 use toml;
 use codegen_utils::parse::read_path_to_str;
-use knockoff_env::get_project_dir;
+use knockoff_helper::get_project_dir;
 
 
 use knockoff_logging::*;

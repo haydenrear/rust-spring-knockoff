@@ -499,17 +499,6 @@ edition = \"2021\"
         let mut cargo_file = "".to_string();
         writeln!(&mut cargo_file, "{}", Self::get_starting_toml_prelude(&String::default(), version, phase).as_str()).unwrap();
         let mut deps_table = Table::new();
-        stages.iter()
-            .map(|mut dep| {
-                let mut next_dep =  Table::new();
-                next_dep.insert("name".to_string(), Value::String(format!("{}{}", phase.prefix(), dep)));
-                next_dep.insert("path".to_string(), Value::String(format!("../{}{}", phase.prefix(), dep)));
-                (format!("{}{}", phase.prefix(), dep.to_string()), Value::Table(next_dep))
-            })
-            .for_each(|(name, table)| {
-                deps_table.insert(name, table);
-            });
-
         let needs = Self::get_needs_gen(factory_stages);
         let deps = factory_stages.gen_deps.as_ref();
 
@@ -523,6 +512,22 @@ edition = \"2021\"
 
         let mut dep_table = Table::new();
         dep_table.insert("dependencies".to_string(), Value::Table(deps_table));
+        // Self::remove_paths_from_dependencies_table(&mut dep_table, base_dir);
+
+        stages.iter()
+            .map(|mut dep| {
+                let mut next_dep =  Table::new();
+                next_dep.insert("name".to_string(), Value::String(format!("{}{}", phase.prefix(), dep)));
+                next_dep.insert("path".to_string(), Value::String(format!("../{}{}", phase.prefix(), dep)));
+                (format!("{}{}", phase.prefix(), dep.to_string()), Value::Table(next_dep))
+            })
+            .for_each(|(name, table)| {
+                dep_table.get_mut("dependencies")
+                    .map(|d| d.as_table_mut()
+                        .map(|t| t.insert(name, table))
+                    );
+            });
+
         writeln!(&mut cargo_file, "{}", dep_table.to_string()).unwrap();
         writeln!(&mut cargo_file, "[workspace]")
             .unwrap();
@@ -559,8 +564,10 @@ edition = \"2021\"
             let mut dep_table = Table::new();
             dep_table.insert("dependencies".to_string(), dep);
             log_message!("Removing paths from {} Cargo.toml because not knockoff dev.", phase.prefix());
-            Self::remove_paths_from_dependencies_table(&mut dep_table, base_dir);
-            writeln!(&mut cargo_file, "{}", dep_table.to_string()).unwrap();
+            // Self::remove_paths_from_dependencies_table(&mut dep_table, base_dir);
+            let dep_table_str = dep_table.to_string();
+            info!("Writing file {:?}", &dep_table_str);
+            writeln!(&mut cargo_file, "{}", &dep_table_str).unwrap();
             writeln!(&mut cargo_file, "[workspace]")
                 .unwrap();
         }
@@ -570,23 +577,33 @@ edition = \"2021\"
     fn remove_paths_from_dependencies_table(mut out_table: &mut Map<String, Value>, base_dir: &String) {
         // if the module_macro_lib library is in the project directory, then keep the ../path in the
         // Cargo.toml.
+        info!("Removing from {:?}", &out_table);
         out_table.get_mut("dependencies")
             .map(|out| out.as_table_mut()
                 .map(|t| {
+                    info!("Removing from dependency table {:?}", &t);
                     let keys = t.keys()
                         .map(|s| s.clone())
                         .collect::<Vec<String>>();
                     keys.iter().for_each(|key| {
-                        let table_mut = t.get_mut(key).unwrap().as_table_mut();
-                        if table_mut.is_some() {
-                            let path = t.get("path");
-                            if path.is_some() {
-                                let path_unwrapped = path.unwrap().as_str().unwrap();
-                                let path_buf = Path::new(base_dir).join(Path::new(path_unwrapped));
-                                if path_buf.exists() {
-                                    info!("Removing path for {}, as it does not point to a local path", path_buf.to_str().unwrap());
-                                    t.remove("path");
-                                }
+                        let mut table_mut = t.get_mut(key).unwrap().as_table_mut();
+                        info!("Removing from dependency {:?}", &table_mut);
+                        if table_mut.as_ref().is_none() {
+                            return;
+                        }
+                        if table_mut.as_ref().is_some() {
+                            let mut path = table_mut.as_mut().unwrap().get("path");
+                            if path.as_ref().is_none() {
+                                info!("Could not remove path, as it did not exist");
+                                return;
+                            }
+                            info!("Going to remove path: {:?} from deps.", &path);
+                            let path_buf = Path::new(base_dir).join(Path::new(&key));
+                            let target_path_buf = Path::new(base_dir).join("target").join(key);
+                            if !path_buf.exists() && !target_path_buf.exists() {
+                                info!("Removing path for {}, as it does not point to a local path", path_buf.to_str().unwrap());
+                                table_mut.as_mut().unwrap().remove("path");
+                                info!("After removal: {:?}.", &table_mut);
                             }
                         }
                     });

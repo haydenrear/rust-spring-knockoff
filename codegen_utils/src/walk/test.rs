@@ -1,4 +1,4 @@
-use crate::env::get_build_project_dir;
+use knockoff_helper::get_build_project_dir;
 use crate::walk::DirectoryWalker;
 
 use knockoff_logging::*;

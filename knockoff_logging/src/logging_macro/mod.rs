@@ -11,6 +11,9 @@ macro_rules! initialize_logger {
     ($log_file:expr) => {
         create_logger_expr!(TextFileLoggerImpl, StandardLogData, TextFileLoggerImpl::new_from_file_dir($log_file));
     };
+    ($log_file:expr, $public:literal) => {
+        create_logger_expr!(TextFileLoggerImpl, StandardLogData, TextFileLoggerImpl::new_from_file_dir($log_file), $public);
+    };
     ($logger:ident, $log_data:ty) => {
         create_logger_expr!($logger, $log_data, $logger::new_from_file());
     };
@@ -69,6 +72,23 @@ macro_rules! import_logger_root {
             }
         }
     };
+    ($package:literal, $log_file:expr, $not_public:literal) => {
+        initialize_logger!($log_file, $not_public);
+
+        struct StandardLoggingFacade;
+
+        impl LoggingFacade<StandardLogData, TextFileLoggerImpl> for StandardLoggingFacade {
+            type LogFormatterType = StandardLogFormatter;
+            type LoggerArgsType = TextFileLoggerArgs;
+
+            fn get_logger() -> &'static Mutex<TextFileLoggerImpl> {
+                &logger_lazy
+            }
+            fn package() -> &'static str {
+                $package
+            }
+        }
+    };
 }
 
 
@@ -78,6 +98,15 @@ macro_rules! create_logger_expr {
 
         lazy_static! {
             pub static ref logger_lazy: Mutex<$logger> = {
+                let text_file_logger_unwrapped = $create_logger;
+                Mutex::new(text_file_logger_unwrapped.unwrap() as $logger)
+            };
+        }
+    };
+    ($logger:ident, $log_data:ty, $create_logger:expr, $derive:literal) => {
+
+        lazy_static! {
+            static ref logger_lazy: Mutex<$logger> = {
                 let text_file_logger_unwrapped = $create_logger;
                 Mutex::new(text_file_logger_unwrapped.unwrap() as $logger)
             };

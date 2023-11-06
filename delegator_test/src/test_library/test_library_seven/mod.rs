@@ -2,9 +2,14 @@ use std::marker::PhantomData;
 use spring_knockoff_boot_macro::{service, autowired, enum_service, knockoff_ignore, prototype};
 use serde::{Deserialize, Serialize};
 
+use configuration_properties_macro::ConfigurationProperties;
 #[service(TestLibraryFourAgain)]
 #[derive(Default)]
 pub struct TestLibraryFourAgain;
+
+#[derive(ConfigurationProperties)]
+#[value="property_key"]
+pub struct TestConfigProperties;
 
 impl TestLibraryFourAgain {
     pub fn some_test() {
@@ -159,4 +164,20 @@ pub struct TestInjectPrototypeBean {
     #[autowired]
     #[prototype]
     pub test_prototype_bean: TestPrototypeBean
+}
+
+#[derive(Default)]
+pub struct TestPrototypeBeanFromFactoryFn;
+
+
+#[prototype(TestPrototypeBeanFromFactoryFn)]
+pub fn test_prototype_bean() ->  TestPrototypeBeanFromFactoryFn {
+    TestPrototypeBeanFromFactoryFn::default()
+}
+
+#[service(TestInjectPrototypeBeanFromFactoryFn)]
+pub struct TestInjectPrototypeBeanFromFactoryFn {
+    #[autowired]
+    #[prototype]
+    pub test_prototype_bean: TestPrototypeBeanFromFactoryFn
 }

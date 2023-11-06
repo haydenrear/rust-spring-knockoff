@@ -1,4 +1,4 @@
-use syn::{Field, Generics, ImplItem, ItemImpl, Lifetime, PatType, Type, TypeArray};
+use syn::{Attribute, Field, Generics, ImplItem, ItemImpl, Lifetime, PatType, Type, TypeArray};
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 use codegen_utils::syn_helper;
@@ -80,6 +80,7 @@ pub enum AutowiredType {
         lazy: bool,
         fn_arg: PatType,
         fn_arg_ident: Ident,
+        fn_arg_attrs: Vec<Attribute>,
         bean_type: BeanPath,
         autowired_type: Type,
         concrete_type_of_field_bean_type: Option<Type>,

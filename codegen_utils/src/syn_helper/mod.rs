@@ -8,6 +8,14 @@ use std::fmt::{Debug, DebugStruct};
 use std::ops::Deref;
 use crate::parse;
 
+use knockoff_logging::*;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use radix_trie::{Trie, TrieCommon};
+use string_utils::normalize_quotes;
+use crate::logger_lazy;
+import_logger!("syn_helper.rs");
+
 pub mod test;
 
 pub struct SynHelper;
@@ -21,11 +29,26 @@ impl SynHelper {
             .map(|stripped| stripped.to_string())
     }
 
+    pub fn parse_attr_prop_single(attr: &Attribute) -> Option<String> {
+        let replaced = normalize_quotes(&attr.tokens.to_string())
+            .replace("=", "");
+        string_utils::strip_whitespace(&replaced)
+            .map(|s| s.to_string())
+    }
+
     pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: &Vec<&str>) -> Option<String> {
         autowired_attr.iter()
             .filter(|a| matcher_str.iter().any(|m| Self::get_str(a).as_str().contains(*m)))
             .next()
             .map(|a| SynHelper::parse_attr_path_single(a).or(Some("".to_string())))
+            .flatten()
+    }
+
+    pub fn get_attr_from_vec_prop(autowired_attr: &Vec<Attribute>, matcher_str: &Vec<&str>) -> Option<String> {
+        autowired_attr.iter()
+            .filter(|a| matcher_str.iter().any(|m| Self::get_str(a).as_str().contains(*m)))
+            .next()
+            .map(|a| SynHelper::parse_attr_prop_single(a).or(Some("".to_string())))
             .flatten()
     }
 

@@ -193,6 +193,14 @@ fn test_module_macro() {
 
     let prototype_bean = PrototypeBeanContainer::<TestPrototypeBean>::fetch_bean(&listable);
 
+    let concrete_prototype = BeanContainer::<TestInjectPrototypeBeanFromFactoryFn>::fetch_bean(&listable);
+    assert!(concrete_prototype.is_some());
+
+    let prototype_bean = PrototypeBeanContainer::<TestPrototypeBeanFromFactoryFn>::fetch_bean(&listable);
+
+    let concrete_prototype = BeanContainer::<Mutex<TestInjectPrototypeBeanFromFactoryFn>>::fetch_bean(&listable);
+    assert!(concrete_prototype.is_some());
+
 }
 
 

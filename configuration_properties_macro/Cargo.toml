@@ -19,12 +19,16 @@ toml = "0.8.6"
 path ="../codegen_utils"
 registry = "estuary"
 version = "0.1.5"
-[dependencies.knockoff_env]
-path ="../knockoff_env"
+[dependencies.knockoff_helper]
+path ="../knockoff_helper"
 registry = "estuary"
 version = "0.1.5"
-[dependencies.configuration_properties]
-path ="../configuration_properties"
+[dependencies.knockoff_env]
+path = "../knockoff_env"
+registry = "estuary"
+version = "0.1.5"
+[dependencies.knockoff_logging]
+path ="../knockoff_logging"
 registry = "estuary"
 version = "0.1.5"
 

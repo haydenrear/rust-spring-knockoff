@@ -1,19 +1,10 @@
-use std::{env, fs};
-use std::collections::HashMap;
-use std::fmt::Error;
-use std::fs::File;
-use std::path::{Path, PathBuf};
-use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
-use std::io::Write;
-use toml::Table;
-use factories_codegen::factories_parser::{Factories, FactoriesParser, Phase, Provider};
-use factories_codegen::parse_provider::ParseProvider;
-use factories_codegen::provider::DelegatingProvider;
-
+use std::env;
+use factories_codegen::factories_parser::{FactoriesParser, Phase};
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
-use codegen_utils::{get_project_dir, project_directory};
+use codegen_utils::project_directory;
+use codegen_utils::{get_build_project_dir, get_project_base_build_dir, get_project_dir};
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/o_codegen_build_rs.log"));
 
 /// The token stream providers need to depend on user provided crate, so that means we need to

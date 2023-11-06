@@ -1,24 +1,12 @@
-use std::{env, fs};
-use std::ffi::{OsStr, OsString};
-use std::fs::File;
-use std::io::{Read, Write};
-use std::ops::Deref;
-use std::path::Path;
-use std::ptr::write;
-use syn::__private::{Span, ToTokens};
-use syn::{braced, Fields, Ident, Item, ItemMod, ItemStruct, Token, token, Visibility, VisPublic};
-use syn::parse::{ParseBuffer, ParseStream};
-use syn::token::Brace;
-use codegen_utils::env::{get_project_base_build_dir, get_build_project_dir};
+use std::env;
+use std::io::Write;
 use codegen_utils::project_directory;
 use module_macro_codegen::parser::LibParser;
-use crate_gen::CrateWriter;
-use std::fmt::Write as write;
-
 use knockoff_logging::*;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
+use codegen_utils::{get_build_project_dir, get_project_base_build_dir};
 import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/module_macro_lib_build.log"));
 
 

@@ -51,16 +51,24 @@ impl AntStringRequestMatcher {
         split_self_match
     }
 
-    fn do_match(split_match: &Vec<&str>, i: usize, matched: Vec<&str>) -> bool {
-        for or_self in matched.iter() {
-            let x = split_match.get(i).unwrap();
-            let first = or_self.to_string();
-            let second = x.to_string();
-            if first == second {
-                return true;
-            }
+    fn do_match(to_match_values: &Vec<&str>, i: usize, matcher_values: Vec<&str>) -> bool {
+        for or_self in matcher_values.iter() {
+            let to_match_val = to_match_values.get(i).unwrap();
+            return Self::match_value(to_match_val, or_self);
         }
         false
+    }
+
+    fn match_value(to_match: &str, matcher: &str) -> bool {
+        if matcher.contains("*") && matcher != "*" {
+            /// Cover cases where glob is in middle of word.
+            let matcher = AntStringRequestMatcher::new(matcher.to_string(), "".to_string()) ;
+            matcher.matches(to_match)
+        } else if to_match == matcher {
+            true
+        } else {
+            false
+        }
     }
 
     fn is_last_star(&self, split_self_match: Vec<&str>, split_self_has_one_added: bool) -> bool {
@@ -74,9 +82,9 @@ impl Matcher<&str> for AntStringRequestMatcher {
     fn matches(&self, to_match: &str) -> bool {
 
         let split_self_match = self.split_for_match(&self.to_match);
-        let split_match = self.split_for_match(to_match);
+        let to_match_value = self.split_for_match(to_match);
 
-        for i in 0..split_match.len() {
+        for i in 0..to_match_value.len() {
 
             if i > split_self_match.len() {
                 return false;
@@ -89,26 +97,30 @@ impl Matcher<&str> for AntStringRequestMatcher {
                     return true
                 }
                 Some(&"*") => {
-                    if i == split_match.len() - 1 {
-                        return split_self_match.len() == split_match.len();
+                    if i == to_match_value.len() - 1 {
+                        return split_self_match.len() == to_match_value.len();
                     }
                     continue;
                 }
                 _ => {}
             }
 
-            let matched = self_to_match.or(Some(&""))
+            let matcher_value = self_to_match.or(Some(&""))
                 .unwrap()
                 .split("|")
                 .filter(|s| s.len() != 0)
                 .collect::<Vec<&str>>();
 
-            if matched.len() > 1 {
-                if Self::do_match(&split_match, i, matched) {
+            if matcher_value.len() > 1 {
+                if Self::do_match(&to_match_value, i, matcher_value) {
                     continue;
                 }
             } else {
-                if self_to_match == split_match.get(i) {
+                let to_match_opt = to_match_value.get(i);
+                if to_match_opt.as_ref().is_some() && self_to_match.as_ref().is_some()
+                    && Self::match_value(
+                    to_match_opt.as_ref().unwrap().to_string().to_string().as_str(),
+                    self_to_match.as_ref().unwrap().to_string().as_str()) {
                     continue;
                 } else {
                     return false;
@@ -116,16 +128,16 @@ impl Matcher<&str> for AntStringRequestMatcher {
             }
         }
 
-        if split_self_match.len() > split_match.len() {
-            let split_self_has_one_added = split_self_match.len() - split_match.len() == 1;
+        if split_self_match.len() > to_match_value.len() {
+            let split_self_has_one_added = split_self_match.len() - to_match_value.len() == 1;
             if self.is_last_star(split_self_match, split_self_has_one_added) {
                 true
             } else {
                false
             }
         } else {
-            if split_self_match.len() == split_match.len() {
-                split_self_match.last() == split_match.last()
+            if split_self_match.len() == to_match_value.len() {
+                split_self_match.last() == to_match_value.last()
             } else {
                 false
             }
