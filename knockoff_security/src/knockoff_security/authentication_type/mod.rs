@@ -27,7 +27,7 @@ impl AuthenticationConversionError {
     }
 }
 
-pub trait AuthenticationAware {
+pub trait AuthenticationAware: Send + Sync + Default {
     fn get_authorities(&self) -> Vec<GrantedAuthority>;
     fn get_credentials(&self) -> Option<String>;
     fn get_principal(&self) -> Option<String>;
@@ -95,32 +95,32 @@ pub struct JwtToken {
     pub token: String,
 }
 
-impl AuthenticationAware for JwtToken {
-    fn get_authorities(&self) -> Vec<GrantedAuthority> {
+impl JwtToken {
+    pub fn get_authorities(&self) -> Vec<GrantedAuthority> {
         todo!()
     }
 
-    fn get_credentials(&self) -> Option<String> {
+    pub fn get_credentials(&self) -> Option<String> {
         todo!()
     }
 
-    fn get_principal(&self) -> Option<String> {
+    pub fn get_principal(&self) -> Option<String> {
         todo!()
     }
 
-    fn set_credentials(&mut self, credential: String) {
+    pub fn set_credentials(&mut self, credential: String) {
         todo!()
     }
 
-    fn set_principal(&mut self, principal: String) {
+    pub fn set_principal(&mut self, principal: String) {
         todo!()
     }
 }
 
-impl AuthType for JwtToken {
-    const AUTH_TYPE: &'static str = "bearer";
+impl JwtToken {
+    pub const AUTH_TYPE: &'static str = "bearer";
 
-    fn parse_credentials(request: &WebRequest) -> Result<JwtToken, AuthenticationConversionError> {
+    pub fn parse_credentials(request: &WebRequest) -> Result<JwtToken, AuthenticationConversionError> {
         JwtToken::parse_credentials_jwt(request)
     }
 }
@@ -141,40 +141,40 @@ impl JwtToken {
 pub struct Anonymous {
 }
 
-impl AuthenticationAware for Anonymous {
-    fn get_authorities(&self) -> Vec<GrantedAuthority> {
+impl Anonymous {
+    pub fn get_authorities(&self) -> Vec<GrantedAuthority> {
         vec![]
     }
 
-    fn get_credentials(&self) -> Option<String> {
+    pub fn get_credentials(&self) -> Option<String> {
         Some(String::default())
     }
 
-    fn get_principal(&self) -> Option<String> {
+    pub fn get_principal(&self) -> Option<String> {
         Some(String::default())
     }
 
-    fn set_credentials(&mut self, credential: String) {
+    pub fn set_credentials(&mut self, credential: String) {
     }
 
-    fn set_principal(&mut self, principal: String) {
+    pub fn set_principal(&mut self, principal: String) {
     }
 }
 
-impl AuthType for Anonymous {
-    const AUTH_TYPE: &'static str = "";
+impl Anonymous {
+    pub const AUTH_TYPE: &'static str = "";
 
-    fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+    pub fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
         Anonymous::parse_credentials_unauthenticated(request)
     }
 
-    fn authorization_matcher(match_this: &str) -> bool {
+    pub fn authorization_matcher(match_this: &str) -> bool {
         true
     }
 }
 
 impl Anonymous {
-    fn parse_credentials_unauthenticated(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+    pub fn parse_credentials_unauthenticated(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
         Ok(Self{})
     }
 }
@@ -184,24 +184,24 @@ pub struct OpenSamlAssertion {
     assertion: String,
 }
 
-impl AuthenticationAware for OpenSamlAssertion {
-    fn get_authorities(&self) -> Vec<GrantedAuthority> {
+impl OpenSamlAssertion {
+    pub fn get_authorities(&self) -> Vec<GrantedAuthority> {
         todo!()
     }
 
-    fn get_credentials(&self) -> Option<String> {
+    pub fn get_credentials(&self) -> Option<String> {
         todo!()
     }
 
-    fn get_principal(&self) -> Option<String> {
+    pub fn get_principal(&self) -> Option<String> {
         todo!()
     }
 
-    fn set_credentials(&mut self, credential: String) {
+    pub fn set_credentials(&mut self, credential: String) {
         todo!()
     }
 
-    fn set_principal(&mut self, principal: String) {
+    pub fn set_principal(&mut self, principal: String) {
         todo!()
     }
 }
@@ -212,22 +212,23 @@ impl Default for OpenSamlAssertion {
     }
 }
 
-impl AuthType for OpenSamlAssertion {
-    const AUTH_TYPE: &'static str = "research";
+impl OpenSamlAssertion {
+    pub const AUTH_TYPE: &'static str = "research";
 
-    fn parse_credentials(request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
+    pub fn parse_credentials(request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
         OpenSamlAssertion::parse_credentials_opensaml(request)
     }
 
-    fn authorization_matcher(match_this: &str) -> bool {
+    pub  fn authorization_matcher(match_this: &str) -> bool {
         // TODO:
-        Self::match_this(match_this, "research")
+        // Self::match_this(match_this, "research")
+        true
     }
 
 }
 
 impl OpenSamlAssertion {
-    fn parse_credentials_opensaml(request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
+    pub  fn parse_credentials_opensaml(request: &WebRequest) -> Result<OpenSamlAssertion, AuthenticationConversionError> {
         todo!()
     }
 }
@@ -238,24 +239,24 @@ pub struct UsernamePassword {
     pub password: String,
 }
 
-impl AuthenticationAware for UsernamePassword {
-    fn get_authorities(&self) -> Vec<GrantedAuthority> {
+impl UsernamePassword {
+    pub fn get_authorities(&self) -> Vec<GrantedAuthority> {
         todo!()
     }
 
-    fn get_credentials(&self) -> Option<String> {
+    pub  fn get_credentials(&self) -> Option<String> {
         todo!()
     }
 
-    fn get_principal(&self) -> Option<String> {
+    pub fn get_principal(&self) -> Option<String> {
         todo!()
     }
 
-    fn set_credentials(&mut self, credential: String) {
+    pub  fn set_credentials(&mut self, credential: String) {
         todo!()
     }
 
-    fn set_principal(&mut self, principal: String) {
+    pub  fn set_principal(&mut self, principal: String) {
         todo!()
     }
 }
@@ -266,15 +267,16 @@ impl Default for UsernamePassword {
     }
 }
 
-impl AuthType for UsernamePassword {
-    const AUTH_TYPE: &'static str = "basic";
+impl UsernamePassword {
+    pub const AUTH_TYPE: &'static str = "basic";
 
-    fn parse_credentials(request: &WebRequest) -> Result<UsernamePassword, AuthenticationConversionError> {
+    pub  fn parse_credentials(request: &WebRequest) -> Result<UsernamePassword, AuthenticationConversionError> {
         Self::parse_credentials_inner(request)
     }
 
-    fn authorization_matcher(match_this: &str) -> bool {
-        Self::match_this(match_this, Self::AUTH_TYPE)
+    pub  fn authorization_matcher(match_this: &str) -> bool {
+        // Self::match_this(match_this, Self::AUTH_TYPE)
+        true
     }
 
 }

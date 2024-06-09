@@ -71,7 +71,7 @@ mod test_security {
         impl TestTrain for TestReq {}
 
         let http = HttpSecurity::<TestReq, TestReq>::default();
-        http.delegating_authentication_manager(DelegatingAuthenticationManager::new());
+        // http.delegating_authentication_manager(DelegatingAuthenticationManager::new());
         assert!(http.authentication_manager.lock().unwrap().is_some());
     }
 

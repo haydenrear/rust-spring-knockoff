@@ -23,7 +23,6 @@ use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
 include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
 
 
-
 #[module_attr]
 #[cfg(springknockoff)]
 pub mod test_library {
@@ -70,43 +69,41 @@ pub mod test_library {
         use web_framework_shared::*;
         use knockoff_security::{AuthType, AuthenticationConversionError, AuthenticationAware};
 
-        #[derive(Default, Clone, Debug, Serialize, Deserialize)]
+        // #[knockoff_ignore]
         #[auth_type_struct(TestAuthType)]
-        #[knockoff_ignore]
+        #[derive(Default, Clone, Debug, Serialize, Deserialize)]
         pub struct TestAuthType {
-            some_token: String
+            // some_token: String
         }
 
         #[auth_type_impl(TestAuthType)]
-        #[knockoff_ignore]
-        impl AuthType for TestAuthType {
+        impl TestAuthType {
             const AUTH_TYPE: &'static str = "test_auth_type";
 
-            fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
+            pub fn parse_credentials(request: &WebRequest) -> Result<Self, AuthenticationConversionError> {
                 Ok(TestAuthType::default())
             }
         }
 
         #[auth_type_aware(TestAuthType)]
-        #[knockoff_ignore]
-        impl AuthenticationAware for TestAuthType {
-            fn get_authorities(&self) -> Vec<GrantedAuthority> {
+        impl TestAuthType {
+            pub fn get_authorities(&self) -> Vec<GrantedAuthority> {
                 todo!()
             }
 
-            fn get_credentials(&self) -> Option<String> {
+            pub fn get_credentials(&self) -> Option<String> {
                 todo!()
             }
 
-            fn get_principal(&self) -> Option<String> {
+            pub fn get_principal(&self) -> Option<String> {
                 todo!()
             }
 
-            fn set_credentials(&mut self, credential: String) {
+            pub fn set_credentials(&mut self, credential: String) {
                 todo!()
             }
 
-            fn set_principal(&mut self, principal: String) {
+            pub fn set_principal(&mut self, principal: String) {
                 todo!()
             }
         }
@@ -123,12 +120,12 @@ use knockoff_security::knockoff_security::*;
 #[test]
 fn test_module_macro() {
     create_with_extra_field();
+    use knockoff_security::JwtToken;;
+    use web_framework::{AuthenticationType, TestAuthType};
+    let j = AuthenticationType::TestAuthType( web_framework::TestAuthType {} );
 
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
-
-    // let auth = AuthenticationType::TestAuthType(TestAuthType::default());
-
 
     let four_found_again: Option<Arc<TestLibraryFourAgain>> = BeanContainer::<TestLibraryFourAgain>::fetch_bean(&listable);
     assert!(four_found_again.is_some());

@@ -1,4 +1,4 @@
-use crate::web_framework::session::session::{HttpSession, WebApplication};
+use crate::web_framework::session::session::{HttpSession};
 use data_framework::{Entity, Repo, RepoDelegate};
 use lazy_static::lazy_static;
 use mongo_repo::Db;

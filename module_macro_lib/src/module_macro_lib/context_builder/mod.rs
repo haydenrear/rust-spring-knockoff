@@ -28,5 +28,4 @@ impl ContextBuilder {
             = ApplicationContextGenerator::create_context_generator(&mut parse_container.profile_tree);
         ctx.generate_token_stream()
     }
-
 }

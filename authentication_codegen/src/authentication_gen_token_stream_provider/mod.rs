@@ -22,9 +22,12 @@ impl AuthenticationTypeTokenStreamGenerator {
 
     /// This generates the aspect.
     pub fn generate_token_stream(&self) -> TokenStream {
-        self.auth_types.as_ref().map(|a| Self::get_codegen(a))
-            .or(Some(Self::default_tokens()))
-            .unwrap()
+        let out = self.auth_types.as_ref().map(|a| Self::get_codegen(a))
+            .unwrap();
+
+        info!("Found {}.", out.to_string().as_str());
+
+        out
     }
 
     pub fn new(profile_tree: &mut ProfileTree) -> Self {
@@ -75,6 +78,8 @@ impl AuthenticationTypeTokenStreamGenerator {
     fn get_authentication_types(types_next: &Vec<NextAuthType>) -> TokenStream {
         let (enum_names, types, types_tokens, impl_tokens, auth_aware) =
             Self::create_prepare_auth_type_ts(types_next);
+
+        info!("Have enum {} names, {} types, {} types tokens, {} impl tokens, {} auth aware.", enum_names.len(), types.len(), types_tokens.len(), impl_tokens.len(), auth_aware.len());
 
         let t = quote! {
 
@@ -202,30 +207,30 @@ impl AuthenticationTypeTokenStreamGenerator {
         });
         let enum_names = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_to_add.clone().iter().flat_map(|c| vec![c.ident.clone()]).collect(),
+            &|next| next.auth_type_to_add.clone().unwrap().ident.clone(),
         );
         let types = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_impl.clone().iter().flat_map(|c| vec![c.self_ty.deref().clone()]).collect(),
+            &|next| next.auth_type_impl.clone().unwrap().self_ty.deref().clone(),
         );
         let types_tokens = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_to_add.clone().iter().flat_map(|t| vec![t.to_token_stream()]).collect(),
+            &|next| next.auth_type_to_add.clone().unwrap().to_token_stream().clone(),
         );
         let impl_tokens = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_impl.clone().iter().flat_map(|t| vec![t.to_token_stream()]).collect(),
+            &|next| next.auth_type_impl.clone().unwrap().to_token_stream().clone(),
         );
         let auth_aware = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_aware_impl.clone().iter().flat_map(|t| vec![t.to_token_stream()]).collect(),
+            &|next| next.auth_aware_impl.clone().unwrap().to_token_stream().clone(),
         );
         (enum_names, types, types_tokens, impl_tokens, auth_aware)
     }
 
-    fn get_collect_ts_type<T: ToTokens>(types_next: &Vec<NextAuthType>, ts_getter: &dyn Fn(&NextAuthType) -> Vec<T>) -> Vec<T> {
+    fn get_collect_ts_type<T: ToTokens>(types_next: &Vec<NextAuthType>, ts_getter: &dyn Fn(&NextAuthType) -> T) -> Vec<T> {
         types_next.iter()
-            .flat_map(|next| ts_getter(next))
+            .map(|next| ts_getter(next))
             .collect::<Vec<T>>()
     }
 
@@ -285,6 +290,7 @@ impl AuthenticationTypeTokenStreamGenerator {
     }
 
     fn default_tokens() -> TokenStream {
+        info!("Getting default tokens!");
         let mut ts = TokenStream::default();
         ts.append_all(Self::get_imports());
         ts.append_all(Self::get_authentication_types(&vec!()));

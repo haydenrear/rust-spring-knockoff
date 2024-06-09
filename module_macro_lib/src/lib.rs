@@ -1,7 +1,7 @@
 #![feature(pattern)]
 #![feature(let_chains)]
 
-include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+// include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 
 pub mod module_macro_lib {
     pub mod parse_container;
@@ -20,3 +20,6 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/module_macro_lib.log"));
+
+
+

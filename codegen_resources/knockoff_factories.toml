@@ -126,10 +126,10 @@ registry = "estuary"
 version = "0.1.5"
 
 # Providers for aspects
-[phases.providers.stages.one.item_provider.values.aspect_knockoff_provider.provider_data]
+[phases.providers.stages.one.item_modifier.values.aspect_knockoff_provider.provider_data]
 provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_item_modifier::AspectParser"
 provider_ident = "AspectParserBuilder"
-[phases.providers.stages.one.item_provider.values.aspect_knockoff_provider.dependency_data]
+[phases.providers.stages.one.item_modifier.values.aspect_knockoff_provider.dependency_data]
 path = "../../aspect_knockoff_provider"
 registry = "estuary"
 version = "0.1.5"
