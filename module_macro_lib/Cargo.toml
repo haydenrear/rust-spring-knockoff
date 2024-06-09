@@ -16,6 +16,10 @@ base64 = "0.13.0"
 executors = "0.9.0"
 paste = "1.0.12"
 rand = "0.8.5"
+[dependencies.build_lib]
+path = "../build_lib"
+version = "0.1.5"
+registry = "estuary"
 [dependencies.knockoff_providers_gen]
 path = "../target/knockoff_providers_gen"
 version = "0.1.5"

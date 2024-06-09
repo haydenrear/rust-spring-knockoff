@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AutoImportSettings">
-    <option name="autoReloadType" value="SELECTIVE" />
+    <option name="autoReloadType" value="ALL" />
   </component>
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="Updated so that copy all libraries instead of each one individually and added prototype bean factory.">
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="before">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_tokio_util/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_tokio_util/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_tokio_util/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_tokio_util/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_dev.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build_dev.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/log.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_precompile/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/todo.md" beforeDir="false" afterPath="$PROJECT_DIR$/todo.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -110,59 +114,60 @@
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Cargo.Test lib::test.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test lib::tests.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test matcher::test::test_ant_path_matcher.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test matcher::test::test_ant_path_request_matcher.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test property_source::test_get_property.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test property_source_parser::test_property_source_parser.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test resource_loader::test_pattern_matcher.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_logging_facade.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_logging_macro.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_logging_macro_concurrent.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_text_logging.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_write_multiple::test_serialize.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test::test_write_multiple::test_write.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test_dyn.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test_module_macro.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test test_pattern_matcher.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test wait_for::wait_async::test_async.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test wait_for::wait_async::test_async_multiple.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test walk::test::test_directory_walker.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test walk::test::walk_find_mod.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Tests in 'knockoff_logging'.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;aspect.path.notification.shown&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/precompile_macro&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/test_library/test_library_seven/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_work/target/knockoff_providers_gen/src/lib.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs&quot;: &quot;true&quot;,
-    &quot;org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs&quot;: &quot;true&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Cargo.Test lib::test.executor": "Run",
+    "Cargo.Test lib::tests.executor": "Run",
+    "Cargo.Test matcher::test::test_ant_path_matcher.executor": "Run",
+    "Cargo.Test matcher::test::test_ant_path_request_matcher.executor": "Run",
+    "Cargo.Test property_source::test_get_property.executor": "Run",
+    "Cargo.Test property_source_parser::test_property_source_parser.executor": "Run",
+    "Cargo.Test resource_loader::test_pattern_matcher.executor": "Run",
+    "Cargo.Test test::test_logging_facade.executor": "Run",
+    "Cargo.Test test::test_logging_macro.executor": "Run",
+    "Cargo.Test test::test_logging_macro_concurrent.executor": "Run",
+    "Cargo.Test test::test_text_logging.executor": "Run",
+    "Cargo.Test test::test_write_multiple::test_serialize.executor": "Run",
+    "Cargo.Test test::test_write_multiple::test_write.executor": "Run",
+    "Cargo.Test test_dyn.executor": "Run",
+    "Cargo.Test test_module_macro.executor": "Run",
+    "Cargo.Test test_pattern_matcher.executor": "Run",
+    "Cargo.Test wait_for::wait_async::test_async.executor": "Run",
+    "Cargo.Test wait_for::wait_async::test_async_multiple.executor": "Run",
+    "Cargo.Test walk::test::test_directory_walker.executor": "Run",
+    "Cargo.Test walk::test::walk_find_mod.executor": "Run",
+    "Cargo.Tests in 'knockoff_logging'.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "aspect.path.notification.shown": "true",
+    "git-widget-placeholder": "main",
+    "go.import.settings.migrated": "true",
+    "jdk.selected.JAVA_MODULE": "openjdk-19",
+    "last_opened_file_path": "/Users/hayde/IdeaProjects/rust-spring-knockoff/precompile_macro",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/test_library/test_library_seven/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_work/target/knockoff_providers_gen/src/lib.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/module_parser/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_lib/src/module_macro_lib/profile_tree_operation/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_shared/src/module_macro_shared/module_macro_shared_codegen/mod.rs": "true",
+    "org.rust.disableDetachedFileInspection/Users/hayde/IdeaProjects/rust-spring-knockoff/web_framework/src/filter/test.rs": "true",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.intentionPowerPack",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/precompile_macro" />
@@ -283,12 +288,12 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="Cargo.Test matcher::test::test_ant_path_matcher" />
+      <item itemvalue="Cargo.Test" />
       <item itemvalue="Cargo.Test matcher::test::test_ant_path_request_matcher" />
       <item itemvalue="Cargo.Test property_source_parser::test_property_source_parser" />
       <item itemvalue="Cargo.Test resource_loader::test_pattern_matcher" />
+      <item itemvalue="Cargo.Test matcher::test::test_ant_path_matcher" />
       <item itemvalue="Cargo.Test test_module_macro" />
-      <item itemvalue="Cargo.Test" />
     </list>
     <recent_temporary>
       <list>
@@ -397,6 +402,7 @@
       <workItem from="1699207791915" duration="34440000" />
       <workItem from="1699293485650" duration="17779000" />
       <workItem from="1699461970389" duration="4596000" />
+      <workItem from="1717943729083" duration="11984000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -741,7 +747,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="227" />
+    <option name="localTasksCounter" value="228" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -792,7 +798,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/set_enum_fields" />
     </ignored-roots>
-    <MESSAGE value="use statements for the beans" />
     <MESSAGE value="adding cargo add-on to facilitate building of the codegen service loader" />
     <MESSAGE value="fixing" />
     <MESSAGE value="udpated" />
@@ -817,7 +822,8 @@
     <MESSAGE value="Fixed hyper" />
     <MESSAGE value="Fixed walker" />
     <MESSAGE value="Updated so that copy all libraries instead of each one individually and added prototype bean factory." />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated so that copy all libraries instead of each one individually and added prototype bean factory." />
+    <MESSAGE value="before" />
+    <option name="LAST_COMMIT_MESSAGE" value="before" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
