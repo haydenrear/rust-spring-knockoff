@@ -1,4 +1,5 @@
 # TODO:
+- [ ] update to dynamic linking potentially by adding to the [links] section for the dynamically built libraries that are referencing code in target folder?
 - [ ] add multi-provider inject -> create a delegator object that contains the delegators and implements the trait that delegates to each of them not using dynamic dispatch. This probably only way easily replace dynamic with static. 
 - [ ] create provider for ConfigurationProperties and properties abstraction to load properties hierarchically from files using Profiles and Priority.
 - [ ] add application context initializer (see spring boot macro for info)
