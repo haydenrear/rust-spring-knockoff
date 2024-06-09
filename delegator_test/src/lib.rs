@@ -120,7 +120,6 @@ use knockoff_security::knockoff_security::*;
 #[test]
 fn test_module_macro() {
     create_with_extra_field();
-    use knockoff_security::JwtToken;;
     use web_framework::{AuthenticationType, TestAuthType};
     let j = AuthenticationType::TestAuthType( web_framework::TestAuthType {} );
 
