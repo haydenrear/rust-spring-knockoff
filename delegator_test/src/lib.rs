@@ -116,12 +116,12 @@ pub mod test_library {
 
 pub use test_library::*;
 use knockoff_security::knockoff_security::*;
+use web_framework::{AuthenticationType, TestAuthType as FrameworkTestAuthType};
 
 #[test]
 fn test_module_macro() {
     create_with_extra_field();
-    use web_framework::{AuthenticationType, TestAuthType};
-    let j = AuthenticationType::TestAuthType( web_framework::TestAuthType {} );
+    let j = AuthenticationType::TestAuthType( FrameworkTestAuthType {} );
 
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
