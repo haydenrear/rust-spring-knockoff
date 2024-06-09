@@ -45,10 +45,11 @@ impl Debug for AuthTypes {
 
 use module_macro_shared::parse_container::MetadataItem;
 
-impl_parse_values!(AuthTypes);
-
 impl MetadataItem for AuthTypes {
     fn as_any(&mut self) -> &mut dyn Any {
         self
     }
 }
+
+impl_parse_values!(AuthTypes);
+

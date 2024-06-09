@@ -127,6 +127,8 @@ fn test_module_macro() {
     let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
     assert_ne!(listable.singleton_bean_definitions.len(), 0);
 
+    // let auth = AuthenticationType::TestAuthType(TestAuthType::default());
+
 
     let four_found_again: Option<Arc<TestLibraryFourAgain>> = BeanContainer::<TestLibraryFourAgain>::fetch_bean(&listable);
     assert!(four_found_again.is_some());

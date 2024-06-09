@@ -5,7 +5,8 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use codegen_utils::{get_build_project_dir, get_project_base_build_dir, get_project_dir};
-import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/o_codegen_build_rs.log"));
+
+import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/precompile_codegen.log"));
 
 /// The token stream providers need to depend on user provided crate, so that means we need to
 /// generate a crate that depends on those user provided crates. We will then delegate to the user
@@ -32,8 +33,11 @@ fn main() {
 
      FactoriesParser::write_phase(&knockoff_version, &knockoff_factories, &base_dir,
                                   &out_directory, &Phase::PreCompile)
-         .map(|stages| FactoriesParser::write_tokens_lib_rs(
-              stages, &out_directory, &knockoff_version, &Phase::PreCompile));
+         .map(|stages| {
+              info!("Writing stages of factory: {:?}.", &stages);
+              FactoriesParser::write_tokens_lib_rs(
+                   stages, &out_directory, &knockoff_version, &Phase::PreCompile)
+         });
 
      let mut proj_dir = get_project_base_build_dir();
      let mut cargo_change = "cargo:rerun-if-changed=".to_string();

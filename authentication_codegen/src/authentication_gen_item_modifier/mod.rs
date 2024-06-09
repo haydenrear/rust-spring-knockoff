@@ -25,25 +25,30 @@ impl AuthenticationGenItemModifier {
     /// been loaded into the ParseContainer. So now the item can be modified to add the aspect.
     pub fn modify_item(parse_container: &mut ParseContainer,
                        item: &mut Item, path_depth: Vec<String>) {
+        info!("Testing if modify {}!.", item.to_token_stream().to_string().as_str());
         if Self::supports_item(item) {
             match item {
                 Item::Mod(item_mod) => {
                     let item_id = MetadataItemId::new(METADATA_ITEM_ID.into(), METADATA_TYPE_ITEM_ID.into());
                     assert!(parse_container.provided_items.get_mut(&item_id).is_none(), "Authentication gen was already contained in container.");
                     let codegen_item = Self::get_codegen(item_mod);
+                    info!("Adding auth types: {:?}.", &codegen_item);
                     parse_container.provided_items.insert(
                         item_id,
                         vec![Box::new(codegen_item)]
                     );
                 }
-                _ => {}
+                _ => {
+                }
             }
         }
     }
 
     pub fn supports_item(impl_item: &Item) -> bool{
+        info!("Checking {:?}", &impl_item.to_token_stream().to_string().as_str());
         match impl_item {
             Item::Mod(item_mod) => {
+                info!("Checking {:?}", &item_mod.attrs);
                 item_mod.attrs.iter()
                     .any(|attr_found| attr_found.to_token_stream()
                         .to_string().as_str().contains("authentication_type")
@@ -56,47 +61,34 @@ impl AuthenticationGenItemModifier {
     }
 
     fn get_codegen(item: &ItemMod) -> AuthTypes {
+        let mut to_add_map: HashMap<String, NextAuthType> = HashMap::new();
+        item.content
+            .iter().flat_map(|m| &m.1)
+            .for_each(|item| {
+                info!("Testing if {}.", item.to_token_stream().to_string().as_str());
+                if let Item::Struct(s) = item {
+                    Self::add_item_struct(&mut to_add_map, s);
+                };
+                if let Item::Impl(i) = item {
+                    Self::insert_item_impl(&mut to_add_map, &i);
+                };
+
+            });
         AuthTypes {
-            auth_types: item.content
-                .iter().flat_map(|m| &m.1)
-                .flat_map(|item| {
-                    match item {
-                        Item::Mod(item_mod) => {
-                            let mut to_add_map: HashMap<String, NextAuthType> = HashMap::new();
-
-                            item_mod.content.iter().flat_map(|cnt| cnt.1.iter())
-                                .for_each(|item_to_create|
-                                    Self::add_item_to_map(&mut to_add_map, item_to_create)
-                                );
-
-                            let auth_types = to_add_map.values()
-                                .map(|next| next.to_owned().clone())
-                                .collect::<Vec<NextAuthType>>();
-                            auth_types
-                        }
-                        _ => {
-                            vec![]
-                        }
-                    }
-                })
-                .collect()
+            auth_types: to_add_map.iter().map(|(k, v)| v.clone()).collect()
         }
     }
 
     fn add_item_impl(mut to_add_map: &mut HashMap<String, NextAuthType>, id: &String, impl_found: &ItemImpl) {
-        if impl_found.trait_.clone()
-            .map(|t| t.1.to_token_stream().to_string().as_str().contains("AuthType"))
-            .filter(|f| *f)
-            .or(Some(false))
-            .unwrap() {
+        if impl_found.attrs.iter().any(|a| a.to_token_stream().to_string().as_str().contains("auth_type_impl")) {
+            info!("Found auth type");
             to_add_map.get_mut(id).map(|f| f.auth_type_impl = Some(impl_found.clone()));
-        } else if impl_found.trait_.clone()
-            .map(|t| t.1.to_token_stream().to_string().as_str().contains("AuthenticationAware"))
-            .filter(|f| *f)
-            .or(Some(false))
-            .unwrap() {
+        }
+        if impl_found.attrs.iter().any(|a| a.to_token_stream().to_string().as_str().contains("auth_type_aware")) {
+            info!("Found auth aware");
             to_add_map.get_mut(id).map(|f| f.auth_aware_impl = Some(impl_found.clone()));
         }
+
     }
 
     fn add_item_struct(mut to_add_map: &mut HashMap<String, NextAuthType>, struct_found: &ItemStruct) {
@@ -106,6 +98,7 @@ impl AuthenticationGenItemModifier {
         });
         let id = struct_found.ident.to_token_stream().to_string().clone();
         let struct_opt_to_add = Some(struct_found.clone());
+        info!("Found struct");
         if to_add_map.contains_key(&id) {
             to_add_map.get_mut(&id).map(|f| {
                 f.auth_type_to_add = struct_opt_to_add

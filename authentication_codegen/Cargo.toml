@@ -25,6 +25,10 @@ registry = "estuary"
 path ="../module_macro_shared"
 version = "0.1.5"
 registry = "estuary"
+#[dependencies.module_precompile_codegen]
+#path ="../module_precompile_codegen"
+#version = "0.1.5"
+#registry = "estuary"
 [dependencies.knockoff_logging]
 path ="../knockoff_logging"
 version = "0.1.5"

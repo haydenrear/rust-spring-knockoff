@@ -135,11 +135,17 @@ macro_rules! factories {
                     });
                 let mut out_ts = TokenStream::default();
                 $(
-                    out.get($factory_name_lit).map(|providers| {
-                        let providers = providers.iter().map(|p| p).collect();
-                        let tokens = $ty::get_tokens(&providers);
-                        out_ts.append_all(tokens);
-                    });
+                    if !out.contains_key($factory_name_lit) {
+                        info!("Did not contain key for {}.", $factory_name_lit);
+                    } else {
+                        out.get($factory_name_lit)
+                            .map(|providers| {
+                                info!("Added key for {} and providers {:?}.", $factory_name_lit, &providers);
+                                let providers = providers.iter().map(|p| p).collect();
+                                let tokens = $ty::get_tokens(&providers);
+                                out_ts.append_all(tokens);
+                            });
+                    }
                 )*
                 out_ts
             }
@@ -203,7 +209,9 @@ macro_rules! providers {
             fn tokens(t: &Factories) -> TokenStream {
                 let mut ts = TokenStream::default();
                 $(
-                    ts.append_all($ty::tokens(t));
+                    let tokens = $ty::tokens(t);
+                    info!("Adding token for {}, {}.", $factory_name_lit, tokens.to_string().as_str());
+                    ts.append_all(tokens);
                 )*
                 ts
             }
@@ -265,7 +273,7 @@ factories!(
     (ParseContainerModifierProvider, parse_container_modifier, "parse_container_modifier", "DelegatingParseContainerModifierProvider"),
     (ProfileTreeModifierProvider, profile_tree_modifier_provider, "profile_tree_modifier_provider", "DelegatingProfileTreeModifierProvider"),
     (ProfileTreeFinalizerProvider, profile_tree_finalizer, "profile_tree_finalizer", "DelegatingProfileTreeFinalizerProvider"),
-    (ItemModifierProvider, item_provider, "item_provider", "DelegatingItemModifier")
+    (ItemModifierProvider, item_modifier, "item_modifier", "DelegatingItemModifier")
 );
 
 providers!(
@@ -275,7 +283,7 @@ providers!(
     (ParseContainerModifierProvider, parse_container_modifier, "parse_container_modifier"),
     (ProfileTreeModifierProvider, profile_tree_modifier_provider, "profile_tree_modifier_provider"),
     (ProfileTreeFinalizerProvider, profile_tree_finalizer, "profile_tree_finalizer"),
-    (ItemModifierProvider, item_provider, "item_provider")
+    (ItemModifierProvider, item_modifier, "item_modifier")
 );
 
 
@@ -283,6 +291,7 @@ impl Factories {
 
     fn insert_provider(&self, mut provider_map: &mut HashMap<String, Provider>,
                        option: &Option<Factory>) {
+        info!("Attempting to insert {:?}", option);
         option.as_ref()
             .iter()
             .flat_map(|token_provider| {
@@ -651,6 +660,8 @@ edition = \"2021\"
         phase: &Phase
     ) {
 
+        info!("Writing stages {:?}", factories_parser);
+
         let (_out_lib_dir, _cargo_toml, out_lib_rs) = Self::get_lib_build_dirs(&out_directory, &String::default(), phase);
 
         let _ = File::create(out_lib_rs)
@@ -700,7 +711,9 @@ edition = \"2021\"
     }
 
     fn write_lib_rs(mut lib_rs_file: &mut File, factory: Factories) -> Option<()> {
+        info!("Here are factories: {:?}", factory);
         let parsed_factories = FactoriesParser::tokens(&factory);
+        info!("Here are parsed: {:?}", parsed_factories.to_string().as_str());
         writeln!(&mut lib_rs_file, "{}", parsed_factories.to_string().as_str())
             .ok()
     }

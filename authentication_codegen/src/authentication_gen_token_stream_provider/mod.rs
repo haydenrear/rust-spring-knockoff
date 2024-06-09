@@ -29,19 +29,14 @@ impl AuthenticationTypeTokenStreamGenerator {
 
     pub fn new(profile_tree: &mut ProfileTree) -> Self {
         Self {
-            auth_types: profile_tree.provided_items.get_mut(&MetadataItemId::new(METADATA_ITEM_ID.into(),
+            auth_types: profile_tree.provided_items.remove(&MetadataItemId::new(METADATA_ITEM_ID.into(),
                                                                                  METADATA_TYPE_ITEM_ID.into()))
-                .into_iter()
-                .map(|item| {
-                    assert!(item.len() <= 1);
-                    if item.len() == 1 {
-                        let mut removed = item.remove(0);
-                        AuthTypes::parse_values(&mut Some(removed)).cloned()
-                    } else {
-                        None
-                    }
+                .into_iter().flat_map(|removed| removed.into_iter())
+                .flat_map(|mut item| {
+                    AuthTypes::parse_values(&mut Some(item))
+                        .map(|f| f.clone())
+                        .into_iter()
                 })
-                .flat_map(|auth_types| auth_types.into_iter())
                 .next()
         }
 
@@ -71,6 +66,7 @@ impl AuthenticationTypeTokenStreamGenerator {
                 };
                 use spring_knockoff_boot_macro::{auth_type_aware, auth_type_impl, auth_type_struct};
                 use serde::{Serialize, Deserialize};
+                use spring_knockoff_boot_macro::knockoff_ignore;
                 use web_framework_shared::request::WebRequest;
         };
         t.into()
@@ -187,38 +183,55 @@ impl AuthenticationTypeTokenStreamGenerator {
     }
 
     fn create_prepare_auth_type_ts(types_next: &Vec<NextAuthType>) -> (Vec<Ident>, Vec<Type>, Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) {
+        types_next.iter().for_each(|s| {
+            if let Some(f) = &s.auth_type_to_add {
+                info!("has auth type to add") ;
+            } else {
+                info!("does not have auth type to add") ;
+            }
+            if let Some(f) = &s.auth_type_impl {
+                info!("has auth type to impl") ;
+            } else {
+                info!("does not have auth type impl") ;
+            }
+            if let Some(f) = &s.auth_aware_impl {
+                info!("has auth type aware") ;
+            } else {
+                info!("does not have auth aware") ;
+            }
+        });
         let enum_names = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_to_add.clone().unwrap().ident.clone(),
+            &|next| next.auth_type_to_add.clone().iter().flat_map(|c| vec![c.ident.clone()]).collect(),
         );
         let types = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_impl.clone().unwrap().self_ty.deref().clone(),
+            &|next| next.auth_type_impl.clone().iter().flat_map(|c| vec![c.self_ty.deref().clone()]).collect(),
         );
         let types_tokens = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_to_add.clone().unwrap().to_token_stream().clone(),
+            &|next| next.auth_type_to_add.clone().iter().flat_map(|t| vec![t.to_token_stream()]).collect(),
         );
         let impl_tokens = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_type_impl.clone().unwrap().to_token_stream().clone(),
+            &|next| next.auth_type_impl.clone().iter().flat_map(|t| vec![t.to_token_stream()]).collect(),
         );
         let auth_aware = Self::get_collect_ts_type(
             types_next,
-            &|next| next.auth_aware_impl.clone().unwrap().to_token_stream().clone(),
+            &|next| next.auth_aware_impl.clone().iter().flat_map(|t| vec![t.to_token_stream()]).collect(),
         );
         (enum_names, types, types_tokens, impl_tokens, auth_aware)
     }
 
-    fn get_collect_ts_type<T: ToTokens>(types_next: &Vec<NextAuthType>, ts_getter: &dyn Fn(&NextAuthType) -> T) -> Vec<T> {
+    fn get_collect_ts_type<T: ToTokens>(types_next: &Vec<NextAuthType>, ts_getter: &dyn Fn(&NextAuthType) -> Vec<T>) -> Vec<T> {
         types_next.iter()
-            .map(|next| ts_getter(next))
+            .flat_map(|next| ts_getter(next))
             .collect::<Vec<T>>()
     }
 
     fn get_converter(additional_auth_types: &Vec<NextAuthType>) -> TokenStream {
         let additional_auth_types = additional_auth_types.iter()
-            .map(|auth| auth.auth_type_to_add.clone().unwrap().ident.clone())
+            .flat_map(|auth| auth.auth_type_to_add.clone().iter().map(|i| i.ident.clone()).collect::<Vec<_>>())
             .collect::<Vec<Ident>>();
 
         let t = quote! {
@@ -253,10 +266,10 @@ impl AuthenticationTypeTokenStreamGenerator {
                                 JwtToken::parse_credentials(from)
                                     .map(|auth| AuthenticationType::Jwt(auth))
                             }
-                            #(#additional_auth_types::AUTH_TYPE => {
-                                #additional_auth_types::parse_credentials(from)
-                                    .map(|auth| AuthenticationType::#additional_auth_types(auth))
-                            })*
+                            // #(#additional_auth_types::AUTH_TYPE => {
+                            //     #additional_auth_types::parse_credentials(from)
+                            //         .map(|auth| AuthenticationType::#additional_auth_types(auth))
+                            // })*
                             _ => Ok(AuthenticationType::Unauthenticated(Anonymous::default()))
                         }
                     }
