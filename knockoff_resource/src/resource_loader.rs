@@ -78,7 +78,7 @@ impl FilePathMatchingPatternResourceResolver {
         DirectoryWalker::walk_directories_matching_to_path(
             predicate,
             &|file| true,
-            starting_directory,
+            &PathBuf::from(starting_directory)
         )
             .into_iter()
             .map(|path| {

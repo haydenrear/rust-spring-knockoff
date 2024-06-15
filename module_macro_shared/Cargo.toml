@@ -29,6 +29,10 @@ registry = "estuary"
 path = "../string_utils"
 version = "0.1.5"
 registry = "estuary"
+[dependencies.program_parser]
+path = "../program_parser"
+version = "0.1.5"
+registry = "estuary"
 [dependencies.set_enum_fields]
 path ="../set_enum_fields"
 version = "0.1.5"

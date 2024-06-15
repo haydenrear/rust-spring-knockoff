@@ -68,7 +68,14 @@
       <sourceFolder url="file://$MODULE_DIR$/knockoff_env/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/configuration_properties_macro/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_helper/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aspect_knockoff_gen/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/knockoff_resource/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/module_precompile_lib/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/module_precompile_macro/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/module_precompile_shared/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/optional/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/program_parser/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/properties/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
       <excludeFolder url="file://$MODULE_DIR$/security_model/target" />

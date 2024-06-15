@@ -19,7 +19,7 @@ pub struct DirectoryWalker;
 
 impl DirectoryWalker {
 
-    pub fn walk_find_mod(module_name: &str, base_dir: &str) -> Vec<PathBuf> {
+    pub fn walk_find_mod(module_name: &str, base_dir: &PathBuf) -> Vec<PathBuf> {
         let mut walk_dir;
         if module_name.ends_with(".rs") {
             walk_dir = Self::walk_dir(module_name.replace(".rs", "").as_str(), base_dir);
@@ -35,7 +35,7 @@ impl DirectoryWalker {
             .collect()
     }
 
-    fn walk_dir(module_name: &str, base_dir: &str) -> Vec<PathBuf> {
+    fn walk_dir(module_name: &str, base_dir: &PathBuf) -> Vec<PathBuf> {
         let mut out_bufs = Trie::new();
         Self::find_dir_in_directory(
             &|file| Self::is_mod(file, module_name),
@@ -116,7 +116,7 @@ impl DirectoryWalker {
     pub fn walk_directories_matching_to_path(
         search_file: &dyn Fn(&PathBuf) -> bool,
         search_dir: &dyn Fn(&PathBuf) -> bool,
-        base_dir: &str
+        base_dir: &PathBuf
     ) -> Vec<PathBuf> {
         let mut trie: Trie<String, ()> = Trie::new();
         Self::find_dir_in_directory(search_file,
@@ -128,7 +128,7 @@ impl DirectoryWalker {
     pub fn walk_directories_matching(
         search_file: &dyn Fn(&PathBuf) -> bool,
         search_dir: &dyn Fn(&PathBuf) -> bool,
-        base_dir: &str
+        base_dir: &PathBuf
     ) -> Trie<String, ()> {
         let mut trie: Trie<String, ()> = Trie::new();
         Self::find_dir_in_directory(search_file,
@@ -140,7 +140,7 @@ impl DirectoryWalker {
     pub fn find_dir_in_directory(
         search_add_file: &dyn Fn(&PathBuf) -> bool,
         continue_search_directory: &dyn Fn(&PathBuf) -> bool,
-        base_dir_opt: Option<&str>,
+        base_dir_opt: Option<&PathBuf>,
         path_bufs: &mut Trie<String, ()>
     ) {
         if base_dir_opt.is_none() {
@@ -149,7 +149,8 @@ impl DirectoryWalker {
 
         let base_dir = base_dir_opt.unwrap();
 
-        OsString::from(base_dir.to_string()).to_str()
+
+        base_dir.to_str()
             .into_iter()
             .for_each(|os_string_dir| {
                 info!("Searching {}", os_string_dir);
@@ -197,7 +198,7 @@ impl DirectoryWalker {
                             Self::find_dir_in_directory(
                                 search_add,
                                 continue_search_directory,
-                                Some(dir_str),
+                                Some(&PathBuf::from(dir_str)),
                                 path_bufs
                             )
                         );

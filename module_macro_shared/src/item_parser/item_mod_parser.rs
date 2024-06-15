@@ -14,6 +14,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use program_parser::module_iterator::ModuleIterator;
 use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_mod_parser.rs");
 
@@ -27,20 +28,34 @@ impl ItemParser<ItemMod> for ItemModParser {
         ParseContainerModifierT: ParseContainerModifier,
         BuildParseContainerT: BuildParseContainer,
         ParseContainerFinalizerT: ProfileTreeFinalizer,
-    >(parse_container: &mut ParseContainer,
-                  item_found: &mut ItemMod, mut path_depth: Vec<String>, module_parser: &mut ModuleParser<
+    >(
+        parse_container: &mut ParseContainer,
+        item_found: &mut ItemMod,
+        mut path_depth: Vec<String>,
+        module_parser: &mut ModuleParser<
             ParseContainerItemUpdaterT,
             ItemModifierT,
             ParseContainerModifierT,
             BuildParseContainerT,
             ParseContainerFinalizerT
         >) {
+
+        // let item_found = ...  // get through program_parser::module_iterator (just in case is not in-line), for base case
+        // ModuleIterator::new(item_found);
+
         path_depth.push(item_found.ident.to_string().clone());
+
         item_found.content.iter_mut()
             .flat_map(|mut c| c.1.iter_mut())
             .for_each(|i: &mut Item| {
-                ParseContainerItemUpdaterT::parse_update(i, parse_container);
-                Self::parse_item_inner(i, parse_container, &mut path_depth.clone(), module_parser);
+                if let Item::Mod(item_mod) = i {
+                    // run it through program_parser::module_iterator if it's a module...
+                    // let item_found = ...
+                    // Self::parse_item(parse_container, item_found, path_depth, module_parser);
+                } else {
+                    ParseContainerItemUpdaterT::parse_update(i, parse_container);
+                    Self::parse_item_inner(i, parse_container, &mut path_depth.clone(), module_parser);
+                }
             });
     }
 }
@@ -61,14 +76,14 @@ impl ItemModParser {
     >) {
         match i {
             Item::Const(const_val) => {
-                log_message!("Found const val {}.", const_val.to_token_stream().clone());
+                info!("Found const val {}.", const_val.to_token_stream().clone());
             }
             Item::Enum(enum_type) => {
-                log_message!("Found enum val {}.", enum_type.to_token_stream().clone());
+                info!("Found enum val {}.", enum_type.to_token_stream().clone());
                 ItemEnumParser::parse_item(app_container, enum_type, path_depth.clone(), module_parser);
             }
             Item::Fn(fn_type) => {
-                log_message!("Found fn type {}.", fn_type.to_token_stream().clone());
+                info!("Found fn type {}.", fn_type.to_token_stream().clone());
 
                 ItemFnParser::parse_item(app_container, fn_type, path_depth.clone(), module_parser);
             }
@@ -80,22 +95,22 @@ impl ItemModParser {
             }
             Item::Macro2(_) => {}
             Item::Mod(ref mut module) => {
-                log_message!("Found module with name {} !!!", module.ident.to_string().clone());
+                info!("Found module with name {} !!!", module.ident.to_string().clone());
                 ItemModParser::parse_item(app_container, module, path_depth.clone(), module_parser);
             }
             Item::Static(static_val) => {
-                log_message!("Found static val {}.", static_val.to_token_stream().clone());
+                info!("Found static val {}.", static_val.to_token_stream().clone());
             }
             Item::Struct(ref mut item_struct) => {
                 ItemStructParser::parse_item(app_container, item_struct, path_depth.clone(), module_parser);
             }
             Item::Trait(trait_created) => {
-                log_message!("Trait created: {}", trait_created.ident.clone().to_string());
+                info!("Trait created: {}", trait_created.ident.clone().to_string());
                 ItemTraitParser::parse_item(app_container, trait_created, path_depth.clone(), module_parser);
             }
             Item::TraitAlias(_) => {}
             Item::Type(type_found) => {
-                log_message!("Item type found {}!", type_found.ident.to_token_stream().to_string().clone());
+                info!("Item type found {}!", type_found.ident.to_token_stream().to_string().clone());
             }
             Item::Union(_) => {}
             Item::Verbatim(_) => {}

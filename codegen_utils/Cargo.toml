@@ -13,6 +13,10 @@ radix_trie = "0.2.1"
 version =  "0.1.5"
 registry = "estuary"
 path = "../knockoff_helper"
+[dependencies.optional]
+version =  "0.1.5"
+registry = "estuary"
+path = "../optional"
 [dependencies.string_utils]
 version =  "0.1.5"
 registry = "estuary"

@@ -1,0 +1,4 @@
+[env]
+PROGRAM_SRC = "delegator_test/src"
+[registries]
+estuary = { index = "http://localhost:1234/git/index" }

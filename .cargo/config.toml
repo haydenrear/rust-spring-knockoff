@@ -6,8 +6,10 @@ KNOCKOFF_PRECOMPILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/codegen_re
 TEST_MODULE_MACRO_CODEGEN_KNOCKOFF_FACTORIES = "/Users/hayde/IdeaProjects/rust-spring-knockoff/module_macro_codegen/test_resources/test_knockoff_factories.toml"
 LOGGING_DIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/log.log"
 KNOCKOFF_LOGGING_TEST_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log"
+#PROJECT_BASE_DIRECTORY = {value = "", relative = true}
 PROJECT_BASE_DIRECTORY = "/Users/hayde/IdeaProjects/rust-spring-knockoff"
 MODULE_MACRO_REGISTRY_INDEX_URI = "http://localhost:1234/git/index"
 KNOCKOFF_DEV = "true"
+#KNOCKOFF_PROFILES = "test,prod"
 [registries]
 estuary = { index = "http://localhost:1234/git/index" }

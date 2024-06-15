@@ -27,9 +27,10 @@ pub struct PrecompileFactories {
 
 #[derive(Deserialize)]
 pub struct PrecompileMetadata {
-    processor_path: String,
     processor_files: Vec<String>,
-    processor_ident: String
+    processor_ident: String,
+    #[serde(default)]
+    parse_lib: bool
 }
 
 pub fn get_tokens(processor_name: &str) -> TokenStream {

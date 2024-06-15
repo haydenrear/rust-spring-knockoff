@@ -60,6 +60,7 @@ impl SynHelper {
             .flatten()
     }
 
+
     pub fn get_str<'a, T: ToTokens>(ts: T) -> String {
         ts.to_token_stream().to_string().clone()
     }

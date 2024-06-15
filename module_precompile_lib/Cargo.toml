@@ -1,0 +1,86 @@
+[package]
+name = "module_precompile_lib"
+version = "0.1.5"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+proc-macro2 = "1.0.51"
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+derive-syn-parse = "0.1.5"
+lazy_static = "1.4.0"
+serde = "1.0.137"
+base64 = "0.13.0"
+executors = "0.9.0"
+paste = "1.0.12"
+rand = "0.8.5"
+[dependencies.build_lib]
+path = "../build_lib"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_providers_gen]
+path = "../target/knockoff_providers_gen"
+version = "0.1.5"
+[dependencies.string_utils]
+path = "../string_utils"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.collection_util]
+path = "../collection_util"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.set_enum_fields]
+path = "../set_enum_fields"
+version = "0.1.5"
+registry = "estuary"
+
+
+[build-dependencies.build_lib]
+path ="../build_lib"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.module_precompile_shared]
+path ="../module_precompile_shared"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_logging]
+path ="../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.codegen_utils]
+path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+
+
+[build-dependencies.crate_gen]
+path ="../crate_gen"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.codegen_utils]
+path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.knockoff_logging]
+path ="../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.knockoff_security]
+path ="../knockoff_security"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.module_precompile_shared]
+path = "../module_precompile_shared"
+version = "0.1.5"
+registry = "estuary"
+
+
+[build-dependencies]
+rand = "0.8.5"
+syn = {version = "1.0", features = ["full"]}
+executors = "0.9.0"
+lazy_static = "1.4.0"
+paste = "1.0.12"
+

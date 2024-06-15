@@ -195,6 +195,7 @@ macro_rules! log_message {
 macro_rules! info {
     ($($arg:tt)*) => {
         let message = format!($($arg)*);
+        println!("{}", message);
         StandardLoggingFacade::get_logger()
             .lock().as_mut().map(|l| l.log(LogLevel::Info, message, StandardLoggingFacade::package().to_string()))
     };

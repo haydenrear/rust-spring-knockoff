@@ -1,6 +1,6 @@
 use std::env;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 use knockoff_logging::*;
@@ -75,4 +75,44 @@ pub fn read_file_to_bytes<'a>(mut f: &File, in_bytes: &'a mut [u8]) -> Result<&'
         error!("Error reading {:?}", e);
         e
     }).map(|s| in_bytes)
+}
+
+pub fn open_out_file(path: &str) -> Option<File> {
+    std::env::var("OUT_DIR")
+        .map_err(|o| {
+            error!("Out directory was not defined: {:?}", o);
+        })
+        .ok()
+        .map(|out_file| Path::new(&out_file).join(path))
+        .map(|path| File::create(path)
+            .map_err(|e| {
+                error!("Error creating path: {:?}", e);
+            })
+            .ok()
+        )
+        .flatten()
+}
+
+pub fn write(mut out_file: Option<File>, generated: &str, name: &str) {
+
+    if let Some(written) = out_file
+        .map(|mut out_file| {
+            out_file.write_all(generated.to_string().as_bytes())
+                .map_err(|e| {
+                    error!("Error writing {} gen: {:?}", name, e);
+                })
+                .map(|e| generated.to_string())
+                .ok()
+        })
+        .flatten()
+        .or_else(|| {
+            if generated.to_string().as_str().len() != 0 {
+                panic!("Could not create {}.", name)
+            }
+            None
+        }) {
+        info!("Wrote codegen for {} gen: {:?}.", name, &written);
+    } else {
+        error!("Failed to write {}.", name);
+    }
 }

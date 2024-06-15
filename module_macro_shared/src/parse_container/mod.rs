@@ -69,9 +69,6 @@ impl ParseContainer {
             .map(|f| f.get_inner_type())
             .flatten()
     }
-
-
-
 }
 
 

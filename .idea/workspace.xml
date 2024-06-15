@@ -7,7 +7,64 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="before" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="optional flatmap">
+      <change afterPath="$PROJECT_DIR$/.cargo/knockoff-prod.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.cargo/knockoff-test.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.cargo/knockoff.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/aspect_knockoff_gen/.cargo/config.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/aspect_knockoff_gen/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/aspect_knockoff_gen/build.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/aspect_knockoff_gen/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/delegator_test/.cargo/config.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_lib/src/log.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_precompile_lib/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_precompile_lib/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_precompile_macro/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_precompile_macro/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_precompile_shared/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_precompile_shared/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/.cargo/knockoff.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/src/module_iterator/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/src/module_locator/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/test/first_module/fourth/fifth.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/test/first_module/fourth/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/test/first_module/fourth/sixth/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/test/first_module/fourth/sixth/seventh.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/test/first_module/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/test/first_module/third.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/program_parser/test/second.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/properties/.cargo/knockoff.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/properties/Cargo.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/properties/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.cargo/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.cargo/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_parse_provider.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_parse_provider.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/authentication_gen/.cargo/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/authentication_gen/.cargo/config.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/authentication_gen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/authentication_gen/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/build_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_precompile.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_precompile.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/parse/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/parse/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/walk/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/walk/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_cli/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_cli/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_helper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_helper/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/logging_macro/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/logging_macro/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_resource/src/resource_loader.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_resource/src/resource_loader.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_mod_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_mod_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_precompile/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/optional/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/optional/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo.md" beforeDir="false" afterPath="$PROJECT_DIR$/todo.md" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -111,10 +168,13 @@
     &quot;Cargo.Test lib::tests.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test matcher::test::test_ant_path_matcher.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test matcher::test::test_ant_path_request_matcher.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test module_iterator::test_visit.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test module_locator::test_find_module.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test o.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test property_source::test_get_property.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test property_source_parser::test_property_source_parser.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test resource_loader::test_pattern_matcher.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test test.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test test::test_logging_facade.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test test::test_logging_macro.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test test::test_logging_macro_concurrent.executor&quot;: &quot;Run&quot;,
@@ -124,6 +184,7 @@
     &quot;Cargo.Test test_dyn.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test test_module_macro.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test test_pattern_matcher.executor&quot;: &quot;Run&quot;,
+    &quot;Cargo.Test test_properties.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test wait_for::wait_async::test_async.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test wait_for::wait_async::test_async_multiple.executor&quot;: &quot;Run&quot;,
     &quot;Cargo.Test walk::test::test_directory_walker.executor&quot;: &quot;Run&quot;,
@@ -140,7 +201,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/precompile_macro&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hayde/IdeaProjects/rust-spring-knockoff/program_parser/.cargo&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -163,11 +224,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/precompile_macro" />
-      <recent name="$PROJECT_DIR$/module_macro_codegen/test_resources" />
-      <recent name="$PROJECT_DIR$/module_macro_codegen/.cargo" />
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/web_framework" />
+      <recent name="$PROJECT_DIR$/program_parser/.cargo" />
+      <recent name="$PROJECT_DIR$/.cargo" />
+      <recent name="$PROJECT_DIR$/program_parser" />
+      <recent name="$PROJECT_DIR$/delegator_test" />
+      <recent name="$PROJECT_DIR$/aspect_knockoff_gen" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/knockoff_env/src/profiles_parser" />
@@ -178,8 +239,8 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.Test test_module_macro">
-    <configuration name="Test matcher::test::test_ant_path_matcher" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework_shared --lib matcher::test::test_ant_path_matcher -- --exact" />
+    <configuration name="Test module_iterator::test_visit" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package program_parser --lib module_iterator::test_visit -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -195,8 +256,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test o" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package web_framework --lib o -- --exact" />
+    <configuration name="Test module_locator::test_find_module" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package program_parser --lib module_locator::test_find_module -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -212,25 +273,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test property_source_parser::test_property_source_parser" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_env --lib property_source_parser::test_property_source_parser -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <option name="emulateTerminal" value="true" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test resource_loader::test_pattern_matcher" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package knockoff_resource --lib resource_loader::test_pattern_matcher -- --exact" />
+    <configuration name="Test test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package optional --lib test -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -248,6 +292,23 @@
     </configuration>
     <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test_properties" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package properties --lib test_properties -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -282,19 +343,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test o" />
-      <item itemvalue="Cargo.Test property_source_parser::test_property_source_parser" />
-      <item itemvalue="Cargo.Test resource_loader::test_pattern_matcher" />
-      <item itemvalue="Cargo.Test matcher::test::test_ant_path_matcher" />
+      <item itemvalue="Cargo.Test module_iterator::test_visit" />
+      <item itemvalue="Cargo.Test module_locator::test_find_module" />
+      <item itemvalue="Cargo.Test test" />
+      <item itemvalue="Cargo.Test test_properties" />
       <item itemvalue="Cargo.Test test_module_macro" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Cargo.Test test_module_macro" />
-        <item itemvalue="Cargo.Test o" />
-        <item itemvalue="Cargo.Test property_source_parser::test_property_source_parser" />
-        <item itemvalue="Cargo.Test resource_loader::test_pattern_matcher" />
-        <item itemvalue="Cargo.Test matcher::test::test_ant_path_matcher" />
+        <item itemvalue="Cargo.Test test_properties" />
+        <item itemvalue="Cargo.Test module_locator::test_find_module" />
+        <item itemvalue="Cargo.Test module_iterator::test_visit" />
+        <item itemvalue="Cargo.Test test" />
       </list>
     </recent_temporary>
   </component>
@@ -397,6 +458,10 @@
       <workItem from="1699461970389" duration="4596000" />
       <workItem from="1717943729083" duration="21858000" />
       <workItem from="1717965737535" duration="4197000" />
+      <workItem from="1717971125144" duration="235000" />
+      <workItem from="1718019720495" duration="1810000" />
+      <workItem from="1718106663414" duration="29961000" />
+      <workItem from="1718368396869" duration="9108000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -741,7 +806,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="232" />
+    <option name="localTasksCounter" value="240" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -755,17 +820,17 @@
             <list>
               <RecentGroup>
                 <option name="FILTER_VALUES">
+                  <option value="origin/main" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
                   <option value="remove_augfile" />
                 </option>
               </RecentGroup>
               <RecentGroup>
                 <option name="FILTER_VALUES">
                   <option value="main" />
-                </option>
-              </RecentGroup>
-              <RecentGroup>
-                <option name="FILTER_VALUES">
-                  <option value="origin/main" />
                 </option>
               </RecentGroup>
               <RecentGroup>
@@ -782,7 +847,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -792,8 +869,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/set_enum_fields" />
     </ignored-roots>
-    <MESSAGE value="adding cargo add-on to facilitate building of the codegen service loader" />
-    <MESSAGE value="fixing" />
     <MESSAGE value="udpated" />
     <MESSAGE value="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services." />
     <MESSAGE value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
@@ -817,7 +892,9 @@
     <MESSAGE value="Fixed walker" />
     <MESSAGE value="Updated so that copy all libraries instead of each one individually and added prototype bean factory." />
     <MESSAGE value="before" />
-    <option name="LAST_COMMIT_MESSAGE" value="before" />
+    <MESSAGE value="optional" />
+    <MESSAGE value="optional flatmap" />
+    <option name="LAST_COMMIT_MESSAGE" value="optional flatmap" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

@@ -1,7 +1,22 @@
+
 #[macro_export]
 macro_rules! project_directory {
     () => {
         env!("PROJECT_BASE_DIRECTORY", "Please set project base directory.")
+    };
+}
+
+#[macro_export]
+macro_rules! program_src {
+    () => {
+        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
+            .join(std::path::Path::new(&module_path!().split("::").map(|s| s.to_string()).collect::<Vec<String>>().get(0).unwrap()))
+            .join(std::path::Path::new("src"))
+    };
+    ($lit:literal) => {
+        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
+            .join(std::path::Path::new(&module_path!().split("::").map(|s| s.to_string()).collect::<Vec<String>>().get(0).unwrap()))
+            .join(std::path::Path::new($lit))
     };
 }
 

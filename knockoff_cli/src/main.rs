@@ -67,7 +67,7 @@ fn download_packages(args: &HashMap<String, String>) {
     });
 }
 
-fn packages() -> [&'static str; 32] {
+fn packages() -> [&'static str; 33] {
     let packages = [
         "aspect_knockoff_provider",
         "authentication_gen",
@@ -100,7 +100,8 @@ fn packages() -> [&'static str; 32] {
         "module_precompile_codegen",
         "knockoff_resource",
         "module_macro",
-        "authentication_codegen"
+        "authentication_codegen",
+        "aspect_knockoff_gen"
     ];
     packages
 }
