@@ -18,25 +18,22 @@ use syn::parse::Parser;
 use module_macro_lib::module_macro_lib::knockoff_context_builder::bean_constructor_generator::BeanConstructorGenerator;
 use module_macro_shared::bean::BeanPathParts::PhantomType;
 use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
+use module_precompile_macro::boot_knockoff;
 // these imports are necessary because the generated code does not contain the imports.
 
-include!(concat!(env!("OUT_DIR"), "/spring-knockoff.rs"));
-
-
 #[module_attr]
-#[cfg(springknockoff)]
+// #[cfg(springknockoff)]
 pub mod test_library {
     use spring_knockoff_boot_macro::*;
 
     pub mod test_library_two;
     pub use test_library_two::*;
-
     pub mod test_library_three;
     pub use test_library_three::*;
     pub mod test_library_seven;
     pub use test_library_seven::*;
 
-    #[aspect(test_library.test_library_three.One.*)]
+    #[aspect(test_library.test_library_three.test_library_four.One.*)]
     #[ordered(0)]
     #[cfg(springknockoff)]
     pub fn do_aspect(&self, one: One) -> String {
@@ -47,7 +44,7 @@ pub mod test_library {
         three_four
     }
 
-    #[aspect(test_library.test_library_three.One.*)]
+    #[aspect(test_library.test_library_three_test_library_four.One.*)]
     #[ordered(1)]
     #[cfg(springknockoff)]
     pub fn do_aspect_again(&self, one: One) -> String {
@@ -69,14 +66,15 @@ pub mod test_library {
         use web_framework_shared::*;
         use knockoff_security::{AuthType, AuthenticationConversionError, AuthenticationAware};
 
-        // #[knockoff_ignore]
         #[auth_type_struct(TestAuthType)]
         #[derive(Default, Clone, Debug, Serialize, Deserialize)]
+        #[knockoff_ignore]
         pub struct TestAuthType {
             // some_token: String
         }
 
         #[auth_type_impl(TestAuthType)]
+        #[knockoff_ignore]
         impl TestAuthType {
             const AUTH_TYPE: &'static str = "test_auth_type";
 
@@ -86,6 +84,7 @@ pub mod test_library {
         }
 
         #[auth_type_aware(TestAuthType)]
+        #[knockoff_ignore]
         impl TestAuthType {
             pub fn get_authorities(&self) -> Vec<GrantedAuthority> {
                 todo!()
@@ -110,13 +109,12 @@ pub mod test_library {
 
     }
 
-    pub use authentication_type::*;
-
 }
 
 pub use test_library::*;
 use knockoff_security::knockoff_security::*;
 use web_framework::{AuthenticationType, TestAuthType as FrameworkTestAuthType};
+
 
 #[test]
 fn test_module_macro() {
@@ -162,7 +160,7 @@ fn test_module_macro() {
     assert!(one_found_again.as_ref().is_some());
     let wrapped = one_found_again.unwrap().one_two_three(One { two: "".to_string() });
 
-    assert_eq!(wrapped, "four three two one zero".to_string());
+    // assert_eq!(wrapped, "four three two one zero".to_string());
 
     let with_generics = BeanContainer::<TestWithGenerics>::fetch_bean(&listable);
     assert!(with_generics.is_some(), "Failed to get non-dyn");

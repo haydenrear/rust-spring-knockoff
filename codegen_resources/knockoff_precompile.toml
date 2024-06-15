@@ -2,7 +2,7 @@
 [factories.authentication_gen]
 processor_files = ['/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs']
 processor_ident = "authentication_type"
-#[factories.aspect_knockoff_gen]
-#processor_files = ['/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs']
-#processor_ident = "module_attr"
-#parse_lib = true
+[factories.aspect_knockoff_gen]
+processor_files = ['/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs']
+processor_ident = "module_attr"
+parse_lib = true

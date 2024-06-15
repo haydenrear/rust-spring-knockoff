@@ -17,8 +17,8 @@ fn main() {
     /// TODO: This should be externalized into a single delegator just like the others so that it
     ///       only has to iterate over once for all precompile (a new phase).
     info!("Initializing authentication gen build.");
-    let generated: TokenStream = module_precompile::get_tokens(&"authentication_gen");
-    let out_file = codegen_utils::parse::open_out_file("codegen.rs");
-    codegen_utils::parse::write(out_file, generated.to_string().as_str(), "authentication_gen");
+    // let generated: TokenStream = module_precompile::get_tokens(&"authentication_gen");
+    // let out_file = codegen_utils::parse::open_out_file("codegen.rs");
+    // codegen_utils::parse::write(out_file, generated.to_string().as_str(), "authentication_gen");
 }
 

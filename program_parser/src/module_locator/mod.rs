@@ -24,7 +24,9 @@ pub fn get_module_from_name_base(base_dir: &PathBuf, module_name: &Ident) -> Opt
 }
 
 pub fn is_in_line_module(inline_module: &ItemMod) -> bool {
-    if inline_module.content.as_ref().is_none() {
+    info!("Checking if {:?} is inline", SynHelper::get_str(inline_module.clone()));
+    if inline_module.content.as_ref().is_none() || inline_module.content.as_ref().unwrap().1.len() == 0 {
+        info!("Found module in file: {:?}", SynHelper::get_str(inline_module.clone()));
         false
     } else {
         let (brace, items) = inline_module.content.as_ref().unwrap();
@@ -97,8 +99,12 @@ fn test_find_module() {
     let module_path_val = module_path!();
     println!("{}", module_path_val);
 }
+pub fn get_path_from(name: Option<&str>) -> PathBuf {
+    let proj = program_src!(name.unwrap());
+    PathBuf::from(proj)
+}
 
-fn get_path() -> PathBuf {
+pub fn get_path() -> PathBuf {
     let proj = program_src!("test");
     PathBuf::from(proj)
 }

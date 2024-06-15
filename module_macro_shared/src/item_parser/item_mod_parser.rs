@@ -1,4 +1,4 @@
-use syn::{Item, ItemMod};
+use syn::{Item, ItemMod, Path};
 use crate::item_parser::item_enum_parser::ItemEnumParser;
 use crate::item_parser::item_fn_parser::ItemFnParser;
 use crate::item_parser::item_impl_parser::ItemImplParser;
@@ -14,6 +14,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use codegen_utils::syn_helper::SynHelper;
 use program_parser::module_iterator::ModuleIterator;
 use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_mod_parser.rs");
@@ -30,7 +31,7 @@ impl ItemParser<ItemMod> for ItemModParser {
         ParseContainerFinalizerT: ProfileTreeFinalizer,
     >(
         parse_container: &mut ParseContainer,
-        item_found: &mut ItemMod,
+        mut item_found: &mut ItemMod,
         mut path_depth: Vec<String>,
         module_parser: &mut ModuleParser<
             ParseContainerItemUpdaterT,
@@ -40,18 +41,21 @@ impl ItemParser<ItemMod> for ItemModParser {
             ParseContainerFinalizerT
         >) {
 
-        // let item_found = ...  // get through program_parser::module_iterator (just in case is not in-line), for base case
-        // ModuleIterator::new(item_found);
-
+        let mut item_found = ModuleIterator::retrieve_next_mod(item_found.clone(), &std::path::Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src").to_path_buf())
+            .or(Some(item_found.clone())).unwrap();
         path_depth.push(item_found.ident.to_string().clone());
+
+        info!("Parsing {:?}", SynHelper::get_str(item_found.ident.clone()));
 
         item_found.content.iter_mut()
             .flat_map(|mut c| c.1.iter_mut())
             .for_each(|i: &mut Item| {
+                info!("Parsing {:?}", SynHelper::get_str(i.clone()));
                 if let Item::Mod(item_mod) = i {
-                    // run it through program_parser::module_iterator if it's a module...
-                    // let item_found = ...
-                    // Self::parse_item(parse_container, item_found, path_depth, module_parser);
+                    let mut item_mod = ModuleIterator::retrieve_next_mod(item_mod.clone(), &std::path::Path::new("/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src").to_path_buf())
+                        .or(Some(item_mod.clone()))
+                        .unwrap();
+                    Self::parse_item(parse_container, &mut item_mod, path_depth.clone(), module_parser);
                 } else {
                     ParseContainerItemUpdaterT::parse_update(i, parse_container);
                     Self::parse_item_inner(i, parse_container, &mut path_depth.clone(), module_parser);

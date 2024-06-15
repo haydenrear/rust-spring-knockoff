@@ -27,6 +27,7 @@ use module_macro_codegen::parser::LibParser;
 
 use knockoff_logging::*;
 use codegen_utils::project_directory;
+use program_parser::module_iterator::ModuleIterator;
 use crate::item_mod_parser::ItemModParser;
 use crate::logger_lazy;
 import_logger!("module_parser.rs");

@@ -18,6 +18,11 @@ macro_rules! program_src {
             .join(std::path::Path::new(&module_path!().split("::").map(|s| s.to_string()).collect::<Vec<String>>().get(0).unwrap()))
             .join(std::path::Path::new($lit))
     };
+    ($lit:expr) => {
+        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
+            .join(std::path::Path::new(&module_path!().split("::").map(|s| s.to_string()).collect::<Vec<String>>().get(0).unwrap()))
+            .join(std::path::Path::new($lit))
+    };
 }
 
 #[macro_export]
