@@ -17,6 +17,11 @@ syn = {version = "1.0", features = ["full"]}
 proc-macro2 = "1.0"
 serde = "1.0.137"
 
+# A create is created for each of these stages and included in the knockoff_gen_providers, and then knockoff_gen_providers
+# is included in the module_macro_lib. Then, module_macro_lib is imported by the user. So, then the user provides the
+# implementations of the providers, and th
+
+
 [phases.pre_compile.gen_deps.web_framework_shared]
 path ="../../web_framework_shared"
 name = "web_framework_shared"

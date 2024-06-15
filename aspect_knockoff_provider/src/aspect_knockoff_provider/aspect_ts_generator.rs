@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
 use module_macro_shared::profile_tree::ProfileTree;
-use syn::{Block, Stmt, Type};
+use syn::{Block, Item, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 
 use quote::{quote, TokenStreamExt, ToTokens};
@@ -26,7 +26,59 @@ impl AspectGenerator {
         let mut ts = TokenStream::default();
         self.method_advice_aspects.iter()
             .for_each(|a| Self::implement_original_fn(&mut ts, a));
+
         ts
+    }
+
+    // pub fn generate_aspect_gen(&self) -> TokenStream {
+    //     let idents = self.method_advice_aspects.iter().map(|a| a.0.method_advice_aspect.item.unwrap())
+    //         .flat_map(|i| match i {
+    //             Item::Fn(i) => {
+    //                 vec![i.sig.ident.clone()]
+    //             }
+    //             _ => {
+    //                 vec![]
+    //             }
+    //         })
+    //         .collect();
+    //
+    //     quote! {
+    //         pub struct GenerateAspectGen;
+    //
+    //         impl GenerateAspectGen {
+    //             pub fn matches_item(&self, item: Item) -> bool {
+    //                 match item {
+    //                     Item::Fn(i) => {
+    //                         $(
+    //                             if $idents == i.sig.ident.clone() {
+    //                                 return true;
+    //                             }
+    //                         )*
+    //                     }
+    //                     _ => {}
+    //                 }
+    //
+    //                 false
+    //             }
+    //         }
+    //     }
+    // }
+
+}
+
+impl AspectGenerator {
+
+    fn matches_item(&self, item: Item) -> bool {
+        // check if method_advice_aspects contains
+        // self.method_advice_aspects.iter()
+            // .any(|(a, b)| b.ident.map(|i| i == ))
+        true
+
+    }
+
+    fn get_replacement(&self, item: Item) -> TokenStream {
+        // get method advice aspect
+        let mut ts = TokenStream::default();
     }
 }
 
@@ -47,13 +99,11 @@ impl AspectGenerator {
                         );
                         let aspects = profile_tree.provided_items.remove(&metadata_item)
                             .into_iter().flat_map(|removed| removed.into_iter())
-                            .flat_map(|to_cast|
-                                {
+                            .flat_map(|to_cast| {
                                     AspectInfo::parse_values(&mut Some(to_cast))
                                         .map(|f| f.clone())
                                         .into_iter()
-                                }
-                            )
+                            })
                             .collect::<Vec<AspectInfo>>();
                         aspects.into_iter()
                             .flat_map(|a| vec![(a.clone(), bean.clone())])

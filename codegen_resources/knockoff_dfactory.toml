@@ -1,0 +1,9 @@
+# Generate dependency for codegen crates - this will be generating the various delegators, so it is in effect a factory
+# for that which becomes a delegator for the codegen delegates in the providers gen.
+#  -- this means that each one of these factories becomes a crate that will then be imported into the coegen crates,
+#     and then of course that generated crate will contain delegators for the codegen. This allows for the generation
+#     of the functions that generate the token stream.
+[knockoff_dfactory.aspect_knockoff_gen]
+processor_files = ['/Users/hayde/IdeaProjects/rust-spring-knockoff/delegator_test/src/lib.rs']
+processor_ident = "module_attr"
+parse_lib = true

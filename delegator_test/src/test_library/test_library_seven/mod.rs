@@ -3,6 +3,7 @@ use spring_knockoff_boot_macro::{service, autowired, enum_service, knockoff_igno
 use serde::{Deserialize, Serialize};
 
 use configuration_properties_macro::ConfigurationProperties;
+
 #[service(TestLibraryFourAgain)]
 #[derive(Default)]
 pub struct TestLibraryFourAgain;
