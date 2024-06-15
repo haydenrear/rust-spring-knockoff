@@ -78,7 +78,8 @@ impl AspectGenerator {
 
     fn get_replacement(&self, item: Item) -> TokenStream {
         // get method advice aspect
-        let mut ts = TokenStream::default();
+        // let mut ts = TokenStream::default();
+        Default::default()
     }
 }
 
