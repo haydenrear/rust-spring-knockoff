@@ -12,6 +12,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use radix_trie::{Trie, TrieCommon};
+use optional::FlatMapResult;
 use string_utils::normalize_quotes;
 use crate::logger_lazy;
 import_logger!("syn_helper.rs");
@@ -125,6 +126,13 @@ impl SynHelper {
         file.read_to_string(&mut src)
             .unwrap();
         syn::parse_file(&src).ok()
+    }
+
+    pub fn parse_syn_file_to_res(file: &mut File) -> Result<syn::File, syn::Error> {
+        let mut src = String::new();
+        file.read_to_string(&mut src)
+            .unwrap();
+        syn::parse_file(&src)
     }
 
     pub fn open_from_base_dir(file_name_path: &str) -> syn::File {

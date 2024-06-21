@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use syn::{Fields, ItemEnum};
 use codegen_utils::syn_helper::SynHelper;
 use crate::bean_parser::{BeanDependencyParser};
@@ -21,13 +22,19 @@ impl ItemParser<ItemEnum> for ItemEnumParser {
         ParseContainerModifierT: ParseContainerModifier,
         BuildParseContainerT: BuildParseContainer,
         ParseContainerFinalizerT: ProfileTreeFinalizer,
-    >(parse_container: &mut ParseContainer, enum_to_add: &mut ItemEnum, path_depth: Vec<String>, module_parser: &mut ModuleParser<
-        ParseContainerItemUpdaterT,
-        ItemModifierT,
-        ParseContainerModifierT,
-        BuildParseContainerT,
-        ParseContainerFinalizerT
-    >) {
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        enum_to_add: &mut ItemEnum,
+        path_depth: Vec<String>,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT,
+            ItemModifierT,
+            ParseContainerModifierT,
+            BuildParseContainerT,
+            ParseContainerFinalizerT
+        >
+    ) {
         info!("Parsing enum.");
         log_message!("adding type with name {}", enum_to_add.ident.clone().to_token_stream().to_string());
         &mut parse_container.injectable_types_builder.get_mut(&enum_to_add.ident.to_string().clone())

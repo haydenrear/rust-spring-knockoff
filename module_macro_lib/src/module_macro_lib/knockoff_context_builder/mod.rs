@@ -21,6 +21,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::get_abstract_type;
 use crate::logger_lazy;
 import_logger!("bean_factory_generator.rs");
 
@@ -149,7 +150,7 @@ impl ApplicationContextGenerator {
             .flat_map(|b| {
                 match b {
                     BeanDefinitionType::Abstract { bean, dep_type } => {
-                        BeanFactoryInfo::get_abstract_type(dep_type)
+                        get_abstract_type(dep_type)
                             .map(|_| {
                                 vec![(bean.to_owned(), dep_type.to_owned(), f.0.clone())]
                             })

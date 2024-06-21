@@ -19,6 +19,10 @@ executors = "0.9.0"
 path ="../module_macro_shared"
 version = "0.1.5"
 registry = "estuary"
+[dependencies.codegen_utils]
+path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
 [dependencies.module_macro_lib]
 path ="../module_macro_lib"
 registry = "estuary"

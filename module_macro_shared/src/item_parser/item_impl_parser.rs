@@ -3,6 +3,7 @@ use syn::{Attribute, Generics, ImplItem, ItemImpl};
 use codegen_utils::syn_helper::SynHelper;
 use quote::ToTokens;
 use std::ops::Deref;
+use std::path::PathBuf;
 use crate::item_parser::{create_new_gens, GenericTy, get_all_generic_ty_bounds, get_profiles, ItemParser};
 use crate::bean::{BeanDefinition, BeanPath};
 use crate::parse_container::ParseContainer;
@@ -23,7 +24,7 @@ use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseC
 import_logger!("item_impl_parser.rs");
 
 
-impl ItemImplParser{
+impl ItemImplParser {
     fn add_path(path_depth: &mut Vec<String>, impl_found: &ItemImpl) {
         let mut trait_impl = vec![];
 
@@ -53,11 +54,27 @@ impl ItemImplParser{
         let abstract_type = item_impl.trait_.as_ref()
             .map(|trait_impl| BeanDependencyPathParser::parse_path_to_bean_path(&trait_impl.1));
 
-
-
         &mut parse_container.injectable_types_builder.get_mut(id)
             .map(|bean: &mut BeanDefinition| {
-                bean.traits_impl.push(
+                // let mut num = 0;
+                // let to_remove = bean.traits_impl.iter()
+                //     .flat_map(|b| {
+                //         if b.item_impl.as_ref().is_none() || b.item_impl.as_ref().unwrap().to_token_stream().to_string().len() == 0 {
+                //             let next = Some(num);
+                //             num += 1;
+                //             return next;
+                //         }
+                //         None
+                //     })
+                //     .collect::<Vec<usize>>();
+                //
+                // let mut num_removed = 0;
+                // to_remove.iter().for_each(|u| {
+                //     bean.traits_impl.remove(u - num_removed);
+                //     num_removed += 1;
+                // });
+
+                bean.traits_impl.insert(0,
                     DependencyDescriptor {
                         item_impl: Some(item_impl.clone()),
                         abstract_type: abstract_type.clone(),
@@ -129,14 +146,21 @@ impl ItemParser<ItemImpl> for ItemImplParser {
         ParseContainerModifierT: ParseContainerModifier,
         BuildParseContainerT: BuildParseContainer,
         ParseContainerFinalizerT: ProfileTreeFinalizer,
-    >(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl, mut path_depth: Vec<String>, module_parser: &mut ModuleParser<
-        ParseContainerItemUpdaterT,
-        ItemModifierT,
-        ParseContainerModifierT,
-        BuildParseContainerT,
-        ParseContainerFinalizerT
-    >) {
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        item_impl: &mut ItemImpl,
+        mut path_depth: Vec<String>,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT,
+            ItemModifierT,
+            ParseContainerModifierT,
+            BuildParseContainerT,
+            ParseContainerFinalizerT
+        >,
+    ) {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
+
 
         log_message!("Doing create update impl for id: {}", id);
 

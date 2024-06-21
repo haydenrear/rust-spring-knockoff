@@ -17,6 +17,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::get_abstract_type;
 use crate::logger_lazy;
 import_logger!("factory_generator.rs");
 
@@ -382,7 +383,7 @@ impl FactoryGen {
         bean: &BeanDefinition,
         autowire_type: &DependencyDescriptor
     ) {
-        BeanFactoryInfo::get_abstract_type(autowire_type).as_ref()
+        get_abstract_type(autowire_type).as_ref()
             .map(|t| {
                 bean.struct_type.clone()
                     .or_else(|| {

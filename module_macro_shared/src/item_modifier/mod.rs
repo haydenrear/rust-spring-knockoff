@@ -15,3 +15,16 @@ pub trait ItemModifier {
     fn supports_item(item: &Item) -> bool;
 
 }
+
+#[derive(Default)]
+pub struct DefaultItemModifier;
+impl ItemModifier for DefaultItemModifier {
+    fn modify_item(parse_container: &mut ParseContainer, item: &mut Item, path_depth: Vec<String>) {
+    }
+
+    fn new() -> Self { Self {} }
+
+    fn supports_item(item: &Item) -> bool {
+        false
+    }
+}

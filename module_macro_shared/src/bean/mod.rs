@@ -1,10 +1,10 @@
-use syn::{Attribute, Fields, Generics, ItemEnum, ItemStruct, ItemUse, parse_str, Path, Type};
+use syn::{Attribute, Fields, Generics, ItemEnum, ItemStruct, ItemUse, parse2, parse_str, Path, Type};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::Deref;
 use quote::ToTokens;
-use proc_macro2::Ident;
+use proc_macro2::{Ident, Span};
 use syn::__private::str;
 use codegen_utils::syn_helper::SynHelper;
 use crate::dependency::{DependencyDescriptor, DependencyMetadata};
@@ -16,6 +16,7 @@ use crate::logger_lazy;
 import_logger!("bean.rs");
 use enum_fields::EnumFields;
 use string_utils::strip_whitespace;
+use crate::bean_dependency_path_parser::BeanDependencyPathParser;
 use crate::profile_tree::ProfileBuilder;
 
 
@@ -119,7 +120,7 @@ pub enum BeanPathParts {
     },
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct BeanPathHead {
     /// The full type path
     pub gen_type_path: Option<syn::Path>,
@@ -130,18 +131,67 @@ pub struct BeanPathHead {
 }
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct BeanPath {
     pub path_segments: Vec<BeanPathParts>,
     pub head: BeanPathHead
 }
 
-impl Eq for BeanPath {}
 
 pub struct BeanPathParseResult {
     pub tys: HashMap<u32, Type>
 }
 
+
+pub fn get_concrete_type_as_ident(concrete_type: &Option<Type>, ident_type: &Option<Ident>) -> Option<Ident> {
+    if concrete_type.as_ref().is_none() && ident_type.as_ref().is_none()  {
+        None
+    }
+    else {
+        concrete_type
+            .as_ref()
+            .map(|t| {
+                t
+            })
+            .map(|t| {
+                let parsed = parse2::<Ident>(t.to_token_stream());
+                if parsed.is_ok() {
+                    Some(Ident::new(t.to_token_stream().to_string().as_str(), Span::call_site()))
+                } else {
+                    None
+                }
+            })
+            .flatten()
+            .or(ident_type.as_ref().map(|i| i.clone()))
+    }
+}
+
+pub fn get_abstract_type(bean_type: &DependencyDescriptor) -> Option<Type> {
+    if bean_type.item_impl.is_some() {
+        info!("Testing if {:?} has abstract type for {:?}", SynHelper::get_str(&bean_type.item_impl.as_ref().unwrap()), bean_type);
+    }
+    let abstract_type = bean_type.item_impl
+        .as_ref()
+        .map(|item_impl| {
+            info!("Getting abstract type for {:?}", SynHelper::get_str(item_impl));
+            item_impl.trait_.as_ref()
+                .map(|f| BeanDependencyPathParser::parse_path_to_bean_path(&f.1))
+        })
+        .flatten()
+        .or_else(|| {
+            bean_type.abstract_type.clone()
+        })
+        .map(|bean_type| {
+            bean_type.get_inner_type()
+        })
+        .flatten();
+    if abstract_type.is_some() {
+        info!("Found abstract type: {:?}", SynHelper::get_str(abstract_type.as_ref().unwrap()));
+    } else {
+        info!("Could not find abstract type for {:?}", bean_type);
+    }
+    abstract_type
+}
 
 
 impl BeanPath {

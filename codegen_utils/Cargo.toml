@@ -25,3 +25,7 @@ path = "../string_utils"
 path = "../knockoff_logging"
 version = "0.1.5"
 registry = "estuary"
+[dependencies.err]
+path = "../err"
+version = "0.1.5"
+registry = "estuary"

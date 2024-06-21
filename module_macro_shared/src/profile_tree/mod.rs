@@ -77,7 +77,8 @@ impl ProfileTree {
                         BeanDefinitionType::Abstract { bean: inner_bean, dep_type: inner_dep_type } => {
                             bean.id == inner_bean.id
                                 && (dep_type.item_impl.to_token_stream().to_string().as_str() == inner_dep_type.item_impl.to_token_stream().to_string().as_str()
-                                    || dep_type.abstract_type == inner_dep_type.abstract_type)
+                                    // || dep_type.abstract_type == inner_dep_type.abstract_type
+                            )
                         }
                         BeanDefinitionType::Concrete { .. } => {
                             false

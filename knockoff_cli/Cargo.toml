@@ -9,13 +9,25 @@ description = "cargo tool that will build module macro lib with factories."
 [dependencies]
 cargo = "0.69.0"
 url = "2.3.1"
-toml = "0.7.3"
+toml = "0.8.14"
 lazy_static = "1.4.0"
+[dependencies.err]
+version = "0.1.5"
+registry = "estuary"
+path = "../err"
 [dependencies.codegen_utils]
 version = "0.1.5"
 registry = "estuary"
 path = "../codegen_utils"
+[dependencies.cargo_utils]
+version = "0.1.5"
+registry = "estuary"
+path = "../cargo_utils"
 [dependencies.knockoff_logging]
 version = "0.1.5"
 registry = "estuary"
 path = "../knockoff_logging"
+[dependencies.crate_gen]
+version = "0.1.5"
+registry = "estuary"
+path = "../crate_gen"

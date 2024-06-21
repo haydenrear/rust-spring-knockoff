@@ -13,6 +13,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use module_macro_shared::dependency::DepType;
+use module_macro_shared::get_abstract_type;
 use crate::logger_lazy;
 use crate::module_macro_lib::profile_tree::search_profile_tree::SearchProfileTree;
 import_logger!("concrete_profile_tree_modifier.rs");
@@ -102,7 +103,7 @@ impl ConcreteTypeProfileTreeModifier {
                      vec![]
                  } else {
                      b.1.traits_impl.iter()
-                         .flat_map(|t| BeanFactoryInfo::get_abstract_type(t)
+                         .flat_map(|t| get_abstract_type(t)
                              .as_ref()
                              .map(|trait_impl| vec![trait_impl.clone()])
                              .or(Some(vec![]))

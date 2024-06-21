@@ -17,6 +17,7 @@ use std::sync::Mutex;
 use syn::ext::IdentExt;
 use codegen_utils::project_directory;
 use module_macro_shared::bean_dependency_path_parser::BeanDependencyPathParser;
+use module_macro_shared::get_abstract_type;
 use crate::logger_lazy;
 import_logger!("bean_factory_info.rs");
 
@@ -123,32 +124,6 @@ type FieldTypes = (ConcreteFieldIdents, ConcreteAutowirableFieldType, ConcreteFi
 
 impl BeanFactoryInfo {
 
-    pub(crate) fn get_abstract_type(bean_type: &DependencyDescriptor) -> Option<Type> {
-        if bean_type.item_impl.is_some() {
-            info!("Testing if {:?} has abstract type for {:?}", SynHelper::get_str(&bean_type.item_impl.as_ref().unwrap()), bean_type);
-        }
-        let abstract_type = bean_type.item_impl
-            .as_ref()
-            .map(|item_impl| {
-                info!("Getting abstract type for {:?}", SynHelper::get_str(item_impl));
-                item_impl.trait_.as_ref()
-                    .map(|f| BeanDependencyPathParser::parse_path_to_bean_path(&f.1))
-            })
-            .flatten()
-            .or_else(|| {
-                bean_type.abstract_type.clone()
-            })
-            .map(|bean_type| {
-                bean_type.get_inner_type()
-            })
-            .flatten();
-        if abstract_type.is_some() {
-            info!("Found abstract type: {:?}", SynHelper::get_str(abstract_type.as_ref().unwrap()));
-        } else {
-            info!("Could not find abstract type for {:?}", bean_type);
-        }
-        abstract_type
-    }
 
     pub(crate) fn get_profile_ident(&self) -> Ident {
         self.profile.as_ref()
@@ -163,7 +138,7 @@ impl BeanFactoryInfo {
         self.concrete_type.clone()
     }
 
-    pub(crate) fn get_concrete_type_as_ident(&self) -> Option<Ident> {
+    pub fn get_concrete_type_as_ident(&self) -> Option<Ident> {
         assert!(self.concrete_type.is_some() || self.ident_type.is_some(),
                 "Could not retrieve concrete type when creating concrete bean factory.");
         self.ident_type.as_ref().map(|i| i.clone())
@@ -582,7 +557,7 @@ impl BeanFactoryInfoFactory<(BeanDefinition, DependencyDescriptor, ProfileBuilde
     fn create_bean_factory_info(bean_type: &(BeanDefinition, DependencyDescriptor, ProfileBuilder)) -> Vec<BeanFactoryInfo> {
         let bean = &bean_type.0;
 
-        let abstract_type = BeanFactoryInfo::get_abstract_type(&bean_type.1);
+        let abstract_type = get_abstract_type(&bean_type.1);
 
         let mutable_singleton_field_ids = Self::get_mutable_singleton_field_ids(bean);
         let singleton_field_ids = Self::get_singleton_field_ids(bean);

@@ -1,7 +1,6 @@
 use std::env;
 use std::io::Write;
 use codegen_utils::project_directory;
-use module_macro_codegen::parser::LibParser;
 use knockoff_logging::*;
 use knockoff_logging::*;
 use lazy_static::lazy_static;
@@ -16,11 +15,4 @@ fn main() {
     cargo_change += get_project_base_build_dir().as_str();
 
     println!("{}", cargo_change);
-}
-
-fn get_aug_file() -> String {
-    let aug_file = env::var("AUG_FILE").ok()
-        .or(Some(String::from(get_build_project_dir("codegen_resources/knockoff_test_aug.rs"))))
-        .unwrap();
-    aug_file
 }

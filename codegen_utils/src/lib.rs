@@ -2,8 +2,9 @@ pub mod parse;
 pub mod walk;
 pub mod syn_helper;
 pub mod env;
-
 pub use env::*;
+pub mod io_utils;
+pub use io_utils::*;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;

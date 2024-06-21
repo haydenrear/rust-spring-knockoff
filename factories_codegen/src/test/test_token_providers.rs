@@ -1,47 +1,58 @@
-use std::path::Path;
-use codegen_utils::project_directory;
-use crate::factories_parser::{FactoriesParser};
-use crate::provider::{DelegatingProvider, ProviderProvider};
-use crate::token_provider::TokenProvider;
+use std::fs;
+use std::path::{Path, PathBuf};
 
+use toml::Value;
+
+use codegen_utils::project_directory;
+use codegen_utils::walk::DirectoryWalker;
+use crate_gen::{get_key, SearchType, SearchTypeError};
+
+use crate::factories_parser::{FactoriesParser, Phase};
 
 #[test]
 fn test_parse_factories() {
-    let out = FactoriesParser::parse_factories_value();
-    assert!(out.is_some());
-    let parse_provider = out.as_ref().unwrap().parse_provider.as_ref().unwrap();
-    let security_parse_provider = parse_provider.get("security_parse_provider");
-    let security_parse_provider_provider_data = &security_parse_provider.unwrap().provider_data;
-    assert!(security_parse_provider_provider_data.is_some());
-    let security_parse_provider_dependency_data = &security_parse_provider.unwrap().dependency_data;
-    assert!(security_parse_provider_dependency_data.is_some());
-    let handler_mapping = out.as_ref().unwrap().token_provider.as_ref().unwrap().get("handler_mapping").unwrap();
-    let handler_mapping_data = &handler_mapping.provider_data;
-    assert!(handler_mapping_data.is_some());
+    fs::remove_dir_all(test_resources().join("out"));
 
-    let handler_mapping_dependency_data = &handler_mapping.dependency_data;
-    assert!(handler_mapping_dependency_data.is_some());
+    let buf = get_test();
 
-    let security_parse_provider_path = &security_parse_provider_provider_data.as_ref().unwrap().provider_path;
-    assert!(security_parse_provider_path.is_some());
-    let handler_mapping_data = &handler_mapping_data.as_ref().unwrap().provider_ident;
-    assert!(handler_mapping_data.is_some());
+    FactoriesParser::write_phase(&"0.1.2".to_string(), &buf.to_str().unwrap().clone().to_string(), &test_resources().join("out").to_str().unwrap().to_string(), &Phase::Providers);
+    FactoriesParser::write_phase(&"0.1.2".to_string(), &buf.to_str().unwrap().clone().to_string(), &test_resources().join("out").to_str().unwrap().to_string(), &Phase::PreCompile);
+    FactoriesParser::write_phase(&"0.1.2".to_string(), &buf.to_str().unwrap().clone().to_string(), &test_resources().join("out").to_str().unwrap().to_string(), &Phase::DFactory);
 
-    let deps = &out.as_ref().unwrap().dependencies;
-    assert!(deps.is_some());
+    let found = DirectoryWalker::find_any_files_matching_file_name(&|file_name| file_name == "Cargo.toml", &test_resources().join("out"));
+
+    let path_buf = found.get(test_resources().join("out").join("knockoff_precompile_gen").join("Cargo.toml").to_str().unwrap());
+    assert!(path_buf.is_some());
+
+    let toml_found: Value = toml::from_str(&codegen_utils::io_utils::read_dir_to_file(path_buf.unwrap()).unwrap()).unwrap();
+
+    let found_key = get_key(vec![
+        SearchType::FieldKey("dependencies".to_string()),
+        SearchType::FieldKey("proc-macro2".to_string())
+    ], &toml_found).map(|v| v.to_string());
+    assert!(matches!(Ok::<String, SearchTypeError>("\"1.0\"".to_string()), found_key));
+
+    let found_key = get_key(vec![
+        SearchType::FieldKey("dependencies".to_string()),
+        SearchType::FieldKey("knockoff_precompile_genone".to_string())
+    ], &toml_found).map(|v| v.to_string());
+    assert!(matches!(Ok::<String, SearchTypeError>, found_key));
+
+    let found_key = get_key(vec![
+        SearchType::FieldKey("package".to_string()),
+        SearchType::FieldKey("version".to_string())
+    ], &toml_found).map(|v| v.to_string());
+    assert!(matches!(Ok::<String, SearchTypeError>("\"0.1.2\"".to_string()), found_key));
 }
 
-#[test]
-fn test_token_providers() {
-    let factories = FactoriesParser::parse_factories_value().unwrap();
-    assert_eq!(factories.token_provider.as_ref().unwrap().len(), 1);
-    let token_provider = factories.token_provider;
-    let token_provider = token_provider.as_ref().unwrap();
-    let option = token_provider.get("handler_mapping");
-    let next = option.as_ref().unwrap();
-    assert_eq!(next.provider_data.as_ref().unwrap().provider_ident.as_ref().unwrap(), "HandlerMappingTokenProvider");
-    assert_eq!(next.provider_data.as_ref().unwrap().provider_path.as_ref().unwrap(), "handler_mapping::HandlerMappingBuilder");
-    let token_provider = TokenProvider::create_token_provider(next);
-    println!("{}", &token_provider.to_string());
-    assert_ne!(token_provider.to_string().replace(" ", "").len(), 0);
+fn get_test() -> PathBuf {
+    let buf = test_resources();
+    let f = buf.join("knockoff_factories.toml");
+    f
 }
+
+fn test_resources() -> PathBuf {
+    let buf = Path::new(project_directory!()).join("factories_codegen").join("test_resources");
+    buf
+}
+

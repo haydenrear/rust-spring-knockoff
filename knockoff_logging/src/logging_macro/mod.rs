@@ -214,6 +214,7 @@ macro_rules! debug {
 macro_rules! error {
     ($($arg:tt)*) => {
         let message = format!($($arg)*);
+        println!("{}", message);
         StandardLoggingFacade::get_logger()
             .lock()
             .as_mut()

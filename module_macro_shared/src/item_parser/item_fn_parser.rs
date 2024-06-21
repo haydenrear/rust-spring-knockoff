@@ -2,6 +2,7 @@ use syn::{Attribute, FnArg, GenericParam, Generics, ItemFn, ItemStruct, Pat, Pat
 use std::any::{Any, TypeId};
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
+use std::path::PathBuf;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use codegen_utils::syn_helper::SynHelper;
@@ -38,13 +39,19 @@ impl ItemParser<ItemFn> for ItemFnParser {
         ParseContainerModifierT: ParseContainerModifier,
         BuildParseContainerT: BuildParseContainer,
         ParseContainerFinalizerT: ProfileTreeFinalizer,
-    >(parse_container: &mut ParseContainer, item_fn: &mut ItemFn, path_depth: Vec<String>, module_parser: &mut ModuleParser<
-        ParseContainerItemUpdaterT,
-        ItemModifierT,
-        ParseContainerModifierT,
-        BuildParseContainerT,
-        ParseContainerFinalizerT
-    >) {
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        item_fn: &mut ItemFn,
+        path_depth: Vec<String>,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT,
+            ItemModifierT,
+            ParseContainerModifierT,
+            BuildParseContainerT,
+            ParseContainerFinalizerT
+        >,
+    ) {
         if !Self::is_bean(&item_fn.attrs) {
             return;
         }

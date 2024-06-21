@@ -76,6 +76,11 @@
       <sourceFolder url="file://$MODULE_DIR$/optional/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/program_parser/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/dfactory_dcodegen/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cargo_utils/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/err/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/dfactory_dcodegen_codegen/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/dfactory_dcodegen_lib/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/dfactory_dcodegen_shared/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/properties/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />

@@ -1,3 +1,4 @@
+use std::path::Path;
 use knockoff_helper::get_build_project_dir;
 use crate::walk::DirectoryWalker;
 
@@ -18,7 +19,7 @@ fn test_directory_walker() {
         &|w| DirectoryWalker::file_name_matches(
             w, &|p| true),
         &|w| true,
-        string1.as_str()
+        &Path::new(&string1).to_path_buf()
     );
     info!("Walked and found {} values in trie", item.len());
 }
@@ -30,23 +31,23 @@ fn walk_find_mod() {
     println!("Searching {} for test_library_five", b);
     let found = DirectoryWalker::walk_find_mod(
         "test_library_five",
-        b
+        &Path::new(b).to_path_buf()
     );
     assert_eq!(found.len(), 1);
     let found = DirectoryWalker::walk_find_mod(
         "test_library_three",
-        b
+        &Path::new(b).to_path_buf()
     );
     assert_eq!(found.len(), 1);
     let found = DirectoryWalker::walk_find_mod(
         "test_library_seven",
-        b
+        &Path::new(b).to_path_buf()
     );
     assert_eq!(found.len(), 1);
 }
 
 fn test_walk(name: &str, dir: &str) {
-    let item = DirectoryWalker::walk_find_mod(name, dir);
+    let item = DirectoryWalker::walk_find_mod(name, &Path::new(dir).to_path_buf());
     assert_eq!(item.len(), 1);
     info!("Found items {:?}", &item);
     assert!(item[0].to_str().unwrap().contains(name))

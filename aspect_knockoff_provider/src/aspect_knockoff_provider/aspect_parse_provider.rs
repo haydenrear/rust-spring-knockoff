@@ -71,6 +71,7 @@ impl Ord for MethodAdviceAspectCodegen {
         todo!()
     }
 }
+pub struct AspectGeneratorMutableModifier ;
 
 impl MethodAdviceAspectCodegen {
 
@@ -150,6 +151,8 @@ impl MethodAdviceAspectCodegen {
             .any(|attr| attr.to_token_stream().to_string().as_str().contains("aspect"))
     }
 
+
+
     fn up_until_join_point(block: &Block) -> Block {
         let mut block_stmts = vec![];
         for stmt in &block.stmts {
@@ -172,6 +175,8 @@ impl MethodAdviceAspectCodegen {
             stmts: block_stmts
         }
     }
+
+
 
     fn after_join_point(block: &Block) -> Block {
         let mut block_stmts = vec![];
@@ -203,7 +208,7 @@ impl MethodAdviceAspectCodegen {
     }
 
     pub(crate) fn supports_item(item: &Item) -> bool where Self: Sized {
-        match item {
+        let supports = match item {
             Item::Fn(item_fn) => {
                 Self::is_aspect(&item_fn.attrs)
             }
@@ -213,7 +218,11 @@ impl MethodAdviceAspectCodegen {
             _ => {
                 false
             }
+        };
+        if supports {
+            info!("Found supporting: {:?}", SynHelper::get_str(item));
         }
+        supports
     }
 }
 
@@ -237,16 +246,16 @@ impl ParsedAspects {
     /// Add the method advice aspects initially to the container. This is required to happen in a first
     /// pass of the complete program because of what aspects **do**.
     pub fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {
-        log_message!("In parse update.");
+        info!("In parse update.");
         if MethodAdviceAspectCodegen::supports_item(items) {
-            log_message!("Found aspect {:?} while parsing container.",
+            info!("Found aspect {:?} while parsing container.",
                 items.to_token_stream().to_string().as_str());
             let new_method = MethodAdviceAspectCodegen::new(items);
             let metadata = MetadataItemId::new(
                 "".to_string(), "MethodAdviceAspectCodegen".to_string());
             add_to_multi_value(&mut parse_container.provided_items,
-                               Box::new(new_method), metadata
-            );
+                               Box::new(new_method), metadata);
+            info!("Added to provided: {}.", parse_container.provided_items.len());
         }
     }
 

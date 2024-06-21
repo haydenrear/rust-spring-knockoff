@@ -24,18 +24,11 @@ fn main() {
          .ok()
          .or(Some(get_project_dir("codegen_resources/knockoff_factories.toml")))
          .unwrap();
-     let base_dir = get_project_base_build_dir();
 
      let out_directory = get_build_project_dir("target");
 
-     FactoriesParser::write_phase(&knockoff_version, &knockoff_factories, &base_dir,
-                                  &out_directory, &Phase::Providers)
-         .map(|f| {
-               info!("Wrote factory stages.");
-              f
-         })
-         .map(|stages| FactoriesParser::write_tokens_lib_rs(
-              stages, &out_directory, &knockoff_version, &Phase::Providers));
+     FactoriesParser::write_phase(&knockoff_version, &knockoff_factories,
+                                  &out_directory, &Phase::Providers);
 
      let mut proj_dir = get_project_base_build_dir();
      let mut cargo_change = "cargo:rerun-if-changed=".to_string();

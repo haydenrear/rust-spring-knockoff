@@ -1,6 +1,6 @@
 use std::env;
 use std::path::Path;
-use factories_codegen::factories_parser::{FactoriesParser, FactoryStages};
+use factories_codegen::factories_parser::{FactoriesParser, FactoryStages, Phase};
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;
@@ -48,8 +48,7 @@ fn test_write() {
     info!("Found out directory: {:?}", out_directory);
     info!("Found base directory: {:?}", base_dir);
 
-    FactoriesParser::write_phase(&knockoff_version, &knockoff_factories, &base_dir, &out_directory)
-        .map(|stages| FactoriesParser::write_tokens_lib_rs(stages, &out_directory, &knockoff_version));
+    FactoriesParser::write_phase(&knockoff_version, &knockoff_factories, &out_directory, &Phase::Providers);
 
     assert!(out_dir_path.join("knockoff_providers_genone").exists());
     assert!(out_dir_path.join("knockoff_providers_genone").join("src").exists());

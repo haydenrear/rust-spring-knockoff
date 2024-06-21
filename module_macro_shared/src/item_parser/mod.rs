@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::thread::available_parallelism;
 use quote::ToTokens;
 use syn::{Attribute, Fields, GenericParam, Generics, ImplGenerics, ImplItem, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, parse2, Type, TypeGenerics, TypeParam, TypeParamBound, WherePredicate};
@@ -45,13 +45,19 @@ pub trait ItemParser<T: ToTokens> {
         ParseContainerModifierT: ParseContainerModifier,
         BuildParseContainerT: BuildParseContainer,
         ParseContainerFinalizerT: ProfileTreeFinalizer,
-    >(parse_container: &mut ParseContainer, item: &mut T, path_depth: Vec<String>, module_parser: &mut ModuleParser<
-        ParseContainerItemUpdaterT,
-        ItemModifierT,
-        ParseContainerModifierT,
-        BuildParseContainerT,
-        ParseContainerFinalizerT
-    >);
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        item: &mut T,
+        path_depth: Vec<String>,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT,
+            ItemModifierT,
+            ParseContainerModifierT,
+            BuildParseContainerT,
+            ParseContainerFinalizerT
+        >
+    );
     fn is_bean(attrs: &Vec<Attribute>) -> bool {
         ParseUtil::does_attr_exist(&attrs, &ParseUtil::get_qualifier_attr_names())
     }
@@ -69,12 +75,10 @@ fn get_profiles(attrs: &Vec<Attribute>) -> Vec<ProfileBuilder> {
     profiles
 }
 
-#[derive(Eq, PartialEq)]
 pub struct GenericTy {
     pred_type: Option<Type>,
     generic_param: Option<Ident>
 }
-
 
 impl Hash for GenericTy {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -95,17 +99,17 @@ pub fn get_all_generic_ty_bounds(generics: &Generics) -> HashMap<GenericTy, Vec<
     let _ = generics.where_clause.as_ref().iter()
         .flat_map(|w| w.predicates.iter())
         .map(|pred| {
-            match pred {
-                WherePredicate::Type(ty_value) => {
-                    info!("Adding where predicate {:?}", SynHelper::get_str(ty_value));
-                    out.insert(GenericTy {
-                        pred_type: Some(ty_value.bounded_ty.clone()),
-                        generic_param: None
-                    }, vec![]);
-                }
-                WherePredicate::Lifetime(_) => {}
-                WherePredicate::Eq(_) => {}
-            }
+            // match pred {
+            //     WherePredicate::Type(ty_value) => {
+            //         info!("Adding where predicate {:?}", SynHelper::get_str(ty_value));
+            //         out.insert(GenericTy {
+            //             pred_type: Some(ty_value.bounded_ty.clone()),
+            //             generic_param: None
+            //         }, vec![]);
+            //     }
+            //     WherePredicate::Lifetime(_) => {}
+            //     WherePredicate::Eq(_) => {}
+            // }
         });
     // let _ = generics.params.iter().map(|p| {
     //     match p {
@@ -121,16 +125,15 @@ pub fn get_all_generic_ty_bounds(generics: &Generics) -> HashMap<GenericTy, Vec<
     //         GenericParam::Const(_) => {}
     //     }
     // });
-    generics.type_params()
-        .into_iter()
-        .for_each(|ty_param| {
-            let _ = parse2(ty_param.ident.to_token_stream())
-                .map(|ty_value| add_bounds_with_def(
-                    &mut out, ty_param, ty_value)
-                );
-        });
-    info!("Parsed all generic tys for generic: {:?}: {:?}", SynHelper::get_str(&generics),
-        &out);
+    // generics.type_params()
+    //     .into_iter()
+    //     .for_each(|ty_param| {
+    //         let _ = parse2(ty_param.ident.to_token_stream())
+    //             .map(|ty_value| add_bounds_with_def(
+    //                 &mut out, ty_param, ty_value)
+    //             );
+    //     });
+    info!("Parsed all generic tys for generic: {:?}: {:?}", SynHelper::get_str(&generics),&out);
     out
 }
 
@@ -148,34 +151,34 @@ pub(crate) fn create_new_gens(generics: &HashMap<GenericTy, Vec<Option<TokenStre
     g
 }
 
-pub(crate) fn add_bounds_with_def(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>,
-                       ty: &TypeParam, parsed_ty: Ident) {
-    if ty.bounds.len() == 0 {
-        collection_util::add_to_multi_value(
-            &mut out, None, GenericTy{
-                generic_param: Some(parsed_ty),
-                pred_type: None
-            });
-    } else {
-        add_bounds(&mut out, ty, parsed_ty);
-    }
-}
-
-pub(crate) fn add_bounds(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>, ty_param: &TypeParam,
-              ty_value: Ident) {
-    ty_param.bounds.iter().for_each(|bound| {
-        match bound {
-            TypeParamBound::Trait(trait_bound) => {
-                collection_util::add_to_multi_value(
-                    &mut out,
-                    Some(trait_bound.path.to_token_stream()),
-                    GenericTy {
-                        generic_param: Some(ty_value.clone()),
-                        pred_type: None
-                    }
-                );
-            }
-            TypeParamBound::Lifetime(_) => {}
-        }
-    });
-}
+// pub(crate) fn add_bounds_with_def(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>,
+//                        ty: &TypeParam, parsed_ty: Ident) {
+//     if ty.bounds.len() == 0 {
+//         collection_util::add_to_multi_value(
+//             &mut out, None, GenericTy{
+//                 generic_param: Some(parsed_ty),
+//                 pred_type: None
+//             });
+//     } else {
+//         add_bounds(&mut out, ty, parsed_ty);
+//     }
+// }
+//
+// pub(crate) fn add_bounds(mut out: &mut HashMap<GenericTy, Vec<Option<TokenStream>>>, ty_param: &TypeParam,
+//               ty_value: Ident) {
+//     ty_param.bounds.iter().for_each(|bound| {
+//         match bound {
+//             TypeParamBound::Trait(trait_bound) => {
+//                 collection_util::add_to_multi_value(
+//                     &mut out,
+//                     Some(trait_bound.path.to_token_stream()),
+//                     GenericTy {
+//                         generic_param: Some(ty_value.clone()),
+//                         pred_type: None
+//                     }
+//                 );
+//             }
+//             TypeParamBound::Lifetime(_) => {}
+//         }
+//     });
+// }

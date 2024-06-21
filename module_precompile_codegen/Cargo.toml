@@ -15,13 +15,20 @@ serde = "1.0.137"
 base64 = "0.21.0"
 executors = "0.9.0"
 rand = "0.8.5"
-toml = "0.7.3"
+toml = "0.8.14"
 
 
 [build-dependencies]
+proc-macro2 = "1.0.51"
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+derive-syn-parse = "0.1.5"
 lazy_static = "1.4.0"
+serde = "1.0.137"
+base64 = "0.21.0"
 executors = "0.9.0"
-toml = "0.7.3"
+rand = "0.8.5"
+toml = "0.8.14"
 
 [dependencies.knockoff_security]
 path ="../knockoff_security"
@@ -47,7 +54,28 @@ registry = "estuary"
 path ="../factories_codegen"
 version = "0.1.5"
 registry = "estuary"
+[dependencies.dfactory_dcodegen]
+path = "../dfactory_dcodegen"
+version = "0.1.5"
 
+[build-dependencies.cargo_utils]
+path = "../cargo_utils"
+version = "0.1.5"
+[build-dependencies.optional]
+path = "../optional"
+version = "0.1.5"
+[build-dependencies.err]
+path = "../err"
+version = "0.1.5"
+[build-dependencies.crate_gen]
+path = "../crate_gen"
+version = "0.1.5"
+[build-dependencies.dfactory_dcodegen]
+path = "../dfactory_dcodegen"
+version = "0.1.5"
+[build-dependencies.knockoff_dfactory_gen]
+path = "../target/knockoff_dfactory_gen"
+version = "0.1.5"
 [build-dependencies.knockoff_logging]
 path ="../knockoff_logging"
 version = "0.1.5"
@@ -70,5 +98,9 @@ version = "0.1.5"
 registry = "estuary"
 [build-dependencies.factories_codegen]
 path ="../factories_codegen"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.module_macro_shared]
+path ="../module_macro_shared"
 version = "0.1.5"
 registry = "estuary"

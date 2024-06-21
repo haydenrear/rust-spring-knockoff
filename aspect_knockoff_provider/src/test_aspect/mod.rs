@@ -1,60 +1,56 @@
-use std::any::Any;
-use std::fmt::{Debug, Formatter};
-use std::fs::Metadata;
-use std::ops::Deref;
-use std::rc::Rc;
-use std::sync::Arc;
+use std::fmt::Debug;
+use std::fs::File;
+use std::path::Path;
+use quote::ToTokens;
+
 use syn::Item;
-use module_macro_shared::parse_container::MetadataItem;
+
+use codegen_utils::project_directory;
+use codegen_utils::syn_helper::SynHelper;
+use module_macro_shared::{get_test_module_parser, ItemParser, ParseContainer, ProfileProfileTreeModifier, ProfileTreeBuilder, ProfileTreeModifier};
+use module_macro_shared::item_impl_parser::ItemImplParser;
+use module_macro_shared::item_struct_parser::ItemStructParser;
+
 use crate::aspect_knockoff_provider::aspect_item_modifier::AspectParser;
-use crate::aspect_knockoff_provider::aspect_parse_provider::MethodAdviceAspectCodegen;
+use crate::aspect_knockoff_provider::aspect_parse_provider::ParsedAspects;
+use crate::aspect_knockoff_provider::aspect_ts_generator::AspectGenerator;
 
 #[test]
 fn test_parse_aspect() {
-    // let mut aspects = AspectParser::parse_aspects();
-    // assert_eq!(aspects.aspects.len(), 1);
-    // let mut first = aspects.aspects.remove(0);
-    // assert_eq!(first.method_advice_aspects.len(), 1);
-    // let method_advice = first.method_advice_aspects.remove(0);
-    // assert!(!method_advice.before_advice.clone().unwrap().to_token_stream().to_string().as_str().contains("proceed"));
-    // assert!(!method_advice.after_advice.clone().unwrap().to_token_stream().to_string().as_str().contains("proceed"));
-    // assert!(method_advice.item.is_some());
-    // match method_advice.item.unwrap() {
-    //     Item::Fn(fn_found) => {
-    //         assert_eq!(fn_found.sig.ident.to_string().clone(), "do_aspect");
-    //     }
-    //     _ => {
-    //         assert!(false)
-    //     }
-    // }
-}
+    let mut parse_container = ParseContainer::default();
+    let multiple = Path::new(project_directory!()).join("codegen_resources").join("aspect_test.rs");
 
-#[derive(Clone)]
-pub struct Test {
+    let mut read = SynHelper::parse_syn_file(&mut File::options().read(true).open(multiple).unwrap()).unwrap();
 
-}
+    let mut module_parser = get_test_module_parser();
 
+    read.items.iter_mut().for_each(|f| { {
+        match f {
+            Item::Struct(s) => {
+                ItemStructParser::parse_item(&mut parse_container, s, vec![], &mut module_parser);
+            }
+            Item::Impl(i) => {
+                ItemImplParser::parse_item(&mut parse_container, i, vec![], &mut module_parser);
+            }
+            _ => {}
+        }
+    } });
 
-impl Debug for Test {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
-    }
-}
-pub trait TestMetadataItem: 'static + Send + Sync {
-    fn as_any(&mut self) -> &mut dyn Any;
-}
+    read.items.iter_mut().for_each(|f| {
+        ParsedAspects::parse_update(f, &mut parse_container)
+    });
 
-impl TestMetadataItem for Test {
-    fn as_any(&mut self) -> &mut dyn Any {
-        self
-    }
-}
+    read.items.iter_mut().for_each(|f| {
+        AspectParser::modify_item(&mut parse_container, f, vec![]);
+    });
 
+    let p = Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder));
+    let mut profile_tree = ProfileTreeBuilder::build_profile_tree(&mut parse_container.injectable_types_builder, vec![p], &mut parse_container.provided_items);
 
-#[test]
-fn test_dyn_values(){
-    let mut out = Box::new(Test {});
-    let mut out = out.as_mut().as_any().downcast_mut::<Test>().unwrap();
-    // let out = out.downcast_mut::<Test>().unwrap();
+    let generator = AspectGenerator::new(&mut profile_tree);
+    let a = generator.generate_token_stream();
+
+    println!("{}", SynHelper::get_str(a));
 
 }
+

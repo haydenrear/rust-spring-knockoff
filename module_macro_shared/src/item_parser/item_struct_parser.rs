@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use syn::{ItemStruct, parse2, Type};
 use codegen_utils::syn_helper::SynHelper;
 use crate::module_macro_shared_codegen::FieldAugmenter;
@@ -26,13 +27,19 @@ impl ItemParser<ItemStruct> for ItemStructParser {
         ParseContainerModifierT: ParseContainerModifier,
         BuildParseContainerT: BuildParseContainer,
         ParseContainerFinalizerT: ProfileTreeFinalizer,
-    >(parse_container: &mut ParseContainer, item_struct: &mut ItemStruct, path_depth: Vec<String>, module_parser: &mut ModuleParser<
-        ParseContainerItemUpdaterT,
-        ItemModifierT,
-        ParseContainerModifierT,
-        BuildParseContainerT,
-        ParseContainerFinalizerT
-    >) {
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        item_struct: &mut ItemStruct,
+        path_depth: Vec<String>,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT,
+            ItemModifierT,
+            ParseContainerModifierT,
+            BuildParseContainerT,
+            ParseContainerFinalizerT
+        >,
+    ) {
         // TODO: filter
         if !Self::is_bean(&item_struct.attrs) {
             return;

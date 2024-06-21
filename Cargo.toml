@@ -38,7 +38,7 @@ members = [
     "configuration_properties_macro",
     "knockoff_resource",
     "aspect_knockoff_gen",
-    "module_precompile_lib", "module_precompile_shared", "module_precompile_macro", "program_parser", "optional", "properties", "dfactory_dcodegen",
+    "module_precompile_lib", "module_precompile_shared", "module_precompile_macro", "program_parser", "optional", "properties", "dfactory_dcodegen", "cargo_utils", "err", "dfactory_dcodegen_codegen", "dfactory_dcodegen_lib", "dfactory_dcodegen_shared",
 #    "boot_application_builder"
 ]
 exclude = [

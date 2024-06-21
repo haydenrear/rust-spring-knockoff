@@ -8,6 +8,7 @@ LOGGING_DIR = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/log.log"
 KNOCKOFF_LOGGING_TEST_FILE = "/Users/hayde/IdeaProjects/rust-spring-knockoff/log_out/knockoff_logging_test.log"
 #PROJECT_BASE_DIRECTORY = {value = "", relative = true}
 PROJECT_BASE_DIRECTORY = "/Users/hayde/IdeaProjects/rust-spring-knockoff"
+PROGRAM_SRC_PATH_FROM_ROOT = "delegator_test/src"
 MODULE_MACRO_REGISTRY_INDEX_URI = "http://localhost:1234/git/index"
 KNOCKOFF_DEV = "true"
 #KNOCKOFF_PROFILES = "test,prod"

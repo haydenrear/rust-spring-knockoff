@@ -2,7 +2,8 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
-use syn::{Item, ItemMod, Type};
+use std::ops::Deref;
+use syn::{Item, ItemImpl, ItemMod, Type};
 use quote::ToTokens;
 use crate::bean::BeanDefinition;
 use crate::functions::{FunctionType, ModulesFunctions};
@@ -11,7 +12,9 @@ use crate::profile_tree::{ProfileBuilder, ProfileTree};
 
 use knockoff_logging::*;
 use std::sync::Mutex;
-use crate::{ItemModifier, logger_lazy, ProfileTreeFinalizer};
+use codegen_utils::FlatMapOptional;
+use codegen_utils::syn_helper::SynHelper;
+use crate::{DefaultItemModifier, DefaultProfileTreeFinalizer, ItemModifier, logger_lazy, ProfileTreeFinalizer};
 import_logger!("parse_container.rs");
 
 
@@ -41,6 +44,37 @@ pub struct ParseContainer {
     pub fns: HashMap<String, ModulesFunctions>,
     pub profiles: Vec<ProfileBuilder>,
     pub provided_items: HashMap<MetadataItemId, Vec<Box<dyn MetadataItem>>>
+}
+
+impl ParseContainer {
+    // pub fn get_item_impl<'a>(&'a mut self, item: &mut Item) -> Option<&mut ItemImpl> {
+    //     if let Item::Impl(i) = item {
+    //         return Some(self.injectable_types_builder.get_mut(&i.self_ty.to_token_stream().to_string())
+    //             .map(|bd| bd.traits_impl.iter_mut().flat_map(|s| s.item_impl.as_mut().into_iter())
+    //                 .filter(|i| i.self_ty.to_token_stream().to_string().as_str() == i.self_ty.to_token_stream().to_string().as_str()).next())
+    //             .flatten()
+    //             .or(Some(i))
+    //             .unwrap());
+    //     }
+    //
+    //     None
+    //
+    //
+    // }
+
+    pub fn get_bean_definition_key(i: &Item) -> Option<String> {
+        match &i {
+            Item::Enum(e) => Some(e.ident.to_string().clone()),
+            Item::Fn(fn_) => Some(fn_.sig.ident.to_string().clone()),
+            Item::Impl(imp) => Some(imp.self_ty.deref().to_token_stream().to_string().clone()),
+            Item::Mod(m) => Some(m.ident.to_string().clone()),
+            Item::Static(s) => Some(s.ident.to_string().clone()),
+            Item::Struct(s) => Some(s.ident.to_string().clone()),
+            Item::Trait(t) => Some(t.ident.to_string().clone()),
+            Item::Type(ty) => Some(ty.ident.to_string().clone()),
+            _ => None
+        }
+    }
 }
 
 impl Debug for ParseContainer {
@@ -78,14 +112,25 @@ pub trait ParseContainerItemUpdater {
     fn parse_update(items: &mut Item, parse_container: &mut ParseContainer);
 }
 
+#[derive(Default)]
+pub struct DefaultParseContainerItemUpdater;
+impl ParseContainerItemUpdater for DefaultParseContainerItemUpdater { fn parse_update(items: &mut Item, parse_container: &mut ParseContainer) {} }
+
 pub trait ParseContainerModifier {
     fn do_modify(items: &mut ParseContainer);
 }
+
+#[derive(Default)]
+pub struct DefaultParseContainerModifier;
+impl ParseContainerModifier for DefaultParseContainerModifier { fn do_modify(items: &mut ParseContainer) {} }
 
 pub trait BuildParseContainer {
     fn build_parse_container(&self, parse_container: &mut ParseContainer);
 }
 
+#[derive(Default)]
+pub struct DefaultBuildParseContainer;
+impl BuildParseContainer for DefaultBuildParseContainer { fn build_parse_container(&self, parse_container: &mut ParseContainer) {} }
 
 
 /// After the
@@ -119,4 +164,16 @@ pub struct ModuleParser<
     pub delegating_parse_container_builder: BuildParseContainerT,
     pub delegating_parse_container_item_modifier: ItemModifierT ,
     pub delegating_parse_container_finalizer: ParseContainerFinalizerT
+}
+
+pub type DefaultModuleParser = ModuleParser<DefaultParseContainerItemUpdater, DefaultItemModifier, DefaultParseContainerModifier, DefaultBuildParseContainer, DefaultProfileTreeFinalizer>;
+
+pub fn get_test_module_parser() -> DefaultModuleParser {
+    DefaultModuleParser {
+        delegating_parse_container_updater: Default::default(),
+        delegating_parse_container_modifier: Default::default(),
+        delegating_parse_container_builder: Default::default(),
+        delegating_parse_container_item_modifier: Default::default(),
+        delegating_parse_container_finalizer: Default::default(),
+    }
 }

@@ -1,0 +1,18 @@
+[package]
+name = "err"
+version = "0.1.5"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+toml = "0.8.6"
+lazy_static = "1.4.0"
+[dependencies.knockoff_logging]
+path = "../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_helper]
+path = "../knockoff_helper"
+version = "0.1.5"
+registry = "estuary"

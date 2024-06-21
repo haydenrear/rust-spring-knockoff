@@ -7,21 +7,27 @@ macro_rules! project_directory {
 }
 
 #[macro_export]
+macro_rules! project_directory_path {
+    () => {
+        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
+    };
+}
+
+#[macro_export]
 macro_rules! program_src {
     () => {
         std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
             .join(std::path::Path::new(&module_path!().split("::").map(|s| s.to_string()).collect::<Vec<String>>().get(0).unwrap()))
             .join(std::path::Path::new("src"))
     };
-    ($lit:literal) => {
-        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
-            .join(std::path::Path::new(&module_path!().split("::").map(|s| s.to_string()).collect::<Vec<String>>().get(0).unwrap()))
-            .join(std::path::Path::new($lit))
-    };
     ($lit:expr) => {
         std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
-            .join(std::path::Path::new(&module_path!().split("::").map(|s| s.to_string()).collect::<Vec<String>>().get(0).unwrap()))
             .join(std::path::Path::new($lit))
+    };
+    ($lit:literal, $module_path:literal) => {
+        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
+            .join(std::path::Path::new($lit))
+            .join(std::path::Path::new($module_path))
     };
 }
 
@@ -54,8 +60,7 @@ pub fn get_build_project_base_path() -> PathBuf {
 }
 
 pub fn get_build_project_dir(path: &str) -> String {
-    let mut project_dir = project_directory!().to_string();
-    Path::new(project_dir.as_str()).join(path).to_str().unwrap().to_string()
+    project_directory_path!().join(path).to_str().unwrap().to_string()
 }
 
 pub fn get_build_project_path(path: &str) -> PathBuf {

@@ -20,3 +20,19 @@ pub fn enable_http_security<Request, Response>(http: &mut HttpSecurity<Request, 
     // http.authentication_provider(Box::new());
 }
 
+
+#[service(SevenIntercept)]
+#[derive(Default)]
+pub struct SevenIntercept {
+    pub two: String,
+}
+
+
+impl SevenIntercept {
+    pub fn one_two_three(&self, one: SevenIntercept) -> String {
+        print!("testing...");
+        print!("{} is one", one.two.to_string());
+        "two one".to_string()
+    }
+}
+

@@ -1,0 +1,6 @@
+[all]
+[all.all]
+proc-macro2 = "1.0"
+quote = "1.0"
+serde = "1.0.137"
+syn = {features = ["full"], version = "1.0"}

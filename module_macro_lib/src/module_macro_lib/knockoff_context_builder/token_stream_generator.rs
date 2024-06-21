@@ -6,7 +6,6 @@ use proc_macro2::TokenStream;
 use syn::parse2;
 use syn::token::Use;
 use knockoff_logging::error;
-use module_macro_codegen::parser::CodegenItem;
 use module_macro_shared::profile_tree::ProfileTree;
 use knockoff_providers_gen::{DelegatingTokenProvider, DelegatingFrameworkTokenProvider};
 use module_macro_shared::ProfileTreeFrameworkTokenProvider;

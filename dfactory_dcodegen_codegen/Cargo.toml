@@ -1,0 +1,50 @@
+[package]
+name = "dfactory_dcodegen_codegen"
+version = "0.1.5"
+edition = "2021"
+description = "Used to generate the codegen modules."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+derive-syn-parse = "0.1.5"
+lazy_static = "1.4.0"
+serde = "1.0.137"
+base64 = "0.21.0"
+executors = "0.9.0"
+rand = "0.8.5"
+toml = "0.7.3"
+
+
+[build-dependencies]
+lazy_static = "1.4.0"
+executors = "0.9.0"
+toml = "0.7.3"
+
+[dependencies.knockoff_logging]
+path ="../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.codegen_utils]
+path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.factories_codegen]
+path ="../factories_codegen"
+version = "0.1.5"
+registry = "estuary"
+
+[build-dependencies.knockoff_logging]
+path ="../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.codegen_utils]
+path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.factories_codegen]
+path ="../factories_codegen"
+version = "0.1.5"
+registry = "estuary"

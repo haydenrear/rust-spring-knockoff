@@ -1,5 +1,7 @@
 #![feature(let_chains)]
 
+extern crate core;
+
 pub mod util;
 pub use util::*;
 pub mod item_parser;

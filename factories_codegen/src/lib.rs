@@ -44,9 +44,11 @@ pub mod provider;
 pub mod profile_tree_modifier;
 pub mod profile_tree_finalizer;
 pub mod item_modifier;
-pub mod test;
 pub mod framework_token_provider;
+pub mod mutable_module_modifier_provider;
 
+#[cfg(test)]
+pub mod test;
 
 use knockoff_logging::*;
 use lazy_static::lazy_static;

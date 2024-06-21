@@ -35,7 +35,6 @@ impl Iterator for ModuleIterator {
                     // if in-line, return it, otherwise get the file, load it, and return it.
                     Item::Mod(mod_) => {
                         let next = Self::retrieve_next_mod(mod_, &self.base);
-                        info!("Found next: {:?}", next.clone());
                         return next;
                     },
                     _ => continue,

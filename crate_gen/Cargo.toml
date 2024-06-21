@@ -4,7 +4,22 @@ version = "0.1.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+toml = "0.8.6"
+lazy_static = "1.4.0"
 [dependencies.codegen_utils]
 path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.err]
+path ="../err"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.cargo_utils]
+path ="../cargo_utils"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_logging]
+path = "../knockoff_logging"
 version = "0.1.5"
 registry = "estuary"

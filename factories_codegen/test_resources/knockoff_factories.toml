@@ -1,0 +1,138 @@
+
+
+
+# Phases:
+# 1. pre_compile - provide code to another library
+# 2. module_macro - generate code in your application library
+# Stages:
+# add to the data in the ProfileTree and ParseContainer, and pass it to a following stage. Stages exist in
+# all phases.
+[phases.pre_compile.gen_deps]
+# Dependencies necessary to run the providers. There are some number of Delegating providers provided by the users.
+# So then these Delegating providers are imported in the knockoff_gen_providers and create the Delegating provider
+# that calls all of those delegating provider provided. So then this allows for there to be multiple of a particular
+# type of provider.
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+
+# A create is created for each of these stages and included in the knockoff_gen_providers, and then knockoff_gen_providers
+# is included in the module_macro_lib. Then, module_macro_lib is imported by the user. So, then the user provides the
+# implementations of the providers, and th
+
+
+[phases.pre_compile.gen_deps.web_framework_shared]
+path ="../../web_framework_shared"
+name = "web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.pre_compile.gen_deps.module_macro_shared]
+path ="../../module_macro_shared"
+name = "module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.pre_compile.gen_deps.dfactory_dcodegen_shared]
+path ="../../factory_dcodegen_shared"
+name = "factory_dcodegen_shared"
+version = "0.1.5"
+registry = "estuary"
+
+# A create is created for each of these stages and included in the knockoff_gen_providers, and then knockoff_gen_providers
+# is included in the module_macro_lib. Then, module_macro_lib is imported by the user. So, then the user provides the
+# implementations of the providers, and th
+[phases.pre_compile.stages.one.dependencies]
+# Dependencies necessary to run the providers
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+
+[phases.pre_compile.stages.one.dependencies.web_framework_shared]
+path ="../../web_framework_shared"
+name = "web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.pre_compile.stages.one.dependencies.module_macro_shared]
+path ="../../module_macro_shared"
+name = "module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.pre_compile.stages.one.dependencies.authentication_codegen]
+path ="../../authentication_codegen"
+name = "authentication_codegen"
+version = "0.1.5"
+registry = "estuary"
+
+[phases.pre_compile.stages.one.item_modifier.values.authentication_codegen.provider_data]
+provider_path = "authentication_codegen::AuthenticationGenItemModifier"
+provider_ident = "AuthenticationGenItemModifierBuilder"
+[phases.pre_compile.stages.one.item_modifier.values.dependency_data]
+path = "../../authentication_codegen"
+registry = "estuary"
+version = "0.1.5"
+[phases.pre_compile.stages.one.token_provider.values.authentication_codegen.provider_data]
+provider_path = "authentication_codegen::AuthenticationTypeTokenStreamGenerator"
+provider_ident = "AuthenticationTypeTokenStreamGeneratorBuilder"
+[phases.pre_compile.stages.one.token_provider.values.dependency_data]
+path = "../../authentication_codegen"
+registry = "estuary"
+version = "0.1.5"
+
+[phases.pre_compile.stages.one.item_modifier.values.aspect_knockoff_provider.provider_data]
+provider_path = "knockoff_dfactory_gen::DelegatingItemModifier"
+provider_ident = "AspectParserBuilder"
+[phases.pre_compile.stages.one.item_modifier.values.aspect_knockoff_provider.dependency_data]
+path = "../knockoff_dfactory_gen"
+registry = "estuary"
+version = "0.1.5"
+[phases.pre_compile.stages.one.parse_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "knockoff_dfactory_gen::DelegatingParseProvider"
+provider_ident = "ParsedAspectsBuilder"
+[phases.pre_compile.stages.one.parse_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../knockoff_dfactory_gen"
+registry = "estuary"
+version = "0.1.5"
+[phases.pre_compile.stages.one.token_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "knockoff_dfactory_gen::DelegatingTokenProvider"
+provider_ident = "AspectGeneratorBuilder"
+[phases.pre_compile.stages.one.token_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../knockoff_dfactory_gen"
+registry = "estuary"
+version = "0.1.5"
+
+[phases.dfactory.stages.one.dependencies]
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+aspect_knockoff_provider = {path = "../../aspect_knockoff_provider"}
+
+[phases.dfactory.stages.one.item_modifier.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_item_modifier::AspectParser"
+provider_ident = "AspectParserBuilder"
+[phases.dfactory.stages.one.item_modifier.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"
+[phases.dfactory.stages.one.parse_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_parse_provider::ParsedAspects"
+provider_ident = "ParsedAspectsBuilder"
+[phases.dfactory.stages.one.parse_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"
+[phases.dfactory.stages.one.token_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_ts_generator::AspectGenerator"
+provider_ident = "AspectGeneratorBuilder"
+[phases.dfactory.stages.one.token_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"
+[phases.dfactory.stages.one.bean_ty_provider.values.aspect_knockoff_provider.provider_data]
+provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::AspectInfo"
+provider_ident = "AspectInfoBuilder"
+[phases.dfactory.stages.one.bean_ty_provider.values.aspect_knockoff_provider.dependency_data]
+path = "../../aspect_knockoff_provider"
+registry = "estuary"
+version = "0.1.5"

@@ -18,6 +18,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use optional::FlatMapOptional;
 use crate::logger_lazy;
 import_logger!("aspect_knockoff_provider.rs");
 
@@ -37,22 +38,24 @@ impl AspectParser {
                        item: &mut Item, path_depth: Vec<String>) {
         match item {
             Item::Impl(item_impl) => {
-                log_message!("Doing modification for {}.", SynHelper::get_str(&item_impl));
+                info!("Doing modification for {}.", SynHelper::get_str(&item_impl));
                 let mut path_depth = path_depth.clone();
                 path_depth.push(item_impl.self_ty.to_token_stream().to_string().clone());
                 Self::add_method_advice_aspect(
                     parse_container, item_impl,
-                    &mut path_depth, item_impl.self_ty.to_token_stream().to_string().as_str()
+                    &mut path_depth, item_impl.self_ty.to_token_stream().to_string().as_str(),
                 );
             }
             _ => {}
-        }
+        };
     }
 
     pub fn supports(item: &Item) -> bool {
         match item {
             Item::Fn(item_fn) => {
-                MethodAdviceAspectCodegen::is_aspect(&item_fn.attrs)
+                let is_aspect = MethodAdviceAspectCodegen::is_aspect(&item_fn.attrs);
+                info!("Testing if {:?} is decorated with aspect.", SynHelper::get_str(item));
+                is_aspect
             }
             _ => {
                 false
@@ -82,15 +85,15 @@ impl AspectParser {
             .for_each(|i| {
                 match i {
                     ImplItem::Method(ref mut method) => {
-                        log_message!("Found method {}", SynHelper::get_str(method.clone()));
+                        info!("Found method {}", SynHelper::get_str(method.clone()));
                         let return_type = Self::get_return_type(&method);
                         let args = Self::get_args_info(method);
-                        log_message!("Adding method advice aspect to: {}", SynHelper::get_str(method.clone()));
+                        info!("Adding method advice aspect to: {}", SynHelper::get_str(method.clone()));
                         let mut next_path = path_depth.clone();
                         next_path.push(method.sig.ident.to_token_stream().to_string().clone());
-                        log_message!("{} is the method before the method advice aspect.", SynHelper::get_str(method.block.clone()));
+                        info!("{} is the method before the method advice aspect.", SynHelper::get_str(method.block.clone()));
                         Self::parse_aspect(parse_container, method, next_path, args, bean_id, return_type);
-                        log_message!("{} is the method after the method advice aspect.", SynHelper::get_str(method.block.clone()));
+                        info!("{} is the method after the method advice aspect.", SynHelper::get_str(method.block.clone()));
                     }
                     _ => {}
                 }
@@ -99,13 +102,13 @@ impl AspectParser {
 
     fn get_args_info(method: &mut ImplItemMethod) -> Vec<(Ident, Type)> {
         method.sig.inputs.iter().flat_map(|i| {
-            log_message!("Found fn_arg {}", SynHelper::get_str(i.clone()));
+            info!("Found fn_arg {}", SynHelper::get_str(i.clone()));
             match i {
                 FnArg::Receiver(r) => {
                     vec![]
                 }
                 FnArg::Typed(t) => {
-                    log_message!("Found pat: {}", t.pat.to_token_stream().to_string().clone());
+                    info!("Found pat: {}", t.pat.to_token_stream().to_string().clone());
                     SynHelper::get_fn_arg_ident_type(t)
                         .map(|t| vec![t])
                         .or(Some(vec![]))
@@ -117,7 +120,7 @@ impl AspectParser {
 
     fn get_mutability(method: &ImplItemMethod) -> bool {
         method.sig.inputs.iter().any(|i| {
-            log_message!("Found fn_arg {}", SynHelper::get_str(i.clone()));
+            info!("Found fn_arg {}", SynHelper::get_str(i.clone()));
             match i {
                 FnArg::Receiver(r) => {
                     if r.mutability.is_some() {
@@ -145,13 +148,12 @@ impl AspectParser {
     }
 
     fn parse_aspect_ordering(parse_container: &mut ParseContainer,
-                             method: &mut ImplItemMethod,
-                             path: &Vec<String>,
-                             bean_id: &str) -> Vec<MethodAdviceAspectCodegen> {
-        log_message!("Parsing aspect ordering.");
+                             path: &Vec<String>) -> Vec<MethodAdviceAspectCodegen> {
+        info!("Parsing aspect ordering.");
         let retrieved = Self::retrieve_to_remove(parse_container);
 
         if retrieved.is_none() {
+            info!("Did not retrieve anything.");
             return vec![];
         }
 
@@ -165,20 +167,21 @@ impl AspectParser {
             )
             .collect::<Vec<MethodAdviceAspectCodegen>>();
 
-        log_message!("Found {} aspects.", aspects.len());
+        info!("Found {} aspects.", aspects.len());
 
-        let mut advice = aspects.into_iter()
+        let mut advice = aspects.clone().into_iter()
             .filter(|a| {
                 let mut path = path.clone();
                 let point_cut_matcher = path.join(".");
-                log_message!("{:?} is the next advice", a);
-                log_message!("Checking if before advice {} and after advice {} matches {}.",
+                info!("{:?} is the next advice", a);
+                info!("Checking if before advice {} and after advice {} matches {}.",
                     SynHelper::get_str(a.before_advice.clone().unwrap()),
                     SynHelper::get_str(a.after_advice.clone().unwrap()),
                     point_cut_matcher.clone()
                 );
+                info!("Checking if {:?} matches {:?}", a.pointcut.pointcut_expr, point_cut_matcher.as_str());
                 if a.pointcut.pointcut_expr.matches(point_cut_matcher.as_str()) {
-                    log_message!("Before advice {} and after advice {} matches {}!",
+                    info!("Before advice {} and after advice {} matches {}!",
                         SynHelper::get_str(a.before_advice.clone().unwrap()),
                         SynHelper::get_str(a.after_advice.clone().unwrap()),
                         point_cut_matcher.clone()
@@ -191,18 +194,26 @@ impl AspectParser {
 
         advice.sort();
 
-        advice.into_iter()
+        let adv = advice.into_iter()
             .map(|a| a.to_owned())
-            .collect::<Vec<MethodAdviceAspectCodegen>>()
+            .collect::<Vec<MethodAdviceAspectCodegen>>();
+
+        let metadata = MetadataItemId::new("".to_string(), "MethodAdviceAspectCodegen".to_string());
+        aspects.into_iter().for_each(|v| {
+            add_to_multi_value(&mut parse_container.provided_items,
+                               Box::new(v) as Box<dyn MetadataItem>, metadata.clone());
+        });
+
+        adv
     }
 
     fn retrieve_to_remove(parse_container: &mut ParseContainer) -> Option<Vec<Box<dyn MetadataItem>>> {
-        log_message!("Retrieving method advice aspect codegen.");
+        info!("Retrieving method advice aspect codegen.");
         let metadata: Vec<MetadataItemId> = parse_container.provided_items.keys()
             .filter(|k| k.metadata_item_type_id == "MethodAdviceAspectCodegen")
             .peekable()
             .map(|f| {
-                log_message!("Found method advice aspect: {:?}", f);
+                info!("Found method advice aspect: {:?}", f);
                 f
             })
             .map(|k| k.clone())
@@ -215,7 +226,7 @@ impl AspectParser {
         let k = metadata.iter().next().unwrap();
         let removed_value = parse_container.provided_items.remove(k);
         if removed_value.as_ref().is_some() {
-            log_message!("Found {} number of values.", removed_value.as_ref().unwrap().len());
+            info!("Found {} number of values.", removed_value.as_ref().unwrap().len());
         }
         removed_value
     }
@@ -225,25 +236,27 @@ impl AspectParser {
                     path: Vec<String>,
                     args: Vec<(Ident, Type)>,
                     bean_id: &str, return_type: Option<Type>) {
-        let mut ordering = Self::parse_aspect_ordering(parse_container, method, &path, bean_id);
+        info!("Parsing aspect: {:?}", SynHelper::get_str(&method));
+        let mut ordering = Self::parse_aspect_ordering(parse_container, &path);
 
-        let chain = Self::parse_aspect_info(parse_container, method, args, bean_id,
+        let chain = Self::parse_aspect_info(method, args, bean_id,
                                             return_type, &mut ordering)
             .map(|mut a| {
-                log_message!("Found aspect info to be added: {:?} before aspect parsing advice chain.", a);
+                info!("Found aspect info to be added: {:?} before aspect parsing advice chain.", a);
                 Self::parse_advice_chain(&mut ordering, &mut a)
             })
             .map(|aspect_info| {
-                log_message!("Found aspect info to be added: {:?}", aspect_info);
+                info!("Found aspect info to be added: {:?}", aspect_info);
                 aspect_info
             })
             .or_else(|| {
-                log_message!("No method advice aspect to be found for {} and method {:?}.",
+                info!("No method advice aspect to be found for {} and method {:?}.",
                     bean_id, method.to_token_stream().to_string().as_str());
                 None
             });
 
         chain.map(|chain| {
+            info!("Inserting aspect info...");
             let metadata_id = MetadataItemId::new(bean_id.to_string(),
                                                   "AspectInfo".to_string());
             add_to_multi_value(&mut parse_container.provided_items,
@@ -254,24 +267,23 @@ impl AspectParser {
     }
 
     fn parse_aspect_info(
-        parse_container: &mut ParseContainer,
         method: &mut ImplItemMethod, args: Vec<(Ident, Type)>,
         bean_id: &str, return_type: Option<Type>,
         codegen_items: &mut Vec<MethodAdviceAspectCodegen>
     ) -> Option<AspectInfo> {
         if codegen_items.len() == 0 {
-            log_message!("No codegen items found.");
+            info!("No codegen items found.");
             return None;
         }
 
-        Self::create_advice(
-            parse_container, method, args, bean_id,
-            return_type, &method.clone(),
-            &mut codegen_items.remove(0),
+        Self::create_advice(method, args, bean_id,
+                            return_type, &method.clone(),
+                            &mut codegen_items.remove(0),
         )
     }
 
     fn parse_advice_chain(items: &mut Vec<MethodAdviceAspectCodegen>, aspect_info: &mut AspectInfo) -> AspectInfo {
+        info!("Parsing aspect info advice chain.");
         aspect_info.advice_chain = items.iter_mut()
             .map(|mut m| Self::update_proceed_stmt_with_args(aspect_info, &mut m))
             .map(|v| MethodAdviceChain::new(&v))
@@ -280,22 +292,22 @@ impl AspectParser {
     }
 
     fn update_proceed_stmt_with_args(aspect_info: &AspectInfo, mut m: &mut MethodAdviceAspectCodegen) -> MethodAdviceAspectCodegen {
-        log_message!("Updating proceed stmt: {:?}", aspect_info);
+        info!("Updating proceed stmt: {:?}", aspect_info);
         let _ = Self::create_proceed_stmt_with_args(&aspect_info.method.as_ref().unwrap(), &mut m).ok()
             .map(|new_proceed| m.proceed_statement = Some(new_proceed));
         m.to_owned()
     }
 
-    fn create_advice(parse_container: &mut ParseContainer, method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str,
+    fn create_advice(method: &mut ImplItemMethod, args: Vec<(Ident, Type)>, bean_id: &str,
                      return_type: Option<Type>, method_before: &ImplItemMethod, first: &mut MethodAdviceAspectCodegen
     ) -> Option<AspectInfo> {
 
-        log_message!("Creating advice: {:?}", first);
-        log_message!(
+        info!("Creating advice: {:?}", first);
+        info!(
             "Adding before advice aspect: {}.",
             SynHelper::get_str(first.before_advice.clone().unwrap())
         );
-        log_message!(
+        info!(
             "Adding after advice aspect: {}.",
             SynHelper::get_str(first.after_advice.clone().unwrap())
         );
@@ -305,19 +317,16 @@ impl AspectParser {
 
         let return_type = return_type.clone();
 
-        parse_container.injectable_types_builder.get_mut(bean_id)
-            .map(|i| {
-                AspectInfo {
-                    method_advice_aspect: first.clone(),
-                    method: Some(method_before.clone()),
-                    args: args.clone(),
-                    original_fn_logic: Some(method_before.block.clone()),
-                    method_after: Some(method.clone()),
-                    return_type,
-                    mutable: Self::get_mutability(&method_before),
-                    advice_chain: vec![],
-                }
-            })
+        Some(AspectInfo {
+            method_advice_aspect: first.clone(),
+            method: Some(method_before.clone()),
+            args: args.clone(),
+            original_fn_logic: Some(method_before.block.clone()),
+            method_after: Some(method.clone()),
+            return_type,
+            mutable: Self::get_mutability(&method_before),
+            advice_chain: vec![],
+        })
     }
 
     fn rewrite_block_new_span(method: &mut ImplItemMethod) {
@@ -332,24 +341,24 @@ impl AspectParser {
 
     fn add_advice_to_stmts(method: &mut ImplItemMethod, a: &mut MethodAdviceAspectCodegen) {
         let before = a.before_advice.clone();
-        log_message!("Here is method block before: {}.", SynHelper::get_str(method.block.clone()));
+        info!("Here is method block before: {}.", SynHelper::get_str(method.block.clone()));
         method.block.stmts.clear();
 
         Self::add_before_advice(method, before);
         Self::add_proceed_stmt(method, a);
         Self::add_after_advice(method, a);
 
-        log_message!("Here is method block after: {}.", SynHelper::get_str(method.block.clone()));
+        info!("Here is method block after: {}.", SynHelper::get_str(method.block.clone()));
     }
 
     fn add_proceed_stmt(method: &mut ImplItemMethod, a: &mut MethodAdviceAspectCodegen) {
         let stmt = Self::create_proceed_stmt_with_args(method, a);
 
         if stmt.is_err() {
-            log_message!("Could not add proceed statement...");
+            info!("Could not add proceed statement...");
         }
         stmt.ok().map(|p| {
-            log_message!("Adding proceed statement created: {}.", SynHelper::get_str(&p));
+            info!("Adding proceed statement created: {}.", SynHelper::get_str(&p));
             method.block.stmts.push(p.clone());
         }).or_else(|| {
             a.proceed_statement.as_ref().map(|p| method.block.stmts.push(p.clone()));
@@ -384,7 +393,7 @@ impl AspectParser {
             let found = self.#ident(#(#args),*);
         };
 
-        log_message!("Adding proceed statement: {}.", SynHelper::get_str(&proceed));
+        info!("Adding proceed statement: {}.", SynHelper::get_str(&proceed));
 
         parse2::<Stmt>(proceed.into())
     }
@@ -421,13 +430,13 @@ impl AspectParser {
 
     fn add_before_advice(method: &mut ImplItemMethod, before: Option<Block>) {
         before.map(|mut before| {
-            log_message!("Adding statements {} to method.", SynHelper::get_str(before.clone()));
+            info!("Adding statements {} to method.", SynHelper::get_str(before.clone()));
             let mut before_stmts = before.stmts;
             for i in 0..before_stmts.len() {
-                log_message!("Adding statement {} to method.", SynHelper::get_str(before_stmts.get(i).unwrap().clone()));
+                info!("Adding statement {} to method.", SynHelper::get_str(before_stmts.get(i).unwrap().clone()));
                 method.block.stmts.insert(i, before_stmts.get(i).unwrap().to_owned())
             }
-            log_message!("Here are statements after: {}", SynHelper::get_str(method.block.clone()));
+            info!("Here are statements after: {}", SynHelper::get_str(method.block.clone()));
         });
     }
 

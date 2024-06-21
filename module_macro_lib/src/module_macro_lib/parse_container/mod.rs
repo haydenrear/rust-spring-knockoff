@@ -38,7 +38,6 @@ use module_macro_shared::profile_tree::profile_tree_finalizer::ProfileTreeFinali
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
 use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
-use crate::module_macro_lib::profile_tree::profile_profile_tree_modifier::ProfileProfileTreeModifier;
 use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
 use crate::module_macro_lib::parse_container::parse_container_dependencies::{BuildDependencyParseContainer, DelegateParseContainerModifier};
 
@@ -47,7 +46,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use module_macro_shared::dependency::DepType;
-use module_macro_shared::ProfileTreeBuilder;
+use module_macro_shared::{ProfileProfileTreeModifier, ProfileTreeBuilder};
 use crate::logger_lazy;
 use crate::module_macro_lib::generics_provider::DelegatingGenericsProvider;
 import_logger!("parse_container.rs");

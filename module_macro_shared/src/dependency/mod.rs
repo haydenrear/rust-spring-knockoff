@@ -58,7 +58,7 @@ impl PartialEq<Self> for DependencyDescriptor {
     fn eq(&self, other: &Self) -> bool {
         self.item_impl.as_ref().map(|i| SynHelper::get_str(&i))
             .eq(&other.item_impl.as_ref().map(|i| SynHelper::get_str(&i)))
-            && self.abstract_type.eq(&other.abstract_type)
+            // && self.abstract_type.eq(&other.abstract_type)
     }
 }
 

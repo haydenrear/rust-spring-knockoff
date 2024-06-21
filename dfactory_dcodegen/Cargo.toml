@@ -7,8 +7,58 @@ description = "Generates factories generators"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0.203", features = ["derive"] }
-syn = "2.0.66"
-toml = "0.8.14"
+proc-macro2 = "1.0.51"
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+derive-syn-parse = "0.1.5"
 lazy_static = "1.4.0"
-proc-macro2 = "1.0.85"
+serde = "1.0.137"
+base64 = "0.21.0"
+executors = "0.9.0"
+rand = "0.8.5"
+toml = "0.8.14"
+
+[dependencies.knockoff_security]
+path ="../knockoff_security"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_logging]
+path ="../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.web_framework_shared]
+path ="../web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.spring_knockoff_boot_macro]
+path ="../spring_knockoff_boot_macro"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.codegen_utils]
+path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.factories_codegen]
+path ="../factories_codegen"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_dfactory_gen]
+path = "../target/knockoff_dfactory_gen"
+version = "0.1.5"
+
+[dependencies.cargo_utils]
+path = "../cargo_utils"
+version = "0.1.5"
+[dependencies.optional]
+path = "../optional"
+version = "0.1.5"
+[dependencies.err]
+path = "../err"
+version = "0.1.5"
+[dependencies.crate_gen]
+path = "../crate_gen"
+version = "0.1.5"
+[dependencies.module_macro_shared]
+path ="../module_macro_shared"
+version = "0.1.5"
+registry = "estuary"

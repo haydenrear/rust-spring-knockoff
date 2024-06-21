@@ -9,6 +9,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use radix_trie::{Trie, TrieCommon};
+use optional::FlatMapOptional;
 use crate::logger_lazy;
 import_logger!("walk.rs");
 
@@ -118,19 +119,45 @@ impl DirectoryWalker {
         search_dir: &dyn Fn(&PathBuf) -> bool,
         base_dir: &PathBuf
     ) -> Vec<PathBuf> {
-        let mut trie: Trie<String, ()> = Trie::new();
+        let mut trie: Trie<String, PathBuf> = Trie::new();
         Self::find_dir_in_directory(search_file,
                                     search_dir,
                                     Some(base_dir), &mut trie);
         trie.keys().map(|p| Path::new(p).to_path_buf()).collect()
     }
 
+    pub fn find_any_files_matching_file_name(
+        search_file: &dyn Fn(&str) -> bool,
+        base_dir: &PathBuf
+    ) -> Trie<String, PathBuf> {
+        DirectoryWalker::find_files_matching(
+            &|p| p.file_name().as_ref()
+                .flat_map_opt(|s| s.to_str())
+                .map(|os_str| search_file(os_str))
+                .or(Some(false))
+                .unwrap(),
+            base_dir
+        )
+    }
+
+    pub fn find_files_matching(
+        search_file: &dyn Fn(&PathBuf) -> bool,
+        base_dir: &PathBuf
+    ) -> Trie<String, PathBuf> {
+        let mut trie: Trie<String, PathBuf> = Trie::new();
+        Self::find_dir_in_directory(search_file,
+                                    &|p| true,
+                                    Some(base_dir),
+                                    &mut trie);
+        trie
+    }
+
     pub fn walk_directories_matching(
         search_file: &dyn Fn(&PathBuf) -> bool,
         search_dir: &dyn Fn(&PathBuf) -> bool,
         base_dir: &PathBuf
-    ) -> Trie<String, ()> {
-        let mut trie: Trie<String, ()> = Trie::new();
+    ) -> Trie<String, PathBuf> {
+        let mut trie: Trie<String, PathBuf> = Trie::new();
         Self::find_dir_in_directory(search_file,
                                     search_dir,
                                     Some(base_dir), &mut trie);
@@ -141,7 +168,7 @@ impl DirectoryWalker {
         search_add_file: &dyn Fn(&PathBuf) -> bool,
         continue_search_directory: &dyn Fn(&PathBuf) -> bool,
         base_dir_opt: Option<&PathBuf>,
-        path_bufs: &mut Trie<String, ()>
+        path_bufs: &mut Trie<String, PathBuf>
     ) {
         if base_dir_opt.is_none() {
             return
@@ -151,30 +178,33 @@ impl DirectoryWalker {
 
 
         base_dir.to_str()
-            .into_iter()
-            .for_each(|os_string_dir| {
+            .map(|os_string_dir| {
                 info!("Searching {}", os_string_dir);
                 let next_os_path = Path::new(os_string_dir).to_path_buf();
                 if search_add_file(&next_os_path) {
                     info!("Inserting value {:?}.", next_os_path);
-                    path_bufs.insert(os_string_dir.to_string(), ());
+                    path_bufs.insert(os_string_dir.to_string(), next_os_path.clone());
                 }
 
-                let dirs = fs::read_dir(next_os_path)
-                    .map_err(|e| {
-                        error!("Failed to read dirs {:?} when searching for {}", &e, os_string_dir);
-                    });
+                if next_os_path.is_file() {
+                    None
+                } else {
+                    fs::read_dir(next_os_path)
+                        .map(|read_dir| {
+                            info!("Searching next dir: {:?}", read_dir);
+                            let dir_entries = read_dir
+                                .filter(|d| d.is_ok())
+                                .map(|d| d.unwrap())
+                                .collect::<Vec<DirEntry>>();
 
-                let _ = dirs.map(|read_dir| {
-                    info!("Searching next dir: {:?}", read_dir);
-                    let dir_entries = read_dir
-                        .filter(|d| d.is_ok())
-                        .map(|d| d.unwrap())
-                        .collect::<Vec<DirEntry>>();
+                            Self::get_dir(search_add_file, continue_search_directory,
+                                          dir_entries, path_bufs)
+                        })
+                        .map_err(err::log_err(&format!("When searching for {}, failed: ",  os_string_dir)))
+                        .ok()
+                }
 
-                    Self::get_dir(search_add_file, continue_search_directory,
-                                  dir_entries, path_bufs)
-                });
+
             });
     }
 
@@ -182,7 +212,7 @@ impl DirectoryWalker {
         search_add: &dyn Fn(&PathBuf) -> bool,
         continue_search_directory: &dyn Fn(&PathBuf) -> bool,
         read_dir: Vec<DirEntry>,
-        path_bufs: &mut Trie<String, ()>
+        path_bufs: &mut Trie<String, PathBuf>
     ) {
         read_dir.iter()
             .for_each(|dir_found| {
@@ -190,7 +220,7 @@ impl DirectoryWalker {
                 let next_dir_path = dir_found.path();
                 if search_add(&next_dir_path) {
                     info!("Inserting value.");
-                    path_bufs.insert(next_dir_path.to_path_buf().to_str().unwrap().to_string(), ());
+                    path_bufs.insert(next_dir_path.to_path_buf().to_str().unwrap().to_string(), next_dir_path.clone());
                 }
                 if continue_search_directory(&next_dir_path) {
                     next_dir_path.to_str()

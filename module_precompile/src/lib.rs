@@ -17,7 +17,8 @@ use proc_macro2::TokenStream;
 use codegen_utils::project_directory;
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/module_precompile.log"));
 
-use knockoff_precompile_gen::{DelegatingFrameworkTokenProvider, DelegatingParseContainerModifierProvider, DelegatingItemModifier, DelegatingProfileTreeModifierProvider, DelegatingProfileTreeFinalizerProvider, DelegatingTokenProvider, DelegatingParseProvider};
+use knockoff_precompile_gen::{DelegatingFrameworkTokenProvider, DelegatingParseContainerModifierProvider, DelegatingItemModifier, DelegatingProfileTreeModifierProvider,
+                              DelegatingProfileTreeFinalizerProvider, DelegatingTokenProvider, DelegatingParseProvider};
 
 
 #[derive(Deserialize)]

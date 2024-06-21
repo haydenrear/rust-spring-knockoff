@@ -19,6 +19,9 @@ rand = "0.8.5"
 [dependencies.knockoff_providers_gen]
 path = "../target/knockoff_providers_gen"
 version = "0.1.5"
+#[dependencies.knockoff_dfactory_gen]
+#path = "../target/knockoff_dfactory_gen"
+#version = "0.1.5"
 [dependencies.string_utils]
 path = "../string_utils"
 version = "0.1.5"
