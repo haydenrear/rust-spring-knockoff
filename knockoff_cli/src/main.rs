@@ -73,8 +73,8 @@ fn download_packages(args: &HashMap<String, String>) {
     });
 }
 
-fn packages() -> [&'static str; 33] {
-    let packages = [
+fn packages() -> Vec<&'static str> {
+    let packages = vec![
         "aspect_knockoff_provider",
         "authentication_gen",
         "codegen_utils",

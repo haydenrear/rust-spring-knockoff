@@ -41,10 +41,10 @@ impl AspectParser {
             Item::Impl(item_impl) => {
                 info!("Doing modification for {}.", SynHelper::get_str(&item_impl));
                 let mut path_depth = path_depth.clone();
-                path_depth.push(item_impl.self_ty.to_token_stream().to_string().clone());
+                path_depth.push(item_impl.self_ty.deref().to_token_stream().to_string().clone());
                 Self::add_method_advice_aspect(
                     parse_container, item_impl,
-                    &mut path_depth, item_impl.self_ty.to_token_stream().to_string().as_str(),
+                    &mut path_depth, item_impl.self_ty.deref().to_token_stream().to_string().as_str(),
                 );
             }
             _ => {}

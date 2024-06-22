@@ -1,0 +1,8 @@
+[phases.pre_compile.stages.zero.mutable_macro_modifier_provider.values.knockoff_delegator_factories.provider_data]
+provider_path = "knockoff_delegator_factories::AspectGeneratorMutableModifier"
+provider_ident = "AspectGeneratorMutableModifierBuilder"
+[phases.pre_compile.stages.zero.mutable_macro_modifier_provider.values.dependency_data]
+path = "../knockoff_delegator_factories"
+registry = "estuary"
+version = "0.1.5"
+

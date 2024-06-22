@@ -1,0 +1,22 @@
+
+[package]
+name = "knockoff_delegator_factories"
+version = "0.1.5"
+edition = "2021"
+
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+serde = "1.0.137"
+
+[dependencies.dfactory_dcodegen_shared]
+path = "../../dfactory_dcodegen_shared"
+
+[dependencies.module_macro_shared]
+path = "../../module_macro_shared"
+
+[dependencies.syn]
+features = ["full"]
+version = "1.0"
+

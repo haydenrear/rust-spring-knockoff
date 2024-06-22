@@ -21,7 +21,6 @@ serde = "1.0.137"
 # is included in the module_macro_lib. Then, module_macro_lib is imported by the user. So, then the user provides the
 # implementations of the providers, and th
 
-
 [phases.pre_compile.gen_deps.web_framework_shared]
 path ="../../web_framework_shared"
 name = "web_framework_shared"
@@ -33,8 +32,8 @@ name = "module_macro_shared"
 version = "0.1.5"
 registry = "estuary"
 [phases.pre_compile.gen_deps.dfactory_dcodegen_shared]
-path ="../../factory_dcodegen_shared"
-name = "factory_dcodegen_shared"
+path ="../../dfactory_dcodegen_shared"
+name = "dfactory_dcodegen_shared"
 version = "0.1.5"
 registry = "estuary"
 
@@ -51,6 +50,11 @@ serde = "1.0.137"
 [phases.pre_compile.stages.one.dependencies.web_framework_shared]
 path ="../../web_framework_shared"
 name = "web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.pre_compile.stages.one.dependencies.dfactory_dcodegen_shared]
+path ="../../dfactory_dcodegen_shared"
+name = "dfactory_dcodegen_shared"
 version = "0.1.5"
 registry = "estuary"
 [phases.pre_compile.stages.one.dependencies.module_macro_shared]
@@ -79,35 +83,94 @@ path = "../../authentication_codegen"
 registry = "estuary"
 version = "0.1.5"
 
-[phases.pre_compile.stages.one.item_modifier.values.aspect_knockoff_provider.provider_data]
-provider_path = "knockoff_dfactory_gen::DelegatingItemModifier"
-provider_ident = "AspectParserBuilder"
-[phases.pre_compile.stages.one.item_modifier.values.aspect_knockoff_provider.dependency_data]
-path = "../knockoff_dfactory_gen"
-registry = "estuary"
-version = "0.1.5"
-[phases.pre_compile.stages.one.parse_provider.values.aspect_knockoff_provider.provider_data]
-provider_path = "knockoff_dfactory_gen::DelegatingParseProvider"
-provider_ident = "ParsedAspectsBuilder"
-[phases.pre_compile.stages.one.parse_provider.values.aspect_knockoff_provider.dependency_data]
-path = "../knockoff_dfactory_gen"
-registry = "estuary"
-version = "0.1.5"
-[phases.pre_compile.stages.one.token_provider.values.aspect_knockoff_provider.provider_data]
-provider_path = "knockoff_dfactory_gen::DelegatingTokenProvider"
-provider_ident = "AspectGeneratorBuilder"
-[phases.pre_compile.stages.one.token_provider.values.aspect_knockoff_provider.dependency_data]
-path = "../knockoff_dfactory_gen"
-registry = "estuary"
-version = "0.1.5"
+# A create is created for each of these stages and included in the knockoff_gen_providers, and then knockoff_gen_providers
+# is included in the module_macro_lib. Then, module_macro_lib is imported by the user. So, then the user provides the
+# implementations of the providers, and th
 
-[phases.dfactory.stages.one.dependencies]
+[phases.providers.gen_deps]
+# Dependencies necessary to run the providers. There are some number of Delegating providers provided by the users.
+# So then these Delegating providers are imported in the knockoff_gen_providers and create the Delegating provider
+# that calls all of those delegating provider provided. So then this allows for there to be multiple of a particular
+# type of provider.
 quote = "1.0"
 syn = {version = "1.0", features = ["full"]}
 proc-macro2 = "1.0"
 serde = "1.0.137"
-aspect_knockoff_provider = {path = "../../aspect_knockoff_provider"}
 
+
+[phases.providers.gen_deps.web_framework_shared]
+path ="../../web_framework_shared"
+name = "web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.providers.gen_deps.dfactory_dcodegen_shared]
+path ="../../dfactory_dcodegen_shared"
+name = "dfactory_dcodegen_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.providers.gen_deps.module_macro_shared]
+path ="../../module_macro_shared"
+name = "module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.providers.stages.one.dependencies]
+# Dependencies necessary to run the providers
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+handler_mapping = {path = "../../handler_mapping"}
+
+[phases.providers.stages.one.dependencies.module_macro_shared]
+path ="../../module_macro_shared"
+name = "module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.providers.stages.one.dependencies.dfactory_dcodegen_shared]
+path ="../../dfactory_dcodegen_shared"
+name = "dfactory_dcodegen_shared"
+version = "0.1.5"
+registry = "estuary"
+
+[phases.providers.stages.two.dependencies]
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+security_parse_provider = {path = "../../security_parse_provider"}
+
+
+[phases.providers.stages.two.dependencies.module_macro_shared]
+path ="../../module_macro_shared"
+name = "module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+[phases.providers.stages.two.dependencies.dfactory_dcodegen_shared]
+path ="../../dfactory_dcodegen_shared"
+name = "dfactory_dcodegen_shared"
+version = "0.1.5"
+registry = "estuary"
+
+#[providers.stages.one]
+# Providers for web endpoints
+[phases.providers.stages.one.token_provider.values.handler_mapping.provider_data]
+provider_path = "handler_mapping::HandlerMappingBuilder"
+provider_ident = "HandlerMappingTokenProvider"
+[phases.providers.stages.one.token_provider.values.handler_mapping.dependency_data]
+path ="../../handler_mapping"
+version = "0.1.5"
+registry = "estuary"
+
+# Providers for authentication types
+[phases.providers.stages.two.parse_provider.values.security_parse_provider.provider_data]
+provider_path = "security_parse_provider::SecurityParseProvider"
+provider_ident = "SecurityParseProviderBuilder"
+[phases.providers.stages.two.parse_provider.values.security_parse_provider.dependency_data]
+path = "../../security_parse_provider"
+registry = "estuary"
+version = "0.1.5"
+
+# Providers for aspects
 [phases.dfactory.stages.one.item_modifier.values.aspect_knockoff_provider.provider_data]
 provider_path = "aspect_knockoff_provider::aspect_knockoff_provider::aspect_item_modifier::AspectParser"
 provider_ident = "AspectParserBuilder"
@@ -136,3 +199,12 @@ provider_ident = "AspectInfoBuilder"
 path = "../../aspect_knockoff_provider"
 registry = "estuary"
 version = "0.1.5"
+
+[phases.dfactory.stages.one.dependencies]
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+proc-macro2 = "1.0"
+serde = "1.0.137"
+aspect_knockoff_provider = {path = "../../aspect_knockoff_provider"}
+module_macro_shared = {path = "../../module_macro_shared"}
+dfactory_dcodegen_shared = {path = "../../dfactory_dcodegen_shared"}

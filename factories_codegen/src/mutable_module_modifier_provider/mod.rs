@@ -33,10 +33,20 @@ impl ProviderProvider for MutableMacroModifierProvider {
                 }
 
                 fn do_provide(item: &mut Item) -> Option<TokenStream> {
-                    // #(
-                    //     #provider_type::do_modify(item);
-                    // )*
-                    None
+                    let mut do_provider = TokenStream::default();
+                    let mut did_update = false;
+                    #(
+                        if #provider_type::matches(item) {
+                            do_provider.extend(#provider_type::do_provide(item));
+                            did_update = true;
+                        }
+                    )*
+
+                    if did_update {
+                        Some(do_provider)
+                    } else {
+                        None
+                    }
                 }
             }
 
@@ -67,6 +77,7 @@ impl ProviderProvider for MutableMacroModifierProvider {
     fn get_imports() -> TokenStream {
         let imports = quote! {
             use dfactory_dcodegen_shared::*;
+            use quote::quote;
         }.into();
         imports
     }

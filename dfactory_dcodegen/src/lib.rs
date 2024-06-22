@@ -91,7 +91,17 @@ pub fn write_d_factory_crate() -> Option<String> {
 
                     info!("Build profile tree: {:?}.", &profile_tree);
                     let d = DelegatingTokenProvider::new(&mut profile_tree);
-                    let ts: TokenStream = d.generate_token_stream();
+                    let mut generated: TokenStream = d.generate_token_stream();
+
+                    let mut ts: TokenStream = quote! {
+                        use proc_macro2::TokenStream;
+                        use syn::Item;
+                        use quote::quote;
+                        use dfactory_dcodegen_shared::MutableModuleModifier;
+                        use syn::ImplItem;
+                    };
+
+                    ts.extend(generated);
                     info!("generated: {:?}.", SynHelper::get_str(&ts));
                     ts
                 })

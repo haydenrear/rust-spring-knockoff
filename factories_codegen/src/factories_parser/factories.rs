@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::iter::Map;
 
 use std::sync::Mutex;
 use crate::logger_lazy;
@@ -175,4 +176,3 @@ factories!(
     (ItemModifierProvider, item_modifier, "item_modifier", "DelegatingItemModifier"),
     (MutableMacroModifierProvider, mutable_macro_modifier_provider, "mutable_macro_modifier_provider", "DelegatingMutableMacroModifierProvider")
 );
-

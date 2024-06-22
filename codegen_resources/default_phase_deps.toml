@@ -5,5 +5,3 @@ serde = "1.0.137"
 syn = {features = ["full"], version = "1.0"}
 dfactory_dcodegen_shared = {path = "../../dfactory_dcodegen_shared"}
 module_macro_shared = {path = "../../module_macro_shared"}
-[pre_compile]
-knockoff_dfactory_gen = {path = "../knockoff_dfactory_gen"}

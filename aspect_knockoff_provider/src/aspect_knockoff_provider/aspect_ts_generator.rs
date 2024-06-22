@@ -54,17 +54,21 @@ impl AspectGenerator {
                     match item {
                         Item::Impl(item_impl) => {
                             #(
-                                if item_impl.self_ty.to_token_stream().to_string() == #ty.to_string()  {
+                                if item_impl.self_ty.deref().to_token_stream().to_string() == #ty.to_string()  {
                                     let item_impl_idents = item_impl.items.iter().flat_map(|i| match i {
                                         ImplItem::Method(m) => vec![m.sig.ident.to_token_stream().to_string().clone()],
                                          _ => vec![]
                                      }).collect::<Vec<String>>();
                                     for i in item_impl_idents.iter() {
+                                        let mut did_any = false;
                                         #(
-                                            if #id_ts_impl_val_str.to_string() != i.clone() {
-                                                return false;
+                                            if #id_ts_impl_val_str.to_string() == i.clone() {
+                                                did_any = true;
                                             }
                                         )*
+                                        if !did_any {
+                                            return false;
+                                        }
                                     }
                                     return true;
                                 }
@@ -80,7 +84,7 @@ impl AspectGenerator {
                     match item {
                         Item::Impl(item_impl) => {
                             #(
-                                if item_impl.self_ty.to_token_stream().to_string() == #ty.to_string()  {
+                                if item_impl.self_ty.deref().to_token_stream().to_string() == #ty.to_string()  {
                                     return Some(quote! {
                                         #ty_ts
                                         #ty_ts_impl

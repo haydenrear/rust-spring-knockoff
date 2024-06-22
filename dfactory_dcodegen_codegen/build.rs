@@ -18,8 +18,6 @@ fn main() {
          .or(Some(get_project_dir("codegen_resources/knockoff_factories.toml")))
          .unwrap();
 
-     let base_dir = get_project_base_build_dir();
-
      let out_directory = get_build_project_dir("target");
 
      FactoriesParser::write_phase(&knockoff_version, &knockoff_factories,

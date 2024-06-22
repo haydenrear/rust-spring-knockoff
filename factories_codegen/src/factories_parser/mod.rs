@@ -94,6 +94,7 @@ impl FactoriesParser {
         Self::parse_factories_value::<FactoryPhases>(knockoff_factories)
             .as_mut()
             .flat_map_opt(|f| {
+                Self::add_stage_zero_default(phase, f);
 
                 f.phase_deps.as_mut().map(|v| Self::add_all_to_table(v, Self::default_phase_deps(phase)));
 
@@ -129,6 +130,45 @@ impl FactoriesParser {
             });
     }
 
+    fn add_stage_zero_default(phase: &Phase, f: &mut FactoryPhases) {
+        project_directory_path!().join("codegen_resources").join("knockoff_default_factories.toml")
+            .to_path_buf().to_str()
+            .flat_map_opt(|knockoff_default_factories_path| Self::parse_factories_value::<FactoryPhases>(knockoff_default_factories_path))
+            .map(|mut factories| {
+                if !f.phases.contains_key(phase) {
+                    Self::do_insert_zero_stage_phase(phase, f, &mut factories);
+                } else {
+                    Self::do_update_zero_stage_phase(phase, f, factories);
+                }
+            });
+    }
+
+    fn do_update_zero_stage_phase(phase: &Phase, f: &mut FactoryPhases, mut factories: FactoryPhases) {
+        info!("Updating phase.");
+        factories.phases.get_mut(phase)
+            .flat_map_opt(|factory_stage_from| factory_stage_from.stages.remove("zero"))
+            .map(|factories| f.phases.get_mut(phase)
+                .map(|s| s.stages.insert("zero".to_string(), factories))
+            );
+    }
+
+    fn do_insert_zero_stage_phase(phase: &Phase, f: &mut FactoryPhases, mut factories: &mut FactoryPhases) {
+        factories.phases.get_mut(phase)
+            .flat_map_opt(|factory_stage_from| {
+                let mut gen_deps = None;
+                std::mem::swap(&mut gen_deps, &mut factory_stage_from.gen_deps);
+                factory_stage_from.stages.remove("zero")
+                    .map(|f| (f, gen_deps))
+            })
+            .map(|(factories_to_add, gen_deps)| {
+                let stages = FactoryStages {
+                    stages: vec![("zero".to_string(), factories_to_add)].into_iter().collect(),
+                    gen_deps
+                };
+                f.phases.insert(phase.clone(), stages)
+            });
+    }
+
 
     pub fn get_crate_name(stage_id: &str, phase: &Phase) -> String {
         format!("{}{}", phase.prefix(), stage_id)
@@ -138,8 +178,8 @@ impl FactoriesParser {
         out_directory: &String,
         version: &String,
         phase: &Phase,
-        mut deps: Option<Value>
-    ) {
+        mut deps: Option<Value>) {
+
         let factories = Factories::create_providers_for_stages(vec!["one".to_string()], version, phase)
             .to_string();
 
@@ -241,11 +281,11 @@ impl FactoriesParser {
                     .expect("Could not read factories.toml");
                 all_value
             })
+            .map_err(|e| std::io::Error::new(ErrorKind::InvalidData, e.to_string()))
+            .map_err(err::log_err("Failed to parse: "))
             .map(|all_value| {
                 toml::from_str::<T>(all_value.as_str())
-                    .map_err(|err| {
-                        error!("{}", err.to_string());
-                    })
+                    .map_err(err::log_err("Failed to parse: "))
                     .map(|s| {
                         info!("Parsed factory stages: {:?}", s);
                         s
