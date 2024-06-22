@@ -1,7 +1,6 @@
 strings=(
   "aspect_knockoff_provider"
   "authentication_gen"
-  "build_lib"
   "codegen_utils"
   "collection_util"
   "crate_gen"

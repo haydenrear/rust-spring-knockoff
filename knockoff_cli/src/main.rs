@@ -77,7 +77,6 @@ fn packages() -> [&'static str; 33] {
     let packages = [
         "aspect_knockoff_provider",
         "authentication_gen",
-        "build_lib",
         "codegen_utils",
         "collection_util",
         "crate_gen",

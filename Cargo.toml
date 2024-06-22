@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "web_framework",
-    "build_lib",
     "http_macro",
     "mongo_repo",
     "module_macro_lib",

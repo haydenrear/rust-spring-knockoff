@@ -27,10 +27,7 @@ registry = "estuary"
 path ="../module_macro_lib"
 registry = "estuary"
 version = "0.1.5"
-[dependencies.build_lib]
-path ="../build_lib"
-registry = "estuary"
-version = "0.1.5"
+
 
 [lib]
 proc-macro = true

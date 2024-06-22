@@ -85,8 +85,3 @@ registry = "estuary"
 path = "../web_framework_shared"
 version = "0.1.5"
 registry = "estuary"
-[build-dependencies.build_lib]
-path ="../build_lib"
-version = "0.1.5"
-registry = "estuary"
-

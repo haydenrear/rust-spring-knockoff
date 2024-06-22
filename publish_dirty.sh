@@ -3,7 +3,6 @@ strings=(
   "aspect_knockoff_provider"
   "authentication_gen"
   "authentication_codegen"
-  "build_lib"
   "codegen_utils"
   "collection_util"
   "crate_gen"
