@@ -3,12 +3,14 @@ use std::sync::Mutex;
 
 use quote::ToTokens;
 use syn::{Item, ItemMod};
+use codegen_utils::FlatMapOptional;
 
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::*;
 use program_parser::module_iterator::ModuleIterator;
+use program_parser::module_locator::is_in_line_module;
 
-use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerModifier, ProfileTreeFinalizer};
+use crate::{BuildParseContainer, do_parse_container, do_parse_container_item_mod, ItemModifier, logger_lazy, ModuleParser, ParseContainerModifier, ProfileTreeFinalizer};
 use crate::item_parser::item_enum_parser::ItemEnumParser;
 use crate::item_parser::item_fn_parser::ItemFnParser;
 use crate::item_parser::item_impl_parser::ItemImplParser;
@@ -43,30 +45,22 @@ impl ItemParser<ItemMod> for ItemModParser {
             ParseContainerFinalizerT
         >
     ) {
-
-
-        let mut item_found = ModuleIterator::retrieve_next_mod(item_found.clone(), program_src)
-            .or(Some(item_found.clone())).unwrap();
-
-        info!("Parsing {:?}", SynHelper::get_str(item_found.ident.clone()));
-
-        item_found.content.iter_mut()
-            .flat_map(|mut c| c.1.iter_mut())
-            .for_each(|i: &mut Item| {
-                info!("Parsing in item_mod parser {:?}", SynHelper::get_str(i.clone()));
-                // probably best to retrieve a clone of the item, pass that in, and then replace it.
-                ItemModifierT::modify_item(parse_container, i, path_depth.clone());
-                ParseContainerItemUpdaterT::parse_update(i, parse_container);
-                if let Item::Mod(item_mod) = i {
-                    let mut item_mod = ModuleIterator::retrieve_next_mod(item_mod.clone(), program_src)
-                        .or(Some(item_mod.clone()))
-                        .unwrap();
-                    let mut next_path_deps = path_depth.clone();
-                    next_path_deps.push(item_mod.ident.to_string().clone());
-                    Self::parse_item(program_src, parse_container, &mut item_mod, next_path_deps, module_parser);
+        let module_key = ParseContainer::get_bean_definition_key_item_mod(&item_found).unwrap();
+        parse_container.modules.remove(&module_key).as_mut()
+            .map(|item_found| { Self::do_parse_module(program_src, parse_container, &mut path_depth, module_parser, item_found); })
+            .or_else(|| {
+                if is_in_line_module(item_found) {
+                    info!("Parsing in-line module.");
+                    Self::do_parse_module(program_src, parse_container, &mut path_depth, module_parser, item_found);
                 } else {
-                    Self::parse_item_inner(program_src,i, parse_container, &mut path_depth.clone(), module_parser);
+                    info!("Retrieving in-line module.");
+                    ModuleIterator::retrieve_next_mod(item_found.clone(), &program_src).as_mut()
+                        .map(|item_found| {
+                            info!("Found file in-line module.");
+                            Self::do_parse_module(program_src, parse_container, &mut path_depth, module_parser, item_found);
+                        });
                 }
+                None
             });
     }
 }
@@ -91,7 +85,6 @@ impl ItemModParser {
             ParseContainerFinalizerT
         >,
     ) {
-        let container_key = ParseContainer::get_bean_definition_key(&i);
         match i {
             Item::Const(const_val) => {
                 info!("Found const val {}.", const_val.to_token_stream().clone());
@@ -133,5 +126,103 @@ impl ItemModParser {
             Item::Verbatim(_) => {}
             _ => {}
         }
+    }
+
+    fn do_parse_module<
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        mut path_depth: &mut Vec<String>,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT, ItemModifierT, ParseContainerModifierT,
+            BuildParseContainerT, ParseContainerFinalizerT
+        >,
+        item_found: &mut ItemMod
+    ) {
+        info!("Parsing {:?}", SynHelper::get_str(item_found.ident.clone()));
+        item_found.content.iter_mut()
+            .flat_map(|mut c| c.1.iter_mut())
+            .for_each(|next_item: &mut Item| {
+                info!("Parsing in item_mod parser {:?}", SynHelper::get_str(next_item.clone()));
+                // probably best to retrieve a clone of the item, pass that in, and then replace it.
+                if let Item::Mod(item_mod) = next_item {
+                    Self::parse_sub_module(program_src, parse_container, path_depth, module_parser, item_mod);
+                } else {
+                    ItemModifierT::modify_item(parse_container, next_item, path_depth.clone());
+                    ParseContainerItemUpdaterT::parse_update(next_item, parse_container);
+                    Self::parse_item_inner(program_src, next_item, parse_container, &mut path_depth.clone(), module_parser);
+                }
+            });
+
+        parse_container.modules.insert(ParseContainer::get_bean_definition_key_item_mod(&item_found).unwrap(), item_found.clone());
+    }
+
+    fn parse_sub_module<
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        mut path_depth: &mut Vec<String>,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT,
+            ItemModifierT,
+            ParseContainerModifierT,
+            BuildParseContainerT,
+            ParseContainerFinalizerT
+        >,
+        item_mod: &mut ItemMod
+    ) {
+        let next_mod = ParseContainer::get_bean_definition_key_item_mod(&item_mod).unwrap();
+        parse_container.modules.remove(&next_mod)
+            .as_mut()
+            .or(Some(item_mod))
+            .map(|item_mod| {
+                info!("Parsing module in item_mod: {:?}", SynHelper::get_str(&item_mod.ident));
+                let mut next_path_deps = path_depth.clone();
+                next_path_deps.push(item_mod.ident.to_string().clone());
+                if !is_in_line_module(item_mod) {
+                    Self::parse_inline_module(program_src, parse_container, module_parser, item_mod, &mut next_path_deps)
+                } else {
+                    do_parse_container_item_mod(program_src, module_parser, parse_container, item_mod, &next_path_deps);
+                    parse_container.modules.insert(ParseContainer::get_bean_definition_key_item_mod(&item_mod).unwrap(), item_mod.clone());
+                    None::<bool>
+                }
+            });
+    }
+
+    fn parse_inline_module<
+        ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+        ItemModifierT: ItemModifier,
+        ParseContainerModifierT: ParseContainerModifier,
+        BuildParseContainerT: BuildParseContainer,
+        ParseContainerFinalizerT: ProfileTreeFinalizer,
+    >(
+        program_src: &PathBuf,
+        parse_container: &mut ParseContainer,
+        module_parser: &mut ModuleParser<
+            ParseContainerItemUpdaterT,
+            ItemModifierT,
+            ParseContainerModifierT,
+            BuildParseContainerT,
+            ParseContainerFinalizerT
+        >,
+        item_mod: &mut ItemMod,
+        next_path_deps: &mut Vec<String>
+    ) -> Option<bool> {
+        ModuleIterator::retrieve_next_mod(item_mod.clone(), program_src).as_mut()
+            .flat_map_opt(|item_mod| {
+                do_parse_container_item_mod(program_src, module_parser, parse_container, item_mod, &next_path_deps);
+                parse_container.modules.insert(ParseContainer::get_bean_definition_key_item_mod(&item_mod).unwrap(), item_mod.clone());
+                None::<bool>
+            })
     }
 }

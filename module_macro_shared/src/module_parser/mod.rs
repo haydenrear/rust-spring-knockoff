@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use syn::__private::str;
-use syn::Item;
+use syn::{Item, ItemMod};
 use syn::parse::Parser;
 
 use codegen_utils::syn_helper::SynHelper;
@@ -144,23 +144,46 @@ pub fn do_parse_container<
 ) {
     match &mut found {
         Item::Mod(ref mut module_found) => {
-            info!("Doing parse, of {:?}", SynHelper::get_str(&module_found));
-
-            ItemModParser::parse_item(
-                program_src,
-                &mut container,
-                module_found,
-                vec![module_found.ident.to_string().clone()],
-                module_parser
-            );
-
-            info!("{} is module and {:?} is container after item mod parsing.",
-                module_found.ident.to_string().as_str(), &container);
-
-            Some((container, module_found.ident.to_string().clone()))
+            do_parse_container_item_mod(program_src, module_parser, &mut container, module_found, &vec![])
         }
         _ => {
             None
         }
     };
+}
+
+pub fn do_parse_container_item_mod<
+    'a,
+    ParseContainerItemUpdaterT: ParseContainerItemUpdater,
+    ItemModifierT: ItemModifier,
+    ParseContainerModifierT: ParseContainerModifier,
+    BuildParseContainerT: BuildParseContainer,
+    ParseContainerFinalizerT: ProfileTreeFinalizer,
+>(
+    program_src: &PathBuf,
+    module_parser: &mut ModuleParser<
+        ParseContainerItemUpdaterT,
+        ItemModifierT,
+        ParseContainerModifierT,
+        BuildParseContainerT,
+        ParseContainerFinalizerT
+    >,
+    mut container: &'a mut ParseContainer,
+    module_found: &mut ItemMod,
+    path: &Vec<String>
+) -> Option<(&'a mut ParseContainer, String)> {
+    info!("Doing parse, of {:?}", SynHelper::get_str(&module_found));
+
+    ItemModParser::parse_item(
+        program_src,
+        &mut container,
+        module_found,
+        path.clone(),
+        module_parser
+    );
+
+    info!("{} is module and {:?} is container after item mod parsing.",
+                module_found.ident.to_string().as_str(), &container);
+
+    Some((container, module_found.ident.to_string().clone()))
 }

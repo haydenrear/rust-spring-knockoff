@@ -10,7 +10,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::{Item, ItemImpl, ItemMod, Visibility};
 use toml::Table;
-use codegen_utils::{FlatMapOptional, program_src, project_directory, project_directory_path};
+use codegen_utils::{FlatMapOptional, program_src, project_directory, project_directory_path, user_program_src};
 use codegen_utils::{get_build_project_dir, get_project_base_build_dir, get_project_dir};
 use codegen_utils::syn_helper::SynHelper;
 use crate_gen::CrateWriter;
@@ -47,7 +47,7 @@ pub fn write_d_factory_crate() -> Option<String> {
         delegating_parse_container_finalizer: DelegatingProfileTreeFinalizerProvider {},
     };
 
-    codegen_utils::io_utils::open_file_read(&program_src!("delegator_test", "src").join("lib.rs"))
+    codegen_utils::io_utils::open_file_read(&user_program_src!().join("lib.rs"))
         .map_err(err::log_err("Failed to open lib file: "))
         .flat_map_res(|mut f| SynHelper::parse_syn_file_to_res(&mut f)
             .map_err(err::log_err("Failed to parse syn file."))
@@ -65,7 +65,7 @@ pub fn write_d_factory_crate() -> Option<String> {
         .as_mut()
         .flat_map_opt(|item_mod| {
             info!("Parsing {:?}", &SynHelper::get_str(&item_mod));
-            let program_src = program_src!("delegator_test", "src");
+            let program_src = user_program_src!();
             parse_module_into_container(&program_src, item_mod, &mut module_parser)
                 .or_else(|| {
                     error!("Could not parse {:?}", &SynHelper::get_str(&item_mod));
@@ -74,8 +74,15 @@ pub fn write_d_factory_crate() -> Option<String> {
                 .as_mut()
                 .map(|parse_container| {
                     if let Item::Mod(item_mod) = item_mod {
-                        // parse a second time after adding metadata items.
-                        ItemModParser::parse_item(&program_src, parse_container, item_mod, vec![item_mod.ident.clone().to_string()], &mut module_parser);
+                        let item_mod_key = ParseContainer::get_bean_definition_key_item_mod(&item_mod).unwrap();
+                        info!("{:?} are keys.", &parse_container.modules.keys());
+                        parse_container.modules.remove(&item_mod_key)
+                            .as_mut()
+                            .map(|item_mod| {
+                                info!("Parsing item mode in dfactory");
+                                ItemModParser::parse_item(&program_src, parse_container, item_mod, vec![item_mod.ident.clone().to_string()], &mut module_parser);
+                                parse_container.modules.insert(item_mod_key, item_mod.clone());
+                            });
                     }
 
                     let p = Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder));

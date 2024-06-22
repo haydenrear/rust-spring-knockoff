@@ -25,12 +25,15 @@ pub fn get_module_from_name_base(base_dir: &PathBuf, module_name: &Ident) -> Opt
 
 pub fn is_in_line_module(inline_module: &ItemMod) -> bool {
     info!("Checking if {:?} is inline", SynHelper::get_str(inline_module.clone()));
+    if SynHelper::get_attr_from_vec(&inline_module.attrs, &vec!["module_attr"]).is_some() {
+        return true;
+    }
     if inline_module.content.as_ref().is_none() || inline_module.content.as_ref().unwrap().1.len() == 0 {
         info!("Found module in file: {:?}", SynHelper::get_str(inline_module.clone()));
         false
     } else {
         let (brace, items) = inline_module.content.as_ref().unwrap();
-        items.len() == 0
+        items.len() != 0
     }
 }
 
@@ -66,7 +69,7 @@ fn find_correct_buf(bufs: Vec<PathBuf>, parent_buf: &PathBuf) -> Option<PathBuf>
             .map(|parent_buf| b.to_str().map(|child_buf| parent_buf.contains(child_buf)))
             .or_else(|| panic!("Parent path could not be unwrapped!"))
             .is_some()
-    })
+        })
         .max_by(|first, second| {
             (first.to_str().unwrap().len() as i32).cmp(&(second.to_str().unwrap().len() as i32))
         })
