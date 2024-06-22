@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
-use syn::{Item, ItemImpl, ItemMod, Type};
+use syn::{ImplItem, Item, ItemImpl, ItemMod, Type};
 use quote::ToTokens;
 use crate::bean::BeanDefinition;
 use crate::functions::{FunctionType, ModulesFunctions};
@@ -66,7 +66,7 @@ impl ParseContainer {
         match &i {
             Item::Enum(e) => Some(e.ident.to_string().clone()),
             Item::Fn(fn_) => Some(fn_.sig.ident.to_string().clone()),
-            Item::Impl(imp) => Some(imp.self_ty.deref().to_token_stream().to_string().clone()),
+            Item::Impl(imp) => Self::get_bean_definition_key_item_impl(imp),
             Item::Mod(m) => Some(m.ident.to_string().clone()),
             Item::Static(s) => Some(s.ident.to_string().clone()),
             Item::Struct(s) => Some(s.ident.to_string().clone()),
@@ -74,6 +74,10 @@ impl ParseContainer {
             Item::Type(ty) => Some(ty.ident.to_string().clone()),
             _ => None
         }
+    }
+
+    pub fn get_bean_definition_key_item_impl(i: &ItemImpl) -> Option<String> {
+        Some(i.self_ty.deref().to_token_stream().to_string())
     }
 }
 

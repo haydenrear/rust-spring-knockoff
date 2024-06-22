@@ -8,121 +8,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="without aspect, before adding mut module macro decorator">
-      <change afterPath="$PROJECT_DIR$/cargo_utils/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cargo_utils/src/cargo_toml_utils/find_in_toml.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cargo_utils/src/cargo_toml_utils/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cargo_utils/src/cargo_toml_utils/update_toml.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cargo_utils/src/compile_cargo/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cargo_utils/src/download_cargo/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cargo_utils/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cargo_utils/src/test/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/codegen_resources/aspect_test.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/codegen_resources/default_phase_deps.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/codegen_resources/default_stage_deps.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/codegen_utils/src/io_utils/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/codegen_utils/test_resources/exists.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/src/crate_writer/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/src/lib_writer/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/src/test/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/src/toml_writer/cargo_options.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/src/toml_writer/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/test_resources/first/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/crate_gen/test_resources/second/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen/build.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_codegen/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_codegen/build.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_codegen/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_lib/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_lib/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_shared/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_shared/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dfactory_dcodegen_shared/src/mutable_module_modifier/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/err/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/err/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/resources/design.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/factories.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/providers.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/src/mutable_module_modifier_provider/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/test_resources/knockoff_factories.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/knockoff_cli/src/test/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.cargo/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.cargo/config.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cargo_utils/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aspect_knockoff_gen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_gen/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_item_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_item_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_parse_provider.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_parse_provider.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_ts_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_ts_generator.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/test_aspect/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/test_aspect/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/syn_helper/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/src/walk/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/walk/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/src/walk/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/walk/test.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crate_gen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/crate_gen/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crate_gen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/crate_gen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dfactory_dcodegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/dfactory_dcodegen/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cargo_utils/src/test/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/cargo_utils/src/test/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dfactory_dcodegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/dfactory_dcodegen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/test/test_token_providers.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/test/test_token_providers.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_cli/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_cli/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_cli/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_cli/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_helper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_helper/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/logging_macro/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/logging_macro/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/authentication_type/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/codegen_item_macros/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/field_aug/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/initializer/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/module_extractor/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/parser/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/test/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/test/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/test/test_aspect.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_codegen/src/test/test_write_multiple.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_codegen/src/test/test_write_multiple.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/bean_factory_info.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/token_stream_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/token_stream_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/parse_container_dependencies.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_module/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_module/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/concrete_profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/profile_tree/profile_profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/dependency/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_modifier/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_modifier/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_enum_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_enum_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_fn_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_fn_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_impl_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_impl_parser.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_mod_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_mod_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_struct_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_struct_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_trait_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_trait_parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/module_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/module_parser/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/parse_container/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/profile_tree_finalizer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/profile_tree_finalizer.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/profile_tree_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/profile_tree/profile_tree_modifier.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_precompile/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_precompile/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_precompile_codegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile_codegen/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_precompile_codegen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile_codegen/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_precompile_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile_lib/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/optional/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/optional/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/program_parser/src/module_iterator/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/program_parser/src/module_iterator/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-spring-knockoff.iml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-spring-knockoff.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -542,7 +437,7 @@
       <workItem from="1718576982397" duration="39316000" />
       <workItem from="1718824990215" duration="20064000" />
       <workItem from="1718845149249" duration="2145000" />
-      <workItem from="1718934232654" duration="1215000" />
+      <workItem from="1718934232654" duration="9389000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -887,7 +782,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="244" />
+    <option name="localTasksCounter" value="245" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

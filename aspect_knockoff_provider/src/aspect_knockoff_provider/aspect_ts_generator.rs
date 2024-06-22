@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use proc_macro2::{Ident, TokenStream};
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
 use module_macro_shared::profile_tree::ProfileTree;
-use syn::{Block, Item, ItemFn, ItemImpl, Stmt, Type};
+use syn::{Block, ImplItem, Item, ItemFn, ItemImpl, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 
 use quote::{quote, TokenStreamExt, ToTokens};
@@ -14,6 +14,8 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
 use collection_util::add_to_multi_value;
+use module_macro_shared::ParseContainer;
+use optional::FlatMapOptional;
 use crate::logger_lazy;
 import_logger!("aspect_ts_generator.rs");
 
@@ -26,50 +28,21 @@ impl AspectGenerator {
     /// This generates the aspect.
     pub fn generate_token_stream(&self) -> TokenStream {
         info!("Doing aspect generation.");
-        let idents = self.method_advice_aspects.iter()
-            .flat_map(|a| {
-                let mut ts = TokenStream::default();
-                a.1.traits_impl.iter().for_each(|d| {
-                    info!("{:?} is itm impl", SynHelper::get_str(&d.item_impl));
-                });
-                a.1.ident.iter().map(move |i| {
-                    Self::implement_original_fn(&mut ts, a);
-                    (i.clone(), ts.clone())
-                })
-            })
-            .collect::<Vec<(Ident, TokenStream)>>();
+        let tys = self.retrieve_aspect_tokens(&|b| b.struct_type.clone());
 
-        let tys = self.method_advice_aspects.iter()
-            .flat_map(|a| {
-                let mut ts = TokenStream::default();
-                a.1.traits_impl.iter().for_each(|d| {
-                    info!("{:?} is itm impl", SynHelper::get_str(&d.item_impl));
-                });
-                a.1.struct_type.iter().map(move |i| {
-                    Self::implement_original_fn(&mut ts, a);
-                    (i.clone(), ts.clone())
-                })
-            })
-            .collect::<Vec<(Type, TokenStream)>>();
-
-
+        // let idents = self.retrieve_aspect_tokens(&|b| b.ident.clone());
         // merge these together if they are the same key
-        let id = idents.iter().map(|i| i.0.clone().to_token_stream().to_string()).collect::<Vec<String>>();
-        let ids = idents.iter().map(|i| i.0.clone()).collect::<Vec<Ident>>();
-        let id_ts = idents.into_iter().map(|i| i.1).collect::<Vec<TokenStream>>();
-        let ty = tys.iter().map(|i| i.0.clone().to_token_stream().to_string()).collect::<Vec<String>>();
-        let tys_ = tys.iter().map(|i| i.0.clone()).collect::<Vec<Type>>();
-        let ty_ts = tys.into_iter().map(|i| i.1).collect::<Vec<TokenStream>>();
-        info!("Doing aspect generation with {}, {}.", ty.len(), ty_ts.len());
-        info!("Found ids: {:?}", &id);
-        info!("Found tys: {:?} ", &ty);
+        // let id = idents.iter().map(|i| i.0.clone().to_token_stream().to_string()).collect::<Vec<String>>();
+        // let id_ts = idents.iter().map(|i| i.1.clone()).collect::<Vec<TokenStream>>();
+        // let id_ts_impl = idents.iter().map(|i| i.2.clone()).collect::<Vec<TokenStream>>();
+        // let id_ts_impl_val = idents.into_iter().map(|i| i.3).collect::<Vec<Vec<TokenStream>>>();
 
-        ty_ts.iter().map(|t| SynHelper::get_str(t)).for_each(|i| {
-            info!("{}", &i);
-        });
-        id_ts.iter().map(|t| SynHelper::get_str(t)).for_each(|i| {
-            info!("{}", &i);
-        });
+        // TODO: this should check to make sure all ImplItems match for the Item::Impl, because otherwise it re-implements for every Impl and replaces every
+        //  Impl with the aspect.
+        let ty = tys.iter().map(|i| i.0.clone().to_token_stream().to_string()).collect::<Vec<String>>();
+        let ty_ts = tys.iter().map(|i| i.1.clone()).collect::<Vec<TokenStream>>();
+        let ty_ts_impl = tys.iter().map(|i| i.2.clone()).collect::<Vec<TokenStream>>();
+        let id_ts_impl_val_str = tys.iter().map(|i| i.3.iter().map(|t| t.to_string().clone()).collect::<Vec<String>>()).collect::<Vec<Vec<String>>>();
 
         quote! {
 
@@ -82,13 +55,17 @@ impl AspectGenerator {
                         Item::Impl(item_impl) => {
                             #(
                                 if item_impl.self_ty.to_token_stream().to_string() == #ty.to_string()  {
-                                    return true;
-                                }
-                            )*
-                        }
-                        Item::Fn(item_fn) => {
-                            #(
-                                if item_impl.sig.ident.to_token_stream().to_string() == #id.to_string()  {
+                                    let item_impl_idents = item_impl.items.iter().flat_map(|i| match i {
+                                        ImplItem::Method(m) => vec![m.sig.ident.to_token_stream().to_string().clone()],
+                                         _ => vec![]
+                                     }).collect::<Vec<String>>();
+                                    for i in item_impl_idents.iter() {
+                                        #(
+                                            if #id_ts_impl_val_str.to_string() != i.clone() {
+                                                return false;
+                                            }
+                                        )*
+                                    }
                                     return true;
                                 }
                             )*
@@ -101,18 +78,13 @@ impl AspectGenerator {
 
                 fn do_provide(item: &mut Item) -> Option<TokenStream> {
                     match item {
-                        Item::Fn(item_fn) => {
-                            #(
-                                if item_impl.sig.ident.to_token_stream().to_string() == #id.to_string()  {
-                                    return Some(quote! { #id_ts })
-                                }
-                            )*
-
-                        }
                         Item::Impl(item_impl) => {
                             #(
                                 if item_impl.self_ty.to_token_stream().to_string() == #ty.to_string()  {
-                                    return Some(quote! { #ty_ts });
+                                    return Some(quote! {
+                                        #ty_ts
+                                        #ty_ts_impl
+                                    });
                                 }
                             )*
                         }
@@ -127,6 +99,32 @@ impl AspectGenerator {
 
     }
 
+    fn retrieve_aspect_tokens<T: ToTokens + Clone>(&self, provider: &dyn Fn(&BeanDefinition) -> Option<T>) -> Vec<(T, TokenStream, TokenStream, Vec<TokenStream>)> {
+        let idents = self.method_advice_aspects.iter()
+            .flat_map(|a| provider(&a.1)
+                .as_ref()
+                .map(|i| {
+                    let mut ts = TokenStream::default();
+                    Self::implement_original_fn(&mut ts, a);
+                    (i.clone(), ts.clone())
+                })
+                .into_iter()
+                .flat_map(|(ty, ts)| {
+                    a.1.traits_impl.iter()
+                        .flat_map(|d| d.item_impl.iter()
+                            .filter(|i| ParseContainer::get_bean_definition_key_item_impl(i) == Some(a.0.ty.clone()))
+                        )
+                        .next()
+                        .map(|t| (ty, ts, t.to_token_stream().clone(), t.items.iter().flat_map(|i| match i {
+                            ImplItem::Method(m) => vec![m.sig.ident.to_token_stream().clone()],
+                            _ => vec![]
+                        }).collect::<Vec<TokenStream>>()))
+                        .into_iter()
+                })
+            )
+            .collect::<Vec<(T, TokenStream, TokenStream, Vec<TokenStream>)>>();
+        idents
+    }
 }
 
 impl AspectGenerator {

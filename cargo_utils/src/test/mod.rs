@@ -69,8 +69,8 @@ fn test_update_cargo_toml() {
 
 fn write_cargo() {
     let path = PathBuf::from(project_directory!()).join("cargo_utils").join("test_resources").join("test_app").join("Cargo.toml");
-    println!("{:?}", path.to_str());
     std::fs::remove_file(&path);
+    println!("{:?}", path.to_str());
     let mut f = File::create_new(&path).or(File::open(&path)).unwrap();
     writeln!(&mut f, "{}", out).unwrap();
     drop(path);

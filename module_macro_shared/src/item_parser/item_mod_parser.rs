@@ -1,5 +1,14 @@
 use std::path::PathBuf;
-use syn::{Item, ItemMod, Path};
+use std::sync::Mutex;
+
+use quote::ToTokens;
+use syn::{Item, ItemMod};
+
+use codegen_utils::syn_helper::SynHelper;
+use knockoff_logging::*;
+use program_parser::module_iterator::ModuleIterator;
+
+use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerModifier, ProfileTreeFinalizer};
 use crate::item_parser::item_enum_parser::ItemEnumParser;
 use crate::item_parser::item_fn_parser::ItemFnParser;
 use crate::item_parser::item_impl_parser::ItemImplParser;
@@ -7,17 +16,8 @@ use crate::item_parser::item_struct_parser::ItemStructParser;
 use crate::item_parser::item_trait_parser::ItemTraitParser;
 use crate::item_parser::ItemParser;
 use crate::parse_container::ParseContainer;
-
-use quote::ToTokens;
 use crate::parse_container::ParseContainerItemUpdater;
 
-use knockoff_logging::*;
-use lazy_static::lazy_static;
-use std::sync::Mutex;
-use codegen_utils::{FlatMapOptional, project_directory};
-use codegen_utils::syn_helper::SynHelper;
-use program_parser::module_iterator::ModuleIterator;
-use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_mod_parser.rs");
 
 
@@ -102,23 +102,7 @@ impl ItemModParser {
             }
             Item::Fn(fn_type) => {
                 info!("Found fn type {}.", fn_type.to_token_stream().clone());
-                let did_exist_bd = container_key.clone().flat_map_opt(|c| {
-                    let mut bean_def = app_container.injectable_types_builder.remove(&c);
-
-                    bean_def.as_mut()
-                        .flat_map_opt(|bd| bd.factory_fn.as_mut())
-                        .map(|m| ItemFnParser::parse_item(program_src, &mut app_container, &mut m.fn_found.item_fn, path_depth.clone(), module_parser));
-
-                    bean_def.flat_map_opt(|bd| {
-                            app_container.injectable_types_builder.insert(c.clone(), bd);
-                            Some(true)
-                        })
-                        .or(Some(false))
-                });
-
-                if let None | Some(false) = did_exist_bd {
-                    ItemFnParser::parse_item(program_src, &mut app_container, fn_type, path_depth.clone(), module_parser);
-                }
+                ItemFnParser::parse_item(program_src, &mut app_container, fn_type, path_depth.clone(), module_parser);
             }
             Item::ForeignMod(_) => {}
             Item::Impl(ref mut impl_found) => {

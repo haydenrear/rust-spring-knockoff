@@ -18,6 +18,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+use module_macro_shared::item_impl_parser::ItemImplParser;
 use optional::FlatMapOptional;
 use crate::logger_lazy;
 import_logger!("aspect_knockoff_provider.rs");
@@ -326,6 +327,7 @@ impl AspectParser {
             return_type,
             mutable: Self::get_mutability(&method_before),
             advice_chain: vec![],
+            ty: bean_id.to_string()
         })
     }
 

@@ -74,15 +74,14 @@ pub fn write_d_factory_crate() -> Option<String> {
                 .as_mut()
                 .map(|parse_container| {
                     if let Item::Mod(item_mod) = item_mod {
+                        // parse a second time after adding metadata items.
                         ItemModParser::parse_item(&program_src, parse_container, item_mod, vec![item_mod.ident.clone().to_string()], &mut module_parser);
                     }
 
                     let p = Box::new(ProfileProfileTreeModifier::new(&parse_container.injectable_types_builder));
                     let mut profile_tree = ProfileTreeBuilder::build_profile_tree(&mut parse_container.injectable_types_builder,
                                                                                   vec![p], &mut parse_container.provided_items);
-                    profile_tree.provided_items.iter().for_each(|(k,v)| {
-                        info!("found provided: {:?}", &k);
-                    });
+
                     info!("Build profile tree: {:?}.", &profile_tree);
                     let d = DelegatingTokenProvider::new(&mut profile_tree);
                     let ts: TokenStream = d.generate_token_stream();

@@ -19,7 +19,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use proc_macro2::TokenStream;
-use codegen_utils::project_directory;
+use codegen_utils::{FlatMapOptional, project_directory};
 use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerItemUpdater, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_impl_parser.rs");
 
@@ -47,7 +47,7 @@ impl ItemImplParser {
         item_impl.generics.clone()
     }
 
-    fn add_bean_defn(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl,
+    pub fn add_bean_defn(parse_container: &mut ParseContainer, item_impl: &mut ItemImpl,
                      mut path_depth: &mut Vec<String>, id: &String, profile: &Vec<ProfileBuilder>,
                      qualifiers: &Vec<String>) {
 
@@ -56,24 +56,6 @@ impl ItemImplParser {
 
         &mut parse_container.injectable_types_builder.get_mut(id)
             .map(|bean: &mut BeanDefinition| {
-                // let mut num = 0;
-                // let to_remove = bean.traits_impl.iter()
-                //     .flat_map(|b| {
-                //         if b.item_impl.as_ref().is_none() || b.item_impl.as_ref().unwrap().to_token_stream().to_string().len() == 0 {
-                //             let next = Some(num);
-                //             num += 1;
-                //             return next;
-                //         }
-                //         None
-                //     })
-                //     .collect::<Vec<usize>>();
-                //
-                // let mut num_removed = 0;
-                // to_remove.iter().for_each(|u| {
-                //     bean.traits_impl.remove(u - num_removed);
-                //     num_removed += 1;
-                // });
-
                 bean.traits_impl.insert(0,
                     DependencyDescriptor {
                         item_impl: Some(item_impl.clone()),
@@ -84,7 +66,18 @@ impl ItemImplParser {
                         item_impl_gens: Self::get_generics(item_impl),
                     }
                 );
+
                 info!("Added trait to {:?}", bean);
+
+                for i in 1..bean.traits_impl.len() {
+                    // &mut ItemMod being parsed will contain the most recent, so remove any older item_impl added previously.
+                    if bean.traits_impl.get(i).flat_map_opt(|b| b.item_impl.as_ref())
+                        .filter(|i| ParseContainer::get_bean_definition_key_item_impl(i) == ParseContainer::get_bean_definition_key_item_impl(item_impl))
+                        .is_some() {
+                        info!("Removing previous trait: {:?}", bean);
+                        bean.traits_impl.remove(i);
+                    }
+                }
             })
             .or_else(|| {
                 let mut impl_found = BeanDefinition {
@@ -162,7 +155,7 @@ impl ItemParser<ItemImpl> for ItemImplParser {
         let id = item_impl.self_ty.to_token_stream().to_string().clone();
 
 
-        log_message!("Doing create update impl for id: {}", id);
+        info!("Doing create update impl for id: {}", id);
 
         if is_ignore_trait(&item_impl) {
             info!("Ignoring trait: {:?}", SynHelper::get_str(&item_impl));

@@ -70,6 +70,7 @@ pub struct AspectInfo {
     pub method_after: Option<ImplItemMethod>,
     pub mutable: bool,
     pub advice_chain: Vec<MethodAdviceChain>,
+    pub ty: String
 }
 
 impl MetadataItem for AspectInfo {
