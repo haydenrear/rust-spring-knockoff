@@ -14,6 +14,15 @@ macro_rules! project_directory_path {
 }
 
 #[macro_export]
+macro_rules! user_program_src {
+    () => {
+        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
+            .join(std::path::Path::new(&std::env::var("PROGRAM_SRC_PATH_FROM_ROOT").unwrap()))
+            .to_path_buf()
+    }
+}
+
+#[macro_export]
 macro_rules! program_src {
     () => {
         std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())

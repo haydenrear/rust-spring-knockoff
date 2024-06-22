@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::env;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use syn::Item;
 use codegen_utils::syn_helper::SynHelper;
@@ -34,7 +34,7 @@ pub struct PrecompileMetadata {
     parse_lib: bool
 }
 
-pub fn get_tokens(processor_name: &str) -> TokenStream {
+pub fn get_tokens(processor_name: &str, program_src: &PathBuf) -> TokenStream {
     info!("Starting precompile parsing for {}", processor_name);
     let factories = knockoff_factories();
     let precompiled = precompiled_metadata(
@@ -43,7 +43,7 @@ pub fn get_tokens(processor_name: &str) -> TokenStream {
         let ts: Vec<TokenStream> = parse_precompile_inputs(&precompiled)
             .into_iter()
             .flat_map(|f| f.items.into_iter())
-            .flat_map(|mut item_parsed| to_parse_container(&precompiled, item_parsed))
+            .flat_map(|mut item_parsed| to_parse_container(&precompiled, item_parsed, program_src))
             .map(|mut parse_container| build_profile_tree(&mut parse_container))
             .map(|mut profile_tree| DelegatingTokenProvider::new(&mut profile_tree))
             .map(|token_provider| token_provider.generate_token_stream())
@@ -77,7 +77,10 @@ impl BuildParseContainer for ParseContainerBuilder {
     }
 }
 
-fn to_parse_container(precompiled: &Option<PrecompileMetadata>, item_parsed: Item) -> Vec<ParseContainer> {
+fn to_parse_container(precompiled: &Option<PrecompileMetadata>,
+                      item_parsed: Item,
+                      program_src: &PathBuf
+) -> Vec<ParseContainer> {
     match item_parsed {
         Item::Mod(item_mod) => {
             info!("Testing if {:?} contains processor ident {:?}.",
@@ -99,8 +102,9 @@ fn to_parse_container(precompiled: &Option<PrecompileMetadata>, item_parsed: Ite
                     delegating_parse_container_finalizer: DelegatingProfileTreeFinalizerProvider {},
                 };
                 let parse_containers = parse_module_into_container(
-                        &mut Item::Mod(item_mod),
-                        &mut module_parser
+                    program_src,
+                    &mut Item::Mod(item_mod),
+                    &mut module_parser
                     )
                     .into_iter()
                     .map(|p| {
@@ -114,7 +118,7 @@ fn to_parse_container(precompiled: &Option<PrecompileMetadata>, item_parsed: Ite
             } else {
                 info!("Found item {:?}, but did not contain processor ", SynHelper::get_str(&item_mod.ident));
                 item_mod.content.iter().flat_map(|c| c.1.clone())
-                    .flat_map(|c| to_parse_container(precompiled, c))
+                    .flat_map(|c| to_parse_container(precompiled, c, program_src))
                     .collect()
             }
         }
