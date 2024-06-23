@@ -1,4 +1,5 @@
 #![feature(let_chains)]
+#![feature(associated_type_defaults)]
 
 extern crate core;
 
@@ -14,7 +15,8 @@ pub mod profile_tree;
 pub use profile_tree::*;
 pub mod debug;
 pub use debug::*;
-
+pub mod syn_eq;
+pub use syn_eq::*;
 pub mod bean_parser;
 pub use bean_parser::*;
 pub mod bean;

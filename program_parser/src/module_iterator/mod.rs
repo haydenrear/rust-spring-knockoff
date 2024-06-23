@@ -57,7 +57,6 @@ impl ModuleIterator {
                     .flat_map_opt(|f| SynHelper::parse_syn_file(f))
                 )
                 .map(|f| {
-                    info!("hello..");
                     info!("Parsing file {:?}", SynHelper::get_str(f.clone()));
                     ItemMod {
                         attrs: f.attrs,

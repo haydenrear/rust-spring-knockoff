@@ -8,6 +8,7 @@ pub mod test_library_four {
     use spring_knockoff_boot_macro::{autowired, bean, service, request_body, controller, get_mapping, request_mapping, knockoff_ignore};
     use std::sync::{Arc, Mutex};
     use serde::{Serialize, Deserialize};
+
     #[derive(Default)]
     pub struct TestOneHundred;
 

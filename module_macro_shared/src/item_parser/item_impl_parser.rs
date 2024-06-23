@@ -20,7 +20,7 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 use proc_macro2::TokenStream;
 use codegen_utils::{FlatMapOptional, project_directory};
-use crate::{BuildParseContainer, ItemModifier, logger_lazy, ModuleParser, ParseContainerItemUpdater, ParseContainerModifier, ProfileTreeFinalizer};
+use crate::{BuildParseContainer, ItemModifier, KnockoffEquals, logger_lazy, ModuleParser, ParseContainerItemUpdater, ParseContainerModifier, ProfileTreeFinalizer};
 import_logger!("item_impl_parser.rs");
 
 
@@ -68,16 +68,31 @@ impl ItemImplParser {
                 );
 
                 info!("Added trait to {:?}", bean);
+                let mut to_remove = vec![];
 
                 for i in 1..bean.traits_impl.len() {
                     // &mut ItemMod being parsed will contain the most recent, so remove any older item_impl added previously.
                     if bean.traits_impl.get(i).flat_map_opt(|b| b.item_impl.as_ref())
-                        .filter(|i| ParseContainer::get_bean_definition_key_item_impl(i) == ParseContainer::get_bean_definition_key_item_impl(item_impl))
+                        .filter(|i| ParseContainer::get_bean_definition_key_item_impl(i) == ParseContainer::get_bean_definition_key_item_impl(item_impl)
+                                && i.trait_.as_ref().map(|(_, p, _)| p).k_eq(&&item_impl.trait_.as_ref().map(|(_, p, _)| p))
+                                && i.items.iter().all(|impl_item| item_impl.items.iter().any(|impl_item_inner| match impl_item {
+                                    ImplItem::Method(m) => match impl_item_inner {
+                                        ImplItem::Method(m_i) => m.sig.ident.to_string() == m_i.sig.ident.to_string(),
+                                        _ => false
+                                    }
+                                    _ => match impl_item_inner {
+                                        ImplItem::Method(_) => false,
+                                        _ => true
+                                    }
+                        })))
                         .is_some() {
-                        info!("Removing previous trait: {:?}", bean);
-                        bean.traits_impl.remove(i);
+                        to_remove.push(i);
+                        info!("Removing previous trait: {:?}", &bean.traits_impl.get(i));
                     }
                 }
+
+                to_remove.iter().for_each(|i| { bean.traits_impl.remove(*i); });
+
             })
             .or_else(|| {
                 let mut impl_found = BeanDefinition {

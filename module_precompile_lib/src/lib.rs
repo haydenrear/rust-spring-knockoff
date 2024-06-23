@@ -1,7 +1,6 @@
 use syn::Item;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-// use ...
 
 // TODO: imported into this code will be Delegating token providers that will have been generated
 //       from an entire forward pass over the program (as opposed to only reading a single module,

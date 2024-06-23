@@ -141,7 +141,8 @@ fn update_toml_value(package: &str, packages: &Vec<String>) -> bool {
 
     packages.iter().for_each(|p| updates_to.push(TomlUpdates::AddPathToPackage(p.to_string(), p.to_string())));
 
-    let updates = UpdateToml::do_update_toml_from(&updates_to, package, &get_target_directory(), packages);
+    let tgt_dir = get_target_directory();
+    let updates = UpdateToml::do_update_toml_from(&updates_to, package, &tgt_dir, packages);
 
     !(updates.toml_table.is_some()
         && updates.toml_table.map(|t| t.contains_key("build-dependencies") && t.contains_key("dependencies"))
@@ -193,17 +194,17 @@ fn generate_precompile_builder(args: &HashMap<String, String>) {
     let version = &cargo_utils::get_version(args);
     let module_macro_codegen_dependency = args.get("mode")
         .filter(|mode| mode.as_str() == "knockoff_dev")
-        .flat_map_opt(|_| to_table(format!("{}\n", MODULE_DFACTORY_CODEGEN_DEV.replace("{}", version))
+        .flat_map_opt(|_| to_table(format!("{}\n", MODULE_DFACTORY_CODEGEN_DEV.replace("{}", version)))
             .map_err(err::log_err("Failed to compile module macro codegen."))
             .ok()
         )
-        .or(to_table(format!("{}\n", MODULE_DFACTORY_CODEGEN.replace("{}", version))))
+        .or(to_table(format!("{}\n", MODULE_DFACTORY_CODEGEN.replace("{}", version)))
             .map_err(err::log_err("Failed to compile module macro codegen."))
             .ok()
         )
         .unwrap();
 
-    crate_gen::CrateWriter::write_dependency_agg_crate("knockoff_precompile_builder", version, &get_target_directory(), module_macro_codegen_dependency);
+    crate_gen::CrateWriter::write_dependency_agg_crate("knockoff_precompile_builder", version, &get_target_directory(), &module_macro_codegen_dependency);
 
 }
 
@@ -230,7 +231,7 @@ fn generate_knockoff_builder(args: &HashMap<String, String>) {
         )
         .unwrap();
 
-    crate_gen::CrateWriter::write_dependency_agg_crate("knockoff_builder", version, &get_target_directory(), module_macro_codegen_dependency);
+    crate_gen::CrateWriter::write_dependency_agg_crate("knockoff_builder", version, &get_target_directory(), &module_macro_codegen_dependency);
 
 }
 

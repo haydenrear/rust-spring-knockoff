@@ -77,9 +77,10 @@ pub trait FactoryGenerator: {
     fn add_to(identifiers: &mut Vec<Ident>, types: &mut Vec<Type>, bean: &BeanDefinition) where Self: Sized {
         // Has to be struct_type first because ident can be a function identifier, and that won't work.
         if bean.struct_type.is_some() {
+            info!("Implementing listable bean factory. Including: {} and {:?}.", SynHelper::get_str(&bean.struct_type), &bean);
             types.push(bean.struct_type.clone().unwrap());
         } else if bean.ident.is_some() {
-            log_message!("Implementing listable bean factory. Including: {}.", bean.ident.to_token_stream().to_string().clone());
+            info!("Implementing listable bean factory. Including: {}.", bean.ident.to_token_stream().to_string().clone());
             identifiers.push(bean.ident.clone().unwrap());
         }
     }

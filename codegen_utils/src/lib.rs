@@ -11,5 +11,6 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 
 pub use optional::*;
+pub use knockoff_helper::*;
 
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/codegen_utils.log"));

@@ -11,7 +11,8 @@ use proc_macro2::TokenStream;
 use serde::{Deserialize, Serialize};
 use toml::{Table, Value};
 
-use codegen_utils::{FlatMapOptional, FlatMapResult, project_directory, project_directory_path};
+use codegen_utils::{FlatMapOptional, FlatMapResult, project_directory};
+use knockoff_helper::{project_directory_path};
 use collection_util::IntoMultiMap;
 use crate_gen::{CrateWriter, get_key, SearchType, SearchTypeError, TomlUpdates, UpdateToml};
 use knockoff_logging::*;
@@ -131,7 +132,8 @@ impl FactoriesParser {
     }
 
     fn add_stage_zero_default(phase: &Phase, f: &mut FactoryPhases) {
-        project_directory_path!().join("codegen_resources").join("knockoff_default_factories.toml")
+        project_directory_path!().join("codegen_resources")
+            .join("knockoff_default_factories.toml")
             .to_path_buf().to_str()
             .flat_map_opt(|knockoff_default_factories_path| Self::parse_factories_value::<FactoryPhases>(knockoff_default_factories_path))
             .map(|mut factories| {

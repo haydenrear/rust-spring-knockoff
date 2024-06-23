@@ -19,10 +19,8 @@ use module_macro_lib::module_macro_lib::knockoff_context_builder::bean_construct
 use module_macro_shared::bean::BeanPathParts::PhantomType;
 use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
 use module_precompile_macro::boot_knockoff;
-// these imports are necessary because the generated code does not contain the imports.
 
 #[module_attr]
-// #[cfg(springknockoff)]
 pub mod test_library {
     use spring_knockoff_boot_macro::*;
 

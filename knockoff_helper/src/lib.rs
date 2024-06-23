@@ -1,15 +1,15 @@
+#[macro_export]
+macro_rules! project_directory_path {
+    () => {
+        // std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
+        Path::new(env!("PROJECT_BASE_DIRECTORY", "Please set project base directory."))
+    };
+}
 
 #[macro_export]
 macro_rules! project_directory {
     () => {
         env!("PROJECT_BASE_DIRECTORY", "Please set project base directory.")
-    };
-}
-
-#[macro_export]
-macro_rules! project_directory_path {
-    () => {
-        std::path::Path::new(&std::env::var("PROJECT_BASE_DIRECTORY").unwrap())
     };
 }
 

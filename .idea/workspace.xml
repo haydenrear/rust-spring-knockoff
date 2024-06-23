@@ -8,21 +8,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="without aspect, before adding mut module macro decorator">
-      <change afterPath="$PROJECT_DIR$/codegen_resources/knockoff_default_factories.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/test_resources/knockoff_delegator_factories/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/factories_codegen/test_resources/knockoff_delegator_factories/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/module_macro_shared/src/syn_eq/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_item_modifier.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_item_modifier.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_ts_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_provider/src/aspect_knockoff_provider/aspect_ts_generator.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/default_phase_deps.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/default_phase_deps.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/codegen_resources/default_stage_deps.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/default_stage_deps.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dfactory_dcodegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/dfactory_dcodegen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dfactory_dcodegen_codegen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/dfactory_dcodegen_codegen/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/factories.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/factories.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen_utils/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_three.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two/test_library_six/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/delegator_test/src/test_library/test_library_two/test_library_six/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/factories_codegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/mutable_module_modifier_provider/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/mutable_module_modifier_provider/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/test_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/test_resources/knockoff_factories.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/knockoff_cli/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_cli/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/knockoff_helper/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_helper/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/knockoff_context_builder/factory_generator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_impl_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_impl_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_mod_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/item_parser/item_mod_parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_precompile_lib/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile_lib/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_precompile_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile_lib/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/program_parser/src/module_iterator/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/program_parser/src/module_iterator/mod.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,6 +141,7 @@
     "Cargo.Test property_source::test_get_property.executor": "Run",
     "Cargo.Test property_source_parser::test_property_source_parser.executor": "Run",
     "Cargo.Test resource_loader::test_pattern_matcher.executor": "Run",
+    "Cargo.Test syn_eq::test_if.executor": "Run",
     "Cargo.Test test.executor": "Run",
     "Cargo.Test test::cargo_toml_util.executor": "Run",
     "Cargo.Test test::do_test.executor": "Run",
@@ -154,6 +161,7 @@
     "Cargo.Test test_dyn.executor": "Run",
     "Cargo.Test test_load (1).executor": "Run",
     "Cargo.Test test_load.executor": "Run",
+    "Cargo.Test test_module_macro (1).executor": "Run",
     "Cargo.Test test_module_macro.executor": "Run",
     "Cargo.Test test_pattern_matcher.executor": "Run",
     "Cargo.Test test_properties.executor": "Run",
@@ -212,26 +220,9 @@
       <recent name="$PROJECT_DIR$/knockoff_env/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test test_load (1)">
-    <configuration name="Test do_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package err --lib do_test -- --exact" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <option name="emulateTerminal" value="true" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test test::do_test_get_key" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package cargo_utils --lib test::do_test_get_key -- --exact" />
+  <component name="RunManager" selected="Cargo.Test test_module_macro (1)">
+    <configuration name="Test syn_eq::test_if" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package module_macro_shared --lib syn_eq::test_if -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -281,8 +272,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test_load" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_precompile_codegen test_load -- --exact" />
+    <configuration name="Test test_module_macro (1)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test test_module_macro" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_module_macro -- --exact -Z macro-backtrace" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -317,19 +325,19 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.Test" />
-      <item itemvalue="Cargo.Test test::do_test_get_key" />
-      <item itemvalue="Cargo.Test test_load" />
+      <item itemvalue="Cargo.Test syn_eq::test_if" />
+      <item itemvalue="Cargo.Test test_module_macro (1)" />
+      <item itemvalue="Cargo.Test test_module_macro" />
       <item itemvalue="Cargo.Test test_load (1)" />
-      <item itemvalue="Cargo.Test do_test" />
       <item itemvalue="Cargo.Test test::test_token_providers::test_parse_factories" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test test_module_macro (1)" />
+        <item itemvalue="Cargo.Test syn_eq::test_if" />
+        <item itemvalue="Cargo.Test test_module_macro" />
         <item itemvalue="Cargo.Test test_load (1)" />
         <item itemvalue="Cargo.Test test::test_token_providers::test_parse_factories" />
-        <item itemvalue="Cargo.Test test::do_test_get_key" />
-        <item itemvalue="Cargo.Test test_load" />
-        <item itemvalue="Cargo.Test do_test" />
       </list>
     </recent_temporary>
   </component>
@@ -452,7 +460,8 @@
       <workItem from="1718934232654" duration="10380000" />
       <workItem from="1719073764605" duration="398000" />
       <workItem from="1719078670475" duration="89000" />
-      <workItem from="1719089589002" duration="4323000" />
+      <workItem from="1719089589002" duration="8200000" />
+      <workItem from="1719153314991" duration="3041000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -797,7 +806,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="249" />
+    <option name="localTasksCounter" value="250" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

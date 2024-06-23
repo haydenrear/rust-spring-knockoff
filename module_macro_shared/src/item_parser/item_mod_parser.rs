@@ -50,13 +50,13 @@ impl ItemParser<ItemMod> for ItemModParser {
             .map(|item_found| { Self::do_parse_module(program_src, parse_container, &mut path_depth, module_parser, item_found); })
             .or_else(|| {
                 if is_in_line_module(item_found) {
-                    info!("Parsing in-line module.");
+                    info!("Parsing in-line module: {:?}.", SynHelper::get_str(&item_found.ident));
                     Self::do_parse_module(program_src, parse_container, &mut path_depth, module_parser, item_found);
                 } else {
-                    info!("Retrieving in-line module.");
+                    info!("Retrieving in-line module: {:?}.", SynHelper::get_str(&item_found.ident));
                     ModuleIterator::retrieve_next_mod(item_found.clone(), &program_src).as_mut()
                         .map(|item_found| {
-                            info!("Found file in-line module.");
+                            info!("Found in-line module from module: {:?}.", SynHelper::get_str(&item_found.ident));
                             Self::do_parse_module(program_src, parse_container, &mut path_depth, module_parser, item_found);
                         });
                 }
