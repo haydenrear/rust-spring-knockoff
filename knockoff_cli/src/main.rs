@@ -15,7 +15,7 @@ use toml::{Table, Value};
 use toml::macros::{Deserialize, IntoDeserializer};
 use cargo_utils::cargo_toml_utils::update_toml::{TomlUpdates, UpdateToml};
 
-use codegen_utils::FlatMapOptional;
+use codegen_utils::{FlatMapOptional, get_project_base_dir, get_project_base_path};
 use codegen_utils::project_directory;
 use knockoff_logging::*;
 
@@ -49,14 +49,18 @@ fn main() {
     let args = ArgsParser::parse_arg(env::args());
     let mode_arg = args.get("mode");
     let _ = fs::create_dir_all(get_target_directory())
-        .map_err(err::log_err("Found error when creating directories in knockoff cli: "));
+        // .map_err(err::log_err("Found error when creating directories in knockoff cli: "));
+        ;
     compile_module_macro_codegen_gen_codegen(&args);
-    if mode_arg.is_some() && mode_arg.unwrap() == "knockoff_dev" {
-        compile_module_macro_lib_knockoff_dev(&args);
-    } else {
-        download_packages(&args);
-        update_toml_values();
-    }
+    println!("Starting compile.");
+    // if mode_arg.is_some() && mode_arg.unwrap() == "knockoff_dev" {
+    //     println!("Compiling for knockoff dev.");
+    //     compile_module_macro_lib_knockoff_dev(&args);
+    //     compile_packages(&args);
+    // } else {
+    //     download_packages(&args);
+    //     update_toml_values();
+    // }
 }
 
 fn download_packages(args: &HashMap<String, String>) {
@@ -114,10 +118,10 @@ fn packages() -> Vec<&'static str> {
 // generate knockoff_builder crate and compile it, which will trigger generation of knockoff_codegen
 // crate itself.
 fn compile_module_macro_codegen_gen_codegen(args: &HashMap<String, String>) {
-    generate_precompile_builder(args);
-    compile_in_target("knockoff_precompile_builder", args);
     generate_knockoff_builder(args);
     compile_in_target("knockoff_builder", args);
+    generate_precompile_builder(args);
+    compile_in_target("knockoff_precompile_builder", args);
 }
 
 fn update_toml_values() {
@@ -150,13 +154,12 @@ fn update_toml_value(package: &str, packages: &Vec<String>) -> bool {
 }
 
 fn compile_packages(args: &HashMap<String, String>) {
-    compile_in_target("dfactory_dcodegen", args);
-    compile_in_target("module_precompile", args);
-    compile_in_target("module_macro", args);
+    compile_in_project("module_precompile", args);
+    compile_in_project("module_macro", args);
 }
 
 fn compile_module_macro_lib_knockoff_dev(args: &HashMap<String, String>) {
-    let module_macro_lib = get_target_directory()
+    let module_macro_lib = get_project_base_path()
         .join("module_macro_lib")
         .join("Cargo.toml");
     compile_from_proj_directory(&module_macro_lib, args);
@@ -181,6 +184,15 @@ fn compile_in_target(dep_name_in_target: &str, args: &HashMap<String, String>) {
     compile_from_proj_directory(&manifest_path, args);
 }
 
+fn compile_in_project(dep_name_in_target: &str, args: &HashMap<String, String>) {
+    let manifest_path = get_project_base_path()
+        .join(dep_name_in_target)
+        .join("Cargo.toml");
+
+    compile_from_proj_directory(&manifest_path, args);
+    println!("Finished compiling {}", dep_name_in_target);
+}
+
 fn compile_from_proj_directory(manifest_path: &Path, args: &HashMap<String, String>) {
     cargo_utils::compile_from_directory(manifest_path, args, get_target_directory());
 }
@@ -194,12 +206,18 @@ fn generate_precompile_builder(args: &HashMap<String, String>) {
     let version = &cargo_utils::get_version(args);
     let module_macro_codegen_dependency = args.get("mode")
         .filter(|mode| mode.as_str() == "knockoff_dev")
-        .flat_map_opt(|_| to_table(format!("{}\n", MODULE_DFACTORY_CODEGEN_DEV.replace("{}", version)))
-            .map_err(err::log_err("Failed to compile module macro codegen."))
+        .flat_map_opt(|_| to_table(format!("{}\n{}\n",
+                                           MODULE_DFACTORY_CODEGEN_DEV.replace("{}", version),
+                                           MODULE_PRECOMPILE_CODEGEN_DEV.replace("{}", version)
+        ))
+            // .map_err(err::log_err("Failed to compile module macro codegen."))
             .ok()
         )
-        .or(to_table(format!("{}\n", MODULE_DFACTORY_CODEGEN.replace("{}", version)))
-            .map_err(err::log_err("Failed to compile module macro codegen."))
+        .or(to_table(format!("{}\n{}\n",
+                             MODULE_DFACTORY_CODEGEN.replace("{}", version),
+                             MODULE_PRECOMPILE_CODEGEN_DEV.replace("{}", version)
+        ))
+            // .map_err(err::log_err("Failed to compile module macro codegen."))
             .ok()
         )
         .unwrap();
@@ -215,18 +233,16 @@ fn generate_knockoff_builder(args: &HashMap<String, String>) {
     let version = &cargo_utils::get_version(args);
     let module_macro_codegen_dependency = args.get("mode")
         .filter(|mode| mode.as_str() == "knockoff_dev")
-        .flat_map_opt(|_| to_table(format!("{}\n{}\n{}\n",
+        .flat_map_opt(|_| to_table(format!("{}\n{}\n",
                                   MODULE_MACRO_CODEGEN_DEV.replace("{}", version),
-                                  MODULE_PRECOMPILE_CODEGEN_DEV.replace("{}", version),
                                   MODULE_DFACTORY_CODEGEN_DEV.replace("{}", version)))
-            .map_err(err::log_err("Failed to compile module macro codegen."))
+            // .map_err(err::log_err("Failed to compile module macro codegen."))
             .ok()
         )
-        .or(to_table(format!("{}\n{}\n{}\n",
+        .or(to_table(format!("{}\n{}\n",
                          MODULE_MACRO_CODEGEN.replace("{}", version),
-                         MODULE_PRECOMPILE_CODEGEN.replace("{}", version),
                          MODULE_DFACTORY_CODEGEN.replace("{}", version)))
-            .map_err(err::log_err("Failed to compile module macro codegen."))
+            // .map_err(err::log_err("Failed to compile module macro codegen."))
             .ok()
         )
         .unwrap();

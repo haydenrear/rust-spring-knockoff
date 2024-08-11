@@ -48,9 +48,9 @@ pub fn write_d_factory_crate() -> Option<String> {
     };
 
     codegen_utils::io_utils::open_file_read(&user_program_src!().join("lib.rs"))
-        .map_err(err::log_err("Failed to open lib file: "))
+        // .map_err(err::log_err("Failed to open lib file: "))
         .flat_map_res(|mut f| SynHelper::parse_syn_file_to_res(&mut f)
-            .map_err(err::log_err("Failed to parse syn file."))
+            // .map_err(err::log_err("Failed to parse syn file."))
             .map_err(|e| std::io::Error::new(ErrorKind::InvalidData, e.to_string()))
         )
         .ok()

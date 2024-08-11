@@ -284,10 +284,10 @@ impl FactoriesParser {
                 all_value
             })
             .map_err(|e| std::io::Error::new(ErrorKind::InvalidData, e.to_string()))
-            .map_err(err::log_err("Failed to parse: "))
+            // .map_err(err::log_err("Failed to parse: "))
             .map(|all_value| {
                 toml::from_str::<T>(all_value.as_str())
-                    .map_err(err::log_err("Failed to parse: "))
+                    // .map_err(err::log_err("Failed to parse: "))
                     .map(|s| {
                         info!("Parsed factory stages: {:?}", s);
                         s

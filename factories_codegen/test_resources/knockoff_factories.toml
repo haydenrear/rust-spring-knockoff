@@ -36,6 +36,11 @@ path ="../../dfactory_dcodegen_shared"
 name = "dfactory_dcodegen_shared"
 version = "0.1.5"
 registry = "estuary"
+[phases.pre_compile.gen_deps.knockoff_dfactory_gen]
+path ="../knockoff_dfactory_gen"
+name = "knockoff_dfactory_gen"
+version = "0.1.5"
+registry = "estuary"
 
 # A create is created for each of these stages and included in the knockoff_gen_providers, and then knockoff_gen_providers
 # is included in the module_macro_lib. Then, module_macro_lib is imported by the user. So, then the user provides the

@@ -200,7 +200,7 @@ impl DirectoryWalker {
                             Self::get_dir(search_add_file, continue_search_directory,
                                           dir_entries, path_bufs)
                         })
-                        .map_err(err::log_err(&format!("When searching for {}, failed: ",  os_string_dir)))
+                        // .map_err(err::log_err(&format!("When searching for {}, failed: ",  os_string_dir)))
                         .ok()
                 }
 

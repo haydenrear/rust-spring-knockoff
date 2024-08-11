@@ -1,54 +1,35 @@
-use std::any::{Any, TypeId};
+use std::any::Any;
 use std::borrow::BorrowMut;
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, LinkedList};
-use std::collections::hash_map::Keys;
-use std::fmt::{Debug, Formatter};
-use std::iter::Filter;
+use std::fmt::Debug;
 use std::ops::Deref;
-use std::ptr::slice_from_raw_parts;
-use std::slice::Iter;
-use std::str::pattern::Pattern;
-use std::sync::Arc;
-use knockoff_providers_gen::{DelegatingProfileTreeFinalizerProvider, DelegatingProfileTreeModifierProvider};
-use proc_macro2::{Span, TokenStream};
-use syn::{Attribute, Block, Data, DeriveInput, Expr, Field, Fields, FieldsNamed, FieldsUnnamed, FnArg, ImplItem, ImplItemMethod, Item, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, ItemTrait, Lifetime, parse, parse_macro_input, parse_quote, Pat, Path, PatType, QSelf, ReturnType, Stmt, TraitItem, Type, TypeArray, TypePath};
+use std::sync::Mutex;
+
+use proc_macro2::TokenStream;
+use quote::{IdentFragment, TokenStreamExt, ToTokens};
+use serde::{Deserialize, Serialize};
 use syn::parse::Parser;
 use syn::spanned::Spanned;
-use syn::{
-    Ident,
-    LitStr,
-    Token,
-    token::Paren,
-};
-use quote::{format_ident, IdentFragment, quote, quote_spanned, quote_token, TokenStreamExt, ToTokens};
-use syn::Data::Struct;
-use syn::token::{Bang, For, Token};
-use codegen_utils::syn_helper::SynHelper;
-use crate::module_macro_lib::context_builder::ContextBuilder;
-use crate::module_macro_lib::knockoff_context_builder::ApplicationContextGenerator;
-use module_macro_shared::util::ParseUtil;
-use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType, BeanType};
-use module_macro_shared::functions::{FunctionType, ModulesFunctions};
+use syn::token::Token;
+
+use knockoff_logging::*;
+use knockoff_providers_gen::{DelegatingProfileTreeFinalizerProvider, DelegatingProfileTreeModifierProvider};
+use module_macro_shared::{ProfileProfileTreeModifier, ProfileTreeBuilder};
+use module_macro_shared::bean::BeanDefinition;
+use module_macro_shared::dependency::DepType;
 use module_macro_shared::module_macro_shared_codegen::FieldAugmenter;
-use module_macro_shared::module_tree::Trait;
 use module_macro_shared::parse_container::BuildParseContainer;
 use module_macro_shared::parse_container::ParseContainer;
 use module_macro_shared::profile_tree::profile_tree_finalizer::ProfileTreeFinalizer;
+use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
+
+use crate::logger_lazy;
+use crate::module_macro_lib::context_builder::ContextBuilder;
+use crate::module_macro_lib::generics_provider::DelegatingGenericsProvider;
 use crate::module_macro_lib::knockoff_context_builder::token_stream_generator::TokenStreamGenerator;
+use crate::module_macro_lib::parse_container::parse_container_dependencies::{BuildDependencyParseContainer, DelegateParseContainerModifier};
 use crate::module_macro_lib::profile_tree::concrete_profile_tree_modifier::ConcreteTypeProfileTreeModifier;
 use crate::module_macro_lib::profile_tree::mutable_profile_tree_modifier::MutableProfileTreeModifier;
-use module_macro_shared::profile_tree::profile_tree_modifier::ProfileTreeModifier;
-use crate::module_macro_lib::parse_container::parse_container_dependencies::{BuildDependencyParseContainer, DelegateParseContainerModifier};
 
-use knockoff_logging::*;
-use lazy_static::lazy_static;
-use std::sync::Mutex;
-use codegen_utils::project_directory;
-use module_macro_shared::dependency::DepType;
-use module_macro_shared::{ProfileProfileTreeModifier, ProfileTreeBuilder};
-use crate::logger_lazy;
-use crate::module_macro_lib::generics_provider::DelegatingGenericsProvider;
 import_logger!("parse_container.rs");
 
 pub mod parse_container_dependencies;

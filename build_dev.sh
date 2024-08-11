@@ -1,3 +1,3 @@
 knockoff_cli --mode=knockoff_dev
-cargo build
+cargo +nightly build
 

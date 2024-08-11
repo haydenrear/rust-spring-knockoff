@@ -5,4 +5,3 @@ provider_ident = "AspectGeneratorMutableModifierBuilder"
 path = "../knockoff_delegator_factories"
 registry = "estuary"
 version = "0.1.5"
-

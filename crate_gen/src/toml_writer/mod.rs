@@ -31,7 +31,8 @@ impl<'a> CargoTomlWriter<'a> {
             .map(|(path, name)| {
                 if !path.exists() {
                     let _ = fs::create_dir_all(path.join(name).parent().unwrap())
-                        .map_err(*err::LOG_ERR);
+                        // .map_err(*err::LOG_ERR)
+                        ;
                 }
 
                 let _ = File::options()
@@ -40,7 +41,8 @@ impl<'a> CargoTomlWriter<'a> {
                     .create(true)
                     .open(path.join(name).join("Cargo.toml"))
                     .map(|cargo_file| self.do_write_toml(name, cargo_file))
-                    .map_err(*err::LOG_ERR);
+                    // .map_err(*err::LOG_ERR)
+                    ;
             });
     }
 
@@ -52,7 +54,8 @@ impl<'a> CargoTomlWriter<'a> {
                 let created = fs::create_dir_all(path.join(name));
                 let _ = File::create(path.join(name).join("Cargo.toml"))
                     .map(|cargo_file| self.do_write_toml(name, cargo_file))
-                    .map_err(*err::LOG_ERR);
+                    // .map_err(*err::LOG_ERR)
+                    ;
             })
             .or_else(|| {info!("Skipped generating toml"); None});
     }

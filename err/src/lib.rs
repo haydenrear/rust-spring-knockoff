@@ -1,6 +1,3 @@
-#![feature(unboxed_closures)]
-#![feature(fn_traits)]
-
 use std::error::Error;
 use std::io::ErrorKind;
 use std::marker::PhantomData;
@@ -17,11 +14,12 @@ lazy_static! {
     pub static ref LOG_ERR: LogThisValue = LogThisValue {};
 }
 
-pub trait LogThis<T: Error> : Send + Sync + FnOnce<(T,), Output=T> {
+pub trait LogThis<T: Error> : Send + Sync {
 }
 
 #[derive(Copy, Clone)]
-pub struct LogThisValue;
+pub struct LogThisValue {
+}
 
 #[derive(Copy, Clone)]
 pub struct LogWithPrepend<'a, T: Error> {
@@ -29,25 +27,25 @@ pub struct LogWithPrepend<'a, T: Error> {
     phantom_data: PhantomData<T>
 }
 
-impl<T: Error> FnOnce<(T,)> for LogThisValue {
-    type Output = T;
+pub trait CallOnce<T: Error> {
+    fn call_once(self, args: (T,)) -> T;
+}
 
-    extern "rust-call" fn call_once(self, args: (T,)) -> T {
+impl<T: Error> CallOnce<T> for LogThisValue {
+    fn call_once(self, args: (T,)) -> T {
         error!("{}",args.0);
         args.0
     }
 }
 
-impl<'a, T: Error> FnOnce<(T,)> for LogWithPrepend<'a, T> {
-    type Output = T;
-
-    extern "rust-call" fn call_once(self, args: (T,)) -> T {
+impl<'a, T: Error> CallOnce<T> for LogWithPrepend<'a, T> {
+    fn call_once(self, args: (T,)) -> T {
         error!("{}{}", self.to_prepend, args.0);
         args.0
     }
 }
 
-impl<T: Error> LogThis<T> for LogThisValue {
+impl<T: Error + Send + Sync> LogThis<T> for LogThisValue {
 }
 
 

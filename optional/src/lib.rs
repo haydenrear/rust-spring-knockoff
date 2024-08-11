@@ -1,5 +1,3 @@
-#![feature(result_flattening)]
-
 pub trait FlatMapOptional<I> {
     fn flat_map_opt<U, F>(self, f: F) -> Option<U>
         where
@@ -28,13 +26,17 @@ pub trait FlatMapResult<I, E> {
 }
 
 
-impl <I, E> FlatMapResult<I, E> for Result<I, E> {
+impl <I, E: std::error::Error> FlatMapResult<I, E> for Result<I, E> {
     fn flat_map_res<U, F>(self, mut f: F) -> Result<U, E>
         where
             Self: Sized,
-            F: FnMut(I) -> Result<U, E>
-    {
-        self.map(f).flatten()
+            F: FnMut(I) -> Result<U, E>{
+        let r = self.map(f);
+        if r.is_ok() {
+            r.unwrap()
+        } else {
+            Err(r.err().unwrap())
+        }
     }
 }
 

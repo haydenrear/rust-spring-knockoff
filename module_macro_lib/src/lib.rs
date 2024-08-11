@@ -1,6 +1,3 @@
-#![feature(pattern)]
-#![feature(let_chains)]
-
 // include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 
 pub mod module_macro_lib {

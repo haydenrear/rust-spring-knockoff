@@ -29,8 +29,8 @@ impl LibWriter {
 
     pub fn write_empty_lib_rs(name: &str, target_path: &PathBuf) {
         let path = Self::get_lib_path(name, target_path);
-        let _ = codegen_utils::io_utils::rewrite_file(path.as_path(), "".to_string())
-            .map_err(*err::LOG_ERR);
+        let _ = codegen_utils::io_utils::rewrite_file(path.as_path(), "".to_string());
+            // .map_err(*err::LOG_ERR);
     }
 
     fn get_lib_path(name: &str, target_path: &PathBuf) -> PathBuf {

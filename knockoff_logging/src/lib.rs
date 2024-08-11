@@ -1,5 +1,3 @@
-#![feature(async_fn_in_trait)]
-#![feature(future_join)]
 pub mod logger;
 pub use crate::logger::*;
 pub mod text_file_logging;

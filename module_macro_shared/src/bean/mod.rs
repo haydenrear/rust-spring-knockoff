@@ -367,9 +367,10 @@ impl BeanPath {
                 return Some(inner.clone());
             }
             [ BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. }, .. ] => {
-                if let BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. }  = inner.as_ref()
-                    && let BeanPathParts::GenType { inner_ty_opt: inner, gen_type, ..} = inner.deref().deref() {
-                    return inner.clone()
+                if let BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. }  = inner.as_ref() {
+                    if let BeanPathParts::GenType { inner_ty_opt: inner, gen_type, .. } = inner.deref().deref() {
+                        return inner.clone()
+                    }
                 }
                 None
             }
@@ -433,9 +434,12 @@ impl BeanPath {
             e => {
                 if e.len() == 0 {
                     None
-                } else if let BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. } = &e[1]
-                    && let BeanPathParts::GenType {  gen_type , ..} = inner.deref().deref() {
-                    Some(gen_type.clone())
+                } else if let BeanPathParts::PhantomType { bean_path_parts_phantom_ty: inner , .. } = &e[1] {
+                    if let BeanPathParts::GenType { gen_type, .. } = inner.deref().deref() {
+                        Some(gen_type.clone())
+                    } else {
+                        None
+                    }
                 } else {
                     panic!("Bean type path {:?} did not match any conditions.", &self);
                 }
