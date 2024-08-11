@@ -10,6 +10,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::{program_src, project_directory, user_program_src};
+
 import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/authentication_gen_build.log"));
 
 /// TODO: load the knockoff_factories from here, parse the pre_compiled example.

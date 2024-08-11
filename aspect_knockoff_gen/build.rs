@@ -10,6 +10,7 @@ use knockoff_logging::*;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use codegen_utils::project_directory;
+
 import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/aspect_knockoff_gen.log"));
 
 /// TODO: load the knockoff_factories from here, parse the pre_compiled example.
