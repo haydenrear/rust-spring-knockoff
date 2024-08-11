@@ -7,35 +7,10 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="without aspect, before adding mut module macro decorator">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aspect_knockoff_gen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_gen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_cli.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build_cli.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build_dev.sh" beforeDir="false" afterPath="$PROJECT_DIR$/build_dev.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cargo_utils/src/compile_cargo/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/cargo_utils/src/compile_cargo/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cargo_utils/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/cargo_utils/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/default_stage_deps.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/default_stage_deps.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_default_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_default_factories.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_resources/knockoff_factories.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codegen_utils/src/walk/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/codegen_utils/src/walk/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crate_gen/src/lib_writer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/crate_gen/src/lib_writer/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crate_gen/src/toml_writer/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/crate_gen/src/toml_writer/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dfactory_dcodegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/dfactory_dcodegen/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/err/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/err/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/src/factories_parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/factories_codegen/test_resources/knockoff_factories.toml" beforeDir="false" afterPath="$PROJECT_DIR$/factories_codegen/test_resources/knockoff_factories.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/http_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/http_macro/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_cli/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_cli/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/knockoff_logging/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_lib/src/module_macro_lib/parse_container/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/bean/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_macro_shared/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/optional/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/optional/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wait_for/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/wait_for/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wait_for/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/wait_for/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web_framework/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/web_framework/src/lib.rs" afterDir="false" />
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="updated">
+      <change beforePath="$PROJECT_DIR$/aspect_knockoff_gen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/aspect_knockoff_gen/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/authentication_gen/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/authentication_gen/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/module_precompile_macro/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/module_precompile_macro/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -355,8 +330,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.18034.62" />
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-IU-241.18034.62" />
+        <option value="bundled-jdk-9823dce3aa75-b114ca120d71-intellij.indexing.shared.core-IU-242.20224.300" />
+        <option value="bundled-js-predefined-d6986cc7102b-410509235cf1-JavaScript-IU-242.20224.300" />
       </set>
     </attachedChunks>
   </component>
@@ -472,6 +447,7 @@
       <workItem from="1722777876325" duration="3455000" />
       <workItem from="1722781343025" duration="294000" />
       <workItem from="1722781651613" duration="5620000" />
+      <workItem from="1723377556951" duration="728000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -816,7 +792,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="251" />
+    <option name="localTasksCounter" value="252" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -882,7 +858,6 @@
     <MESSAGE value="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services." />
     <MESSAGE value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
     <MESSAGE value="Remove dummy app used only to test some random functionaliyu" />
-    <MESSAGE value="updated" />
     <MESSAGE value="Removed augfile for aspects." />
     <MESSAGE value="Aspect provider" />
     <MESSAGE value="Fixed logging" />
@@ -904,7 +879,8 @@
     <MESSAGE value="optional flatmap" />
     <MESSAGE value="before" />
     <MESSAGE value="without aspect, before adding mut module macro decorator" />
-    <option name="LAST_COMMIT_MESSAGE" value="without aspect, before adding mut module macro decorator" />
+    <MESSAGE value="updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>
