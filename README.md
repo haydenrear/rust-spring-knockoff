@@ -1,19 +1,6 @@
 Dependency injection with Rust - based on Spring. In somewhat stable state however aspects are not finished.
 
-Aspects will be implemented (almost finished) as only augmenting those modules that are decorated... i.e.
-
-```rust
-[knockoff_aspect]
-mod inner {
-
-  [aspect...]
-  pub fn this_aspect() {
-
-  }
-}
-
-pub use inner;
-```
+Aspects will be implemented (almost finished) as only augmenting those modules that are decorated.
 
 In the future perhaps you can opt into the whole program being copied and aspects being created even without each module being decorated, this was the previous state, but codegen was really bad.  
 
