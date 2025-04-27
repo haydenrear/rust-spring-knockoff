@@ -34,7 +34,7 @@ use crate::request::{EndpointMetadata, WebRequest, WebResponse};
 //     }
 // }
 
-pub trait Handler<Request, Response, RequestData, Ctx>: Send + Sync
+pub trait Handler<Request, Response, RequestData: ?Sized, Ctx: ?Sized>: Send + Sync
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync

@@ -76,8 +76,6 @@ impl Display for HyperRequestStreamError {
     }
 }
 
-
-
 impl HyperRequestStreamError {
     pub fn new(message: &str) -> Self {
         Self {message: message.to_string()}

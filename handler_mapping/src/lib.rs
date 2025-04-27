@@ -122,27 +122,19 @@ impl HandlerMappingBuilder {
             use web_framework_shared::request::WebRequest;
             use web_framework_shared::controller::{ContextData, Data, HandlerExecutionChain};
             use web_framework_shared::request::WebResponse;
+            use web_framework_shared::EndpointMetadata;
+            use web_framework_shared::Handler;
             use web_framework::web_framework::context::UserRequestContext;
             use web_framework::web_framework::context::RequestContextData;
-            use web_framework_shared::controller::{HandlerExecutor, RequestExecutor, HandlerMethod, HandlerExecutorStruct};
+            use web_framework_shared::controller::{HandlerExecutor, HandlerMethod, HandlerExecutorStruct};
             use web_framework_shared::matcher::{AntPathRequestMatcher,AntStringRequestMatcher};
 
             pub struct Dispatcher {
                 handler_mapping: AttributeHandlerMapping
             }
 
-            impl RequestExecutor<WebRequest, WebResponse>
-            for Dispatcher
-            {
-                fn do_request(&self, mut web_request: WebRequest) -> WebResponse {
-                    self.handler_mapping.do_handle_request(web_request)
-                        .or(Some(WebResponse::default()))
-                        .unwrap()
-                }
-            }
-
             pub struct AttributeHandlerMapping {
-                #(#arg_idents: Arc<HandlerExecutionChain<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>>,)*
+                #(#arg_idents: Arc<HandlerExecutionChain<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #arg_types, #arg_outputs>>,)*
             }
 
             pub struct HandlerExecutorImpl <D: Data + Send + Sync, C: ContextData + Send + Sync> {
@@ -160,19 +152,60 @@ impl HandlerMappingBuilder {
             }
 
             #(
-                impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>
+
+                impl Handler<#arg_types, #arg_outputs, UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>
+                for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> {
+                    fn do_action(
+                        &self,
+                        web_request: &WebRequest,
+                        response: &mut WebResponse,
+                        context: &RequestContextData<#arg_types, #arg_outputs>,
+                        request_context: &mut Option<Box<UserRequestContext<#arg_types>>>
+                    ) -> Option<#arg_outputs> {
+                        let e = request_context
+                            .as_ref()
+                            .map(|r| r.endpoint_metadata.clone()
+                                .or_else(|| Some(EndpointMetadata::default()))
+                                .unwrap())
+                            .or_else(|| Some(EndpointMetadata::default()))
+                            .unwrap();
+                        let hm = HandlerMethod::new(e);
+                        self.execute_handler(&hm, response, web_request)
+                    }
+
+                    /**
+                    For method level annotations (could also be done via Aspect though).
+                    */
+                    fn authentication_granted(&self, token: &Option<Box<UserRequestContext<#arg_types>>>) -> bool {
+                        todo!();
+                    }
+
+                    /**
+                    determines if it matches endpoint, http method, etc.
+                    */
+                    fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
+                        todo!();
+                    }
+                }
+
+                impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #arg_types, #arg_outputs>
                 for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>
                 {
                     fn execute_handler(
                         &self,
                         handler: &HandlerMethod<UserRequestContext<#arg_types>>,
-                        ctx: &RequestContextData<#arg_types, #arg_outputs>,
                         response: &mut WebResponse,
                         request: &WebRequest
-                    ) {
-                        handler.request_ctx_data.clone().map(|#arg_idents| {
-                            #(#method_logic_stmts)*
-                        });
+                    ) -> Option<#arg_outputs> {
+                        Some(
+                           // TODO: take ownership ? put in mutex ?
+                           handler.request_ctx_data.as_ref()
+                                .and_then(|v| v.request.clone())
+                                .map(|#arg_idents| {
+                                    #(#method_logic_stmts)*
+                                })
+                                .unwrap()
+                                .to_owned())
                     }
                 }
             )*
@@ -207,17 +240,23 @@ impl HandlerMappingBuilder {
 
                         let handler_executor = handler_executor as Arc<dyn HandlerExecutor<
                                             UserRequestContext<#arg_types>,
-                                            RequestContextData<#arg_types, #arg_outputs>
+                                            RequestContextData<#arg_types, #arg_outputs>,
+                                            #arg_types,
+                                            #arg_outputs
                         >>;
 
                         let handler_executor: Arc<HandlerExecutorStruct<
-                            dyn HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>,
+                            dyn HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #arg_types, #arg_outputs>,
                             UserRequestContext<#arg_types>,
-                            RequestContextData<#arg_types, #arg_outputs>
+                            RequestContextData<#arg_types, #arg_outputs>,
+                            #arg_types,
+                            #arg_outputs
                         >> = Arc::new(HandlerExecutorStruct {
                             handler_executor,
                             phantom_data_t: PhantomData::default(),
-                            phantom_data_ctx: PhantomData::default()
+                            phantom_data_ctx: PhantomData::default(),
+                            response: PhantomData::default(),
+                            request: PhantomData::default()
                         });
 
                         let #arg_idents = Arc::new(HandlerExecutionChain {
@@ -233,14 +272,6 @@ impl HandlerMappingBuilder {
                     }
                 }
 
-                fn do_handle_request(&self, mut request: WebRequest) -> Option<WebResponse> {
-                    #(
-                        if self.#arg_idents.matches(&request) {
-                            return Some(self.#arg_idents.do_request(request));
-                        }
-                    )*
-                    None
-                }
             }
 
         };

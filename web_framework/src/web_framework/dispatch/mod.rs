@@ -46,8 +46,7 @@ impl FilterExecutor {
                                 &request,
                                  response,
                                 application_context,
-                                request_context
-                            )
+                                request_context)
                         })
                         .and_then(|action_response| {
                             let media_type = request.headers.get("mediatype").cloned()

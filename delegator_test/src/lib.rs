@@ -20,7 +20,7 @@ use module_macro_shared::bean::BeanPathParts::PhantomType;
 use module_macro_shared::profile_tree::ProfileBuilder as ModuleProfile;
 use module_precompile_macro::boot_knockoff;
 
-#[module_attr]
+    #[module_attr]
 pub mod test_library {
     use spring_knockoff_boot_macro::*;
 

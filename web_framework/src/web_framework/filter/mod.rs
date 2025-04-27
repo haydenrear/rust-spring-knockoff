@@ -70,7 +70,8 @@ pub mod filter {
             Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
             Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
     {
-        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &RequestContextData<Request, Response>, request_context: &mut Option<Box<UserRequestContext<Request>>>) {
+        pub fn do_filter(&self, request: &WebRequest, response: &mut WebResponse, ctx: &RequestContextData<Request, Response>,
+                         request_context: &mut Option<Box<UserRequestContext<Request>>>) {
             self.filters.iter()
                 .for_each(|f| f.filter(request, response, ctx, request_context));
         }

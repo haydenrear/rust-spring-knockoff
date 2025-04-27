@@ -25,6 +25,12 @@ pub struct RequestContextData<Request, Response>
     pub request_context_data: Context<Request, Response>
 }
 
+impl<Request, Response> Data for RequestContextData<Request, Response>
+where
+    Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{}
+
 impl <Request, Response> ContextData for RequestContextData<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -39,6 +45,11 @@ pub struct UserRequestContext<Request>
     pub request: Option<Request>,
     pub endpoint_metadata: Option<EndpointMetadata>
 }
+
+impl<Request> ContextData for UserRequestContext<Request>
+where
+    Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+{}
 
 impl <Request> Data for UserRequestContext<Request>
     where
