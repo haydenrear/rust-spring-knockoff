@@ -1,26 +1,17 @@
 #[cfg(test)]
 mod test_filter {
-    use crate::web_framework::context::{Context, RequestHelpers};
-    use crate::web_framework::dispatch::FilterExecutor;
-    use crate::web_framework::convert::{ConverterRegistry, Registry};
-    use crate::web_framework::filter::filter::{Filter, FilterChain, MediaType};
-    use crate::web_framework::message::MessageType;
-    use crate::web_framework::security::authentication::AuthenticationToken;
-    use lazy_static::lazy_static;
-    use serde::{Deserialize, Serialize};
-    use std::any::Any;
-    use std::cell::RefCell;
-    use std::collections::LinkedList;
-    use std::io::{Read, Write};
-    use std::net::TcpStream;
-    use std::ops::Deref;
-    use futures::SinkExt;
+    use crate::web_framework::context::{Context, RequestContextData, UserRequestContext};
+    use crate::web_framework::convert::ConverterRegistry;
+    use crate::web_framework::filter::filter::{Filter, FilterChain};
+    use crate::web_framework::message::{MessageConverterFilter, MessageType};
+    use crate::{create_message_converter, default_message_converters};
     use circular::Buffer;
-    use authentication_gen::AuthenticationType;
+    use serde::{Deserialize, Serialize};
+    use std::io::{Read, Write};
+    use std::sync::Arc;
     use web_framework_shared::dispatch_server::Handler;
-    use web_framework_shared::request::{EndpointMetadata, WebRequest};
     use web_framework_shared::request::WebResponse;
-    use crate::web_framework::session::session::HttpSession;
+    use web_framework_shared::request::{EndpointMetadata, WebRequest};
 
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -44,31 +35,19 @@ mod test_filter {
     }
 
     struct TestAction;
-    // impl Handler<Example, Example> for TestAction {
-    //     fn do_action(
-    //         &self,
-    //         metadata: EndpointMetadata,
-    //         request: &Option<Example>,
-    //         web_request: &WebRequest,
-    //         response: &mut WebResponse,
-    //         context: &RequestHelpers<Example, Example>,
-    //         application_context: &Context<Example, Example>
-    //     ) -> Option<Example> {
-    //         Some(Example{ value: String::default() })
-    //     }
-    //
-    //     fn authentication_granted(&self, token: &Option<AuthenticationToken>) -> bool {
-    //         true
-    //     }
-    //
-    //     fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
-    //         true
-    //     }
-    //
-    //     fn clone(&self) -> Box<dyn Handler<Example, Example>> {
-    //         todo!()
-    //     }
-    // }
+    impl Handler<Example, Example, UserRequestContext<Example>, RequestContextData<Example, Example>> for TestAction {
+        fn do_action(&self, web_request: &WebRequest, response: &mut WebResponse, context: &RequestContextData<Example, Example>, request_context: &mut Option<UserRequestContext<Example>>) -> Option<Example> {
+            Some(Example{ value: String::from("hello!") })
+        }
+
+        fn authentication_granted(&self, token: &Option<UserRequestContext<Example>>) -> bool {
+            true
+        }
+
+        fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
+            todo!()
+        }
+    }
 
     impl Clone for TestAction {
         fn clone(&self) -> Self {
@@ -82,54 +61,37 @@ mod test_filter {
         }
     }
 
+    default_message_converters!();
+
     #[test]
     fn test_filter() {
-        // let one = Filter {
-        //     // actions: Box::new((TestAction {})),
-        //     dispatcher: Default::default(),
-        //     order: 0,
-        // };
-        // let mut fc = FilterChain::new(vec![one]);
-        // fc.do_filter(&WebRequest::default(), &mut WebResponse::default(), &Context::new());
-    }
+        use web_framework::convert::MessageConverter;
+        create_message_converter!(
+            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => json_message_converter)
+            ===> Example => DelegatingMessageConverter);
 
-    #[test]
-    fn test_get_in_filter() {
-        // let one = Filter {
-        //     actions: Box::new((TestAction {})),
-        //     dispatcher: Default::default(),
-        //     order: 0,
-        // };
-        // let mut fc = FilterChain::new(vec![one]);
+        let mapping = Filter {
+            actions: Arc::new(MessageConverterFilter{}),
+            dispatcher: Default::default(),
+            order: 0,
+        };
+        let one = Filter {
+            actions: Arc::new((TestAction {})),
+            dispatcher: Default::default(),
+            order: 1,
+        };
+        let mut fc = FilterChain::new(vec![one, mapping]);
+        let x = &mut WebResponse::default();
+        let ctx = Context::with_converter_registry(
+            ConverterRegistry::new(None,
+                                   Some(Box::new(DelegatingMessageConverter::new()))));
         let mut request = WebRequest::default();
-        request
-            .headers
-            .insert("MediaType".to_string(), "json".to_string());
-        request.body = serde_json::to_string(&Example::default()).unwrap();
-        let mut response = WebResponse::default();
-        // fc.do_filter(&request, &mut response, &Context::new());
-        let response_val = String::from_utf8(response.response_bytes().unwrap())
-            .unwrap();
-        assert_eq!(response_val, request.body);
-        assert_eq!(0, response.response_bytes().unwrap().len());
-    }
+        request.headers.insert("Content-Type".into(), "application/json".into());
+        fc.do_filter(&request, x, &RequestContextData{ request_context_data: ctx },
+                     &mut Some(UserRequestContext::default().into()));
 
-    #[test]
-    fn filter_application_builder() {
-        let mut vec: Vec<Filter<Example, Example>> = vec![];
-        // vec.push(Filter {
-        //     actions: Box::new(TestAction {}),
-        //     dispatcher: Default::default(),
-        //     order: 0,
-        // });
+        assert_eq!(x.response, serde_json::to_string(&Example{value: "hello!".to_string() }).unwrap());
     }
-
-    // #[test_mod]
-    // fn test_registry() {
-    //     let ctx = RequestContext::default_impls();
-    //     let registrations = ctx.message_converters.read_only_registrations();
-    //     assert_eq!(registrations.len(), 2);
-    // }
 
     #[test]
     fn test_buffer() {

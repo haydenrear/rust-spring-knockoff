@@ -43,6 +43,33 @@ macro_rules! create_message_converter {
             media_types: Vec<String>
         }
 
+        impl $delegator {
+
+            fn new() -> Self {
+                let mut media = vec![];
+
+                $(
+                    media.push(String::from($matcher));
+                )*
+
+                Self {
+                    media_types: media,
+                    $(
+                        $field_name: $converter_ident,
+                    )*
+                }
+            }
+        }
+
+        fn retrieve_media_header<'a>(headers: &'a HashMap<String, String>) -> Option<&'a String> {
+                headers.get("MediaType").or_else(|| headers.get("mediatype"))
+                    .or_else(|| headers.get("Media-Type"))
+                    .or_else(|| headers.get("mediatype"))
+                    .or_else(|| headers.get("Content-Type"))
+                    .or_else(|| headers.get("ContentType"))
+                    .or_else(|| headers.get("content-type"))
+        }
+
         impl MessageConverter<$gen, $gen> for $delegator
         {
 
@@ -69,24 +96,31 @@ macro_rules! create_message_converter {
             where
                 Self: Sized,
             {
-                $(
-                    if request.headers["MediaType"] == $matcher || request.headers["mediatype"] == $matcher {
-                        return <$converter_path as MessageConverter<$gen, $gen>>::convert_to(&self.$field_name, request);
-                    }
-                )*
-                None
+                retrieve_media_header(&request.headers)
+                    .and_then(|found| {
+                        $(
+                            if found == $matcher || found == $matcher {
+                                return <$converter_path as MessageConverter<$gen, $gen>>::convert_to(&self.$field_name, request);
+                            }
+                        )*
+
+                        None
+                    })
             }
 
-            fn convert_from(&self, request_body: &$gen, web_request: &WebRequest) -> Option<String>
+            fn convert_from(&self, request_body: &$gen, request: &WebRequest) -> Option<String>
             where
                 Self: Sized,
             {
-                $(
-                    if web_request.headers["MediaType"] == $matcher || web_request.headers["mediatype"] == $matcher {
-                        return <$converter_path as MessageConverter<$gen,$gen>>::convert_from(&self.$field_name, request_body, web_request);
-                    }
-                )*
-                None
+                retrieve_media_header(&request.headers)
+                    .and_then(|found| {
+                        $(
+                            if found == $matcher || found == $matcher {
+                                return <$converter_path as MessageConverter<$gen,$gen>>::convert_from(&self.$field_name, request_body, request);
+                            }
+                        )*
+                        None
+                    })
             }
 
             fn do_convert(&self, request: &WebRequest) -> bool {
@@ -220,16 +254,14 @@ impl<Request, Response> MessageConverter<Request, Response> for DefaultMessageCo
         request: &WebRequest,
     ) -> Option<MessageType<Request>>
     where
-        Self: Sized,
-    {
+        Self: Sized,{
         None
     }
 
     fn convert_from(&self, request: &Response, web_request: &WebRequest) -> Option<String>
     where
-        Self: Sized,
-    {
-        None
+        Self: Sized,{
+        serde_json::to_string(request).ok()
     }
 
     fn do_convert(&self, request: &WebRequest) -> bool {

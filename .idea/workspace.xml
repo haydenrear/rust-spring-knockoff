@@ -7,9 +7,7 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="updated">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="6a43c558-df46-4869-b5f8-cf0d59bcd3a5" name="Changes" comment="updating to use same filter chain as auth" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,6 +16,7 @@
   <component name="CodeStyleSettingsInfer">
     <option name="done" value="true" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:test" />
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -138,6 +137,7 @@
     "Cargo.Test test::test_write_multiple::test_write.executor": "Run",
     "Cargo.Test test::try_build_create.executor": "Run",
     "Cargo.Test test_aspect::test_parse_aspect.executor": "Run",
+    "Cargo.Test test_attribute_handler_mapping.executor": "Run",
     "Cargo.Test test_dyn.executor": "Run",
     "Cargo.Test test_load (1).executor": "Run",
     "Cargo.Test test_load.executor": "Run",
@@ -201,9 +201,9 @@
       <recent name="$PROJECT_DIR$/knockoff_env/src" />
     </key>
   </component>
-  <component name="RunManager">
-    <configuration name="Test syn_eq::test_if" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package module_macro_shared --lib syn_eq::test_if -- --exact" />
+  <component name="RunManager" selected="Cargo.Test test_module_macro (1)">
+    <configuration name="Test test::test_token_providers::test_parse_factories" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_parse_factories -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -219,8 +219,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test test::test_token_providers::test_parse_factories" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package factories_codegen --lib test::test_token_providers::test_parse_factories -- --exact" />
+    <configuration name="Test test_attribute_handler_mapping" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package delegator_test --lib test_attribute_handler_mapping -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <envs />
       <option name="emulateTerminal" value="true" />
@@ -304,6 +304,12 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test test_module_macro (1)" />
+        <item itemvalue="Cargo.Test test_attribute_handler_mapping" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
@@ -431,6 +437,7 @@
       <workItem from="1722781651613" duration="5620000" />
       <workItem from="1723377556951" duration="767000" />
       <workItem from="1745780347635" duration="26000" />
+      <workItem from="1745780379259" duration="9724000" />
     </task>
     <task id="LOCAL-00137" summary="parse factories">
       <created>1678819034405</created>
@@ -775,7 +782,7 @@
       <option name="project" value="LOCAL" />
       <updated>1680377043223</updated>
     </task>
-    <option name="localTasksCounter" value="254" />
+    <option name="localTasksCounter" value="255" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -838,7 +845,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/set_enum_fields" />
     </ignored-roots>
-    <MESSAGE value="Updated so that knockoff_cli will build both types, to enable knockoff_factories.toml to load services." />
     <MESSAGE value="profile_tree_finalizer.rs and profile_tree_modifier.rs so that profile tree and parse container can be modified by user before token_provider is used by user to generate the code from di." />
     <MESSAGE value="Remove dummy app used only to test some random functionaliyu" />
     <MESSAGE value="Removed augfile for aspects." />
@@ -863,7 +869,8 @@
     <MESSAGE value="before" />
     <MESSAGE value="without aspect, before adding mut module macro decorator" />
     <MESSAGE value="updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated" />
+    <MESSAGE value="updating to use same filter chain as auth" />
+    <option name="LAST_COMMIT_MESSAGE" value="updating to use same filter chain as auth" />
   </component>
   <component name="VgoProject">
     <integration-enabled>false</integration-enabled>

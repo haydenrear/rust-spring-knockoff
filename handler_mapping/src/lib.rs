@@ -134,7 +134,15 @@ impl HandlerMappingBuilder {
             }
 
             pub struct AttributeHandlerMapping {
-                #(#arg_idents: Arc<HandlerExecutionChain<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #arg_types, #arg_outputs>>,)*
+                #(#arg_idents: Arc<HandlerExecutionChain<
+                    UserRequestContext<#arg_types>,
+                    RequestContextData<#arg_types, #arg_outputs>,
+                    #arg_types,
+                    #arg_outputs,
+                    HandlerExecutorImpl<
+                        UserRequestContext<#arg_types>,
+                        RequestContextData<#arg_types, #arg_outputs>
+                    >>>)*
             }
 
             pub struct HandlerExecutorImpl <D: Data + Send + Sync, C: ContextData + Send + Sync> {
@@ -162,14 +170,14 @@ impl HandlerMappingBuilder {
                         context: &RequestContextData<#arg_types, #arg_outputs>,
                         request_context: &mut Option<Box<UserRequestContext<#arg_types>>>
                     ) -> Option<#arg_outputs> {
-                        let e = request_context
-                            .as_ref()
-                            .map(|r| r.endpoint_metadata.clone()
-                                .or_else(|| Some(EndpointMetadata::default()))
-                                .unwrap())
-                            .or_else(|| Some(EndpointMetadata::default()))
-                            .unwrap();
-                        let hm = HandlerMethod::new(e);
+                        if request_context.as_ref().is_none() {
+                            let hm = HandlerMethod::new(UserRequestContext::new_default().into());
+                            return self.execute_handler(&hm, response, web_request);
+                        }
+
+                        let mut request_ctx_data: Option<Box<UserRequestContext<#arg_types>>> = None;
+                        std::mem::swap(&mut request_ctx_data, request_context);
+                        let hm = HandlerMethod::new(request_ctx_data.unwrap());
                         self.execute_handler(&hm, response, web_request)
                     }
 
@@ -177,14 +185,24 @@ impl HandlerMappingBuilder {
                     For method level annotations (could also be done via Aspect though).
                     */
                     fn authentication_granted(&self, token: &Option<Box<UserRequestContext<#arg_types>>>) -> bool {
-                        todo!();
+                        true
                     }
 
                     /**
                     determines if it matches endpoint, http method, etc.
                     */
                     fn matches(&self, endpoint_metadata: &EndpointMetadata) -> bool {
-                        todo!();
+                        let mut to_match_vec = vec![];
+
+                        #(
+                            to_match_vec.push((#to_match, #split));
+                        )*
+
+                        if endpoint_metadata.matches_vec(to_match_vec)  {
+                            return true;
+                        }
+
+                        false
                     }
                 }
 
@@ -238,15 +256,8 @@ impl HandlerMappingBuilder {
                         let handler_executor: Arc<HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>>
                             = Arc::new(HandlerExecutorImpl::default());
 
-                        let handler_executor = handler_executor as Arc<dyn HandlerExecutor<
-                                            UserRequestContext<#arg_types>,
-                                            RequestContextData<#arg_types, #arg_outputs>,
-                                            #arg_types,
-                                            #arg_outputs
-                        >>;
-
                         let handler_executor: Arc<HandlerExecutorStruct<
-                            dyn HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #arg_types, #arg_outputs>,
+                            HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>,
                             UserRequestContext<#arg_types>,
                             RequestContextData<#arg_types, #arg_outputs>,
                             #arg_types,

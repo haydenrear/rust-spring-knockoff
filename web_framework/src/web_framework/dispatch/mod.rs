@@ -32,31 +32,15 @@ impl FilterExecutor {
     {
         if action.authentication_granted(request_context) {
             // TODO: all of this logic will be added to the execution filter chain
-            application_context
-                .request_context_data
-                .request_context
-                .convert_to(&request)
-                .and_then(|found| {
-                    application_context.request_context_data
-                        .request_context
-                        .convert_extract(&request)
-                        .filter(|e| action.matches(&e))
-                        .and_then(|_| {
-                            action.do_action(
-                                &request,
-                                 response,
-                                application_context,
-                                request_context)
-                        })
-                        .and_then(|action_response| {
-                            let media_type = request.headers.get("mediatype").cloned()
-                                .or(request.headers.get("MediaType").cloned())
-                                .or(request.headers.get("Mediatype").cloned())
-                                .or(Some("application/json".to_string()));
+            action.do_action(&request, response, application_context, request_context)
+                .and_then(|action_response| {
+                    let media_type = request.headers.get("mediatype").cloned()
+                        .or(request.headers.get("MediaType").cloned())
+                        .or(request.headers.get("Mediatype").cloned())
+                        .or(Some("application/json".to_string()));
 
-                            application_context.request_context_data.request_context
-                                .convert_from(&action_response, &request, media_type)
-                        })
+                    application_context.request_context_data.request_context
+                        .convert_from(&action_response, &request, media_type)
                 })
                 .map(|response_to_write| {
                     response.write(response_to_write.clone().as_bytes());

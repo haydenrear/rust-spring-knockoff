@@ -4,32 +4,17 @@ pub mod filter {
     extern crate alloc;
     extern crate core;
 
-    use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
+    use crate::web_framework::context::{RequestContextData, UserRequestContext};
     use crate::web_framework::dispatch::FilterExecutor;
-    use crate::web_framework::convert::Registration;
-    use crate::web_framework::security::authentication::AuthenticationToken;
-    use crate::web_framework::session::session::HttpSession;
-    use alloc::string::String;
-    use core::borrow::{Borrow, BorrowMut};
-    use std::any::Any;
-    use std::cell::RefCell;
-    use std::cmp::Ordering;
+    use core::borrow::Borrow;
     use serde::{Deserialize, Serialize};
-    use std::collections::{HashMap, LinkedList};
-    use std::marker::PhantomData;
-    use std::ops::{Deref, DerefMut, Index};
-    use std::path::Iter;
-    use std::sync::{Arc, Mutex};
-    use web_framework_shared::authority::GrantedAuthority;
-    use authentication_gen::AuthenticationType;
-    use web_framework_shared::controller::{ContextData, HandlerInterceptor, HandlerMethod};
+    use std::cmp::Ordering;
+    use std::ops::Deref;
+    use std::sync::Arc;
+    use web_framework_shared::controller::{HandlerInterceptor, HandlerMethod};
     use web_framework_shared::dispatch_server::Handler;
-    use crate::web_framework::filter;
     use web_framework_shared::request::WebResponse;
-    use web_framework_shared::request::{EndpointMetadata, WebRequest};
-    use web_framework_shared::http_method::HttpMethod;
-    use crate::web_framework::request_context::SessionContext;
-    use crate::web_framework::security::authorization::AuthorizationManager;
+    use web_framework_shared::request::WebRequest;
 
     impl <Request, Response> Default for FilterChain<Request, Response>
         where
@@ -76,7 +61,8 @@ pub mod filter {
                 .for_each(|f| f.filter(request, response, ctx, request_context));
         }
 
-        pub fn new(filters: Vec<Filter<Request, Response>>) -> Self {
+        pub fn new(mut filters: Vec<Filter<Request, Response>>) -> Self {
+            filters.sort_by(|first, second| first.order.cmp(&second.order));
             Self {
                 filters: Arc::new(filters)
             }
@@ -90,6 +76,7 @@ pub mod filter {
         Html
     }
 
+    // TODO: can make this a macro to remove dyn
     pub struct Filter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
@@ -199,8 +186,7 @@ pub mod filter {
                 request,
                 response,
                 ctx,
-                &mut data.request_ctx_data
-            );
+                &mut data.request_ctx_data);
         }
 
         fn post_handle(&self,

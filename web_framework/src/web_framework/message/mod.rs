@@ -34,8 +34,7 @@ for MessageConverterFilter
             .request_context
             .convert_extract(&web_request)
             .map(|e| request_context.as_mut()
-                .map(|mut r| r.endpoint_metadata = Some(e))
-            );
+                .map(|mut r| r.endpoint_metadata = Some(e)));
 
         application_context
             .request_context_data
@@ -43,8 +42,7 @@ for MessageConverterFilter
             .convert_to(&web_request)
             .map(|converted| request_context
                 .as_mut()
-                .map(|r| r.request = converted.message)
-            );
+                .map(|r| r.request = converted.message));
 
         None
     }

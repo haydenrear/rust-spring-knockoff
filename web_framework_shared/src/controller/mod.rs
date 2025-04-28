@@ -10,15 +10,13 @@ use crate::request::{EndpointMetadata, WebRequest, WebResponse};
 /// will be impl Action<> for HandlerMethod and add metadata about it
 pub struct HandlerMethod<RequestCtxData: Data + ?Sized>
 {
-    pub endpoint_metadata: EndpointMetadata,
     pub request_ctx_data: Option<Box<RequestCtxData>>
 }
 
 impl<RequestCtxData: Data> HandlerMethod<RequestCtxData> {
-    pub fn new(endpoint_metadata: EndpointMetadata) -> Self {
+    pub fn new(request_ctx_data: Box<RequestCtxData>) -> Self {
         Self {
-            endpoint_metadata,
-            request_ctx_data: None,
+            request_ctx_data: Some(request_ctx_data),
         }
     }
 }
@@ -26,7 +24,6 @@ impl<RequestCtxData: Data> HandlerMethod<RequestCtxData> {
 impl <RequestCtxData: Data + ?Sized + Default> Default for HandlerMethod<RequestCtxData> {
     fn default() -> Self {
         Self {
-            endpoint_metadata: EndpointMetadata::default(),
             request_ctx_data: None
         }
     }
@@ -52,7 +49,7 @@ pub struct HandlerExecutorStruct<H: HandlerExecutor<T, Ctx, Request, Response> +
     pub request: PhantomData<Request>,
 }
 
-pub struct HandlerExecutionChain<T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response>
+pub struct HandlerExecutionChain<T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response, H: HandlerExecutor<T, Ctx, Request, Response>>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -60,10 +57,11 @@ pub struct HandlerExecutionChain<T: Data + ?Sized, Ctx: ContextData + ?Sized, Re
     pub interceptors: Arc<Vec<Box<dyn HandlerInterceptor<T, Ctx>>>>,
     pub request_matchers: Vec<AntPathRequestMatcher>,
     pub context: Arc<Ctx>,
-    pub handler_executor: Arc<HandlerExecutorStruct<dyn HandlerExecutor<T, Ctx, Request, Response>, T, Ctx, Request, Response>>
+    pub handler_executor: Arc<HandlerExecutorStruct<H, T, Ctx, Request, Response>>
 }
 
-impl<T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response> Handler<Request, Response, T, Ctx> for HandlerExecutionChain<T, Ctx, Request, Response>
+impl<T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response, H: HandlerExecutor<T, Ctx, Request, Response>> Handler<Request, Response, T, Ctx>
+for HandlerExecutionChain<T, Ctx, Request, Response, H>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -82,18 +80,19 @@ impl<T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response> Handler<Req
     }
 }
 
-impl <D, C, Request, Response> HandlerExecutionChain<D, C, Request, Response>
+impl <T, Ctx, Request, Response, H: HandlerExecutor<T, Ctx, Request, Response>> HandlerExecutionChain<T, Ctx, Request, Response, H>
     where
-        D: Data + Send + Sync + ?Sized + Default, C: ContextData + Send + Sync + ?Sized,
+        T: Data + Send + Sync + ?Sized + Default, Ctx: ContextData + Send + Sync + ?Sized,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 {
-    pub fn create_handler_method(&self) -> HandlerMethod<D> {
+    pub fn create_handler_method(&self) -> HandlerMethod<T> {
         HandlerMethod::default()
     }
 }
 
-impl <T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response> HandlerExecutionChain<T, Ctx, Request, Response>
+impl <T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response, H: HandlerExecutor<T, Ctx, Request, Response>>
+HandlerExecutionChain<T, Ctx, Request, Response, H>
 where
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
@@ -104,14 +103,14 @@ where
     }
 }
 
-impl<D, C, Request, Response> HandlerExecutionChain<D, C, Request, Response>
+impl<T, Ctx, Request, Response, H: HandlerExecutor<T, Ctx, Request, Response>> HandlerExecutionChain<T, Ctx, Request, Response, H>
 where
-    C: ?Sized + ContextData + Send + Sync, D: ?Sized + Data + Send + Sync ,
+    Ctx: ?Sized + ContextData + Send + Sync, T: ?Sized + Data + Send + Sync ,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 
 {
-    fn do_request_inner(&self, web_request: &mut WebRequest, mut response: &mut WebResponse, mut handler: &mut HandlerMethod<D>) {
+    fn do_request_inner(&self, web_request: &mut WebRequest, mut response: &mut WebResponse, mut handler: &mut HandlerMethod<T>) {
         self.interceptors
             .iter()
             .for_each(|i|
@@ -139,23 +138,24 @@ pub trait HandlerMethodFactory<RequestCtxData: Data + ?Sized> {
     fn get_handler_method(&self) -> HandlerMethod<RequestCtxData>;
 }
 
-impl <T: Data + ?Sized, RequestCtxData: ContextData + ?Sized, Request, Response> HandlerExecutionChain<T, RequestCtxData, Request, Response>
+impl <T: Data + ?Sized, Ctx: ContextData + ?Sized, Request, Response, H: HandlerExecutor<T, Ctx, Request, Response>>
+HandlerExecutionChain<T, Ctx, Request, Response, H>
 where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
 {
 
-    pub fn pre_handle(&self, request: &WebRequest, response: &mut WebResponse, data: &mut HandlerMethod<T>, ctx: &RequestCtxData) {
+    pub fn pre_handle(&self, request: &WebRequest, response: &mut WebResponse, data: &mut HandlerMethod<T>, ctx: &Ctx) {
         self.interceptors.iter()
             .for_each(|i| i.pre_handle(request, response, data, ctx));
     }
 
-    fn post_handle(&self, request: &WebRequest, response: &mut WebResponse, data: &mut HandlerMethod<T>, ctx: &RequestCtxData) {
+    fn post_handle(&self, request: &WebRequest, response: &mut WebResponse, data: &mut HandlerMethod<T>, ctx: &Ctx) {
         self.interceptors.iter()
             .for_each(|i| i.post_handle(request, response, data, ctx));
     }
 
-    fn after_completion(&self, request: &WebRequest, response: &mut WebResponse, data: &mut HandlerMethod<T>, ctx: &RequestCtxData) {
+    fn after_completion(&self, request: &WebRequest, response: &mut WebResponse, data: &mut HandlerMethod<T>, ctx: &Ctx) {
         self.interceptors.iter()
             .for_each(|i| i.after_completion(request, response, data, ctx));
     }

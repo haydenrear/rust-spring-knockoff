@@ -17,6 +17,13 @@ pub struct EndpointMetadata {
     pub host: String
 }
 
+impl EndpointMetadata {
+
+    pub fn matches_vec(&self, path: Vec<(&str, &str)>) -> bool {
+        todo!()
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 pub struct WebRequest {
     pub headers: HashMap<String, String>,
