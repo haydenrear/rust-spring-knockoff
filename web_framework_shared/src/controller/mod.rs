@@ -110,19 +110,19 @@ where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync
 
 {
-    fn do_request_inner(&self, web_request: &mut WebRequest, mut response: &mut WebResponse, mut handler: &mut HandlerMethod<T>) {
-        self.interceptors
-            .iter()
-            .for_each(|i|
-                i.pre_handle(&web_request, &mut response, &mut handler, &self.context));
+    fn do_request_inner(&self, web_request: &mut WebRequest, mut response: &mut WebResponse, mut handler: HandlerMethod<T>) {
+        // self.interceptors
+        //     .iter()
+        //     .for_each(|i|
+        //         i.pre_handle(&web_request, &mut response, &mut handler, &self.context));
 
         self.handler_executor.handler_executor
-            .execute_handler(&handler, &mut response, &web_request);
+            .execute_handler(handler, &mut response, &web_request);
 
-        self.interceptors
-            .iter()
-            .for_each(|i|
-                i.post_handle(&web_request, &mut response, &mut handler, &self.context));
+        // self.interceptors
+        //     .iter()
+        //     .for_each(|i|
+        //         i.post_handle(&web_request, &mut response, &mut handler, &self.context));
     }
 }
 
@@ -131,7 +131,7 @@ where
     Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
     Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync,
 {
-    fn execute_handler(&self, handler: &HandlerMethod<D>, response: &mut WebResponse, request: &WebRequest) -> Option<Response>;
+    fn execute_handler(&self, handler: HandlerMethod<D>, response: &mut WebResponse, request: &WebRequest) -> Option<Response>;
 }
 
 pub trait HandlerMethodFactory<RequestCtxData: Data + ?Sized> {

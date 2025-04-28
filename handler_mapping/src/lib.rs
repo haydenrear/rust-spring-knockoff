@@ -172,13 +172,13 @@ impl HandlerMappingBuilder {
                     ) -> Option<#arg_outputs> {
                         if request_context.as_ref().is_none() {
                             let hm = HandlerMethod::new(UserRequestContext::new_default().into());
-                            return self.execute_handler(&hm, response, web_request);
+                            return self.execute_handler(hm, response, web_request);
                         }
 
                         let mut request_ctx_data: Option<Box<UserRequestContext<#arg_types>>> = None;
                         std::mem::swap(&mut request_ctx_data, request_context);
                         let hm = HandlerMethod::new(request_ctx_data.unwrap());
-                        self.execute_handler(&hm, response, web_request)
+                        self.execute_handler(hm, response, web_request)
                     }
 
                     /**
@@ -211,19 +211,17 @@ impl HandlerMappingBuilder {
                 {
                     fn execute_handler(
                         &self,
-                        handler: &HandlerMethod<UserRequestContext<#arg_types>>,
+                        handler: HandlerMethod<UserRequestContext<#arg_types>>,
                         response: &mut WebResponse,
                         request: &WebRequest
                     ) -> Option<#arg_outputs> {
-                        Some(
-                           // TODO: take ownership ? put in mutex ?
-                           handler.request_ctx_data.as_ref()
-                                .and_then(|v| v.request.clone())
-                                .map(|#arg_idents| {
-                                    #(#method_logic_stmts)*
-                                })
-                                .unwrap()
-                                .to_owned())
+                        if handler.request_ctx_data.as_ref().is_none() {
+                             return None
+                        }
+                        handler.request_ctx_data.unwrap().request
+                            .map(|#arg_idents| {
+                                 #(#method_logic_stmts)*
+                            })
                     }
                 }
             )*
