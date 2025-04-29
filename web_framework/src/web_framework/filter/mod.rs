@@ -82,8 +82,8 @@ pub mod filter {
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     {
-        pub(crate) actions: Arc<dyn Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>>>,
-        pub(crate) dispatcher: Arc<FilterExecutor>,
+        pub actions: Arc<dyn Handler<Request, Response, UserRequestContext<Request>, RequestContextData<Request, Response>>>,
+        pub dispatcher: Arc<FilterExecutor>,
         pub order: u8
     }
 

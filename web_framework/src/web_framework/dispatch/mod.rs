@@ -43,6 +43,7 @@ impl FilterExecutor {
                         .convert_from(&action_response, &request, media_type)
                 })
                 .map(|response_to_write| {
+                    println!("Found response!");
                     response.write(response_to_write.clone().as_bytes());
                     response_to_write
                 });

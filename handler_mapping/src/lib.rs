@@ -211,17 +211,29 @@ impl HandlerMappingBuilder {
                 {
                     fn execute_handler(
                         &self,
-                        handler: HandlerMethod<UserRequestContext<#arg_types>>,
+                        mut handler: HandlerMethod<UserRequestContext<#arg_types>>,
                         response: &mut WebResponse,
                         request: &WebRequest
                     ) -> Option<#arg_outputs> {
                         if handler.request_ctx_data.as_ref().is_none() {
-                             return None
+                            let mut req = UserRequestContext::default();
+                            req.request = Some(#arg_types::default());
+                            req.request
+                                .map(|#arg_idents| {
+                                     #(#method_logic_stmts)*
+                                })
+                        } else {
+                            println!("Not null!");
+                            handler.request_ctx_data.unwrap().request
+                                .map_or_else(|| {
+                                    println!("Was null!");
+                                    let #arg_idents = #arg_types::default();
+                                     #(#method_logic_stmts)*
+                                }, |#arg_idents| {
+                                     #(#method_logic_stmts)*
+                                })
+                                .into()
                         }
-                        handler.request_ctx_data.unwrap().request
-                            .map(|#arg_idents| {
-                                 #(#method_logic_stmts)*
-                            })
                     }
                 }
             )*

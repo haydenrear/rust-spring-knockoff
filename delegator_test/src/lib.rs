@@ -111,8 +111,9 @@ pub mod test_library {
 
 pub use test_library::*;
 use knockoff_security::knockoff_security::*;
-use web_framework::{AuthenticationType, TestAuthType as FrameworkTestAuthType};
-
+use web_framework::{create_message_converter, default_message_converters, AuthenticationType, TestAuthType as FrameworkTestAuthType};
+use web_framework::web_framework::convert::ConverterRegistry;
+use web_framework::web_framework::filter::filter::{Filter, FilterChain};
 
 #[test]
 fn test_module_macro() {
@@ -199,10 +200,84 @@ fn test_module_macro() {
 
 }
 
+use web_framework::web_framework::convert::MessageConverter;
+use web_framework::web_framework::message::MessageType;
+
+default_message_converters!();
+create_message_converter!((
+        (
+            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => return_json_message_converter),
+            (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => return_html_message_converter)
+        ) ===> ReturnRequest,
+        (
+            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => another_json_message_converter),
+            (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => another_html_message_converter)
+        ) ===> AnotherRequest
+    )
+    => DelegatingMessageConverter);
 
 #[test]
 fn test_attribute_handler_mapping() {
     let attr = AttributeHandlerMapping::new();
+    let ctx = Context::with_converter_registry(
+        ConverterRegistry::new(None, Some(Box::new(DelegatingMessageConverter::new()))));
+    let res = &mut WebResponse::default();
+    let mut request = WebRequest::default();
+    request.headers.insert("Content-Type".into(), "application/json".into());
+    let mut context = UserRequestContext::default();
+    context.request = Some(ReturnRequest::default());
+
+    let a = attr.one.do_action(
+        &request, res, &RequestContextData { request_context_data: ctx } ,
+        &mut Some(context.into()));
+
+    assert!(a.is_some());
+
+    let ctx = Context::with_converter_registry(
+        ConverterRegistry::new(None, Some(Box::new(DelegatingMessageConverter::new()))));
+    let mut context = UserRequestContext::default();
+    context.request = None;
+
+    let a = attr.one.do_action(
+        &request, res, &RequestContextData { request_context_data: ctx } ,
+        &mut Some(context.into()));
+
+    assert!(a.is_some());
+    let string = serde_json::to_string(&ReturnRequest {value: String::from("Whatever")}).unwrap();
+    assert_eq!(a.unwrap().value, string);
+
+}
+
+#[test]
+fn test_with_filter_chain() {
+    use web_framework::web_framework::convert::MessageConverter;
+    let attr = AttributeHandlerMapping::new();
+    use web_framework::web_framework::message::MessageConverterFilter;
+    let mapping = Filter {
+        actions: Arc::new(MessageConverterFilter{}),
+        dispatcher: Default::default(),
+        order: 0,
+    };
+    let one = Filter {
+        actions: attr.one,
+        dispatcher: Default::default(),
+        order: 1,
+    };
+    let mut fc = FilterChain::new(vec![one, mapping]);
+    let x = &mut WebResponse::default();
+    let ctx = Context::with_converter_registry(
+        ConverterRegistry::new(None,
+                               Some(Box::new(DelegatingMessageConverter::new()))));
+    let mut request = WebRequest::default();
+    request.body = serde_json::to_string(&ReturnRequest{value: String::from("Hello!")}).unwrap();
+    request.headers.insert("Content-Type".into(), "application/json".into());
+    fc.do_filter(&request, x, &RequestContextData{ request_context_data: ctx },
+                 &mut Some(UserRequestContext::default().into()));
+
+    let string = serde_json::to_string(&ReturnRequest {value: String::from("Whatever")}).unwrap();
+    println!("{}", string);
+    assert_ne!(String::from("null"), x.response);
+    assert_eq!(x.response, string);
 }
 
 #[test]

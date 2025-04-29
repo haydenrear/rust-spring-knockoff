@@ -36,11 +36,12 @@ mod test_filter {
 
     struct TestAction;
     impl Handler<Example, Example, UserRequestContext<Example>, RequestContextData<Example, Example>> for TestAction {
-        fn do_action(&self, web_request: &WebRequest, response: &mut WebResponse, context: &RequestContextData<Example, Example>, request_context: &mut Option<UserRequestContext<Example>>) -> Option<Example> {
+        fn do_action(&self, web_request: &WebRequest, response: &mut WebResponse, context: &RequestContextData<Example, Example>,
+                     request_context: &mut Option<Box<UserRequestContext<Example>>>) -> Option<Example> {
             Some(Example{ value: String::from("hello!") })
         }
 
-        fn authentication_granted(&self, token: &Option<UserRequestContext<Example>>) -> bool {
+        fn authentication_granted(&self, token: &Option<Box<UserRequestContext<Example>>>) -> bool {
             true
         }
 
@@ -60,16 +61,19 @@ mod test_filter {
             Self
         }
     }
-
+    use std::collections::HashMap;
+    use crate::web_framework::convert::MessageConverter;
     default_message_converters!();
+    create_message_converter!((
+        (
+            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => return_json_message_converter),
+            (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => return_html_message_converter)
+        ) ===> Example
+    )
+    => DelegatingMessageConverter);
 
     #[test]
     fn test_filter() {
-        use web_framework::convert::MessageConverter;
-        create_message_converter!(
-            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => json_message_converter)
-            ===> Example => DelegatingMessageConverter);
-
         let mapping = Filter {
             actions: Arc::new(MessageConverterFilter{}),
             dispatcher: Default::default(),

@@ -20,7 +20,7 @@ pub struct EndpointMetadata {
 impl EndpointMetadata {
 
     pub fn matches_vec(&self, path: Vec<(&str, &str)>) -> bool {
-        todo!()
+        true
     }
 }
 

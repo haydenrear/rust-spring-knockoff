@@ -40,9 +40,12 @@ for MessageConverterFilter
             .request_context_data
             .request_context
             .convert_to(&web_request)
-            .map(|converted| request_context
-                .as_mut()
-                .map(|r| r.request = converted.message));
+            .map(|converted| {
+                println!("Found to convert!");
+                request_context
+                    .as_mut()
+                    .map(|r| r.request = converted.message)
+            });
 
         None
     }

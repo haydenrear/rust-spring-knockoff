@@ -40,13 +40,21 @@ pub mod test_library_four {
 
 
     #[derive(Serialize, Deserialize, Clone, Default)]
-    pub struct ReturnRequest;
+    pub struct ReturnRequest{
+        pub value: String
+    }
+
+    #[derive(Serialize, Deserialize, Clone, Default)]
+    pub struct AnotherRequest{
+        pub value: String
+    }
 
     #[request_mapping]
     impl Four {
         #[get_mapping(/v1/dummy/request)]
         pub fn do_request(&self, #[request_body] one: ReturnRequest) -> ReturnRequest {
-            one
+            println!("Whatever!");
+            ReturnRequest { value: String::from("Whatever") }
         }
     }
 
