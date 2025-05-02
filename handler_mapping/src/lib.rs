@@ -19,6 +19,8 @@ import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/handler_ma
 
 pub struct HandlerMappingBuilder {
     controllers: Vec<ControllerBean>,
+    // TODO:
+    message_converters: Vec<MessageConverterBean>
 }
 
 impl HandlerMappingBuilder {
@@ -39,7 +41,8 @@ impl HandlerMappingBuilder {
             .collect::<Vec<ControllerBean>>();
 
         Self {
-            controllers: controller_beans
+            controllers: controller_beans,
+            message_converters: vec![]
         }
 
     }
@@ -49,6 +52,16 @@ impl HandlerMappingBuilder {
             .map(|s| SynHelper::get_attr_from_vec(
                 &s.attrs,
                 &vec!["controller", "rest_controller"])
+            )
+            .flatten()
+            .is_some()
+    }
+
+    fn filter_message_converter_beans(b: &&BeanDefinition) -> bool {
+        b.struct_found.as_ref()
+            .map(|s| SynHelper::get_attr_from_vec(
+                &s.attrs,
+                &vec!["message_converter"])
             )
             .flatten()
             .is_some()
@@ -71,6 +84,10 @@ impl HandlerMappingBuilder {
             .iter()
             .map(|i| (autowire.0.clone(), autowire.1.clone(), i.clone()))
             .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)>>()
+    }
+
+    fn create_message_converter_bean(i: DependencyDescriptor) -> Vec<MessageConverterBean> {
+        vec![]
     }
 
     fn create_controller_bean(i: (DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)) -> Vec<ControllerBean> {
@@ -295,6 +312,20 @@ impl HandlerMappingBuilder {
 
             }
 
+            // provide_default_message_converters!();
+            // create_delegating_message_converters!((
+            //         (
+            //             ("application/json" as json => JsonMessageConverter<ReturnRequest, ReturnRequest>),
+            //             ("text/html" as html => HtmlMessageConverter<ReturnRequest, ReturnRequest>)
+            //         ) ===> (ReturnRequest => ReturnRequest),
+            //         (
+            //             ("application/json" as json => JsonMessageConverter<AnotherRequest, AnotherRequest>),
+            //             ("text/html" as html => HtmlMessageConverter<AnotherRequest, AnotherRequest>)
+            //         ) ===> (AnotherRequest => AnotherRequest)
+            //     )
+            //     => DelegatingMessageConverter); # TODO:
+
+
         };
         ts.into()
     }
@@ -417,4 +448,6 @@ struct ControllerBean {
     arguments_resolved: Vec<ArgumentResolver>
 }
 
-
+struct MessageConverterBean {
+    converter_path: syn::Path
+}

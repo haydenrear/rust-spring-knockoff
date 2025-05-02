@@ -4,7 +4,7 @@ mod test_filter {
     use crate::web_framework::convert::ConverterRegistry;
     use crate::web_framework::filter::filter::{Filter, FilterChain};
     use crate::web_framework::message::{MessageConverterFilter, MessageType};
-    use crate::{create_message_converter, default_message_converters};
+    use crate::{create_delegating_message_converters, provide_default_message_converters};
     use circular::Buffer;
     use serde::{Deserialize, Serialize};
     use std::io::{Read, Write};
@@ -63,12 +63,15 @@ mod test_filter {
     }
     use std::collections::HashMap;
     use crate::web_framework::convert::MessageConverter;
-    default_message_converters!();
-    create_message_converter!((
+    use paste::paste;
+    use std::marker::PhantomData;
+
+    provide_default_message_converters!();
+    create_delegating_message_converters!((
         (
-            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => return_json_message_converter),
-            (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => return_html_message_converter)
-        ) ===> Example
+            ("application/json" as json => JsonMessageConverter<Example, Example>),
+            ("text/html" as html => HtmlMessageConverter<Example, Example>)
+        ) ===> (Example => Example)
     )
     => DelegatingMessageConverter);
 

@@ -111,7 +111,7 @@ pub mod test_library {
 
 pub use test_library::*;
 use knockoff_security::knockoff_security::*;
-use web_framework::{create_message_converter, default_message_converters, AuthenticationType, TestAuthType as FrameworkTestAuthType};
+use web_framework::{create_delegating_message_converters, provide_default_message_converters, AuthenticationType, TestAuthType as FrameworkTestAuthType};
 use web_framework::web_framework::convert::ConverterRegistry;
 use web_framework::web_framework::filter::filter::{Filter, FilterChain};
 
@@ -203,21 +203,22 @@ fn test_module_macro() {
 use web_framework::web_framework::convert::MessageConverter;
 use web_framework::web_framework::message::MessageType;
 
-default_message_converters!();
-create_message_converter!((
+provide_default_message_converters!();
+create_delegating_message_converters!((
         (
-            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => return_json_message_converter),
-            (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => return_html_message_converter)
-        ) ===> ReturnRequest,
+            ("application/json" as json => JsonMessageConverter<ReturnRequest, ReturnRequest>),
+            ("text/html" as html => HtmlMessageConverter<ReturnRequest, ReturnRequest>)
+        ) ===> (ReturnRequest => ReturnRequest),
         (
-            (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => another_json_message_converter),
-            (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => another_html_message_converter)
-        ) ===> AnotherRequest
+            ("application/json" as json => JsonMessageConverter<AnotherRequest, AnotherRequest>),
+            ("text/html" as html => HtmlMessageConverter<AnotherRequest, AnotherRequest>)
+        ) ===> (AnotherRequest => AnotherRequest)
     )
     => DelegatingMessageConverter);
 
 #[test]
 fn test_attribute_handler_mapping() {
+    // TODO: boot would scan for these and inject them
     let attr = AttributeHandlerMapping::new();
     let ctx = Context::with_converter_registry(
         ConverterRegistry::new(None, Some(Box::new(DelegatingMessageConverter::new()))));
@@ -228,7 +229,9 @@ fn test_attribute_handler_mapping() {
     context.request = Some(ReturnRequest::default());
 
     let a = attr.one.do_action(
-        &request, res, &RequestContextData { request_context_data: ctx } ,
+        &request,
+        res,
+        &RequestContextData { request_context_data: ctx },
         &mut Some(context.into()));
 
     assert!(a.is_some());

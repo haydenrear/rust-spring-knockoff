@@ -17,13 +17,20 @@ use knockoff_security::knockoff_security::authentication_type::AuthenticationAwa
 use crate::web_framework::security::authentication::{Authentication, AuthenticationConverter, AuthenticationDetails, AuthenticationToken};
 
 #[macro_export]
-macro_rules! default_message_converters {
+macro_rules! provide_default_message_converters {
     () => {
         const media_header_keys_c: &[&str] = &["MediaType", "mediatype", "Media-Type", "mediatype", "Content-Type", "ContentType", "content-type", "contenttype"];
+
         #[derive(Clone, Debug, Default)]
-        pub struct JsonMessageConverter;
+        pub struct JsonMessageConverter<Request, Response> {
+            req: PhantomData<Request>,
+            res: PhantomData<Response>
+        }
         #[derive(Clone, Debug, Default)]
-        pub struct HtmlMessageConverter;
+        pub struct HtmlMessageConverter<Request, Response> {
+            req: PhantomData<Request>,
+            res: PhantomData<Response>
+        }
 
         pub fn media_header_keys() -> &'static [&'static str] {
             media_header_keys_c
@@ -39,38 +46,106 @@ macro_rules! default_message_converters {
 
             None
         }
+
+
+        impl<Request, Response> JsonMessageConverter<Request, Response>
+        where
+            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+        {
+
+            fn convert_json_to(
+                &self,
+                request: &WebRequest,
+            ) -> Option<MessageType<Response>> {
+                let result = serde_json::from_str(&request.body);
+                match result {
+                    Ok(mr) => {
+                        let message_type: MessageType<Response> = MessageType { message: mr };
+                        Some(message_type)
+                    }
+                    Err(err) => {
+                        println!("Error {}!", err.to_string());
+                        None
+                    }
+                }
+            }
+
+            fn do_convert_json(&self, request: &WebRequest) -> bool {
+                for header in request.headers.iter() {
+                    for potential_media in media_header_keys() {
+                        if header.0 == potential_media && header.1.contains("json") {
+                            return true;
+                        }
+                    }
+                }
+                false
+            }
+
+            fn convert_json_from(&self, request: &Response, web_request: &WebRequest) -> Option<String>
+            where
+                Self: Sized,
+            {
+                serde_json::to_string(&request).ok()
+            }
+
+        }
+
+
+        impl<Request, Response> HtmlMessageConverter<Request, Response>
+        where
+            Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
+            Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
+        {
+            fn convert_html_to(&self, request: &WebRequest) -> Option<MessageType<Request>> {
+                todo!()
+            }
+
+            fn convert_html_from(&self,  request: &Response, request_body: &WebRequest) -> Option<String> {
+                todo!()
+            }
+
+            fn do_convert_html(&self, request: &WebRequest) -> bool {
+                for header in request.headers.iter() {
+                    if (header.0 == "MediaType" || header.0 == "mediatype") && header.1.contains("json") {
+                        return true;
+                    }
+                }
+                false
+            }
+
+
+        }
+
     }
 }
 
 // example
+// default_message_converters!();
 // create_message_converter!((
-//      (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => json_message_converter),
-//      (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => html_message_converter)
-// ) ===> ReturnRequest => DelegatingMessageConverter);
+//         (
+//             ("application/json" as json => JsonMessageConverter<ReturnRequest, ReturnRequest>),
+//             ("text/html" as html => HtmlMessageConverter<ReturnRequest, ReturnRequest>)
+//         ) ===> (ReturnRequest => ReturnRequest),
+//         (
+//             ("application/json" as json => JsonMessageConverter<AnotherRequest, AnotherRequest>),
+//             ("text/html" as html => HtmlMessageConverter<AnotherRequest, AnotherRequest>)
+//         ) ===> (AnotherRequest => AnotherRequest)
+//     )
+//     => DelegatingMessageConverter);
 #[macro_export]
-macro_rules! create_message_converter {
-    // use like the following:                                                                                                                        ** only change ===>
-    // create_message_converter!((
-    //         (
-    //             (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => return_json_message_converter),
-    //             (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => return_html_message_converter)
-    //         ) ===> ReturnRequest,
-    //         (
-    //             (JsonMessageConverter => JsonMessageConverter{} =>> "application/json" => JsonMessageConverter => another_json_message_converter),
-    //             (HtmlMessageConverter => HtmlMessageConverter{} =>> "text/html" => HtmlMessageConverter => another_html_message_converter)
-    //         ) ===> AnotherRequest
-    //     )
-    //     => DelegatingMessageConverter);
-    (($(($(($converter_path:path => $converter_ident:expr =>> $matcher:literal => $converter:ty => $field_name:ident)),*) ===> $gen:ty),*) => $delegator:ident) => {
-
-        #[derive(Clone)]
-        pub struct $delegator{
-            $(
+macro_rules! create_delegating_message_converters {
+    (($(($(($matcher:literal as $field_name:ident => $converter:ty)),*) ===> ($request:ty => $response:ty)),*) => $delegator:ident) => {
+        paste::paste! {
+            #[derive(Clone)]
+            pub struct $delegator {
                 $(
-                    $field_name: $converter,
+                    $(
+                        [<$field_name:lower _ $request:lower>]: $converter,
+                    )*
                 )*
-            )*
-            media_types: Vec<String>
+                media_types: Vec<String>
+            }
         }
 
         impl $delegator {
@@ -79,71 +154,81 @@ macro_rules! create_message_converter {
                 let mut media_types = vec![];
                 $(
                     $(
-                        let to_add = <$converter_path as MessageConverter<$gen,$gen>>::message_type(&$converter_ident);
+                        let next_message_converter = <$converter as MessageConverter<$request,$response>>::new_message_converter();
+                        let to_add = <$converter as MessageConverter<$request,$response>>::message_type(&next_message_converter);
                         for media_type in &to_add {
                             media_types.push(media_type.clone());
                         }
                     )*
                 )*
-                Self {
-                    $(
-                        $(
-                             $field_name: $converter_ident,
-                        )*
-                    )*
-                    media_types
+                paste::paste!{
+                    Self {
+                            $(
+                                $(
+                                     [<$field_name:lower _ $request:lower>]: <$converter as MessageConverter<$request,$response>>::new_message_converter(),
+                                )*
+                            )*
+                            media_types
+                        }
+                    }
                 }
-            }
-
         }
 
         $(
-            impl MessageConverter<$gen, $gen> for $delegator
+            impl MessageConverter<$request, $response> for $delegator
             {
 
+                fn new_message_converter() -> Self {
+                    $delegator::new()
+                }
 
                 fn convert_to(
                     &self,
                     request: &WebRequest,
-                ) -> Option<MessageType<$gen>>
+                ) -> Option<MessageType<$response>>
                 where
                     Self: Sized,
                 {
                     retrieve_media_header(&request.headers)
                         .and_then(|found| {
-                            $(
-                                if found == $matcher || found == $matcher {
-                                    return <$converter_path as MessageConverter<$gen, $gen>>::convert_to(&self.$field_name, request);
-                                }
-                            )*
+                            paste! {
+                                $(
+                                    if found == $matcher || found == $matcher {
+                                        return <$converter as MessageConverter<$request, $response>>::convert_to(&self.[<$field_name:lower _ $request:lower>], request);
+                                    }
+                                )*
+                            }
 
                             None
                         })
                 }
 
-                fn convert_from(&self, request_body: &$gen, request: &WebRequest) -> Option<String>
+                fn convert_from(&self, request_body: &$response, request: &WebRequest) -> Option<String>
                 where
                     Self: Sized,
                 {
                     retrieve_media_header(&request.headers)
                         .and_then(|found| {
-                            $(
-                                if found == $matcher || found == $matcher {
-                                    return <$converter_path as MessageConverter<$gen,$gen>>::convert_from(&self.$field_name, request_body, request);
-                                }
-                            )*
+                            paste! {
+                                $(
+                                    if found == $matcher || found == $matcher {
+                                        return <$converter as MessageConverter<$request,$response>>::convert_from(&self.[<$field_name:lower _ $request:lower>], request_body, request);
+                                    }
+                                )*
+                            }
                             None
                         })
                 }
 
                 fn do_convert(&self, request: &WebRequest) -> bool {
-                    $(
-                        if <$converter_path as MessageConverter<$gen,$gen>>::do_convert(&self.$field_name, request) {
-                            println!("Found to convert!");
-                            return true;
-                        }
-                    )*
-                    false
+                    paste! {
+                        $(
+                            if <$converter as MessageConverter<$request,$response>>::do_convert(&self.[<$field_name:lower _ $request:lower>], request) {
+                                return true;
+                            }
+                        )*
+                        false
+                    }
                 }
 
                 fn message_type(&self) -> Vec<String> {
@@ -151,42 +236,28 @@ macro_rules! create_message_converter {
                 }
             }
 
-            impl MessageConverter<$gen, $gen> for JsonMessageConverter
+            impl MessageConverter<$request, $response> for JsonMessageConverter<$request, $response>
             {
+
+                fn new_message_converter() -> Self {
+                    JsonMessageConverter::<$request, $response>::default()
+                }
 
                 fn convert_to(
                     &self,
                     request: &WebRequest,
-                ) -> Option<MessageType<$gen>> {
-                    let result = serde_json::from_str(&request.body);
-                    match result {
-                        Ok(mr) => {
-                            let message_type: MessageType<$gen> = MessageType { message: mr };
-                            Some(message_type)
-                        }
-                        Err(err) => {
-                            println!("Error {}!", err.to_string());
-                            None
-                        }
-                    }
+                ) -> Option<MessageType<$request>> {
+                    self.convert_json_to(request)
                 }
 
                 fn do_convert(&self, request: &WebRequest) -> bool {
-                    for header in request.headers.iter() {
-                        for potential_media in media_header_keys() {
-                            if header.0 == potential_media && header.1.contains("json") {
-                                return true;
-                            }
-                        }
-                    }
-                    false
+                    self.do_convert_json(request)
                 }
 
-                fn convert_from(&self, request: &$gen, web_request: &WebRequest) -> Option<String>
+                fn convert_from(&self, request: &$response, web_request: &WebRequest) -> Option<String>
                 where
-                    Self: Sized,
-                {
-                    serde_json::to_string(&request).ok()
+                    Self: Sized {
+                    self.convert_json_from(request, web_request)
                 }
 
                 fn message_type(&self) -> Vec<String> {
@@ -195,23 +266,22 @@ macro_rules! create_message_converter {
             }
 
 
-            impl MessageConverter<$gen, $gen> for HtmlMessageConverter
+            impl MessageConverter<$request, $response> for HtmlMessageConverter<$request, $response>
             {
-                fn convert_to(&self, request: &WebRequest) -> Option<MessageType<$gen>> {
-                    todo!()
+                fn new_message_converter() -> Self {
+                    HtmlMessageConverter::<$request, $response>::default()
                 }
 
-                fn convert_from(&self,  request: &$gen, request_body: &WebRequest) -> Option<String> {
-                    todo!()
+                fn convert_to(&self, request: &WebRequest) -> Option<MessageType<$request>> {
+                    self.convert_html_to(request)
+                }
+
+                fn convert_from(&self,  request: &$response, request_body: &WebRequest) -> Option<String> {
+                    self.convert_html_from(request, request_body)
                 }
 
                 fn do_convert(&self, request: &WebRequest) -> bool {
-                    for header in request.headers.iter() {
-                        if (header.0 == "MediaType" || header.0 == "mediatype") && header.1.contains("json") {
-                            return true;
-                        }
-                    }
-                    false
+                    self.do_convert_html(request)
                 }
 
 
@@ -229,6 +299,8 @@ pub trait MessageConverter<Request, Response>: Send + Sync
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
+
+    fn new_message_converter() -> Self where Self: Sized;
 
     fn convert_to(
         &self,
@@ -252,6 +324,10 @@ impl<Request, Response> MessageConverter<Request, Response> for DefaultMessageCo
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         Request: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static
 {
+    fn new_message_converter() -> Self {
+        DefaultMessageConverter::default()
+    }
+
     fn convert_to(
         &self,
         request: &WebRequest,
