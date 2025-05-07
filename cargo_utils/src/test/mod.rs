@@ -84,6 +84,7 @@ fn test_do_on() {
 
 #[test]
 fn do_test_get_key() {
+    use std::path::Path;
     let proj = project_directory_path!().join("codegen_resources").join("default_phase_deps.toml");
     let found = codegen_utils::io_utils::read_dir_to_file(&proj).unwrap();
     let t: Value = toml::from_str(found.as_str()).unwrap();

@@ -46,7 +46,7 @@ fn do_test() {
     let _ = std::fs::remove_dir_all(&target_dir);
     let _ = std::fs::create_dir_all(&target_dir);
     let value = Value::Table(vec![("name".to_string(), Value::String("hello".to_string())), ("version".to_string(), Value::String("0.1.5".to_string()))].into_iter().collect());
-    CrateWriter::write_dependency_agg_crate("test", "0.1.5", &target_dir, Table::from(vec![("hello".to_string(), value)].into_iter().collect()));
+    CrateWriter::write_dependency_agg_crate("test", "0.1.5", &target_dir, &Table::from(vec![("hello".to_string(), value)].into_iter().collect()));
     assert!(target_dir.join("test").exists());
     let opened = cargo_utils::get_package_toml(&Some(File::options().read(true).open(target_dir.join("test").join("Cargo.toml")).unwrap()));
     assert!(opened.is_some());

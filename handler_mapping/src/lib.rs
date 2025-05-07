@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{Attribute, Block, FnArg, ImplItem, ImplItemMethod, Stmt, Type};
+use syn::{parse_str, Attribute, Block, FnArg, ImplItem, ImplItemMethod, Stmt, Type};
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::log_message;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
@@ -26,7 +26,29 @@ pub struct HandlerMappingBuilder {
 impl HandlerMappingBuilder {
 
     pub fn new(items: &mut ProfileTree) -> Self {
-        let controller_beans = items.injectable_types.iter()
+
+        info!("Parsing controllers.");
+        let controller_beans = Self::find_bean_definition(items, vec!["controller", "rest_controller"])
+            .iter()
+            .flat_map(|bean| Self::create_controller_beans(bean))
+            .collect::<Vec<ControllerBean>>();
+        
+        info!("Parsing message converters.");
+        
+        let message_converters = Self::find_bean_definition(items, vec!["message_converter"])
+            .iter()
+            .flat_map(|bean| Self::create_message_converter_bean(bean))
+            .collect::<Vec<MessageConverterBean>>();
+
+        Self {
+            controllers: controller_beans,
+            message_converters: vec![]
+        }
+
+    }
+
+    fn find_bean_definition<'a>(items: &'a mut ProfileTree, matchers: Vec<&str>) -> Vec<&'a BeanDefinition> {
+        items.injectable_types.iter()
             .flat_map(|b| b.1.iter())
             .flat_map(|b| match b {
                 BeanDefinitionType::Abstract { .. } => {
@@ -36,15 +58,16 @@ impl HandlerMappingBuilder {
                     vec![bean]
                 }
             })
-            .filter(|b| Self::filter_controller_beans(b))
-            .flat_map(|bean| Self::create_controller_beans(bean))
-            .collect::<Vec<ControllerBean>>();
-
-        Self {
-            controllers: controller_beans,
-            message_converters: vec![]
-        }
-
+            .filter(|b| {
+                b.struct_found.as_ref()
+                    .map(|s| SynHelper::get_attr_from_vec(
+                        &s.attrs,
+                        &matchers)
+                    )
+                    .flatten()
+                    .is_some()
+            })
+            .collect()
     }
 
     fn filter_controller_beans(b: &&BeanDefinition) -> bool {
@@ -86,8 +109,31 @@ impl HandlerMappingBuilder {
             .collect::<Vec<(DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)>>()
     }
 
-    fn create_message_converter_bean(i: DependencyDescriptor) -> Vec<MessageConverterBean> {
-        vec![]
+    fn create_message_converter_bean(bean: &BeanDefinition) -> Vec<MessageConverterBean> {
+        let depth = bean.path_depth.clone();
+        let struct_ty = bean.struct_found.as_ref().unwrap().ident.clone().to_string();
+        
+        let mut out = "".to_string();
+        
+        for d in depth {
+            out = out + &d;
+            out = out + "::";
+        }
+        
+        out = out + &struct_ty;
+        
+        parse_str::<syn::Path>(&out)
+            .map(|p| {
+                info!("Created path for message converter: {}", SynHelper::get_str(&p));
+                MessageConverterBean {converter_path: p}
+            })
+            .or_else(|err| {
+                error!("Found error: {}!", err);
+                Err(err)
+            })
+            .ok()
+            .into_iter()
+            .collect()
     }
 
     fn create_controller_bean(i: (DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)) -> Vec<ControllerBean> {

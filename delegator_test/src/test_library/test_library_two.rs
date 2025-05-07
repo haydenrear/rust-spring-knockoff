@@ -1,7 +1,7 @@
 pub mod test_library_six;
 
 use std::fmt::{Debug, Formatter};
-use spring_knockoff_boot_macro::{autowired, bean, enable_http_security, service, qualifier};
+use spring_knockoff_boot_macro::{autowired, bean, enable_http_security, service, qualifier, message_converter};
 use web_framework::web_framework::security::http_security::HttpSecurity;
 use crate::test_library::test_library_four::One;
 use serde::{Deserialize, Serialize};
@@ -36,3 +36,9 @@ impl SevenIntercept {
     }
 }
 
+#[message_converter]
+#[service(TestMessageConverter)]
+#[derive(Default)]
+pub struct TestMessageConverter {
+    
+}

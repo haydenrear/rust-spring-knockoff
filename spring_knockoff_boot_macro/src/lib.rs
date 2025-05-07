@@ -67,6 +67,11 @@ pub fn service(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn message_converter(attr: TokenStream, ts: TokenStream) -> TokenStream {
+    ts.into() 
+}
+
+#[proc_macro_attribute]
 pub fn enum_service(attr: TokenStream, input: TokenStream) -> TokenStream {
     input.into()
 }
