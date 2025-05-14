@@ -23,6 +23,7 @@ import_logger!("dependency.rs");
 
 #[derive(Clone)]
 pub struct DependencyDescriptor {
+    // TODO: make these all Arc.
     pub item_impl: Option<ItemImpl>,
     pub abstract_type: Option<BeanPath>,
     pub profile: Vec<ProfileBuilder>,

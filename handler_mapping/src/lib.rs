@@ -149,9 +149,8 @@ impl HandlerMappingBuilder {
 
                 let (media_type, alias) = Self::parse_converter_attrs(attr);
 
-
                 let (request_type, response_type) = Self::parse_req_response(&item_impl);
-
+                
                 parse_str::<syn::Path>(&out)
                     .map(|p| {
                         info!("Created path for message converter: {}", SynHelper::get_str(&p));
