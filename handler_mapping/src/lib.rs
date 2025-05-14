@@ -147,57 +147,10 @@ impl HandlerMappingBuilder {
 
                 let attr = SynHelper::get_attribute_from_vec(&item_impl.attrs , &vec!["message_converter"]);
 
-                let (media_type, alias) = if let Some(attr_meta) = attr {
-                    match attr_meta.parse_meta() {
-                        Ok(syn::Meta::List(list)) => {
-                            let media_type = list.nested.iter().find_map(|meta| Self::extract_str_from_meta(meta, "media_type"));
-                            let alias = list.nested.iter().find_map(|meta| Self::extract_str_from_meta(meta, "alias"));
-
-                            (media_type, alias)
-                        },
-                        _ => (None, None)
-                    }
-                } else {
-                    (None, None)
-                };
+                let (media_type, alias) = Self::parse_converter_attrs(attr);
 
 
-                let (request_type, response_type) = if let Some(generics) = &item_impl.generics.params.iter().next() {
-                    if let syn::GenericParam::Type(type_param) = generics {
-                        // If there's at least one generic, assume it's the request type
-                        let req_type = match parse_str::<TokenStream>(&type_param.ident.to_string()) {
-                            Ok(ts) => Some(ts),
-                            Err(e) => {
-                                error!("Failed to parse request type: {}", e);
-                                None
-                            }
-                        };
-
-                        // If there's a second generic, assume it's the response type
-                        let resp_type = if let Some(second) = item_impl.generics.params.iter().nth(1) {
-                            if let syn::GenericParam::Type(type_param) = second {
-                                match parse_str::<TokenStream>(&type_param.ident.to_string()) {
-                                    Ok(ts) => Some(ts),
-                                    Err(e) => {
-                                        error!("Failed to parse response type: {}", e);
-                                        None
-                                    }
-                                }
-                            } else {
-                                None
-                            }
-                        } else {
-                            // If no second generic, assume response is same as request
-                            req_type.clone()
-                        };
-
-                        (req_type, resp_type)
-                    } else {
-                        (None, None)
-                    }
-                } else {
-                    (None, None)
-                };
+                let (request_type, response_type) = Self::parse_req_response(&item_impl);
 
                 parse_str::<syn::Path>(&out)
                     .map(|p| {
@@ -224,6 +177,63 @@ impl HandlerMappingBuilder {
             .collect()
 
 
+    }
+
+    fn parse_converter_attrs(attr: Option<Attribute>) -> (Option<String>, Option<String>) {
+        let (media_type, alias) = if let Some(attr_meta) = attr {
+            match attr_meta.parse_meta() {
+                Ok(syn::Meta::List(list)) => {
+                    let media_type = list.nested.iter().find_map(|meta| Self::extract_str_from_meta(meta, "media_type"));
+                    let alias = list.nested.iter().find_map(|meta| Self::extract_str_from_meta(meta, "alias"));
+
+                    (media_type, alias)
+                },
+                _ => (None, None)
+            }
+        } else {
+            (None, None)
+        };
+        (media_type, alias)
+    }
+
+    fn parse_req_response(item_impl: &ItemImpl) -> (Option<TokenStream>, Option<TokenStream>) {
+        let (request_type, response_type) = if let Some(generics) = &item_impl.generics.params.iter().next() {
+            if let syn::GenericParam::Type(type_param) = generics {
+                // If there's at least one generic, assume it's the request type
+                let req_type = match parse_str::<TokenStream>(&type_param.ident.to_string()) {
+                    Ok(ts) => Some(ts),
+                    Err(e) => {
+                        error!("Failed to parse request type: {}", e);
+                        None
+                    }
+                };
+
+                // If there's a second generic, assume it's the response type
+                let resp_type = if let Some(second) = item_impl.generics.params.iter().nth(1) {
+                    if let syn::GenericParam::Type(type_param) = second {
+                        match parse_str::<TokenStream>(&type_param.ident.to_string()) {
+                            Ok(ts) => Some(ts),
+                            Err(e) => {
+                                error!("Failed to parse response type: {}", e);
+                                None
+                            }
+                        }
+                    } else {
+                        None
+                    }
+                } else {
+                    // If no second generic, assume response is same as request
+                    req_type.clone()
+                };
+
+                (req_type, resp_type)
+            } else {
+                (None, None)
+            }
+        } else {
+            (None, None)
+        };
+        (request_type, response_type)
     }
 
     fn create_controller_bean(i: (DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)) -> Vec<ControllerBean> {
