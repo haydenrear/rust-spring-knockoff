@@ -36,6 +36,12 @@ impl SynHelper {
         string_utils::strip_whitespace(&replaced)
             .map(|s| s.to_string())
     }
+    pub fn get_attribute_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: &Vec<&str>) -> Option<Attribute> {
+        autowired_attr.iter()
+            .filter(|a| matcher_str.iter().any(|m| Self::get_str(a).as_str().contains(*m)))
+            .next()
+            .cloned()
+    }
 
     pub fn get_attr_from_vec(autowired_attr: &Vec<Attribute>, matcher_str: &Vec<&str>) -> Option<String> {
         autowired_attr.iter()

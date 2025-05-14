@@ -1,6 +1,10 @@
+use std::ops::Deref;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{parse_str, Attribute, Block, FnArg, ImplItem, ImplItemMethod, Stmt, Type};
+use syn::{parse_str, Attribute, Block, FnArg, ImplItem, ImplItemMethod, ItemImpl, Stmt, Type};
+
+// Type alias for proc_macro2::TokenStream to distinguish from proc_macro::TokenStream
+type TokenStream2 = proc_macro2::TokenStream;
 use codegen_utils::syn_helper::SynHelper;
 use knockoff_logging::log_message;
 use module_macro_shared::bean::{BeanDefinition, BeanDefinitionType};
@@ -19,7 +23,7 @@ import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/handler_ma
 
 pub struct HandlerMappingBuilder {
     controllers: Vec<ControllerBean>,
-    // TODO:
+
     message_converters: Vec<MessageConverterBean>
 }
 
@@ -110,30 +114,116 @@ impl HandlerMappingBuilder {
     }
 
     fn create_message_converter_bean(bean: &BeanDefinition) -> Vec<MessageConverterBean> {
+        use syn::parse_str;
+        use proc_macro2::TokenStream;
+        
         let depth = bean.path_depth.clone();
         let struct_ty = bean.struct_found.as_ref().unwrap().ident.clone().to_string();
-        
+
         let mut out = "".to_string();
-        
+
         for d in depth {
             out = out + &d;
             out = out + "::";
         }
-        
+
         out = out + &struct_ty;
-        
-        parse_str::<syn::Path>(&out)
-            .map(|p| {
-                info!("Created path for message converter: {}", SynHelper::get_str(&p));
-                MessageConverterBean {converter_path: p}
+
+        // Extract message converter attribute
+        // Extract media_type and alias from the attribute
+        // Try to extract request and response types from generics
+        bean.traits_impl
+            .iter()
+            .filter(|t| t.item_impl.as_ref()
+                .map(|i| {
+                    info!("Testing {}", SynHelper::get_str(&i));
+                    i
+                })
+                .map(|i| SynHelper::get_str(i.self_ty.deref()).ends_with("MessageConverter"))
+                .or(Some(false))
+                .unwrap())
+            .flat_map(|dd| dd.item_impl.clone().into_iter())
+            .flat_map(|item_impl| {
+
+                let attr = SynHelper::get_attribute_from_vec(&item_impl.attrs , &vec!["message_converter"]);
+
+                let (media_type, alias) = if let Some(attr_meta) = attr {
+                    match attr_meta.parse_meta() {
+                        Ok(syn::Meta::List(list)) => {
+                            let media_type = list.nested.iter().find_map(|meta| Self::extract_str_from_meta(meta, "media_type"));
+                            let alias = list.nested.iter().find_map(|meta| Self::extract_str_from_meta(meta, "alias"));
+
+                            (media_type, alias)
+                        },
+                        _ => (None, None)
+                    }
+                } else {
+                    (None, None)
+                };
+
+
+                let (request_type, response_type) = if let Some(generics) = &item_impl.generics.params.iter().next() {
+                    if let syn::GenericParam::Type(type_param) = generics {
+                        // If there's at least one generic, assume it's the request type
+                        let req_type = match parse_str::<TokenStream>(&type_param.ident.to_string()) {
+                            Ok(ts) => Some(ts),
+                            Err(e) => {
+                                error!("Failed to parse request type: {}", e);
+                                None
+                            }
+                        };
+
+                        // If there's a second generic, assume it's the response type
+                        let resp_type = if let Some(second) = item_impl.generics.params.iter().nth(1) {
+                            if let syn::GenericParam::Type(type_param) = second {
+                                match parse_str::<TokenStream>(&type_param.ident.to_string()) {
+                                    Ok(ts) => Some(ts),
+                                    Err(e) => {
+                                        error!("Failed to parse response type: {}", e);
+                                        None
+                                    }
+                                }
+                            } else {
+                                None
+                            }
+                        } else {
+                            // If no second generic, assume response is same as request
+                            req_type.clone()
+                        };
+
+                        (req_type, resp_type)
+                    } else {
+                        (None, None)
+                    }
+                } else {
+                    (None, None)
+                };
+
+                parse_str::<syn::Path>(&out)
+                    .map(|p| {
+                        info!("Created path for message converter: {}", SynHelper::get_str(&p));
+                        MessageConverterBean {
+                            converter_path: p,
+                            request_type,
+                            response_type,
+                            media_type,
+                            alias,
+                        }
+                    })
+                    .or_else(|err| {
+                        error!("Found error: {}!", err);
+                        Err(err)
+                    })
+                    .ok()
+                    .into_iter()
             })
-            .or_else(|err| {
-                error!("Found error: {}!", err);
-                Err(err)
+            .map(|m| {
+                info!("Found message converter bean: {}, {}", SynHelper::get_str(&m.converter_path), &m.media_type.as_ref().unwrap_or(&"".to_string()));
+                m
             })
-            .ok()
-            .into_iter()
             .collect()
+
+
     }
 
     fn create_controller_bean(i: (DependencyDescriptor, Vec<AntPathRequestMatcher>, ImplItem)) -> Vec<ControllerBean> {
@@ -168,16 +258,107 @@ impl HandlerMappingBuilder {
             .unwrap()
     }
 
+    // Helper function to extract a string literal from a meta item
+    fn extract_str_from_meta(meta: &syn::NestedMeta, name: &str) -> Option<String> {
+        if let syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) = meta {
+            if nv.path.is_ident(name) {
+                if let syn::Lit::Str(lit_str) = &nv.lit {
+                    return Some(lit_str.value());
+                }
+            }
+        }
+        None
+    }
+
+    fn generate_message_converter_tokens(&self) -> Option<TokenStream> {
+        if self.message_converters.is_empty() {
+            return None;
+        }
+
+        use proc_macro2::Span;
+        use syn::LitStr;
+        use std::collections::HashMap;
+        use quote::{format_ident, quote};
+
+        // Group converters by request/response types
+        let mut converter_groups: HashMap<(String, String), Vec<&MessageConverterBean>> = HashMap::new();
+        
+        for converter in &self.message_converters {
+            if let (Some(req_type), Some(resp_type)) = (&converter.request_type, &converter.response_type) {
+                let req_key = req_type.to_string();
+                let resp_key = resp_type.to_string();
+                converter_groups.entry((req_key, resp_key))
+                    .or_insert_with(Vec::new)
+                    .push(converter);
+            }
+        }
+
+        if converter_groups.is_empty() {
+            return None;
+        }
+
+        // Build the macro input structure
+        let mut group_tokens = Vec::new();
+        
+        for ((req_key, resp_key), converters) in converter_groups {
+            let mut converter_tokens = Vec::new();
+            
+            for converter in converters.iter() {
+                if let (Some(media_type), Some(alias)) = (&converter.media_type, &converter.alias) {
+                    let converter_path = &converter.converter_path;
+                    let req_type = converter.request_type.as_ref().unwrap();
+                    let resp_type = converter.response_type.as_ref().unwrap();
+                    let media_type_lit = LitStr::new(media_type, Span::call_site());
+                    let alias_str = format_ident!("{}", alias);
+                    
+                    converter_tokens.push(quote! {
+                        (#media_type_lit as #alias_str => #converter_path<#req_type, #resp_type>)
+                    });
+                }
+            }
+            
+            if !converter_tokens.is_empty() {
+                let converters_tuple = quote! { (#(#converter_tokens),*) };
+                let req_type = converters[0].request_type.as_ref().unwrap();
+                let resp_type = converters[0].response_type.as_ref().unwrap();
+                group_tokens.push(quote! {
+                    #converters_tuple ===> (#req_type => #resp_type)
+                });
+            }
+        }
+
+        if group_tokens.is_empty() {
+            return None;
+        }
+
+        // Build the final macro call
+        Some(quote! {
+            create_delegating_message_converters!((
+                #(#group_tokens),*
+            ) => DelegatingMessageConverter);
+        })
+    }
+
     pub fn generate_token_stream(&self) -> TokenStream {
+        // Generate message converter tokens if needed
+        let message_converter_tokens = self.generate_message_converter_tokens();
+        
         let (to_match, split) = self.get_request_matcher_info();
 
         let (arg_idents, arg_types, arg_outputs) = self.parse_request_body_args();
+        
+        // Include the message converter macro if we have converters
+        let converter_tokens = message_converter_tokens.unwrap_or_else(|| quote! {});
 
         let (path_var_idents, path_var_names) = self.parse_path_variable_args();
 
         let method_logic_stmts = self.reparse_method_logic();
 
-        let mut ts = quote! {
+        // Add imports for message converters
+        let ts = quote! {
+            use web_framework::web_framework::convert::*;
+            use web_framework::create_delegating_message_converters;
+            use web_framework::provide_default_message_converters;
 
             use serde::{Serialize, Deserialize};
             use web_framework::web_framework::context::Context;
@@ -358,18 +539,9 @@ impl HandlerMappingBuilder {
 
             }
 
+            // Include the message converter tokens if we have any
             // provide_default_message_converters!();
-            // create_delegating_message_converters!((
-            //         (
-            //             ("application/json" as json => JsonMessageConverter<ReturnRequest, ReturnRequest>),
-            //             ("text/html" as html => HtmlMessageConverter<ReturnRequest, ReturnRequest>)
-            //         ) ===> (ReturnRequest => ReturnRequest),
-            //         (
-            //             ("application/json" as json => JsonMessageConverter<AnotherRequest, AnotherRequest>),
-            //             ("text/html" as html => HtmlMessageConverter<AnotherRequest, AnotherRequest>)
-            //         ) ===> (AnotherRequest => AnotherRequest)
-            //     )
-            //     => DelegatingMessageConverter); # TODO:
+            // #converter_tokens
 
 
         };
@@ -495,5 +667,23 @@ struct ControllerBean {
 }
 
 struct MessageConverterBean {
-    converter_path: syn::Path
+    converter_path: syn::Path,
+    request_type: Option<TokenStream>,
+    response_type: Option<TokenStream>,
+    media_type: Option<String>,
+    alias: Option<String>,
+}
+
+
+
+impl Default for MessageConverterBean {
+    fn default() -> Self {
+        Self {
+            converter_path: parse_str::<syn::Path>("DefaultMessageConverter").unwrap(),
+            request_type: None,
+            response_type: None,
+            media_type: None,
+            alias: None,
+        }
+    }
 }
