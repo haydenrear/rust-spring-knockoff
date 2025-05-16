@@ -219,7 +219,8 @@ create_delegating_message_converters!((
 #[test]
 fn test_attribute_handler_mapping() {
     // TODO: boot would scan for these and inject them
-    let attr = AttributeHandlerMapping::new();
+    let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
+    let attr = AttributeHandlerMapping::new(&listable);
     let ctx = Context::with_converter_registry(
         ConverterRegistry::new(None, Some(Box::new(DelegatingMessageConverter::new()))));
     let res = &mut WebResponse::default();
@@ -254,7 +255,8 @@ fn test_attribute_handler_mapping() {
 #[test]
 fn test_with_filter_chain() {
     use web_framework::web_framework::convert::MessageConverter;
-    let attr = AttributeHandlerMapping::new();
+    let listable: ListableBeanFactory = AbstractListableFactory::<DefaultProfile>::new();
+    let attr = AttributeHandlerMapping::new(&listable);
     use web_framework::web_framework::message::MessageConverterFilter;
     let mapping = Filter {
         actions: Arc::new(MessageConverterFilter{}),

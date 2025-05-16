@@ -1,7 +1,7 @@
 use std::ops::Deref;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::{parse_str, Attribute, Block, FnArg, ImplItem, ImplItemMethod, ItemImpl, Stmt, Type};
+use syn::{parse_str, Attribute, Block, FnArg, ImplItem, ImplItemMethod, ItemImpl, ItemStruct, Stmt, Type};
 
 // Type alias for proc_macro2::TokenStream to distinguish from proc_macro::TokenStream
 type TokenStream2 = proc_macro2::TokenStream;
@@ -23,7 +23,6 @@ import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/handler_ma
 
 pub struct HandlerMappingBuilder {
     controllers: Vec<ControllerBean>,
-
     message_converters: Vec<MessageConverterBean>
 }
 
@@ -241,7 +240,8 @@ impl HandlerMappingBuilder {
                 vec![ControllerBean {
                     method: impl_item_method.clone(),
                     ant_path_request_matcher: i.1.clone(),
-                    arguments_resolved: ArgumentResolver::resolve_argument_methods(&impl_item_method)
+                    arguments_resolved: ArgumentResolver::resolve_argument_methods(&impl_item_method),
+                    self_struct: i.0.item_impl.unwrap().self_ty.deref().clone(),
                 }]
             }
             _ => {
@@ -354,12 +354,12 @@ impl HandlerMappingBuilder {
         
         let (to_match, split) = self.get_request_matcher_info();
 
-        let (arg_idents, arg_types, arg_outputs) = self.parse_request_body_args();
-        
         // Include the message converter macro if we have converters
         let converter_tokens = message_converter_tokens.unwrap_or_else(|| quote! {});
 
         let (path_var_idents, path_var_names) = self.parse_path_variable_args();
+
+        let (arg_idents, arg_types, arg_outputs, self_tys) = self.parse_request_body_args();
 
         let method_logic_stmts = self.reparse_method_logic();
 
@@ -394,20 +394,23 @@ impl HandlerMappingBuilder {
                     #arg_outputs,
                     HandlerExecutorImpl<
                         UserRequestContext<#arg_types>,
-                        RequestContextData<#arg_types, #arg_outputs>
+                        RequestContextData<#arg_types, #arg_outputs>,
+                        #self_tys
                     >>>)*
             }
 
-            pub struct HandlerExecutorImpl <D: Data + Send + Sync, C: ContextData + Send + Sync> {
+            pub struct HandlerExecutorImpl <D: Data + Send + Sync, C: ContextData + Send + Sync, U> {
                 phantom_d: PhantomData<D>,
-                phantom_c: PhantomData<C>
+                phantom_c: PhantomData<C>,
+                c: Arc<U>
             }
 
-            impl <D: Data + Send + Sync, C: ContextData + Send + Sync> Default for HandlerExecutorImpl<D, C> {
-                fn default() -> Self {
+            impl <D: Data + Send + Sync, C: ContextData + Send + Sync, U> HandlerExecutorImpl<D, C, U> {
+                fn new(c: Arc<U>) -> Self {
                     Self {
                         phantom_d: PhantomData::default(),
-                        phantom_c: PhantomData::default()
+                        phantom_c: PhantomData::default(),
+                        c
                     }
                 }
             }
@@ -415,7 +418,7 @@ impl HandlerMappingBuilder {
             #(
 
                 impl Handler<#arg_types, #arg_outputs, UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>
-                for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>> {
+                for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #self_tys> {
                     fn do_action(
                         &self,
                         web_request: &WebRequest,
@@ -460,7 +463,7 @@ impl HandlerMappingBuilder {
                 }
 
                 impl HandlerExecutor<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #arg_types, #arg_outputs>
-                for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>
+                for HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #self_tys>
                 {
                     fn execute_handler(
                         &self,
@@ -471,9 +474,10 @@ impl HandlerMappingBuilder {
                         if handler.request_ctx_data.as_ref().is_none() {
                             let mut req = UserRequestContext::default();
                             req.request = Some(#arg_types::default());
+
                             req.request
                                 .map(|#arg_idents| {
-                                     #(#method_logic_stmts)*
+                                    self.c.do_request(#arg_idents)
                                 })
                         } else {
                             println!("Not null!");
@@ -481,9 +485,9 @@ impl HandlerMappingBuilder {
                                 .map_or_else(|| {
                                     println!("Was null!");
                                     let #arg_idents = #arg_types::default();
-                                     #(#method_logic_stmts)*
+                                    self.c.do_request(#arg_idents)
                                 }, |#arg_idents| {
-                                     #(#method_logic_stmts)*
+                                    self.c.do_request(#arg_idents)
                                 })
                                 .into()
                         }
@@ -492,7 +496,7 @@ impl HandlerMappingBuilder {
             )*
 
             impl AttributeHandlerMapping {
-                pub fn new() -> Self {
+                pub fn new(listable: &ListableBeanFactory) -> Self {
                     #(
                         let mut interceptors = vec![];
 
@@ -516,11 +520,12 @@ impl HandlerMappingBuilder {
                             }
                         );
 
-                        let handler_executor: Arc<HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>>
-                            = Arc::new(HandlerExecutorImpl::default());
+                        let controller: Arc<#self_tys> = BeanContainer::<#self_tys>::fetch_bean(listable).unwrap();
+                        let handler_executor: Arc<HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #self_tys>>
+                            = Arc::new(HandlerExecutorImpl::new(controller.clone()));
 
                         let handler_executor: Arc<HandlerExecutorStruct<
-                            HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>>,
+                            HandlerExecutorImpl<UserRequestContext<#arg_types>, RequestContextData<#arg_types, #arg_outputs>, #self_tys>,
                             UserRequestContext<#arg_types>,
                             RequestContextData<#arg_types, #arg_outputs>,
                             #arg_types,
@@ -601,7 +606,7 @@ impl HandlerMappingBuilder {
                 .map(|args| {
                     args.iter().flat_map(|args| {
                         if args.inner.name.len() != 0 {
-                            return vec![Ident::new(args.inner.name.as_str(), Span::call_site())];
+                            return vec![Ident::new(args.inner.name.as_str(), Span::mixed_site())];
                         }
                         vec![]
                     }).collect::<Vec<Ident>>()
@@ -611,16 +616,16 @@ impl HandlerMappingBuilder {
         path_var_idents
     }
 
-    fn parse_request_body_args(&self) -> (Vec<Ident>, Vec<Type>, Vec<Type>) {
+    fn parse_request_body_args(&self) -> (Vec<Ident>, Vec<Type>, Vec<Type>, Vec<Type>) {
         let args = self.controllers.iter()
             .flat_map(|c| c.arguments_resolved.iter().filter(|a| {
                 a.request_body_arguments.len() != 0
             }).map(|r| {
                 let args = r.request_body_arguments.get(0)
                     .unwrap();
-                (Ident::new(args.inner.name.as_str(), Span::call_site()), args.request_serialize_type.clone(), args.output_type.clone().unwrap())
+                (Ident::new(args.inner.name.as_str(), Span::mixed_site()), args.request_serialize_type.clone(), args.output_type.clone().unwrap(), c.self_struct.clone())
             }))
-            .collect::<Vec<(Ident, Type, Type)>>();
+            .collect::<Vec<(Ident, Type, Type, Type)>>();
 
         //TODO: These should be Vec<Vec<*>> because there will be tuples for multiple values...
         //  Then the tuple will be unwrapped accordingly.
@@ -630,7 +635,10 @@ impl HandlerMappingBuilder {
         let arg_types = args.iter()
             .map(|i| i.1.clone())
             .collect::<Vec<Type>>();
-        (arg_idents, arg_types, args.iter().map(|i| i.2.clone()).collect::<Vec<Type>>())
+        let self_types = args.iter()
+            .map(|i| i.3.clone())
+            .collect::<Vec<Type>>();
+        (arg_idents, arg_types, args.iter().map(|i| i.2.clone()).collect::<Vec<Type>>(), self_types)
     }
 
     fn get_request_matcher_info(&self) -> (Vec<Vec<String>>, Vec<Vec<String>>) {
@@ -672,7 +680,8 @@ impl HandlerMappingBuilder {
 struct ControllerBean {
     method: ImplItemMethod,
     ant_path_request_matcher: Vec<AntPathRequestMatcher>,
-    arguments_resolved: Vec<ArgumentResolver>
+    arguments_resolved: Vec<ArgumentResolver>,
+    self_struct: syn::Type
 }
 
 struct MessageConverterBean {

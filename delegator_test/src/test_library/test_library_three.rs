@@ -54,6 +54,7 @@ pub mod test_library_four {
         #[get_mapping(/v1/dummy/request)]
         pub fn do_request(&self, #[request_body] one: ReturnRequest) -> ReturnRequest {
             println!("Whatever!");
+            println!("{}", self.test_one.two);
             ReturnRequest { value: String::from("Whatever") }
         }
     }
