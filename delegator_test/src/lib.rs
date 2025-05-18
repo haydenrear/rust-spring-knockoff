@@ -54,6 +54,21 @@ pub mod test_library {
         zero
     }
 
+    #[processor]
+    #[boot_knockoff_gen]
+    #[cfg(boot_knockoff_gen)]
+    pub mod boot_knockoff {
+        
+        pub fn main(factory: ListableBeanFactory) {
+            use crate::BootApplication;
+            // BootApplication created same way authentication_gen created,
+            // from the macro using all existing factories, then iterates through all
+            // factories on the path, for example HandlerMapping, etc, running boot 
+            // on all of them in succession using ListableBeanFactory as arg.
+            BootApplication::main(factory);
+        } 
+        
+    }
 
     #[processor]
     #[authentication_type]

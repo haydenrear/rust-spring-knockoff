@@ -112,6 +112,8 @@ pub fn knockoff_application(attr: TokenStream, input: TokenStream) -> TokenStrea
     /// After the bean container has been created and before the users' main function is called,
     /// any function, struct or non-struct that is decorated with #[post_construct] is called.
     ///
+    /// 
+    
     input.into()
 }
 

@@ -6,29 +6,20 @@ pub mod session {
     extern crate alloc;
     extern crate core;
 
-    use crate::web_framework::filter::filter::FilterChain;
-    use web_framework_shared::request::{EndpointMetadata, WebRequest};
+    use crate::web_framework::context::{RequestContextData, UserRequestContext};
+    use crate::web_framework::security::authentication::AuthenticationToken;
+    use crate::web_framework::security::security_context_holder::SecurityContextHolder;
     use alloc::string::String;
-    use async_std::task as async_task;
     use core::borrow::Borrow;
-    use data_framework::{Entity, HDatabase, Repo, RepoDelegate};
+    use data_framework::{Entity, Repo};
     use futures::executor;
     use knockoff_security::knockoff_security::user_request_account::SessionData;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
     use std::any::Any;
-    use std::cell::RefCell;
-    use std::collections::{HashMap, LinkedList};
     use std::marker::PhantomData;
-    use std::ops::Deref;
-    use std::pin::Pin;
-    use web_framework_shared::authority::GrantedAuthority;
     use web_framework_shared::dispatch_server::Handler;
-    use crate::web_framework::context::{Context, RequestContextData, RequestHelpers, UserRequestContext};
     use web_framework_shared::request::WebResponse;
-    use crate::web_framework::request_context::SessionContext;
-    use crate::web_framework::security::authentication::AuthenticationToken;
-    use crate::web_framework::security::security_context_holder::SecurityContextHolder;
-
+    use web_framework_shared::request::{EndpointMetadata, WebRequest};
 
 
     #[derive(Serialize, Deserialize, Debug, Clone, Default)]

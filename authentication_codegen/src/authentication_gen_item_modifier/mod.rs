@@ -48,7 +48,6 @@ impl AuthenticationGenItemModifier {
         info!("Checking {:?}", &impl_item.to_token_stream().to_string().as_str());
         match impl_item {
             Item::Mod(item_mod) => {
-                info!("Checking {:?}", &item_mod.attrs);
                 item_mod.attrs.iter()
                     .any(|attr_found| attr_found.to_token_stream()
                         .to_string().as_str().contains("authentication_type")

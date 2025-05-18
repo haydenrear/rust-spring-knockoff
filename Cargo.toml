@@ -23,6 +23,8 @@ members = [
     "crate_gen",
     "security_parse_provider",
     "aspect_knockoff_provider",
+    "boot_knockoff_gen",
+    "boot_knockoff_codegen",
     "collection_util",
     "knockoff_tokio_util",
     "knockoff_helper",
@@ -47,7 +49,7 @@ members = [
     "err",
     "dfactory_dcodegen_codegen",
     "dfactory_dcodegen_lib",
-    "dfactory_dcodegen_shared",
+    "dfactory_dcodegen_shared", "boot_knockoff_gen", "boot_knockoff_codegen",
 #    "boot_application_builder"
 ]
 exclude = [

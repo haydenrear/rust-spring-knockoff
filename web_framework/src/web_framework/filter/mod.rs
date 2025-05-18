@@ -76,7 +76,6 @@ pub mod filter {
         Html
     }
 
-    // TODO: can make this a macro to remove dyn
     pub struct Filter<Request, Response>
     where
         Response: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,

@@ -28,9 +28,9 @@ impl ProviderProvider for ProfileTreeModifierProvider {
             impl ProfileTreeModifier for DelegatingProfileTreeModifierProvider {
 
                 fn modify_bean(&self, dep_type: &mut BeanDefinition, profile_tree: &mut ProfileTree) {
-                    // #(
-                    //     self.#provider_idents.modify_bean(dep_type, profile_tree);
-                    // )*
+                    #(
+                        self.#provider_idents.modify_bean(dep_type, profile_tree);
+                    )*
                 }
 
                 fn new(profile_tree_items: &HashMap<String, BeanDefinition>) -> Self {

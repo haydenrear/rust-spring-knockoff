@@ -15,7 +15,7 @@ use web_framework::web_framework::http::{
     RequestConversionError,
     RequestConverter,
 };
-use web_framework_shared::{EndpointMetadata, RequestExecutor};
+use web_framework_shared::{ContextData, Data, EndpointMetadata, HandlerExecutor};
 use web_framework_shared::http_method::HttpMethod;
 use web_framework_shared::request::{WebRequest};
 
@@ -26,25 +26,31 @@ use codegen_utils::project_directory;
 use web_framework::web_framework::convert::{RequestTypeExtractor};
 import_logger_root!("lib.rs", concat!(project_directory!(), "/log_out/hyper_request.log"));
 
-pub struct HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
-where
+pub struct HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT, D, Ctx>
+where 
+    D: Data + Send + Sync + ?Sized,
+    Ctx: ContextData + Send + Sync + ?Sized,
     ResponseT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-    RequestExecutorT: RequestExecutor<RequestT, ResponseT> + Send + Sync,
+    RequestExecutorT: HandlerExecutor<D, Ctx, RequestT, ResponseT> + Send + Sync,
     RequestConverterT: RequestConverter<Request<Body>, RequestT, HyperBodyConvertError> + 'static + Send + Sync
 {
     pub request_executor: Arc<RequestExecutorT>,
     pub converter: Arc<RequestConverterT>,
     pub response: PhantomData<ResponseT>,
-    pub request: PhantomData<RequestT>
+    pub request: PhantomData<RequestT>,
+    pub d: PhantomData<D>,
+    pub ctx: PhantomData<Ctx>
 }
 
-impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT>
-HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
+impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT, D, Ctx>
+HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT, D, Ctx>
 where
+    D: Data + Send + Sync + ?Sized,
+    Ctx: ContextData + Send + Sync + ?Sized,
     ResponseT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
     RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-    RequestExecutorT: RequestExecutor<RequestT, ResponseT> + Send + Sync + 'static,
+    RequestExecutorT: HandlerExecutor<D, Ctx, RequestT, ResponseT> + Send + Sync + 'static,
     RequestConverterT: RequestConverter<Request<Body>, RequestT, HyperBodyConvertError> + 'static + Send + Sync
 
 {
@@ -57,6 +63,8 @@ where
             converter: converter.into(),
             response: Default::default(),
             request: Default::default(),
+            d: Default::default(),
+            ctx: Default::default(),
         }
     }
 }
@@ -85,55 +93,57 @@ impl HyperRequestStreamError {
 impl StdError for HyperRequestStreamError {
 }
 
-impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT>
-HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT>
+impl <RequestT, ResponseT, RequestExecutorT, RequestConverterT, D, Ctx>
+HyperRequestStream<RequestT, ResponseT, RequestExecutorT, RequestConverterT, D, Ctx>
     where
+        D: Data + Send + Sync + ?Sized,
+        Ctx: ContextData + Send + Sync + ?Sized,
         ResponseT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
         RequestT: Serialize + for<'b> Deserialize<'b> + Clone + Default + Send + Sync + 'static,
-        RequestExecutorT: RequestExecutor<RequestT, ResponseT> + Send + Sync + 'static,
+        RequestExecutorT: HandlerExecutor<D, Ctx, RequestT, ResponseT> + Send + Sync + 'static,
         RequestConverterT: RequestConverter<Request<Body>, RequestT, HyperBodyConvertError> + 'static + Send + Sync
 {
 
     pub async fn do_run(&mut self) {
-        let addr = ([127, 0, 0, 1], 3000).into();
+        // let addr = ([127, 0, 0, 1], 3000).into();
 
-        let service = make_service_fn(|cnn: &AddrStream| {
-            let converter = self.converter.clone();
-            let request_executor = self.request_executor.clone();
-            async move  {
-                Ok::<_, Error>(service_fn(move |requested| {
-                    let converter = converter.clone();
-                    let request_executor = request_executor.clone();
-                    async move {
-                        converter.from(requested).await
-                            .map_err(|e| {
-                                error!("Error in service function converting from request: {:?}", e);
-                                e
-                            })
-                            .ok()
-                            .map(|mut converted| {
-                                let web_response
-                                    = request_executor.do_request(converted);
-                                serde_json::to_string::<ResponseT>(&web_response)
-                                    .map(|res| Response::new(Body::from(res)))
-                                    .map_err(|e| {
-                                        error!("Error in service function converting response to json: {:?}", e);
-                                        HyperRequestStreamError::new("Failed.")
-                                    })
-                            })
-                            .or(Some(Err(HyperRequestStreamError::new("Failed to convert request using request converter."))))
-                            .unwrap()
-                    }
-                }))
-            }
-        });
+        // let service = make_service_fn(|cnn: &AddrStream| {
+        //     let converter = self.converter.clone();
+        //     let request_executor = self.request_executor.clone();
+            // async move  {
+            //     Ok::<_, Error>(service_fn(move |requested| {
+            //         let converter = converter.clone();
+            //         let request_executor = request_executor.clone();
+            //         async move {
+            //             converter.from(requested).await
+            //                 .map_err(|e| {
+            //                     error!("Error in service function converting from request: {:?}", e);
+            //                     e
+            //                 })
+            //                 .ok()
+            //                 .map(|mut converted| {
+            //                     let web_response
+            //                         = request_executor.execute_handler(converted);
+            //                     serde_json::to_string::<ResponseT>(&web_response)
+            //                         .map(|res| Response::new(Body::from(res)))
+            //                         .map_err(|e| {
+            //                             error!("Error in service function converting response to json: {:?}", e);
+            //                             HyperRequestStreamError::new("Failed.")
+            //                         })
+            //                 })
+            //                 .or(Some(Err(HyperRequestStreamError::new("Failed to convert request using request converter."))))
+            //                 .unwrap()
+            //         }
+            //     }))
+            // }
+        // });
 
-        let server = Server::bind(&addr)
-            .serve(service);
-
-        if let Err(e) = server.await {
-            error!("server error: {:?}", e);
-        }
+        // let server = Server::bind(&addr)
+        //     .serve(service);
+        // 
+        // if let Err(e) = server.await {
+        //     error!("server error: {:?}", e);
+        // }
     }
 }
 
