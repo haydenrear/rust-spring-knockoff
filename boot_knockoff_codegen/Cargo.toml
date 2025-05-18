@@ -1,0 +1,85 @@
+[package]
+name = "boot_knockoff_codegen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+proc-macro2 = "1.0.51"
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
+derive-syn-parse = "0.1.5"
+lazy_static = "1.4.0"
+serde = "1.0.137"
+base64 = "0.13.0"
+executors = "0.9.0"
+paste = "1.0.12"
+rand = "0.8.5"
+
+[dependencies.module_macro_shared]
+path ="../module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+#[dependencies.module_precompile_codegen]
+#path ="../module_precompile_codegen"
+#version = "0.1.5"
+#registry = "estuary"
+[dependencies.knockoff_logging]
+path ="../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.web_framework_shared]
+path ="../web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.knockoff_security]
+path ="../knockoff_security"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.spring_knockoff_boot_macro]
+path ="../spring_knockoff_boot_macro"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.module_macro_codegen]
+path ="../module_macro_codegen"
+version = "0.1.5"
+registry = "estuary"
+[dependencies.codegen_utils]
+path ="../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+
+[build-dependencies.codegen_utils]
+path = "../codegen_utils"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.knockoff_logging]
+path = "../knockoff_logging"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.spring_knockoff_boot_macro]
+path = "../spring_knockoff_boot_macro"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.knockoff_security]
+path = "../knockoff_security"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.module_macro_codegen]
+path = "../module_macro_codegen"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.module_macro_shared]
+path = "../module_macro_shared"
+version = "0.1.5"
+registry = "estuary"
+[build-dependencies.web_framework_shared]
+path = "../web_framework_shared"
+version = "0.1.5"
+registry = "estuary"
+
+[build-dependencies]
+rand = "0.8.5"
+syn = {version = "1.0", features = ["full"]}
+executors = "0.9.0"
+lazy_static = "1.4.0"
+paste = "1.0.12"
