@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::factories_booter::FactoryBootFrameworkTokenProvider;
 use toml::Value;
 use knockoff_logging::info;
 use crate::factories_parser::factories::{Factories, Factory};
@@ -101,7 +102,8 @@ providers!(
     (ProfileTreeModifierProvider, profile_tree_modifier_provider, "profile_tree_modifier_provider"),
     (ProfileTreeFinalizerProvider, profile_tree_finalizer, "profile_tree_finalizer"),
     (ItemModifierProvider, item_modifier, "item_modifier"),
-    (MutableMacroModifierProvider, mutable_macro_modifier_provider, "mutable_macro_modifier")
+    (MutableMacroModifierProvider, mutable_macro_modifier_provider, "mutable_macro_modifier"),
+    (FactoryBootFrameworkTokenProvider, factory_framework_token_provider, "factory_framework_token_provider")
 );
 
 impl Factories {

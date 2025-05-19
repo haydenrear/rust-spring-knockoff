@@ -15,6 +15,7 @@ use crate::logger_lazy;
 import_logger!("compile_cargo.rs");
 
 pub fn compile_from_directory(manifest_path: &Path, args: &HashMap<String, String>, target_directory: PathBuf) {
+    println!("Compiling : {}", manifest_path.to_str().unwrap());
     let config = Config::default().unwrap();
     let mut workspace = Workspace::new(&manifest_path, &config).unwrap();
     let file_system =  Filesystem::new(target_directory);

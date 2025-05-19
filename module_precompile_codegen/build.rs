@@ -19,9 +19,6 @@ use dfactory_dcodegen::write_d_factory_crate;
 
 import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/precompile_codegen.log"));
 
-use knockoff_dfactory_gen::{DelegatingFrameworkTokenProvider, DelegatingParseContainerModifierProvider, DelegatingItemModifier,
-                            DelegatingProfileTreeFinalizerProvider, DelegatingTokenProvider, DelegatingParseProvider};
-
 use module_macro_shared::{BuildParseContainer, ModuleParser, parse_module_into_container, ParseContainer, ProfileProfileTreeModifier,
                           ProfileTreeBuilder, ProfileTreeModifier, ItemModifier, ProfileTreeFrameworkTokenProvider};
 use optional::FlatMapResult;

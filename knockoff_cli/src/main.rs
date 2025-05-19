@@ -119,8 +119,9 @@ fn packages() -> Vec<&'static str> {
 // crate itself.
 fn compile_module_macro_codegen_gen_codegen(args: &HashMap<String, String>) {
     generate_knockoff_builder(args);
-    compile_in_target("knockoff_builder", args);
     generate_precompile_builder(args);
+    compile_in_sub_project("dfactory_dcodegen_codegen", args);
+    compile_in_target("knockoff_builder", args);
     compile_in_target("knockoff_precompile_builder", args);
 }
 
@@ -184,6 +185,14 @@ fn compile_in_target(dep_name_in_target: &str, args: &HashMap<String, String>) {
     compile_from_proj_directory(&manifest_path, args);
 }
 
+fn compile_in_sub_project(dep_name_in_target: &str, args: &HashMap<String, String>) {
+    let manifest_path = get_project_base_path()
+        .join(dep_name_in_target)
+        .join("Cargo.toml");
+
+    compile_from_sub_directory(&manifest_path, args);
+}
+
 fn compile_in_project(dep_name_in_target: &str, args: &HashMap<String, String>) {
     let manifest_path = get_project_base_path()
         .join(dep_name_in_target)
@@ -195,6 +204,10 @@ fn compile_in_project(dep_name_in_target: &str, args: &HashMap<String, String>) 
 
 fn compile_from_proj_directory(manifest_path: &Path, args: &HashMap<String, String>) {
     cargo_utils::compile_from_directory(manifest_path, args, get_target_directory());
+}
+
+fn compile_from_sub_directory(manifest_path: &Path, args: &HashMap<String, String>) {
+    cargo_utils::compile_from_directory(manifest_path, args, manifest_path.parent().unwrap().join("target").to_path_buf());
 }
 
 fn to_table(s: String) -> Result<Table, toml::de::Error> {

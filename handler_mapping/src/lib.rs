@@ -26,6 +26,18 @@ pub struct HandlerMappingBuilder {
     message_converters: Vec<MessageConverterBean>
 }
 
+pub struct HandlerMappingBootFactory {}
+
+impl HandlerMappingBootFactory {
+    pub fn new_boot(profile_tree: &mut ProfileTree) -> Self {
+        Self {}
+    }
+
+    pub fn generate_boot_ts(&self) -> TokenStream {
+        TokenStream::default()
+    }
+}
+
 impl HandlerMappingBuilder {
 
     pub fn new(items: &mut ProfileTree) -> Self {

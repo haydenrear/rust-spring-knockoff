@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::iter::Map;
 
-use std::sync::Mutex;
 use crate::logger_lazy;
 use proc_macro2::TokenStream;
 use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
 use toml::{Table, Value};
 
-use knockoff_logging::*;
 use knockoff_logging::info;
+use knockoff_logging::*;
 
-use crate::factories_parser::{Provider, Phase, ProviderData};
+use crate::factories_booter::FactoryBootFrameworkTokenProvider;
+use crate::factories_parser::{Phase, Provider, ProviderData};
 use crate::framework_token_provider::FrameworkTokenProvider;
 use crate::item_modifier::ItemModifierProvider;
 use crate::mutable_module_modifier_provider::MutableMacroModifierProvider;
@@ -19,8 +19,8 @@ use crate::parse_container_modifier::ParseContainerModifierProvider;
 use crate::parse_provider::ParseProvider;
 use crate::profile_tree_finalizer::ProfileTreeFinalizerProvider;
 use crate::profile_tree_modifier::ProfileTreeModifierProvider;
-use crate::token_provider::TokenProvider;
 use crate::provider::ProviderProvider;
+use crate::token_provider::TokenProvider;
 
 import_logger!("factories_parser.rs");
 
@@ -105,10 +105,12 @@ macro_rules! factories {
 
                 $(
                     if !out.contains_key($factory_name_lit) {
+                        println!("Did not contain key for {}.", $factory_name_lit);
                         info!("Did not contain key for {}.", $factory_name_lit);
                     } else {
                         out.get($factory_name_lit)
                             .map(|providers| {
+                                println!("Added key for {} and providers {:?}.", $factory_name_lit, &providers);
                                 info!("Added key for {} and providers {:?}.", $factory_name_lit, &providers);
                                 let providers = providers.iter().map(|p| p).collect();
                                 let tokens = $ty::get_tokens(&providers);
@@ -174,5 +176,6 @@ factories!(
     (ProfileTreeModifierProvider, profile_tree_modifier_provider, "profile_tree_modifier_provider", "DelegatingProfileTreeModifierProvider"),
     (ProfileTreeFinalizerProvider, profile_tree_finalizer, "profile_tree_finalizer", "DelegatingProfileTreeFinalizerProvider"),
     (ItemModifierProvider, item_modifier, "item_modifier", "DelegatingItemModifier"),
-    (MutableMacroModifierProvider, mutable_macro_modifier_provider, "mutable_macro_modifier_provider", "DelegatingMutableMacroModifierProvider")
+    (MutableMacroModifierProvider, mutable_macro_modifier_provider, "mutable_macro_modifier_provider", "DelegatingMutableMacroModifierProvider"),
+    (FactoryBootFrameworkTokenProvider, factory_framework_token_provider, "factory_framework_token_provider", "DelegatingFactoryBootTokenProvider")
 );

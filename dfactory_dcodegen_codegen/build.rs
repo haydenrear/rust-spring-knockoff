@@ -19,7 +19,7 @@ fn main() {
          .unwrap();
 
      let out_directory = get_build_project_dir("target");
-
+     
      FactoriesParser::write_phase(&knockoff_version, &knockoff_factories,
                                   &out_directory, &Phase::DFactory);
      let mut proj_dir = get_project_base_build_dir();

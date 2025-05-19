@@ -11,8 +11,8 @@ import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/module_m
 
 fn main() {
     log_message!("Initializing module macro lib.");
-    let mut cargo_change = "cargo:rerun-if-changed=".to_string();
-    cargo_change += get_project_base_build_dir().as_str();
-
-    println!("{}", cargo_change);
+    // let mut cargo_change = "cargo:rerun-if-changed=".to_string();
+    // cargo_change += get_project_base_build_dir().as_str();
+    // 
+    // println!("{}", cargo_change);
 }

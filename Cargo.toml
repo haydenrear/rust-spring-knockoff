@@ -32,7 +32,7 @@ members = [
     "string_utils",
     "set_enum_fields",
     "authentication_codegen",
-    "module_precompile_codegen",
+#    "module_precompile_codegen",
     "module_precompile",
     "knockoff_env",
     "configuration_properties_macro",
@@ -47,12 +47,14 @@ members = [
     "dfactory_dcodegen",
     "cargo_utils",
     "err",
-    "dfactory_dcodegen_codegen",
+#    "dfactory_dcodegen_codegen",
     "dfactory_dcodegen_lib",
     "dfactory_dcodegen_shared", "boot_knockoff_gen", "boot_knockoff_codegen",
 #    "boot_application_builder"
 ]
 exclude = [
+    "dfactory_dcodegen_codegen",
+    "module_precompile_codegen",
     "target/knockoff_providers_gen",
     "target/knockoff_providers_genone",
     "target/knockoff_precompile_gen",

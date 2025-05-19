@@ -13,6 +13,7 @@ use toml::Table;
 use codegen_utils::{FlatMapOptional, program_src, project_directory, project_directory_path, user_program_src};
 use codegen_utils::{get_build_project_dir, get_project_base_build_dir, get_project_dir};
 use codegen_utils::syn_helper::SynHelper;
+use knockoff_dfactory_gen::DelegatingFactoryBootTokenProvider;
 use crate_gen::CrateWriter;
 
 import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/precompile_codegen.log"));
@@ -20,7 +21,7 @@ import_logger_root!("build.rs", concat!(project_directory!(), "/log_out/precompi
 use knockoff_dfactory_gen::{DelegatingFrameworkTokenProvider, DelegatingParseContainerModifierProvider, DelegatingItemModifier,
                             DelegatingProfileTreeFinalizerProvider, DelegatingTokenProvider, DelegatingParseProvider};
 
-use module_macro_shared::{BuildParseContainer, ModuleParser, parse_module_into_container, ParseContainer, ProfileProfileTreeModifier, ProfileTreeBuilder, ProfileTreeModifier, ItemModifier, ProfileTreeFrameworkTokenProvider, ProfileTreeTokenProvider, do_parse_container, do_container_modifications, do_modify, ItemParser};
+use module_macro_shared::{BuildParseContainer, ModuleParser, parse_module_into_container, ParseContainer, ProfileProfileTreeModifier, ProfileTreeBuilder, ProfileTreeModifier, ItemModifier, ProfileTreeFrameworkTokenProvider, ProfileTreeTokenProvider, do_parse_container, do_container_modifications, do_modify, ItemParser, FactoryBootTokenProvider};
 use module_macro_shared::item_mod_parser::ItemModParser;
 use optional::FlatMapResult;
 use module_macro_shared::ParseContainerItemUpdater;
@@ -44,7 +45,7 @@ pub fn write_d_factory_crate() -> Option<String> {
         delegating_parse_container_modifier: DelegatingParseContainerModifierProvider::new(),
         delegating_parse_container_builder: ParseContainerBuilder {},
         delegating_parse_container_item_modifier: DelegatingItemModifier::new(),
-        delegating_parse_container_finalizer: DelegatingProfileTreeFinalizerProvider {},
+        delegating_parse_container_finalizer: DelegatingProfileTreeFinalizerProvider {}
     };
 
     codegen_utils::io_utils::open_file_read(&user_program_src!().join("lib.rs"))
@@ -103,6 +104,17 @@ pub fn write_d_factory_crate() -> Option<String> {
 
                     ts.extend(generated);
                     info!("generated: {:?}.", SynHelper::get_str(&ts));
+
+                    let d = DelegatingFactoryBootTokenProvider::new_boot(&mut profile_tree);
+
+                    let mut generated: TokenStream = d.generate_boot_ts();
+                    
+                    info!("generated: {:?}.", SynHelper::get_str(&generated));
+                    println!("generated: {:?}.", SynHelper::get_str(&generated));
+
+
+                    ts.extend(generated);
+
                     ts
                 })
         })

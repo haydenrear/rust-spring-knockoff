@@ -81,6 +81,8 @@
       <sourceFolder url="file://$MODULE_DIR$/dfactory_dcodegen_codegen/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/dfactory_dcodegen_lib/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/dfactory_dcodegen_shared/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/boot_knockoff_codegen/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/boot_knockoff_gen/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/properties/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/mongo_repo/target" />
@@ -89,6 +91,8 @@
       <excludeFolder url="file://$MODULE_DIR$/knockoff_cli/target" />
       <excludeFolder url="file://$MODULE_DIR$/test/target" />
       <excludeFolder url="file://$MODULE_DIR$/test_two/target" />
+      <excludeFolder url="file://$MODULE_DIR$/dfactory_dcodegen_codegen/target" />
+      <excludeFolder url="file://$MODULE_DIR$/module_precompile_codegen/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

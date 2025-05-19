@@ -46,6 +46,7 @@ pub mod profile_tree_finalizer;
 pub mod item_modifier;
 pub mod framework_token_provider;
 pub mod mutable_module_modifier_provider;
+pub mod factories_booter;
 
 #[cfg(test)]
 pub mod test;

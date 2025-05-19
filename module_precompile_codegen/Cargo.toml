@@ -73,9 +73,6 @@ version = "0.1.5"
 [build-dependencies.dfactory_dcodegen]
 path = "../dfactory_dcodegen"
 version = "0.1.5"
-[build-dependencies.knockoff_dfactory_gen]
-path = "../target/knockoff_dfactory_gen"
-version = "0.1.5"
 [build-dependencies.knockoff_logging]
 path ="../knockoff_logging"
 version = "0.1.5"

@@ -116,6 +116,8 @@ impl FactoriesParser {
                 std::mem::swap(&mut gen_deps, &mut stages.gen_deps);
 
                 if *default {
+                    println!("Writing default crate for {}", &phase.to_string());
+                    info!("Writing default crate for {}", &phase.to_string());
                     FactoriesParser::write_default_crates_for_phase(&out_directory, version, phase, gen_deps);
                 } else {
                     gen_deps.as_mut()
@@ -123,6 +125,9 @@ impl FactoriesParser {
                         .map(|t| Self::add_delegating_deps(stages.stages.keys().map(|s| s.as_str()).collect(), phase, t));
 
                     std::mem::swap(&mut gen_deps, &mut stages.gen_deps);
+                    
+                    println!("Writing factory crate for {}", &phase.to_string());
+                    info!("Writing factory crate for {}", &phase.to_string());
 
                     FactoriesParser::write_factory_crate(stages, &out_directory, version, phase);
                 }
@@ -137,6 +142,7 @@ impl FactoriesParser {
             .to_path_buf().to_str()
             .flat_map_opt(|knockoff_default_factories_path| Self::parse_factories_value::<FactoryPhases>(knockoff_default_factories_path))
             .map(|mut factories| {
+                info!("Found factories {}", toml::to_string(&factories).unwrap());
                 if !f.phases.contains_key(phase) {
                     Self::do_insert_zero_stage_phase(phase, f, &mut factories);
                 } else {
@@ -227,10 +233,10 @@ impl FactoriesParser {
             .flat_map_opt(|t| t.as_table_mut())
             .map(|deps| {
 
-                info!("Doing writing of lib crate for stages {:?}", phase, );
-                // Insert paths.
                 factories_parser.stages.iter()
                     .for_each(|(stage_name, factory)| Self::add_dep_stage_crate(phase, deps, stage_name));
+                
+                info!("Doing writing of lib crate for stages {:?}\n{}", phase, &factories_parsed);
 
                 CrateWriter::write_lib_rs_crate(
                     phase.prefix(),
@@ -242,8 +248,8 @@ impl FactoriesParser {
             });
 
         for (stage_name, factory) in factories_parser.stages.iter_mut() {
-            info!("Doing writing of lib crate for phase {:?}: {}", phase, stage_name);
             let lib_rs = Self::write_lib_rs(factory);
+            info!("Doing writing of lib crate for phase {:?}: {}\n{}\n{}", phase, stage_name, toml::to_string(factory).unwrap(), &lib_rs);
             factory.dependencies.as_mut()
                 .map(|v| Self::add_all_to_table(v, Self::default_stage_deps(phase, stage_name)));
             factory.dependencies.as_ref()

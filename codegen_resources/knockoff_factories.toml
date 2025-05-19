@@ -156,12 +156,17 @@ name = "dfactory_dcodegen_shared"
 version = "0.1.5"
 registry = "estuary"
 
-#[providers.stages.one]
-# Providers for web endpoints
 [phases.providers.stages.one.token_provider.values.handler_mapping.provider_data]
 provider_path = "handler_mapping::HandlerMappingBuilder"
 provider_ident = "HandlerMappingTokenProvider"
+[phases.providers.stages.one.factory_framework_token_provider.values.handler_mapping.provider_data]
+provider_path = "handler_mapping::HandlerMappingBootFactory"
+provider_ident = "HandlerMappingBootFactoryTokenProvider"
 [phases.providers.stages.one.token_provider.values.handler_mapping.dependency_data]
+path ="../../handler_mapping"
+version = "0.1.5"
+registry = "estuary"
+[phases.providers.stages.one.factory_framework_token_provider.values.handler_mapping.dependency_data]
 path ="../../handler_mapping"
 version = "0.1.5"
 registry = "estuary"

@@ -1,17 +1,9 @@
-use std::{env, fs};
-use std::fs::File;
-use std::io::{Read, Write};
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, TokenStreamExt, ToTokens};
-use rand::Rng;
-use serde::{Deserialize, Serialize};
-use syn::{Attribute, Item, ItemMod, parse2, parse_str, Path};
-use syn::punctuated::Pair::Punctuated;
-use toml::{Table, Value};
-use crate::factories_parser::{FactoriesParser, Provider};
-use crate::provider::{DelegatingProvider, ProviderProvider};
+use crate::provider::ProviderProvider;
+use proc_macro2::{Ident, TokenStream};
+use quote::{quote, ToTokens};
+use syn::Path;
 
-pub struct FactoryBootTokenProvider;
+pub struct FactoryBootFrameworkTokenProvider;
 
 /// Can refactor to pull out common with framework_token_provider
 /// -- this is the same, except FactoryBootTokenProvider is generating tokens for the
@@ -19,7 +11,7 @@ pub struct FactoryBootTokenProvider;
 /// example:
 ///     codegen tokens for HandlerMapping is framework_token_provider
 ///     codegen tokens for booting up HandlerMapping and dispatcher at start is FactoryBootTokenProvider
-impl ProviderProvider for FactoryBootTokenProvider {
+impl ProviderProvider for FactoryBootFrameworkTokenProvider {
     fn create_delegating_token_provider_tokens(provider_type: Vec<Ident>, provider_idents: Vec<Ident>,
                                                path: &Vec<Path>) -> TokenStream {
         quote! {
@@ -28,20 +20,20 @@ impl ProviderProvider for FactoryBootTokenProvider {
                 #(#provider_idents: #provider_type,)*
             }
 
-            impl ProfileTreeFactoryBootTokenProvider for DelegatingFactoryBootTokenProvider {
-                fn new(profile_tree: &mut ProfileTree) -> Self {
+            impl FactoryBootTokenProvider for DelegatingFactoryBootTokenProvider {
+                fn new_boot(profile_tree: &mut ProfileTree) -> Self {
                     #(
-                        let #provider_idents = #provider_type::new(profile_tree);
+                        let #provider_idents = #provider_type::new_boot(profile_tree);
                     )*
                     Self {
                         #(#provider_idents,)*
                     }
                 }
 
-                fn generate_token_stream(&self) -> TokenStream {
+                fn generate_boot_ts(&self) -> TokenStream {
                     let mut ts = TokenStream::default();
                     #(
-                        ts.append_all(self.#provider_idents.generate_token_stream());
+                        ts.append_all(self.#provider_idents.generate_boot_ts());
                     )*
                     ts
                 }
@@ -61,17 +53,17 @@ impl ProviderProvider for FactoryBootTokenProvider {
                     token_delegate: #builder_path
                 }
 
-                impl ProfileTreeFactoryBootTokenProvider for #provider_ident {
-                    fn new(items: &mut ProfileTree) -> #provider_ident {
+                impl FactoryBootTokenProvider for #provider_ident {
+                    fn new_boot(items: &mut ProfileTree) -> #provider_ident {
                         let profile_tree = items.clone();
-                        let token_delegate = #builder_path::new(items);
+                        let token_delegate = #builder_path::new_boot(items);
                         Self {
                             profile_tree,
                             token_delegate
                         }
                     }
-                    fn generate_token_stream(&self) -> TokenStream {
-                        self.token_delegate.generate_token_stream()
+                    fn generate_boot_ts(&self) -> TokenStream {
+                        self.token_delegate.generate_boot_ts()
                     }
                 }
 
@@ -80,9 +72,6 @@ impl ProviderProvider for FactoryBootTokenProvider {
 
     fn get_imports() -> TokenStream {
         let imports = quote! {
-            // use proc_macro2::TokenStream;
-            // use quote::TokenStreamExt;
-            // use module_macro_shared::*;
         }.into();
         imports
     }

@@ -1,15 +1,7 @@
-use std::{env, fs};
-use std::fs::File;
-use std::io::{Read, Write};
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, TokenStreamExt, ToTokens};
-use rand::Rng;
-use serde::{Deserialize, Serialize};
-use syn::{Attribute, Item, ItemMod, parse2, parse_str, Path};
-use syn::punctuated::Pair::Punctuated;
-use toml::{Table, Value};
-use crate::factories_parser::{FactoriesParser, Provider};
-use crate::provider::{DelegatingProvider, ProviderProvider};
+use crate::provider::ProviderProvider;
+use proc_macro2::{Ident, TokenStream};
+use quote::{quote, ToTokens};
+use syn::Path;
 
 pub struct ProfileTreeFinalizerProvider;
 
@@ -18,7 +10,7 @@ Generate the ProfileTree based on BeanDefinitions added in the ParseContainerMod
 */
 impl ProviderProvider for ProfileTreeFinalizerProvider {
     fn create_delegating_token_provider_tokens(
-        provider_type: Vec<Ident>, provider_idents: Vec<Ident>,
+        provider_type: Vec<Ident>, _provider_idents: Vec<Ident>,
         path: &Vec<Path>
     ) -> TokenStream {
         quote! {
